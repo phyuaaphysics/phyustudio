@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PhyuStudio - Quantum Link</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --interface-black: #121212;
+            --interface-grey: #71717a;
+            --bg-white: #ffffff;
+            --accent-glow: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-color: var(--bg-white);
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            color: var(--interface-black);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
+        }
+
+        /* Grid Background Effect */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+            background-size: clamp(40px, 8vw, 60px) clamp(40px, 8vw, 60px);
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            opacity: 0;
+            width: 90%;
+            max-width: 600px;
+            transform: scale(0.95) perspective(1200px) rotateX(5deg);
+            transition: all 1.8s cubic-bezier(0.2, 1, 0.2, 1);
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: scale(1) perspective(1200px) rotateX(0deg);
+        }
+
+        .container.fade-out {
+            opacity: 0;
+            transform: scale(1.05);
+            filter: blur(20px);
+            transition: all 1.2s ease-in;
+        }
+
+        /* Responsive Icon Scaling */
+        .icon-wrapper {
+            position: relative;
+            padding: clamp(20px, 5vw, 40px);
+            display: inline-block;
+        }
+
+        .icon-frame {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 50%;
+            animation: rotate 15s linear infinite;
+        }
+
+        .icon-frame::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: var(--interface-black);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .app-icon {
+            width: clamp(100px, 30vw, 150px);
+            height: clamp(100px, 30vw, 150px);
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.05));
+            position: relative;
+            z-index: 2;
+        }
+
+        .title {
+            margin-top: clamp(1.5rem, 5vw, 2.5rem);
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            font-weight: 200;
+            letter-spacing: clamp(0.2em, 1vw, 0.5em);
+            text-transform: uppercase;
+            color: var(--interface-black);
+            white-space: nowrap;
+        }
+
+        .scanning-bar {
+            position: absolute;
+            width: 80%;
+            left: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--interface-black), transparent);
+            top: 0;
+            opacity: 0;
+            z-index: 3;
+        }
+
+        .visible .scanning-bar {
+            animation: scan 3.5s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes scan {
+            0% { top: 15%; opacity: 0; }
+            20% { opacity: 0.3; }
+            80% { opacity: 0.3; }
+            100% { top: 85%; opacity: 0; }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hud-text {
+            position: absolute;
+            bottom: clamp(-60px, -10vh, -40px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(90vw, 400px);
+            font-size: clamp(0.55rem, 2vw, 0.65rem);
+            color: var(--interface-grey);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        #interaction-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: var(--bg-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .status-text {
+            color: var(--interface-grey);
+            font-size: clamp(0.65rem, 3vw, 0.75rem);
+            letter-spacing: 0.3em;
+            font-weight: 400;
+            text-transform: uppercase;
+        }
+
+        .launch-btn {
+            margin-top: 2rem;
+            padding: 0.8rem clamp(1.5rem, 5vw, 2.5rem);
+            border: 1px solid #e5e7eb;
+            color: var(--interface-black);
+            font-size: clamp(0.65rem, 3vw, 0.75rem);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: all 0.4s ease;
+            background: #fff;
+            border-radius: 4px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #interaction-overlay:hover .launch-btn, 
+        #interaction-overlay:active .launch-btn {
+            border-color: var(--interface-black);
+            background: #fafafa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .loading-track {
+            margin-top: 2.5rem;
+            width: clamp(80px, 20vw, 120px);
+            height: 2px;
+            background: #f3f4f6;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--interface-black);
+            transform: translateX(-100%);
+            animation: loading 3s infinite;
+        }
+
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <div id="interaction-overlay">
+        <div class="status-text">Ready for Launch</div>
+        <div class="launch-btn">Click to start launching</div>
+        <div class="loading-track">
+            <div class="loading-bar"></div>
+        </div>
+    </div>
+
+    <div class="container" id="splash-content">
+        <div class="icon-wrapper">
+            <div class="icon-frame"></div>
+            <div class="scanning-bar"></div>
+            <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" 
+                 alt="App Icon" 
+                 class="app-icon"
+                 onerror="this.src='https://via.placeholder.com/150?text=PHYSICS'">
+        </div>
+        <h1 class="title">Learn Physics</h1>
+        <div class="hud-text" id="hud-data">System Idle...</div>
+    </div>
+
+    <script>
+        const overlay = document.getElementById('interaction-overlay');
+        const content = document.getElementById('splash-content');
+        const hud = document.getElementById('hud-data');
+        const targetUrl = "https://phyuaaphysics.github.io/phyustudio/home.html";
+
+        let audioCtx;
+
+        overlay.addEventListener('click', () => {
+            handleStart();
+        });
+
+        overlay.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleStart();
+        }, { once: true });
+
+        function handleStart() {
+            if (audioCtx) return; 
+            
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            overlay.style.transition = "all 0.8s ease-in-out";
+            overlay.style.opacity = "0";
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                startSequence();
+            }, 800);
+        }
+
+        function updateHUD() {
+            const strings = [
+                "> BOOTING QUANTUM ENGINE...",
+                "> ANALYZING PARTICLE DATA...",
+                "> CALCULATING TRAJECTORIES...",
+                "> SYNCHRONIZING INTERFACE...",
+                "> READY."
+            ];
+            let i = 0;
+            const interval = setInterval(() => {
+                hud.innerText = strings[i];
+                playDataBlip();
+                i++;
+                if (i >= strings.length) clearInterval(interval);
+            }, 900);
+        }
+
+        function startSequence() {
+            playMainSequenceSound();
+            updateHUD();
+
+            setTimeout(() => {
+                content.classList.add('visible');
+            }, 100);
+
+            setTimeout(() => {
+                content.classList.add('fade-out');
+                playWhooshOut();
+            }, 4500);
+
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 5800);
+        }
+
+        function playDataBlip() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1400 + Math.random() * 600, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        function playWhooshOut() {
+            if (!audioCtx) return;
+            const noise = audioCtx.createBufferSource();
+            const bufferSize = audioCtx.sampleRate * 1.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(2500, audioCtx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 1.4);
+            
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.4);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start();
+        }
+
+        function playMainSequenceSound() {
+            if (!audioCtx) return;
+            const masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+            masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            masterGain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+            masterGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4.5);
+
+            const whir = audioCtx.createOscillator();
+            whir.type = 'sine';
+            whir.frequency.setValueAtTime(110, audioCtx.currentTime);
+            whir.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 2.5);
+            const whirGain = audioCtx.createGain();
+            whirGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            whirGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.5);
+            whir.connect(whirGain);
+            whirGain.connect(masterGain);
+            whir.start();
+
+            [523.25, 659.25, 783.99].forEach((f, i) => {
+                const chime = audioCtx.createOscillator();
+                chime.type = 'sine';
+                chime.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.08));
+                const chimeGain = audioCtx.createGain();
+                chimeGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                chimeGain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 0.1 + (i * 0.08));
+                chimeGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.0);
+                chime.connect(chimeGain);
+                chimeGain.connect(masterGain);
+                chime.start();
+            });
+
+            const thud = audioCtx.createOscillator();
+            thud.type = 'triangle';
+            thud.frequency.setValueAtTime(90, audioCtx.currentTime);
+            thud.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.5);
+            const thudGain = audioCtx.createGain();
+            thudGain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            thudGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            thud.connect(thudGain);
+            thudGain.connect(masterGain);
+            thud.start();
+        }
+    </script>
+</body>
+</html>
