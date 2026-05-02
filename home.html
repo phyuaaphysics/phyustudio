@@ -30,6 +30,36 @@
             scrollbar-width: none;
         }
 
+        /* 加載過度層 */
+        #page-loader {
+            position: fixed;
+            inset: 0;
+            background-color: white;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+
+        #page-loader.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loader-icon {
+            width: 80px;
+            height: 80px;
+            animation: pulse-icon 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse-icon {
+            0%, 100% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
         .bottom-nav-blur {
             backdrop-filter: blur(20px);
             background-color: rgba(255, 255, 255, 0.9);
@@ -40,31 +70,51 @@
             background-color: rgba(255, 255, 255, 0.85);
         }
 
-        /* 海報卡片設計 (2:3) */
-        .poster-card {
-            aspect-ratio: 2/3;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            cursor: pointer;
-            position: relative;
-            border-radius: 0 !important;
-            overflow: hidden;
-        }
-
-        /* 更多功能卡片設計 (1:1 正方形) */
-        .square-card {
-            aspect-ratio: 1/1;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            cursor: pointer;
-            position: relative;
-            border-radius: 0 !important;
-            overflow: hidden;
+        /* 基礎淡入動畫 */
+        .card-animate {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
         
+        .card-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 卡片容器 */
+        .poster-card, .square-card {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            border-radius: 0 !important;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+
+        .poster-card { aspect-ratio: 2/3; }
+        .square-card { aspect-ratio: 1/1; }
+
+        /* 圖片容器與初始狀態 */
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease;
+            filter: brightness(0.95);
+        }
+        
+        /* 懸停交互細節 */
         @media (min-width: 1024px) {
             .poster-card:hover, .square-card:hover {
-                transform: scale(1.02);
-                z-index: 20;
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                transform: scale(1.08);
+                z-index: 30;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            }
+
+            .poster-card:hover .card-img, .square-card:hover .card-img {
+                transform: scale(1.1);
+                filter: brightness(1.05);
             }
         }
 
@@ -74,7 +124,6 @@
             object-fit: contain;
         }
         
-        /* Google Icon 顏色 */
         .google-icon-color {
             background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) text;
             -webkit-background-clip: text;
@@ -87,7 +136,6 @@
             scroll-margin-top: 80px;
         }
 
-        /* 英雄區域遮罩 */
         .hero-card-overlay {
             background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
         }
@@ -96,14 +144,15 @@
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
-            gap: 8px; 
-            padding-bottom: 8px;
+            gap: 12px; 
+            padding-bottom: 25px;
+            padding-top: 15px;
             -webkit-overflow-scrolling: touch;
         }
 
         @media (max-width: 768px) {
             .slider-container {
-                gap: 4px; 
+                gap: 8px; 
             }
         }
 
@@ -112,7 +161,6 @@
             flex: 0 0 auto;
         }
 
-        /* 全局移除圓角 */
         * {
             border-radius: 0 !important;
         }
@@ -120,8 +168,13 @@
 </head>
 <body class="pb-24">
 
+    <!-- 跳轉過度層 -->
+    <div id="page-loader">
+        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="loader-icon" alt="Loading">
+    </div>
+
     <!-- 頂部導航欄 -->
-    <header class="fixed top-0 w-full z-50 transition-all duration-300">
+    <header class="fixed top-0 w-full z-50 transition-all duration-500">
         <div class="max-w-screen-2xl mx-auto px-5 py-3 flex items-center relative">
             <div class="z-10 cursor-pointer" onclick="scrollToHero()">
                 <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina Logo" class="app-logo">
@@ -131,7 +184,8 @@
                 <div class="flex items-center space-x-6 md:space-x-12 text-[12px] md:text-[14px] font-bold text-gray-800 pointer-events-auto tracking-widest uppercase">
                     <button onclick="scrollToHero()" class="hover:opacity-60 transition-opacity">課堂錄影</button>
                     <button onclick="scrollToCourses()" class="hover:opacity-60 transition-opacity">課程全庫</button>
-                    <button onclick="openLink('func1')" class="hover:opacity-60 transition-opacity">資源中心</button>
+                    <!-- 已將「資源中心」更改為「基礎練習」 -->
+                    <button onclick="openLink('basic_practice')" class="hover:opacity-60 transition-opacity">基礎練習</button>
                     <button onclick="scrollToMore()" class="flex items-center hover:opacity-60 transition-opacity">更多功能</button>
                 </div>
             </div>
@@ -170,39 +224,39 @@
             </div>
             
             <div class="slider-container hide-scrollbar" id="course-slider">
-                <div class="slider-item w-32 md:w-48">
+                <div class="slider-item w-32 md:w-48 card-animate">
                     <div onclick="openLink('heat')" class="poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg" class="w-full h-full object-cover" alt="[熱學]">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg" class="card-img" alt="[熱學]">
                     </div>
                 </div>
-                <div class="slider-item w-32 md:w-48">
+                <div class="slider-item w-32 md:w-48 card-animate">
                     <div onclick="openLink('mechanics')" class="poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg" class="w-full h-full object-cover" alt="[力學]">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg" class="card-img" alt="力學">
                     </div>
                 </div>
-                <div class="slider-item w-32 md:w-48">
+                <div class="slider-item w-32 md:w-48 card-animate">
                     <div onclick="openLink('waves')" class="poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg" class="w-full h-full object-cover" alt="[波動]">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg" class="card-img" alt="波動">
                     </div>
                 </div>
-                <div class="slider-item w-32 md:w-48">
+                <div class="slider-item w-32 md:w-48 card-animate">
                     <div onclick="openLink('electromagnetism')" class="poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-4-ennm.jpg" class="w-full h-full object-cover" alt="[電磁學]">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-4-ennm.jpg" class="card-img" alt="電磁學">
                     </div>
                 </div>
-                <div class="slider-item w-32 md:w-48">
+                <div class="slider-item w-32 md:w-48 card-animate">
                     <div onclick="openLink('nuclear')" class="poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg" class="w-full h-full object-cover" alt="[放射性]">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg" class="card-img" alt="放射性">
                     </div>
                 </div>
-                <div class="slider-item w-32 md:w-48">
+                <div class="slider-item w-32 md:w-48 card-animate">
                     <div onclick="openLink('atomic')" class="poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover" alt="[原子世界]">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="card-img" alt="原子世界">
                     </div>
                 </div>
-                <div class="slider-item w-32 md:w-48">
+                <div class="slider-item w-32 md:w-48 card-animate">
                     <div onclick="openLink('medical')" class="poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg" class="w-full h-full object-cover" alt="[醫學物理]">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg" class="card-img" alt="醫學物理">
                     </div>
                 </div>
             </div>
@@ -215,39 +269,39 @@
             </div>
             
             <div class="slider-container hide-scrollbar">
-                <div class="slider-item w-28 md:w-40">
+                <div class="slider-item w-28 md:w-40 card-animate">
                     <div onclick="openLink('func1')" class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-1.png" class="w-full h-full object-cover" alt="Function 1">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-1.png" class="card-img" alt="功能 1">
                     </div>
                 </div>
-                <div class="slider-item w-28 md:w-40">
+                <div class="slider-item w-28 md:w-40 card-animate">
                     <div onclick="openLink('func2')" class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-2.png" class="w-full h-full object-cover" alt="Function 2">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-2.png" class="card-img" alt="功能 2">
                     </div>
                 </div>
-                <div class="slider-item w-28 md:w-40">
+                <div class="slider-item w-28 md:w-40 card-animate">
                     <div onclick="openLink('func3')" class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-3.png" class="w-full h-full object-cover" alt="Function 3">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-3.png" class="card-img" alt="功能 3">
                     </div>
                 </div>
-                <div class="slider-item w-28 md:w-40">
+                <div class="slider-item w-28 md:w-40 card-animate">
                     <div onclick="openLink('func4')" class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-4.png" class="w-full h-full object-cover" alt="Function 4">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-4.png" class="card-img" alt="功能 4">
                     </div>
                 </div>
-                <div class="slider-item w-28 md:w-40">
+                <div class="slider-item w-28 md:w-40 card-animate">
                     <div onclick="openLink('func5')" class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-5.png" class="w-full h-full object-cover" alt="Function 5">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-5.png" class="card-img" alt="功能 5">
                     </div>
                 </div>
-                <div class="slider-item w-28 md:w-40">
+                <div class="slider-item w-28 md:w-40 card-animate">
                     <div onclick="openLink('func6')" class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-6.png" class="w-full h-full object-cover" alt="Function 6">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-6.png" class="card-img" alt="功能 6">
                     </div>
                 </div>
-                <div class="slider-item w-28 md:w-40">
+                <div class="slider-item w-28 md:w-40 card-animate">
                     <div onclick="openLink('func7')" class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-7.png" class="w-full h-full object-cover" alt="Function 7">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-7.png" class="card-img" alt="功能 7">
                     </div>
                 </div>
             </div>
@@ -256,21 +310,21 @@
     </main>
 
     <!-- 底部導航欄 -->
-    <nav class="fixed bottom-0 w-full z-50 bottom-nav-blur border-t border-black px-6 py-2 pb-6 md:pb-4 shadow-none">
+    <nav class="fixed bottom-0 w-full z-50 bottom-nav-blur border-t border-black px-6 py-2 pb-6 md:pb-4">
         <div class="flex items-center justify-between max-w-md mx-auto">
             <button onclick="scrollToHero()" class="flex flex-col items-center text-black group">
                 <i class="fas fa-house text-lg"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">主頁</span>
             </button>
-            <button onclick="openLink('func5')" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+            <button onclick="openLink('func5')" class="flex flex-col items-center text-gray-400 hover:text-black transition">
                 <i class="fas fa-gamepad text-lg"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">模擬器</span>
             </button>
-            <button onclick="openLink('func6')" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+            <button onclick="openLink('func6')" class="flex flex-col items-center text-gray-400 hover:text-black transition">
                 <i class="fas fa-bullhorn text-lg"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">更新</span>
             </button>
-            <button onclick="openLink('google')" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+            <button onclick="openLink('google')" class="flex flex-col items-center text-gray-400 hover:text-black transition">
                 <i class="fab fa-google text-lg google-icon-color"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">Google</span>
             </button>
@@ -278,14 +332,8 @@
     </nav>
 
     <script>
-        /**
-         * 集中管理超連結
-         */
         const links = {
-            // 頂部 Hero 按鈕
             hero: "https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home",
-            
-            // 課程全庫
             heat: "https://sites.google.com/np2c.edu.hk/heatcourse/home",
             mechanics: "https://sites.google.com/np2c.edu.hk/mechanics-all/home",
             waves: "https://sites.google.com/np2c.edu.hk/wave/home",
@@ -293,24 +341,31 @@
             nuclear: "https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home",
             atomic: "https://sites.google.com/np2c.edu.hk/atomic-world/home",
             medical: "https://sites.google.com/np2c.edu.hk/medicalphysics/home",
-
-            // 更多功能
             func1: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home",
             func2: "https://sites.google.com/view/lessonremarkphyu2025start/home",
             func3: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home",
-            func4: "https://sites.google.com/np2c.edu.hk/phyformulabook/home", // 已更新
+            func4: "https://sites.google.com/np2c.edu.hk/phyformulabook/home",
             func5: "https://sites.google.com/np2c.edu.hk/physics-simulator/home",
             func6: "https://sites.google.com/np2c.edu.hk/dse-physics-update/home",
             func7: "https://youtube.com/@phyustudio?si=V-k49O8oK6NntS6P",
-
-            // 底部導航 Google 連結
-            google: "https://mail.google.com/mail/u/0/#inbox"
+            google: "https://mail.google.com/mail/u/0/#inbox",
+            // 為基礎練習預留的連結，暫時指向資源中心或設為 #
+            basic_practice: "#" 
         };
+
+        const loader = document.getElementById('page-loader');
 
         function openLink(key) {
             const url = links[key];
             if (url && url !== "#") {
-                window.open(url, '_blank', 'noopener,noreferrer');
+                loader.classList.add('active');
+                setTimeout(() => {
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                    setTimeout(() => loader.classList.remove('active'), 500);
+                }, 800);
+            } else if (url === "#") {
+                // 這裡可以加入一個提示，告訴用戶該欄目即將開放
+                console.log("此欄目即將開放");
             }
         }
 
@@ -333,6 +388,28 @@
             } else {
                 header.classList.remove('top-nav-blur', 'border-b', 'border-black');
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, (index % 5) * 100);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.card-animate').forEach(card => {
+                observer.observe(card);
+            });
         });
     </script>
 </body>
