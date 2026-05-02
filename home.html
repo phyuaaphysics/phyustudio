@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lumina Stream - Professional</title>
+    <title>Lumina Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -12,7 +12,6 @@
         :root {
             --primary-blue: #2563eb;
             --glass-bg: rgba(255, 255, 255, 0.85);
-            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
 
         html { scroll-behavior: smooth; }
@@ -27,228 +26,175 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 全螢幕載入動畫 */
+        /* 全螢幕載入 */
         #page-loader {
             position: fixed; inset: 0; background-color: white; z-index: 1000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
         }
         #page-loader.active { opacity: 1; visibility: visible; }
-        .loader-icon { width: 70px; height: 70px; animation: pulse-icon 1s infinite ease-in-out; }
-        @keyframes pulse-icon {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; }
-        }
-
-        .nav-blur { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background-color: var(--glass-bg); }
         
-        /* 初始進入動畫 */
-        .card-animate {
-            opacity: 0; transform: translateY(15px);
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-        }
+        /* 導航欄樣式 */
+        .nav-blur { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background-color: var(--glass-bg); }
+
+        /* 分頁切換動畫 */
+        .page-fade { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .hidden-page { display: none; opacity: 0; transform: translateY(15px); }
+
+        /* 卡片動畫 */
+        .card-animate { opacity: 0; transform: translateY(15px); transition: all 0.5s ease-out; }
         .card-animate.visible { opacity: 1; transform: translateY(0); }
 
         /* 卡片樣式 */
-        .poster-card, .square-card {
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            cursor: pointer; position: relative; overflow: hidden; 
-            background: #eee; border-radius: 12px;
-        }
-        .poster-card { aspect-ratio: 2/3; }
-        .square-card { aspect-ratio: 1/1; }
-
-        .card-img {
-            width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.7s ease;
-        }
-        
-        /* 點擊時的壓下動畫 */
-        .card-clicking {
-            transform: scale(0.92) !important;
-            filter: brightness(0.8);
-            transition: transform 0.15s ease, filter 0.15s ease !important;
-        }
+        .poster-card { aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; background: #eee; position: relative; transition: all 0.3s ease; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
+        .card-clicking { transform: scale(0.92) !important; filter: brightness(0.8); transition: transform 0.1s ease !important; }
 
         @media (min-width: 1024px) {
-            .poster-card:hover, .square-card:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12);
-            }
-            .poster-card:hover .card-img, .square-card:hover .card-img {
-                transform: scale(1.05);
-            }
+            .poster-card:hover { transform: translateY(-8px); box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12); }
+            .poster-card:hover .card-img { transform: scale(1.05); }
         }
 
-        .hero-gradient-overlay {
-            background: linear-gradient(to top, #fafafa 0%, rgba(250,250,250,0.4) 40%, transparent 100%);
-        }
-
-        /* 滾動容器優化 */
-        .slider-wrapper {
-            position: relative;
-            width: 100%;
-        }
-        
-        .slider-container {
-            display: flex; 
-            overflow-x: auto; 
-            scroll-snap-type: x mandatory;
-            gap: 16px; 
-            padding: 5px 0 30px 0; 
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-        }
+        .hero-gradient-overlay { background: linear-gradient(to top, #fafafa 0%, rgba(250,250,250,0.4) 40%, transparent 100%); }
+        .slider-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 16px; padding: 5px 0 30px 0; }
         .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
 
-        /* 輔助箭頭設計 */
-        .nav-arrow {
-            position: absolute;
-            top: 40%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(8px);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.3s, background 0.3s;
-            border: 1px solid rgba(0,0,0,0.05);
+        /* 模擬器卡片專屬樣式 */
+        .sim-card {
+            background: white; border: 1px solid #eee; border-radius: 16px; padding: 16px;
+            transition: all 0.3s ease; display: flex; flex-direction: column; gap: 12px;
         }
-        
-        @media (hover: hover) {
-            .slider-wrapper:hover .nav-arrow { opacity: 1; }
-        }
-        
-        /* 行動端隱藏箭頭 */
-        @media (max-width: 768px) {
-            .nav-arrow { display: none; }
-        }
+        .sim-card:hover { border-color: #2563eb; transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
 
-        .nav-arrow:hover { background: rgba(255, 255, 255, 0.95); }
-        .nav-arrow.left { left: -10px; }
-        .nav-arrow.right { right: -10px; }
+        /* 彈出層 (Simulator Overlay) */
+        #sim-overlay {
+            position: fixed; inset: 0; background: white; z-index: 2000;
+            display: none; flex-direction: column; opacity: 0; transition: opacity 0.4s ease;
+        }
+        #sim-overlay.active { display: flex; opacity: 1; }
+        .close-btn {
+            position: absolute; top: 20px; right: 20px; width: 44px; height: 44px;
+            background: rgba(0,0,0,0.1); border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            z-index: 2100; transition: all 0.2s;
+        }
+        .close-btn:hover { background: rgba(0,0,0,0.8); color: white; transform: rotate(90deg); }
+        .sim-iframe { width: 100%; height: 100%; border: none; }
 
         .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-24">
 
     <!-- 載入層 -->
     <div id="page-loader">
-        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="loader-icon" alt="Loading">
-        <p class="mt-4 text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">Connecting to Lumina</p>
+        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-12 h-12 animate-pulse" alt="Loading">
     </div>
 
-    <!-- 頂部導航 -->
-    <header id="main-header" class="fixed top-0 w-full z-50 transition-all duration-300">
+    <!-- 模擬器彈出層 -->
+    <div id="sim-overlay">
+        <div class="close-btn" onclick="closeSimulator()">
+            <i class="fas fa-times text-xl"></i>
+        </div>
+        <iframe id="sim-frame" class="sim-iframe" src=""></iframe>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header" class="fixed top-0 w-full z-50 nav-blur">
         <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between relative">
-            <div class="z-10 cursor-pointer btn-press" onclick="scrollToHero()">
+            <div class="z-10 cursor-pointer btn-press" onclick="switchPage('home.html')">
                 <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-8 w-auto">
             </div>
             
             <nav class="absolute inset-x-0 flex justify-center pointer-events-none">
                 <div class="flex items-center space-x-6 md:space-x-12 text-[10px] md:text-xs font-black text-gray-800 pointer-events-auto tracking-[0.15em] uppercase">
-                    <button onclick="scrollToHero()" class="hover:text-blue-600 transition-colors">録影</button>
-                    <button onclick="scrollToSection('course-library')" class="hover:text-blue-600 transition-colors">全庫</button>
-                    <button onclick="scrollToSection('practice-1-10')" class="hover:text-blue-600 transition-colors">練習</button>
-                    <button onclick="scrollToSection('more-functions')" class="hover:text-blue-600 transition-colors">更多</button>
+                    <button onclick="switchPage('home.html'); setTimeout(() => scrollToHero(), 100)" class="hover:text-blue-600 transition-colors">録影</button>
+                    <button onclick="switchPage('home.html'); setTimeout(() => scrollToSection('course-library'), 100)" class="hover:text-blue-600 transition-colors">全庫</button>
+                    <button onclick="switchPage('home.html'); setTimeout(() => scrollToSection('practice-1'), 100)" class="hover:text-blue-600 transition-colors">練習</button>
+                    <button onclick="switchPage('simulator.html')" class="hover:text-blue-600 transition-colors" id="nav-sim-text">模擬</button>
                 </div>
             </nav>
         </div>
     </header>
 
-    <!-- 英雄區塊 -->
-    <section id="hero" class="pt-20 px-0 md:px-8 max-w-screen-2xl mx-auto">
-        <div class="relative w-full h-[55vh] md:h-[70vh] overflow-hidden md:rounded-2xl shadow-sm border-b border-gray-100">
-            <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top" alt="Hero Background">
-            <div class="absolute inset-0 hero-gradient-overlay"></div>
-            <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 px-6 text-center">
-                <span class="text-[10px] md:text-xs font-black tracking-[0.5em] text-blue-700 uppercase mb-5">Live Streaming & Archive</span>
-                
-                <!-- 標題 Banner 圖片 -->
-                <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" alt="課堂錄影" class="w-full max-w-[280px] md:max-w-[500px] h-auto mb-10 object-contain">
-                
-                <button onclick="openLink('hero', this)" class="btn-press bg-black text-white px-10 py-4 font-bold flex items-center hover:bg-gray-800 transition rounded-full text-xs tracking-widest uppercase">
-                    <i class="fas fa-play mr-3 text-[10px]"></i> 即刻進入
-                </button>
+    <!-- 分頁: home.html -->
+    <div id="page-home" class="page-fade">
+        <section id="hero" class="pt-20 px-0 md:px-8 max-w-screen-2xl mx-auto">
+            <div class="relative w-full h-[55vh] md:h-[70vh] overflow-hidden md:rounded-2xl shadow-sm border-b border-gray-100">
+                <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top" alt="Hero">
+                <div class="absolute inset-0 hero-gradient-overlay"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 px-6 text-center">
+                    <span class="text-[10px] md:text-xs font-black tracking-[0.5em] text-blue-700 uppercase mb-5">Live Streaming & Archive</span>
+                    <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" alt="課堂錄影" class="w-full max-w-[280px] md:max-w-[500px] h-auto mb-10 object-contain">
+                    <button onclick="openLink('hero')" class="btn-press bg-black text-white px-10 py-4 font-bold rounded-full text-xs tracking-widest uppercase hover:bg-gray-800 transition shadow-lg">
+                        <i class="fas fa-play mr-3 text-[10px]"></i> 即刻進入
+                    </button>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- 主要內容 -->
-    <main class="mt-12 space-y-16 max-w-screen-2xl mx-auto px-6">
-        
-        <!-- 課程全庫 -->
-        <section id="course-library" class="scroll-mt-24">
-            <div class="flex items-end justify-between mb-2">
-                <div>
+        <main class="mt-12 space-y-16 max-w-screen-2xl mx-auto px-6">
+            <section id="course-library" class="scroll-mt-24">
+                <div class="mb-2">
                     <h2 class="text-xl md:text-2xl font-black tracking-tight">課程全庫</h2>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Comprehensive Archives</p>
                 </div>
-            </div>
-            <div class="slider-wrapper">
-                <div class="nav-arrow left" onclick="scrollSlider('course-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
                 <div class="slider-container hide-scrollbar" id="course-slider"></div>
-                <div class="nav-arrow right" onclick="scrollSlider('course-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
-            </div>
-        </section>
+            </section>
 
-        <!-- 練習冊系列 -->
-        <section id="practice-1-10" class="scroll-mt-24">
-            <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">基礎練習冊 01-10</h2>
-            <div class="slider-wrapper">
-                <div class="nav-arrow left" onclick="scrollSlider('funda-1-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
+            <section id="practice-1" class="scroll-mt-24">
+                <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">基礎練習冊 01-10</h2>
                 <div class="slider-container hide-scrollbar" id="funda-1-slider"></div>
-                <div class="nav-arrow right" onclick="scrollSlider('funda-1-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 分頁: simulator.html -->
+    <div id="page-simulator" class="page-fade hidden-page pt-28 px-6 max-w-screen-2xl mx-auto">
+        <header class="mb-10 text-center md:text-left">
+            <h1 class="text-3xl md:text-4xl font-black tracking-tight mb-2">物理互動模擬器庫</h1>
+            <p class="text-gray-400 text-sm md:text-base max-w-2xl font-medium">
+                點擊下方卡片開啟專業物理模擬工具。
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="simulator-grid">
+            <div class="sim-card card-animate visible">
+                <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden relative group">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Simulator">
+                    <div class="absolute top-3 left-3 bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded-md tracking-wider uppercase">Atomic Physics</div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-1">原子氫能階模擬器 v1.0</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed mb-4">視覺化展示玻爾模型的電子躍遷與對應光譜發射線。</p>
+                    <button onclick="openSimulator('https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html')" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black tracking-[0.2em] uppercase hover:bg-blue-600 transition btn-press">
+                        啟動互動介面
+                    </button>
+                </div>
             </div>
-        </section>
 
-        <section id="practice-11-20" class="scroll-mt-24">
-            <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">基礎練習冊 11-19</h2>
-            <div class="slider-wrapper">
-                <div class="nav-arrow left" onclick="scrollSlider('funda-2-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
-                <div class="slider-container hide-scrollbar" id="funda-2-slider"></div>
-                <div class="nav-arrow right" onclick="scrollSlider('funda-2-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
-            </div>
-        </section>
+            <!-- 更多項目可以比照辦理 -->
+        </div>
+    </div>
 
-        <!-- 更多功能 -->
-        <section id="more-functions" class="scroll-mt-24 pb-12">
-            <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">核心功能</h2>
-            <div class="slider-wrapper">
-                <div class="nav-arrow left" onclick="scrollSlider('function-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
-                <div class="slider-container hide-scrollbar" id="function-slider"></div>
-                <div class="nav-arrow right" onclick="scrollSlider('function-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- 底部導航 (Narrow 版本 + 大圖標) -->
-    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-gray-100 px-8 py-2 pb-5 md:pb-3">
+    <!-- 底部導航 -->
+    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-gray-100 px-10 py-3 pb-8 md:pb-3">
         <div class="flex items-center justify-between max-w-lg mx-auto">
-            <button onclick="scrollToHero()" class="flex flex-col items-center text-blue-600 btn-press">
+            <button onclick="switchPage('home.html')" id="tab-home" class="flex flex-col items-center gap-1 text-blue-600 transition-all scale-110">
                 <i class="fas fa-home text-xl"></i>
-                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">首頁</span>
+                <span class="text-[8px] font-black uppercase tracking-tighter">録影</span>
             </button>
-            <button onclick="openLink('simulator', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
+            <button onclick="switchPage('simulator.html')" id="tab-sim" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
                 <i class="fas fa-cube text-xl"></i>
-                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">模擬器</span>
+                <span class="text-[8px] font-black uppercase tracking-tighter">模擬器</span>
             </button>
-            <button onclick="openLink('func6', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
+            <button onclick="openLink('func6')" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
                 <i class="fas fa-bolt text-xl"></i>
-                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">更新</span>
+                <span class="text-[8px] font-black uppercase tracking-tighter">更新</span>
             </button>
-            <button onclick="openLink('google', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
+            <button onclick="openLink('google')" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
                 <i class="fab fa-google text-xl"></i>
-                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">信箱</span>
+                <span class="text-[8px] font-black uppercase tracking-tighter">信箱</span>
             </button>
         </div>
     </nav>
@@ -257,9 +203,7 @@
         const config = {
             heroUrl: 'https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home',
             googleUrl: 'https://mail.google.com/mail/u/0/#inbox',
-            simulatorUrl: 'https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html',
             data: [
-                // 課程全庫
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg', url: 'https://sites.google.com/np2c.edu.hk/heatcourse/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg', url: 'https://sites.google.com/np2c.edu.hk/mechanics-all/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg', url: 'https://sites.google.com/np2c.edu.hk/wave/home' },
@@ -267,109 +211,99 @@
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg', url: 'https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg', url: 'https://sites.google.com/np2c.edu.hk/atomic-world/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg', url: 'https://sites.google.com/np2c.edu.hk/medicalphysics/home' },
-                
-                // 基礎練習冊 01-10
-                ...(() => {
-                    const items = [];
-                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS301.png', url: 'no link' });
-                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'no link' });
-                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'no link' });
-                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01B.png', url: 'no link' });
-                    for(let i=2; i<=10; i++){
-                        const num = i.toString().padStart(2, '0');
-                        items.push({ category: 'funda-1', img: `https://phyuaaphysics.github.io/phyustudio/funda${num}.png`, url: 'no link' });
-                    }
-                    return items;
-                })(),
-                
-                // 基礎練習冊 11-19
-                ...Array.from({length: 9}, (_, i) => ({ 
-                    category: 'funda-2', 
-                    img: `https://phyuaaphysics.github.io/phyustudio/funda${i+11}.png`, 
+                ...Array.from({length: 10}, (_, i) => ({ 
+                    category: 'funda-1', 
+                    img: `https://phyuaaphysics.github.io/phyustudio/funda${(i+1).toString().padStart(2, '0')}.png`, 
                     url: 'no link' 
-                })),
-
-                // 更多功能
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-1.png', url: 'https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-2.png', url: 'https://sites.google.com/view/lessonremarkphyu2025start/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-3.png', url: 'https://sites.google.com/np2c.edu.hk/pastpaper-system/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-4.png', url: 'https://sites.google.com/np2c.edu.hk/phyformulabook/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-5.png', url: 'https://sites.google.com/np2c.edu.hk/physics-simulator/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-6.png', url: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-7.png', url: 'https://youtube.com/@phyustudio?si=V-k49O8oK6NntS6P' }
+                }))
             ]
         };
 
         const loader = document.getElementById('page-loader');
 
-        // 左右滾動控制
-        window.scrollSlider = (id, direction) => {
-            const container = document.getElementById(id);
-            const scrollAmount = container.clientWidth * 0.8;
-            container.scrollBy({
-                left: direction * scrollAmount,
-                behavior: 'smooth'
-            });
-        };
-
-        function handleNavigation(url, element) {
-            if (!url || url === '#' || url === 'no link') return;
+        // 打開彈出式模擬器
+        function openSimulator(url) {
+            const overlay = document.getElementById('sim-overlay');
+            const frame = document.getElementById('sim-frame');
+            loader.classList.add('active'); // 顯示載入動畫
             
-            if (element) {
-                element.classList.add('card-clicking');
-            }
-
             setTimeout(() => {
-                loader.classList.add('active');
-                
+                frame.src = url;
+                overlay.style.display = 'flex';
                 setTimeout(() => {
-                    window.open(url, '_blank');
-                    
-                    setTimeout(() => {
-                        loader.classList.remove('active');
-                        if (element) element.classList.remove('card-clicking');
-                    }, 500);
-                }, 800); 
-            }, 150); 
+                    overlay.classList.add('active');
+                    loader.classList.remove('active');
+                }, 100);
+            }, 500);
         }
 
-        function handleImgError(img) {
-            img.classList.add('opacity-0');
-            const placeholder = document.createElement('div');
-            placeholder.className = "absolute inset-0 flex items-center justify-center bg-gray-100 text-[10px] font-bold text-gray-300";
-            placeholder.innerText = "NO IMAGE";
-            img.parentElement.appendChild(placeholder);
+        // 關閉彈出式模擬器
+        function closeSimulator() {
+            const overlay = document.getElementById('sim-overlay');
+            const frame = document.getElementById('sim-frame');
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                frame.src = ""; // 清空 src 以節省資源並停止模擬器運作
+            }, 400);
+        }
+
+        function switchPage(pageFileName) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const isSimulator = (pageFileName === 'simulator.html');
+            const homePage = document.getElementById('page-home');
+            const simPage = document.getElementById('page-simulator');
+            const tabHome = document.getElementById('tab-home');
+            const tabSim = document.getElementById('tab-sim');
+            const navSimText = document.getElementById('nav-sim-text');
+            
+            if (isSimulator) {
+                homePage.style.opacity = '0';
+                homePage.classList.add('hidden-page');
+                simPage.classList.remove('hidden-page');
+                setTimeout(() => simPage.style.opacity = '1', 10);
+                tabHome.classList.replace('text-blue-600', 'text-gray-400');
+                tabHome.classList.remove('scale-110');
+                tabSim.classList.replace('text-gray-400', 'text-blue-600');
+                tabSim.classList.add('scale-110');
+                navSimText.classList.add('text-blue-600');
+            } else {
+                simPage.style.opacity = '0';
+                simPage.classList.add('hidden-page');
+                homePage.classList.remove('hidden-page');
+                setTimeout(() => homePage.style.opacity = '1', 10);
+                tabSim.classList.replace('text-blue-600', 'text-gray-400');
+                tabSim.classList.remove('scale-110');
+                tabHome.classList.replace('text-gray-400', 'text-blue-600');
+                tabHome.classList.add('scale-110');
+                navSimText.classList.remove('text-blue-600');
+            }
+        }
+
+        function handleNavigation(url, element) {
+            if (!url || url === 'no link') return;
+            if (element) element.classList.add('card-clicking');
+            loader.classList.add('active');
+            setTimeout(() => {
+                window.open(url, '_blank');
+                setTimeout(() => {
+                    loader.classList.remove('active');
+                    if (element) element.classList.remove('card-clicking');
+                }, 500);
+            }, 600);
         }
 
         function render() {
-            const containers = {
-                'course': document.getElementById('course-slider'),
-                'funda-1': document.getElementById('funda-1-slider'),
-                'funda-2': document.getElementById('funda-2-slider'),
-                'func': document.getElementById('function-slider')
-            };
-
-            Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
-
+            const courseSlider = document.getElementById('course-slider');
+            const funda1Slider = document.getElementById('funda-1-slider');
             config.data.forEach(item => {
-                const target = containers[item.category];
-                if (!target) return;
-
-                const isSquare = item.category === 'func';
                 const div = document.createElement('div');
-                div.className = `slider-item ${isSquare ? 'w-32 md:w-40' : 'w-36 md:w-52'} card-animate`;
-                
-                const cardClass = isSquare ? 'square-card' : 'poster-card';
-                div.innerHTML = `
-                    <div class="${cardClass} shadow-sm">
-                        <img src="${item.img}" class="card-img" alt="Content" onerror="handleImgError(this)" loading="lazy">
-                    </div>
-                `;
-                
-                const cardElement = div.querySelector(`.${cardClass}`);
-                cardElement.addEventListener('click', () => handleNavigation(item.url, cardElement));
-                
-                target.appendChild(div);
+                div.className = 'slider-item w-40 md:w-60 card-animate';
+                div.innerHTML = `<div class="poster-card shadow-sm"><img src="${item.img}" class="card-img" alt="Content" loading="lazy"></div>`;
+                const card = div.querySelector('.poster-card');
+                card.onclick = () => handleNavigation(item.url, card);
+                if(item.category === 'course') courseSlider.appendChild(div);
+                else if(item.category === 'funda-1') funda1Slider.appendChild(div);
             });
         }
 
@@ -379,38 +313,20 @@
             if(el) el.scrollIntoView({ behavior: 'smooth' });
         }
 
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('main-header');
-            if (window.scrollY > 50) header.classList.add('nav-blur', 'shadow-sm');
-            else header.classList.remove('nav-blur', 'shadow-sm');
-        });
+        function openLink(type) {
+            if(type === 'hero') handleNavigation(config.heroUrl);
+            if(type === 'google') handleNavigation(config.googleUrl);
+            if(type === 'func6') handleNavigation('https://sites.google.com/np2c.edu.hk/dse-physics-update/home');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             render();
+            if (window.location.hash === '#simulator') switchPage('simulator.html');
             const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry, index) => {
-                    if (entry.isIntersecting) {
-                        setTimeout(() => entry.target.classList.add('visible'), index * 50);
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.05 });
-            
-            setTimeout(() => {
-                document.querySelectorAll('.card-animate').forEach(card => observer.observe(card));
-            }, 100);
+                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+            }, { threshold: 0.1 });
+            setTimeout(() => { document.querySelectorAll('.card-animate').forEach(card => observer.observe(card)); }, 300);
         });
-
-        window.openLink = (key, element) => {
-            if(key === 'hero') handleNavigation(config.heroUrl, null);
-            if(key === 'google') handleNavigation(config.googleUrl, null);
-            if(key === 'simulator') handleNavigation(config.simulatorUrl, element);
-            if(key.startsWith('func')) {
-                const num = key.replace('func', '');
-                const item = config.data.find(x => x.category === 'func' && x.img.includes(`function-${num}.png`));
-                if(item) handleNavigation(item.url, element);
-            }
-        };
     </script>
 </body>
 </html>
