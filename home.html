@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lumina Stream - Responsive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .hero-mobile-gradient {
+            background: linear-gradient(to top, #ffffff 0%, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        .bottom-nav-blur {
+            backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .top-nav-blur {
+            backdrop-filter: blur(15px);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .poster-card {
+            aspect-ratio: 2/3;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        .poster-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .poster-card:active {
+            transform: scale(0.95);
+        }
+
+        .app-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+        @media (min-width: 768px) {
+            .app-logo { height: 56px; }
+        }
+        
+        .text-soft-gray {
+            color: #71717a;
+        }
+        
+        .bg-light-card {
+            background-color: #f4f4f5;
+        }
+
+        .google-icon-color {
+            background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) text;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .scroll-mt-header {
+            scroll-margin-top: 120px;
+        }
+    </style>
+</head>
+<body class="pb-24">
+
+    <!-- 頂部導航欄 (響應式設計) -->
+    <header class="fixed top-0 w-full z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:justify-between px-5 py-2 md:py-4">
+            <div class="flex items-center justify-start w-full md:w-auto mb-2 md:mb-0">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina Logo" class="app-logo">
+            </div>
+            <!-- 分類標籤 -->
+            <div class="flex justify-center space-x-4 md:space-x-8 text-[12px] md:text-[15px] font-bold text-gray-600">
+                <button class="hover:text-black transition">課堂錄影</button>
+                <button onclick="scrollToCourses()" class="hover:text-black transition">課程全庫</button>
+                <button class="hover:text-black transition">基礎練習</button>
+                <button class="flex items-center hover:text-black transition">
+                    其他功能 <i class="fas fa-chevron-down ml-1 text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 英雄區域 (響應式高度與對齊) -->
+    <section class="relative w-full h-[60vh] md:h-[85vh] flex items-end justify-center md:justify-start pb-10 md:pb-20">
+        <div class="absolute inset-0 z-0 overflow-hidden">
+            <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" 
+                 class="w-full h-full object-cover object-top" 
+                 alt="[力學課程封面]">
+            <div class="absolute inset-0 hero-mobile-gradient"></div>
+        </div>
+
+        <div class="relative z-10 w-full px-6 md:px-20 text-center md:text-left max-w-7xl mx-auto">
+            <div class="flex items-center justify-center md:justify-start space-x-2 mb-2">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-4 h-4 md:w-6 md:h-6 rounded-sm" alt="Icon">
+                <span class="text-[10px] md:text-xs font-bold tracking-[0.2em] text-blue-600 uppercase">精選推薦</span>
+            </div>
+            <h1 class="text-4xl md:text-7xl font-black mb-6 tracking-tight text-gray-900 leading-tight">力學課程<br class="hidden md:block">全系列</h1>
+            
+            <div class="flex items-center justify-between md:justify-start md:space-x-12 px-4 md:px-0 mb-6 max-w-md">
+                <button class="flex flex-col items-center md:flex-row md:space-x-2 space-y-1 md:space-y-0 group">
+                    <i class="fas fa-plus text-xl md:text-2xl text-gray-800 group-hover:scale-110 transition"></i>
+                    <span class="text-[10px] md:text-sm font-bold text-gray-500 md:text-gray-800">我的清單</span>
+                </button>
+                <button class="bg-black text-white px-8 md:px-12 py-2 md:py-4 rounded md:rounded-lg font-bold flex items-center shadow-lg hover:bg-gray-800 active:scale-95 transition text-sm md:text-lg">
+                    <i class="fas fa-play mr-2"></i> 播放
+                </button>
+                <button class="flex flex-col items-center md:flex-row md:space-x-2 space-y-1 md:space-y-0 group">
+                    <i class="fas fa-circle-info text-xl md:text-2xl text-gray-800 group-hover:scale-110 transition"></i>
+                    <span class="text-[10px] md:text-sm font-bold text-gray-500 md:text-gray-800">詳情</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 應用程式內容 (自適應網格) -->
+    <main class="space-y-12 mt-4 max-w-7xl mx-auto">
+        
+        <!-- 課程全庫 -->
+        <section id="course-library" class="pl-4 md:px-6 scroll-mt-header">
+            <h2 class="text-xl md:text-2xl font-bold mb-4 text-gray-900">課程全庫</h2>
+            <div class="flex overflow-x-auto space-x-2 md:space-x-4 hide-scrollbar pr-4">
+                <!-- 課程項目 -->
+                <a href="https://sites.google.com/np2c.edu.hk/heatcourse/home" target="_blank" class="flex-none w-32 md:w-56 poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card shadow-sm border border-gray-100">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg" class="w-full h-full object-cover" alt="[課程海報-熱]">
+                </a>
+                <a href="https://sites.google.com/np2c.edu.hk/mechanics-all/home" target="_blank" class="flex-none w-32 md:w-56 poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card shadow-sm border border-gray-100">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg" class="w-full h-full object-cover" alt="[課程海報-力]">
+                </a>
+                <a href="https://sites.google.com/np2c.edu.hk/wave/home" target="_blank" class="flex-none w-32 md:w-56 poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card shadow-sm border border-gray-100">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg" class="w-full h-full object-cover" alt="[課程海報-波]">
+                </a>
+                <a href="https://sites.google.com/np2c.edu.hk/emcourse/home" target="_blank" class="flex-none w-32 md:w-56 poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card shadow-sm border border-gray-100">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-4-ennm.jpg" class="w-full h-full object-cover" alt="[課程海報-電磁]">
+                </a>
+                <a href="https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home" target="_blank" class="flex-none w-32 md:w-56 poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card shadow-sm border border-gray-100">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg" class="w-full h-full object-cover" alt="[課程海報-核能]">
+                </a>
+                <a href="https://sites.google.com/np2c.edu.hk/atomic-world/home" target="_blank" class="flex-none w-32 md:w-56 poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card shadow-sm border border-gray-100">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover" alt="[課程海報-原子]">
+                </a>
+                <a href="https://sites.google.com/np2c.edu.hk/medicalphysics/home" target="_blank" class="flex-none w-32 md:w-56 poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card shadow-sm border border-gray-100">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg" class="w-full h-full object-cover" alt="[課程海報-醫學]">
+                </a>
+            </div>
+        </section>
+
+        <!-- 最近新增 (響應式網格) -->
+        <section class="px-4 md:px-6">
+            <h2 class="text-xl md:text-2xl font-bold mb-4 text-gray-900">最近新增</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2 md:gap-4">
+                <div class="poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card border border-gray-100">
+                    <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=400" class="w-full h-full object-cover" alt="[內容圖片]">
+                </div>
+                <div class="poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card border border-gray-100">
+                    <img src="https://images.unsplash.com/photo-1616530940355-351fabd9524b?auto=format&fit=crop&w=400" class="w-full h-full object-cover" alt="[內容圖片]">
+                </div>
+                <div class="poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card border border-gray-100">
+                    <img src="https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=400" class="w-full h-full object-cover" alt="[內容圖片]">
+                </div>
+                <div class="poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card border border-gray-100">
+                    <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=400" class="w-full h-full object-cover" alt="[內容圖片]">
+                </div>
+                <div class="poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card border border-gray-100">
+                    <img src="https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=400" class="w-full h-full object-cover" alt="[內容圖片]">
+                </div>
+                <div class="hidden sm:block poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card border border-gray-100">
+                    <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=400" class="w-full h-full object-cover" alt="[內容圖片]">
+                </div>
+                <div class="hidden md:block poster-card rounded-md md:rounded-xl overflow-hidden bg-light-card border border-gray-100">
+                    <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=400" class="w-full h-full object-cover" alt="[內容圖片]">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部導航欄 (在平板與電腦上調整寬度) -->
+    <nav class="fixed bottom-0 w-full z-50 bottom-nav-blur border-t border-gray-100 px-6 py-3 pb-8 md:pb-4">
+        <div class="flex items-center justify-between max-w-md md:max-w-xl mx-auto">
+            <!-- 主頁 -->
+            <button class="flex flex-col items-center space-y-1 text-black group">
+                <i class="fas fa-house text-xl md:text-2xl group-hover:scale-110 transition"></i>
+                <span class="text-[10px] md:text-xs font-bold">主頁</span>
+            </button>
+            <!-- 模擬器 -->
+            <button class="flex flex-col items-center space-y-1 text-soft-gray hover:text-black transition group">
+                <i class="fas fa-gamepad text-xl md:text-2xl group-hover:scale-110 transition"></i>
+                <span class="text-[10px] md:text-xs font-medium">模擬器</span>
+            </button>
+            <!-- 重點更新 -->
+            <button class="flex flex-col items-center space-y-1 text-soft-gray hover:text-black transition group">
+                <div class="relative">
+                    <i class="fas fa-bullhorn text-xl md:text-2xl group-hover:scale-110 transition"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full shadow-[0_0_5px_rgba(239,68,68,0.4)]"></span>
+                </div>
+                <span class="text-[10px] md:text-xs font-medium">重點更新</span>
+            </button>
+            <!-- Google (連結至 Gmail) -->
+            <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" class="flex flex-col items-center space-y-1 text-soft-gray hover:text-black transition group">
+                <i class="fab fa-google text-xl md:text-2xl google-icon-color group-hover:scale-110 transition"></i>
+                <span class="text-[10px] md:text-xs font-medium">Google</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        function scrollToCourses() {
+            const section = document.getElementById('course-library');
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 10) {
+                header.classList.add('top-nav-blur', 'shadow-md', 'border-b', 'border-gray-100');
+            } else {
+                header.classList.remove('top-nav-blur', 'shadow-md', 'border-b', 'border-gray-100');
+            }
+        });
+    </script>
+</body>
+</html>
