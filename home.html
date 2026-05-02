@@ -208,13 +208,32 @@
             <p class="text-gray-400 text-sm md:text-base max-w-2xl font-medium">透過不同模擬器了解物理邏輯。</p>
         </header>
 
+        <!-- 模擬器清單 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="simulator-grid">
+            <!-- 氫原子躍遷模擬器 -->
             <div class="sim-card border p-4 rounded-2xl bg-white shadow-sm hover:border-blue-600 transition card-animate visible">
                 <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover" alt="Sim">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png" class="w-full h-full object-cover" alt="氫原子躍遷模擬器">
                 </div>
-                <h3 class="font-bold text-lg mb-2">原子氫能階模擬器</h3>
+                <div class="px-2 mb-4">
+                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">原子世界</span>
+                    <h3 class="font-bold text-lg mt-1">氫原子躍遷模擬器</h3>
+                    <p class="text-gray-500 text-xs mt-2 leading-relaxed">此氫原子躍遷模擬器透過視覺化波耳模型，直觀呈現能級躍遷、光譜序列與能量量子化，提升物理學習成效。</p>
+                </div>
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html')" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-blue-600 transition btn-press">啟動 (彈出模式)</button>
+            </div>
+
+            <!-- 近視糾正光路圖 -->
+            <div class="sim-card border p-4 rounded-2xl bg-white shadow-sm hover:border-blue-600 transition card-animate visible">
+                <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/simulator-eye.png" class="w-full h-full object-cover" alt="近視糾正光路圖">
+                </div>
+                <div class="px-2 mb-4">
+                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">醫學物理學</span>
+                    <h3 class="font-bold text-lg mt-1">近視糾正光路圖</h3>
+                    <p class="text-gray-500 text-xs mt-2 leading-relaxed">此模擬器視覺化呈現近視成像位置及凹透鏡糾正原理，透過動態光路圖，直觀掌握屈光不正與視力矯正的核心概念。</p>
+                </div>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/simulatorbank/eye.html')" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-blue-600 transition btn-press">啟動 (彈出模式)</button>
             </div>
         </div>
     </div>
@@ -247,7 +266,7 @@
             googleUrl: 'https://mail.google.com/mail/u/0/#inbox',
             updateUrl: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home',
             data: [
-                // 課程全庫 (course1-7)
+                // 課程全庫
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg', url: 'https://sites.google.com/np2c.edu.hk/heatcourse/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg', url: 'https://sites.google.com/np2c.edu.hk/mechanics-all/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg', url: 'https://sites.google.com/np2c.edu.hk/wave/home' },
@@ -266,7 +285,7 @@
                 // 基礎練習冊 11-20
                 ...[ '11', '12', '13', '14', '15', '16', '17', '18', '19' ].map(n => ({ category: 'funda-2', img: `https://phyuaaphysics.github.io/phyustudio/funda${n}.png`, url: 'no link' })),
 
-                // 更多功能 (8個功能)
+                // 更多功能
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-1.png', url: 'https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home' },
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-2.png', url: 'https://sites.google.com/view/lessonremarkphyu2025start/home' },
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-3.png', url: 'https://sites.google.com/np2c.edu.hk/pastpaper-system/home' },
@@ -293,7 +312,8 @@
 
         function handleNavigation(url, element) {
             if (!url || url === 'no link') return;
-            const isIframeFriendly = url.includes('github.io');
+            // 判斷是否使用彈出視窗模式 (針對 github.io 模擬器)
+            const isIframeFriendly = url.includes('github.io') || url.includes('phyuaaphysics.github.io');
             const overlay = document.getElementById('sim-overlay');
             const frame = document.getElementById('sim-frame');
             const loaderText = document.getElementById('loader-text');
@@ -363,7 +383,7 @@
                 'func': document.getElementById('func-slider')
             };
 
-            Object.values(containers).forEach(el => el.innerHTML = '');
+            Object.values(containers).forEach(el => { if(el) el.innerHTML = ''; });
 
             config.data.forEach(item => {
                 const div = document.createElement('div');
