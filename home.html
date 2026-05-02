@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lumina Stream - Netflix Style</title>
+    <title>Lumina Stream - Professional Style</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -16,23 +16,18 @@
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
             background-color: #ffffff;
-            color: #1a1a1a;
+            color: #000000;
             -webkit-tap-highlight-color: transparent;
             overflow-x: hidden;
         }
 
-        /* 隱藏捲動條但保留功能 */
+        /* 隱藏捲動條 */
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
         .hide-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
-        }
-
-        /* Netflix 風格的漸層效果 */
-        .hero-mobile-gradient {
-            background: linear-gradient(to top, #ffffff 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%);
         }
 
         .bottom-nav-blur {
@@ -45,46 +40,39 @@
             background-color: rgba(255, 255, 255, 0.85);
         }
 
-        /* 海報卡片設計 */
+        /* 海報卡片設計 (2:3) */
         .poster-card {
             aspect-ratio: 2/3;
             transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             cursor: pointer;
             position: relative;
+            border-radius: 0 !important;
+        }
+
+        /* 更多功能卡片設計 (1:1 正方形) */
+        .square-card {
+            aspect-ratio: 1/1;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: pointer;
+            position: relative;
+            border-radius: 0 !important;
         }
         
-        /* 桌面端懸停效果 */
         @media (min-width: 1024px) {
-            .poster-card:hover {
-                transform: scale(1.08);
+            .poster-card:hover, .square-card:hover {
+                transform: scale(1.02);
                 z-index: 20;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             }
         }
 
-        .poster-card:active {
-            transform: scale(0.95);
-        }
-
-        /* 標誌大小響應式 */
         .app-logo {
-            height: 38px;
+            height: 35px;
             width: auto;
             object-fit: contain;
         }
-        @media (min-width: 768px) {
-            .app-logo { height: 50px; }
-        }
         
-        .text-soft-gray {
-            color: #71717a;
-        }
-        
-        .bg-light-card {
-            background-color: #f4f4f5;
-        }
-
-        /* Google Icon 多色漸層 */
+        /* Google Icon 顏色 */
         .google-icon-color {
             background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) text;
             -webkit-background-clip: text;
@@ -93,155 +81,183 @@
             -webkit-text-fill-color: transparent;
         }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
         .scroll-mt-header {
-            scroll-margin-top: 140px;
+            scroll-margin-top: 80px;
         }
 
-        /* 平滑左右滑動容器 */
+        /* 英雄區域遮罩 */
+        .hero-card-overlay {
+            background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+        }
+
         .slider-container {
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
-            gap: 12px;
-            padding-bottom: 20px;
+            gap: 8px; 
+            padding-bottom: 8px;
             -webkit-overflow-scrolling: touch;
+        }
+
+        /* 手機端間距更緊湊 */
+        @media (max-width: 768px) {
+            .slider-container {
+                gap: 4px; 
+            }
         }
 
         .slider-item {
             scroll-snap-align: start;
             flex: 0 0 auto;
         }
+
+        /* 全局移除圓角 */
+        * {
+            border-radius: 0 !important;
+        }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-24">
 
     <!-- 頂部導航欄 -->
-    <header class="fixed top-0 w-full z-50 transition-all duration-500">
-        <div class="max-w-screen-2xl mx-auto px-5 py-3 md:py-4 flex items-center relative">
-            <!-- 標誌在最左側 -->
+    <header class="fixed top-0 w-full z-50 transition-all duration-300">
+        <div class="max-w-screen-2xl mx-auto px-5 py-3 flex items-center relative">
             <div class="z-10 cursor-pointer" onclick="scrollToHero()">
-                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina Logo" class="app-logo">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="[Lumina 標誌]" class="app-logo">
             </div>
             
-            <!-- 功能標籤水平置中 -->
             <div class="absolute inset-x-0 flex justify-center pointer-events-none">
-                <div class="flex items-center space-x-5 md:space-x-10 text-[13px] md:text-[15px] font-bold text-gray-700 pointer-events-auto">
-                    <!-- 點擊「課堂錄影」回到頂部 -->
-                    <button onclick="scrollToHero()" class="hover:text-black transition-colors">課堂錄影</button>
-                    <button onclick="scrollToCourses()" class="hover:text-black transition-colors">課程全庫</button>
-                    <button class="hover:text-black transition-colors">基礎練習</button>
-                    <button class="flex items-center hover:text-black transition-colors group">
-                        其他 <i class="fas fa-chevron-down ml-1 text-[10px] group-hover:rotate-180 transition-transform"></i>
+                <div class="flex items-center space-x-6 md:space-x-12 text-[12px] md:text-[14px] font-bold text-gray-800 pointer-events-auto tracking-widest uppercase">
+                    <button onclick="scrollToHero()" class="hover:opacity-60 transition-opacity">課堂錄影</button>
+                    <button onclick="scrollToCourses()" class="hover:opacity-60 transition-opacity">課程全庫</button>
+                    <button class="hover:opacity-60 transition-opacity">基礎練習</button>
+                    <button onclick="scrollToMore()" class="flex items-center hover:opacity-60 transition-opacity group">
+                        更多功能
                     </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- 英雄區域 (Hero Section) -->
-    <section id="hero" class="relative w-full h-[75vh] md:h-[90vh] flex items-end justify-center pb-20 md:pb-28">
-        <div class="absolute inset-0 z-0 overflow-hidden">
+    <!-- 英雄區域 -->
+    <section id="hero" class="pt-16 md:pt-20 px-0 md:px-10 max-w-screen-2xl mx-auto">
+        <div class="relative w-full h-[55vh] md:h-[70vh] overflow-hidden border-b border-gray-100 md:border md:border-gray-200">
             <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" 
-                 class="w-full h-full object-cover object-[center_20%]" 
-                 alt="[精選推薦封面]">
-            <div class="absolute inset-0 hero-mobile-gradient"></div>
-        </div>
-
-        <div class="relative z-10 w-full px-6 md:px-16 max-w-screen-2xl mx-auto flex justify-center">
-            <div class="flex flex-col items-center text-center">
-                <div class="flex items-center space-x-2 mb-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/30">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-4 h-4 rounded-sm" alt="Icon">
-                    <span class="text-[10px] md:text-xs font-bold tracking-widest text-blue-700 uppercase">今日推介</span>
+                 class="absolute inset-0 w-full h-full object-cover object-[center_30%]" 
+                 alt="[英雄區域背景]">
+            <div class="absolute inset-0 hero-card-overlay"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 md:pb-16 px-6 text-center">
+                <div class="mb-4">
+                    <span class="text-[11px] md:text-xs font-black tracking-[0.4em] text-blue-800 uppercase">Daily Study</span>
                 </div>
-                <h1 class="text-5xl md:text-8xl font-black mb-10 tracking-tighter text-gray-900 leading-none">
+                <h1 class="text-4xl md:text-7xl font-black mb-8 tracking-tighter text-black leading-none uppercase">
                     課堂錄影
                 </h1>
-                
-                <div class="flex items-center">
-                    <!-- 開始學習按鈕：已更新連結為 2526 Physics Lesson Recording Sem 2 -->
-                    <a href="https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home" target="_blank" class="bg-black text-white px-8 md:px-10 py-2.5 md:py-3 rounded-full font-bold flex items-center shadow-2xl hover:bg-gray-800 transition active:scale-95 text-sm md:text-base">
-                        <i class="fas fa-play mr-2 text-xs"></i> 開始學習
-                    </a>
-                </div>
+                <a href="https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home" 
+                   target="_blank" 
+                   class="bg-black text-white px-10 md:px-16 py-3 md:py-4 font-bold flex items-center shadow-none hover:bg-gray-800 transition transform active:scale-95 text-xs md:text-sm tracking-widest uppercase">
+                    <i class="fas fa-play mr-3 text-[10px]"></i> 進入課程
+                </a>
             </div>
         </div>
     </section>
 
     <!-- 內容區塊 -->
-    <main class="space-y-12 mt-8 md:mt-12 max-w-screen-2xl mx-auto">
+    <main class="space-y-10 mt-10 max-w-screen-2xl mx-auto">
         
-        <!-- 課程全庫 -->
+        <!-- 課程全庫 (可滑動) -->
         <section id="course-library" class="pl-5 md:px-10 scroll-mt-header">
-            <div class="flex items-end justify-between mb-4 pr-5 md:pr-0">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">課程全庫</h2>
-                <button class="text-sm font-bold text-blue-600 hover:underline">查看全部</button>
+            <div class="flex items-end justify-between mb-2 pr-5 md:pr-0">
+                <h2 class="text-xl md:text-2xl font-black text-black tracking-widest uppercase">課程全庫</h2>
             </div>
             
             <div class="slider-container hide-scrollbar">
-                <div class="slider-item w-36 md:w-60">
-                    <a href="https://sites.google.com/np2c.edu.hk/heatcourse/home" target="_blank" class="block poster-card rounded-xl overflow-hidden shadow-md">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg" class="w-full h-full object-cover" alt="[課程-熱]">
+                <div class="slider-item w-32 md:w-48">
+                    <a href="https://sites.google.com/np2c.edu.hk/heatcourse/home" target="_blank" class="block poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg" class="w-full h-full object-cover" alt="[熱學]">
                     </a>
                 </div>
-                <div class="slider-item w-36 md:w-60">
-                    <a href="https://sites.google.com/np2c.edu.hk/mechanics-all/home" target="_blank" class="block poster-card rounded-xl overflow-hidden shadow-md">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg" class="w-full h-full object-cover" alt="[課程-力]">
+                <div class="slider-item w-32 md:w-48">
+                    <a href="https://sites.google.com/np2c.edu.hk/mechanics-all/home" target="_blank" class="block poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg" class="w-full h-full object-cover" alt="[力學]">
                     </a>
                 </div>
-                <div class="slider-item w-36 md:w-60">
-                    <a href="https://sites.google.com/np2c.edu.hk/wave/home" target="_blank" class="block poster-card rounded-xl overflow-hidden shadow-md">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg" class="w-full h-full object-cover" alt="[課程-波]">
+                <div class="slider-item w-32 md:w-48">
+                    <a href="https://sites.google.com/np2c.edu.hk/wave/home" target="_blank" class="block poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg" class="w-full h-full object-cover" alt="[波動]">
                     </a>
                 </div>
-                <div class="slider-item w-36 md:w-60">
-                    <a href="https://sites.google.com/np2c.edu.hk/emcourse/home" target="_blank" class="block poster-card rounded-xl overflow-hidden shadow-md">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-4-ennm.jpg" class="w-full h-full object-cover" alt="[課程-電磁]">
+                <div class="slider-item w-32 md:w-48">
+                    <a href="https://sites.google.com/np2c.edu.hk/emcourse/home" target="_blank" class="block poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-4-ennm.jpg" class="w-full h-full object-cover" alt="[電磁學]">
                     </a>
                 </div>
-                <div class="slider-item w-36 md:w-60">
-                    <a href="https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home" target="_blank" class="block poster-card rounded-xl overflow-hidden shadow-md">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg" class="w-full h-full object-cover" alt="[課程-核能]">
+                <div class="slider-item w-32 md:w-48">
+                    <a href="https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home" target="_blank" class="block poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg" class="w-full h-full object-cover" alt="[放射性]">
                     </a>
                 </div>
-                <div class="slider-item w-36 md:w-60">
-                    <a href="https://sites.google.com/np2c.edu.hk/atomic-world/home" target="_blank" class="block poster-card rounded-xl overflow-hidden shadow-md">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover" alt="[課程-原子]">
+                <div class="slider-item w-32 md:w-48">
+                    <a href="https://sites.google.com/np2c.edu.hk/atomic-world/home" target="_blank" class="block poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover" alt="[原子]">
                     </a>
                 </div>
-                <div class="slider-item w-36 md:w-60">
-                    <a href="https://sites.google.com/np2c.edu.hk/medicalphysics/home" target="_blank" class="block poster-card rounded-xl overflow-hidden shadow-md">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg" class="w-full h-full object-cover" alt="[課程-醫學]">
+                <div class="slider-item w-32 md:w-48">
+                    <a href="https://sites.google.com/np2c.edu.hk/medicalphysics/home" target="_blank" class="block poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg" class="w-full h-full object-cover" alt="[醫學物理]">
                     </a>
                 </div>
             </div>
         </section>
 
-        <!-- 最近新增內容 (佔位符) -->
-        <section class="px-5 md:px-10 mb-10">
-            <h2 class="text-2xl md:text-3xl font-extrabold mb-6 text-gray-900">最近新增內容</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-6">
-                <div class="poster-card rounded-xl overflow-hidden shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=500" class="w-full h-full object-cover" alt="[新增項目]">
+        <!-- 更多功能 (7 個正方形卡片, 可滑動) -->
+        <section id="more-functions" class="pl-5 md:px-10 scroll-mt-header pb-20">
+            <div class="flex items-end justify-between mb-2 pr-5 md:pr-0">
+                <h2 class="text-xl md:text-2xl font-black text-black tracking-widest uppercase">更多功能</h2>
+            </div>
+            
+            <div class="slider-container hide-scrollbar">
+                <!-- 1. 學生資源中心 -->
+                <div class="slider-item w-28 md:w-40">
+                    <a href="https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home" target="_blank" class="block square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-1.png" class="w-full h-full object-cover" alt="[學生資源中心]">
+                    </a>
                 </div>
-                <div class="poster-card rounded-xl overflow-hidden shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1616530940355-351fabd9524b?auto=format&fit=crop&w=500" class="w-full h-full object-cover" alt="[新增項目]">
+                <!-- 2. 2425 課堂錄影 -->
+                <div class="slider-item w-28 md:w-40">
+                    <a href="https://sites.google.com/np2c.edu.hk/2425physicslessonrecording/home" target="_blank" class="block square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-2.png" class="w-full h-full object-cover" alt="[2425 課堂錄影]">
+                    </a>
                 </div>
-                <div class="poster-card rounded-xl overflow-hidden shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=500" class="w-full h-full object-cover" alt="[新增項目]">
+                <!-- 3. 2324 課堂錄影 -->
+                <div class="slider-item w-28 md:w-40">
+                    <a href="https://sites.google.com/np2c.edu.hk/2324physicslessonrecording/home" target="_blank" class="block square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-3.png" class="w-full h-full object-cover" alt="[2324 課堂錄影]">
+                    </a>
                 </div>
-                <div class="poster-card rounded-xl overflow-hidden shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=500" class="w-full h-full object-cover" alt="[新增項目]">
+                <!-- 4. 功能 4 -->
+                <div class="slider-item w-28 md:w-40">
+                    <div class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-4.png" class="w-full h-full object-cover" alt="[功能 4]">
+                    </div>
                 </div>
-                <div class="hidden md:block poster-card rounded-xl overflow-hidden shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=500" class="w-full h-full object-cover" alt="[新增項目]">
+                <!-- 5. 功能 5 -->
+                <div class="slider-item w-28 md:w-40">
+                    <div class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-5.png" class="w-full h-full object-cover" alt="[功能 5]">
+                    </div>
                 </div>
-                <div class="hidden md:block poster-card rounded-xl overflow-hidden shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=500" class="w-full h-full object-cover" alt="[新增項目]">
+                <!-- 6. 功能 6 -->
+                <div class="slider-item w-28 md:w-40">
+                    <div class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-6.png" class="w-full h-full object-cover" alt="[功能 6]">
+                    </div>
+                </div>
+                <!-- 7. 功能 7 -->
+                <div class="slider-item w-28 md:w-40">
+                    <div class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-7.png" class="w-full h-full object-cover" alt="[功能 7]">
+                    </div>
                 </div>
             </div>
         </section>
@@ -249,54 +265,50 @@
     </main>
 
     <!-- 底部導航欄 -->
-    <nav class="fixed bottom-0 w-full z-50 bottom-nav-blur border-t border-gray-100 px-6 py-2 pb-5 md:pb-3">
+    <nav class="fixed bottom-0 w-full z-50 bottom-nav-blur border-t border-black px-6 py-2 pb-6 md:pb-4 shadow-none">
         <div class="flex items-center justify-between max-w-md mx-auto">
-            <!-- 主頁 -->
             <button onclick="scrollToHero()" class="flex flex-col items-center text-black group">
-                <i class="fas fa-house text-lg md:text-xl group-hover:-translate-y-0.5 transition-transform"></i>
-                <span class="text-[9px] md:text-[11px] font-bold mt-0.5">主頁</span>
+                <i class="fas fa-house text-lg"></i>
+                <span class="text-[9px] font-black mt-1 uppercase tracking-widest">主頁</span>
             </button>
-            <!-- 模擬器 -->
-            <button class="flex flex-col items-center text-soft-gray hover:text-black transition group">
-                <i class="fas fa-gamepad text-lg md:text-xl group-hover:-translate-y-0.5 transition-transform"></i>
-                <span class="text-[9px] md:text-[11px] font-medium mt-0.5">模擬器</span>
+            <button class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+                <i class="fas fa-gamepad text-lg"></i>
+                <span class="text-[9px] font-black mt-1 uppercase tracking-widest">模擬器</span>
             </button>
-            <!-- 重點更新 -->
-            <button class="flex flex-col items-center text-soft-gray hover:text-black transition group">
+            <button class="flex flex-col items-center text-gray-400 hover:text-black transition group">
                 <div class="relative">
-                    <i class="fas fa-bullhorn text-lg md:text-xl group-hover:-translate-y-0.5 transition-transform"></i>
-                    <span class="absolute -top-0.5 -right-0.5 bg-red-500 w-1.5 h-1.5 rounded-full ring-1 ring-white"></span>
+                    <i class="fas fa-bullhorn text-lg"></i>
                 </div>
-                <span class="text-[9px] md:text-[11px] font-medium mt-0.5">更新</span>
+                <span class="text-[9px] font-black mt-1 uppercase tracking-widest">更新</span>
             </button>
-            <!-- Google -->
-            <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" class="flex flex-col items-center text-soft-gray hover:text-black transition group">
-                <i class="fab fa-google text-lg md:text-xl google-icon-color group-hover:-translate-y-0.5 transition-transform"></i>
-                <span class="text-[9px] md:text-[11px] font-medium mt-0.5">Google</span>
+            <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+                <i class="fab fa-google text-lg google-icon-color"></i>
+                <span class="text-[9px] font-black mt-1 uppercase tracking-widest">Google</span>
             </a>
         </div>
     </nav>
 
     <script>
-        // 平滑回到 Hero 區域
         function scrollToHero() {
-            const hero = document.getElementById('hero');
-            hero.scrollIntoView({ behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 平滑捲動到課程全庫
         function scrollToCourses() {
             const section = document.getElementById('course-library');
             section.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // 導航欄捲動效果
+        function scrollToMore() {
+            const section = document.getElementById('more-functions');
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
         window.addEventListener('scroll', () => {
             const header = document.querySelector('header');
-            if (window.scrollY > 50) {
-                header.classList.add('top-nav-blur', 'shadow-lg');
+            if (window.scrollY > 30) {
+                header.classList.add('top-nav-blur', 'border-b', 'border-black');
             } else {
-                header.classList.remove('top-nav-blur', 'shadow-lg');
+                header.classList.remove('top-nav-blur', 'border-b', 'border-black');
             }
         });
     </script>
