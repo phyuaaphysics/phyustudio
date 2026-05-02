@@ -84,11 +84,56 @@
             background: linear-gradient(to top, #fafafa 0%, rgba(250,250,250,0.4) 40%, transparent 100%);
         }
 
+        /* 滾動容器優化 */
+        .slider-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
         .slider-container {
-            display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-            gap: 16px; padding: 5px 0 30px 0; -webkit-overflow-scrolling: touch;
+            display: flex; 
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory;
+            gap: 16px; 
+            padding: 5px 0 30px 0; 
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
         }
         .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
+
+        /* 輔助箭頭設計 */
+        .nav-arrow {
+            position: absolute;
+            top: 40%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s, background 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        @media (hover: hover) {
+            .slider-wrapper:hover .nav-arrow { opacity: 1; }
+        }
+        
+        /* 行動端隱藏箭頭 */
+        @media (max-width: 768px) {
+            .nav-arrow { display: none; }
+        }
+
+        .nav-arrow:hover { background: rgba(255, 255, 255, 0.95); }
+        .nav-arrow.left { left: -10px; }
+        .nav-arrow.right { right: -10px; }
 
         .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
     </style>
@@ -122,7 +167,6 @@
     <!-- 英雄區塊 -->
     <section id="hero" class="pt-20 px-0 md:px-8 max-w-screen-2xl mx-auto">
         <div class="relative w-full h-[55vh] md:h-[70vh] overflow-hidden md:rounded-2xl shadow-sm border-b border-gray-100">
-            <!-- 修改 object-top 確保保留圖片頂部 -->
             <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top" alt="Hero Background">
             <div class="absolute inset-0 hero-gradient-overlay"></div>
             <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 px-6 text-center">
@@ -146,24 +190,40 @@
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Comprehensive Archives</p>
                 </div>
             </div>
-            <div class="slider-container hide-scrollbar" id="course-slider"></div>
+            <div class="slider-wrapper">
+                <div class="nav-arrow left" onclick="scrollSlider('course-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
+                <div class="slider-container hide-scrollbar" id="course-slider"></div>
+                <div class="nav-arrow right" onclick="scrollSlider('course-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
+            </div>
         </section>
 
         <!-- 練習冊系列 -->
         <section id="practice-1-10" class="scroll-mt-24">
             <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">基礎練習冊 01-10</h2>
-            <div class="slider-container hide-scrollbar" id="funda-1-slider"></div>
+            <div class="slider-wrapper">
+                <div class="nav-arrow left" onclick="scrollSlider('funda-1-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
+                <div class="slider-container hide-scrollbar" id="funda-1-slider"></div>
+                <div class="nav-arrow right" onclick="scrollSlider('funda-1-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
+            </div>
         </section>
 
         <section id="practice-11-20" class="scroll-mt-24">
             <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">基礎練習冊 11-19</h2>
-            <div class="slider-container hide-scrollbar" id="funda-2-slider"></div>
+            <div class="slider-wrapper">
+                <div class="nav-arrow left" onclick="scrollSlider('funda-2-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
+                <div class="slider-container hide-scrollbar" id="funda-2-slider"></div>
+                <div class="nav-arrow right" onclick="scrollSlider('funda-2-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
+            </div>
         </section>
 
         <!-- 更多功能 -->
         <section id="more-functions" class="scroll-mt-24 pb-12">
             <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">核心功能</h2>
-            <div class="slider-container hide-scrollbar" id="function-slider"></div>
+            <div class="slider-wrapper">
+                <div class="nav-arrow left" onclick="scrollSlider('function-slider', -1)"><i class="fas fa-chevron-left text-xs"></i></div>
+                <div class="slider-container hide-scrollbar" id="function-slider"></div>
+                <div class="nav-arrow right" onclick="scrollSlider('function-slider', 1)"><i class="fas fa-chevron-right text-xs"></i></div>
+            </div>
         </section>
 
     </main>
@@ -204,16 +264,13 @@
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg', url: 'https://sites.google.com/np2c.edu.hk/atomic-world/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg', url: 'https://sites.google.com/np2c.edu.hk/medicalphysics/home' },
                 
-                // 基礎練習冊 01-10 (加入特別卡片並處理順序)
+                // 基礎練習冊 01-10
                 ...(() => {
                     const items = [];
-                    // 特別卡片 S301, S302
                     items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS301.png', url: 'no link' });
                     items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'no link' });
-                    // 01A 和 01B
                     items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'no link' });
                     items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01B.png', url: 'no link' });
-                    // 02-10
                     for(let i=2; i<=10; i++){
                         const num = i.toString().padStart(2, '0');
                         items.push({ category: 'funda-1', img: `https://phyuaaphysics.github.io/phyustudio/funda${num}.png`, url: 'no link' });
@@ -240,6 +297,16 @@
         };
 
         const loader = document.getElementById('page-loader');
+
+        // 左右滾動控制
+        window.scrollSlider = (id, direction) => {
+            const container = document.getElementById(id);
+            const scrollAmount = container.clientWidth * 0.8;
+            container.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
+        };
 
         function handleNavigation(url, element) {
             if (!url || url === '#' || url === 'no link') return;
