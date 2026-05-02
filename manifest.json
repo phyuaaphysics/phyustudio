@@ -1,36 +1,51 @@
 {
-"name": "PH studio",
-"short_name": "PH studio",
-"description": "A Self Directed Learning Platform for Physics and Science.",
-"start_url": "https://phyuaaphysics.github.io/phyustudio/index.html",
-"display": "standalone",
-"background_color": "#81D8D0",
-"theme_color": "#81D8D0",
-"orientation": "portrait-primary",
-"icons": [
-{
-"src": "https://phyuaaphysics.github.io/phyustudio/appicon.png",
-"sizes": "512x512",
-"type": "image/png",
-"purpose": "any maskable"
-},
-{
-"src": "https://phyuaaphysics.github.io/phyustudio/favicon.png",
-"sizes": "192x192",
-"type": "image/png"
-}
-],
-"categories": [
-"education",
-"science"
-],
-"screenshots": [
-{
-"src": "https://phyuaaphysics.github.io/phyustudio/appicon.png",
-"sizes": "512x512",
-"type": "image/png",
-"form_factor": "wide",
-"label": "PH studio Launch Screen"
-}
-]
+  "name": "PH studio",
+  "short_name": "PH studio",
+  "description": "A Self Directed Learning Platform for Physics and Science.",
+  "id": "/phyustudio/",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#81D8D0",
+  "theme_color": "#81D8D0",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "appicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "appicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "appicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "education",
+    "science"
+  ],
+  "screenshots": [
+    {
+      "src": "appicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "PH studio Mobile View"
+    },
+    {
+      "src": "appicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "PH studio Desktop View"
+    }
+  ]
 }
