@@ -99,6 +99,29 @@
         
         .sim-iframe { width: 100%; height: 100%; border: none; }
         .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
+
+        /* 標籤樣式 */
+        .tag-pill {
+            padding: 6px 16px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        .tag-pill.active {
+            background: #2563eb;
+            color: white;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+        }
+        .tag-pill:not(.active):hover {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
     </style>
 </head>
 <body class="pb-24">
@@ -203,38 +226,22 @@
 
     <!-- 分頁: simulator.html -->
     <div id="page-simulator" class="page-fade hidden-page pt-28 px-6 max-w-screen-2xl mx-auto">
-        <header class="mb-10 text-center md:text-left">
+        <header class="mb-6 text-center md:text-left">
             <h1 class="text-3xl md:text-4xl font-black tracking-tight mb-2">物理互動模擬器庫</h1>
             <p class="text-gray-400 text-sm md:text-base max-w-2xl font-medium">透過不同模擬器了解物理邏輯。</p>
         </header>
 
+        <!-- 課題標籤篩選器 -->
+        <div class="mb-8 overflow-x-auto hide-scrollbar flex items-center gap-3 py-2" id="sim-tags-container">
+            <button onclick="filterSims('全部')" class="tag-pill active" id="tag-all">全部</button>
+            <button onclick="filterSims('原子世界')" class="tag-pill">原子世界</button>
+            <button onclick="filterSims('醫學物理學')" class="tag-pill">醫學物理學</button>
+            <!-- 這裡未來可根據需要動態生成或手動添加課題標籤 -->
+        </div>
+
         <!-- 模擬器清單 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="simulator-grid">
-            <!-- 氫原子躍遷模擬器 -->
-            <div class="sim-card border p-4 rounded-2xl bg-white shadow-sm hover:border-blue-600 transition card-animate visible">
-                <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png" class="w-full h-full object-cover" alt="氫原子躍遷模擬器">
-                </div>
-                <div class="px-2 mb-4">
-                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">原子世界</span>
-                    <h3 class="font-bold text-lg mt-1">氫原子躍遷模擬器</h3>
-                    <p class="text-gray-500 text-xs mt-2 leading-relaxed">此氫原子躍遷模擬器透過視覺化波耳模型，直觀呈現能級躍遷、光譜序列與能量量子化，提升物理學習成效。</p>
-                </div>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html')" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-blue-600 transition btn-press">啟動 (彈出模式)</button>
-            </div>
-
-            <!-- 近視糾正光路圖 -->
-            <div class="sim-card border p-4 rounded-2xl bg-white shadow-sm hover:border-blue-600 transition card-animate visible">
-                <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/simulator-eye.png" class="w-full h-full object-cover" alt="近視糾正光路圖">
-                </div>
-                <div class="px-2 mb-4">
-                    <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">醫學物理學</span>
-                    <h3 class="font-bold text-lg mt-1">近視糾正光路圖</h3>
-                    <p class="text-gray-500 text-xs mt-2 leading-relaxed">此模擬器視覺化呈現近視成像位置及凹透鏡糾正原理，透過動態光路圖，直觀掌握屈光不正與視力矯正的核心概念。</p>
-                </div>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/simulatorbank/eye.html')" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-blue-600 transition btn-press">啟動 (彈出模式)</button>
-            </div>
+            <!-- 內容由 JavaScript 動態生成以配合篩選功能 -->
         </div>
     </div>
 
@@ -294,10 +301,59 @@
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-6.png', url: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home' },
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-7.png', url: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home' },
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-8.png', url: 'https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode%26state%3De5da325236e5410c48b6aa40917aaab5%26approval_prompt%3Dauto%26client_name%3DCasOAuthClient' }
+            ],
+            simulators: [
+                {
+                    topic: '原子世界',
+                    name: '氫原子躍遷模擬器',
+                    desc: '此氫原子躍遷模擬器透過視覺化波耳模型，直觀呈現能級躍遷、光譜序列與能量量子化，提升物理學習成效。',
+                    img: 'https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png',
+                    url: 'https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html'
+                },
+                {
+                    topic: '醫學物理學',
+                    name: '近視糾正光路圖',
+                    desc: '此模擬器視覺化呈現近視成像位置及凹透鏡糾正原理，透過動態光路圖，直觀掌握屈光不正與視力矯正的核心概念。',
+                    img: 'https://phyuaaphysics.github.io/phyustudio/simulator-eye.png',
+                    url: 'https://phyuaaphysics.github.io/simulatorbank/eye.html'
+                }
             ]
         };
 
         const loader = document.getElementById('page-loader');
+
+        // 篩選模擬器
+        function filterSims(topic) {
+            // 更新標籤樣式
+            document.querySelectorAll('.tag-pill').forEach(btn => {
+                if (btn.innerText === topic) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            const grid = document.getElementById('simulator-grid');
+            grid.innerHTML = ''; // 清空現有卡片
+
+            const filtered = topic === '全部' 
+                ? config.simulators 
+                : config.simulators.filter(s => s.topic === topic);
+
+            filtered.forEach(sim => {
+                const card = document.createElement('div');
+                card.className = "sim-card border p-4 rounded-2xl bg-white shadow-sm hover:border-blue-600 transition card-animate visible";
+                card.innerHTML = `
+                    <div class="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
+                        <img src="${sim.img}" class="w-full h-full object-cover" alt="${sim.name}">
+                    </div>
+                    <div class="px-2 mb-4">
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">${sim.topic}</span>
+                        <h3 class="font-bold text-lg mt-1">${sim.name}</h3>
+                        <p class="text-gray-500 text-xs mt-2 leading-relaxed">${sim.desc}</p>
+                    </div>
+                    <button onclick="handleNavigation('${sim.url}')" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-blue-600 transition btn-press">啟動 (彈出模式)</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
         // 左右滑動邏輯
         function slideSlider(id, direction) {
@@ -312,7 +368,6 @@
 
         function handleNavigation(url, element) {
             if (!url || url === 'no link') return;
-            // 判斷是否使用彈出視窗模式 (針對 github.io 模擬器)
             const isIframeFriendly = url.includes('github.io') || url.includes('phyuaaphysics.github.io');
             const overlay = document.getElementById('sim-overlay');
             const frame = document.getElementById('sim-frame');
@@ -366,6 +421,7 @@
                 setTimeout(() => simPage.style.opacity = '1', 10);
                 tabHome.classList.replace('text-blue-600', 'text-gray-400'); tabHome.classList.remove('scale-110');
                 tabSim.classList.replace('text-gray-400', 'text-blue-600'); tabSim.classList.add('scale-110');
+                filterSims('全部'); // 切換到模擬器頁面時預設顯示全部
             } else {
                 simPage.style.opacity = '0'; simPage.classList.add('hidden-page');
                 homePage.classList.remove('hidden-page');
@@ -413,6 +469,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             render();
+            filterSims('全部'); // 初始化模擬器網格
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
             }, { threshold: 0.1 });
