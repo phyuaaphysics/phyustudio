@@ -2,393 +2,272 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ph Studio | Welcome</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PH studio | Launch</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    <link rel="shortcut icon" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
     
-    <!-- PWA & Mobile Meta Tags -->
-    <meta name="theme-color" content="#ffffff">
-    <meta name="mobile-web-app-capable" content="yes">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#81D8D0">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="PhyU Studio">
-    
-    <!-- PWA App Icon Location (iOS) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PH studio">
     <link rel="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
     
-    <!-- Manifest (Android/Chrome) -->
-    <link rel="manifest" href="data:application/manifest+json,{'name':'PhyU Studio','short_name':'PhyU','start_url':'.','display':'standalone','background_color':'#ffffff','theme_color':'#ffffff','icons':[{'src':'https://phyuaaphysics.github.io/phyustudio/appicon.png','sizes':'192x192','type':'image/png'},{'src':'https://phyuaaphysics.github.io/phyustudio/appicon.png','sizes':'512x512','type':'image/png'}]}">
+    <!-- External Manifest Link -->
+    <link rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --accent: #0070f3;
-            --bg: #ffffff;
-            --text: #111111;
-            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+        @keyframes formulaFade {
+            0% { opacity: 0; transform: scale(0.85) translateY(10px); filter: blur(4px); }
+            20% { opacity: 0.4; transform: scale(1) translateY(0); filter: blur(0px); }
+            80% { opacity: 0.4; transform: scale(1.05) translateY(-5px); filter: blur(0px); }
+            100% { opacity: 0; transform: scale(1.1) translateY(-15px); filter: blur(2px); }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .loading-bar-container {
+            width: 80vw;
+            max-width: 280px;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
             overflow: hidden;
-            background-color: var(--bg);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text);
-            touch-action: none;
+            display: none;
+            z-index: 10;
         }
 
-        #canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+        .loading-bar-progress {
+            width: 0%;
             height: 100%;
-            z-index: 1;
+            background: #000000;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
-            transition: opacity 0.6s ease-in; 
+        body {
+            background-color: #81D8D0;
+            color: #000000;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
         }
 
-        #main-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: clamp(10px, 4vh, 30px);
-            z-index: 110;
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-            transition: transform 1.2s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.8s ease-in;
-            pointer-events: none;
+        #status-text {
+            min-height: 1.5em;
+            z-index: 10;
         }
 
-        #app-icon {
-            width: clamp(120px, 40vw, 220px);
-            height: auto;
-            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.08));
-            animation: float 6s ease-in-out infinite;
-            transition: transform 1.2s cubic-bezier(0.65, 0, 0.35, 1);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(1deg); }
-            50% { transform: translateY(-15px) rotate(-1deg); }
-        }
-
-        .start-btn {
-            margin-top: 10px;
-            padding: clamp(12px, 2.5vh, 18px) clamp(30px, 8vw, 50px);
-            border: 1px solid var(--text);
-            background: transparent;
-            color: var(--text);
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            font-size: clamp(11px, 1.5vh, 14px);
-            font-weight: 400;
-            cursor: pointer;
+        .btn-modern {
+            font-weight: 500;
+            letter-spacing: 0.15em;
             position: relative;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            pointer-events: auto;
-            z-index: 120;
+            background: transparent;
+            color: #000000;
+            border: 1.5px solid #000000;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            cursor: pointer;
             outline: none;
+            z-index: 10;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .start-btn:active {
+        @media (min-width: 1024px) {
+            .btn-modern:hover {
+                background: #000000;
+                color: #ffffff;
+                letter-spacing: 0.2em;
+                padding-left: 4rem;
+                padding-right: 4rem;
+            }
+        }
+
+        .btn-modern:active {
             transform: scale(0.96);
-            background: rgba(0,0,0,0.05);
+            background: rgba(0, 0, 0, 0.1);
         }
 
-        @media (hover: hover) {
-            .start-btn:hover {
-                letter-spacing: 6px;
-                background: rgba(0,0,0,0.03);
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            }
+        #formula-container {
+            position: fixed;
+            top: 0;left: 0;width: 100%;height: 100%;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        #loading-ui {
-            width: 80%;
-            max-width: 280px;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .loading-text {
-            font-size: 10px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 15px;
-            height: 12px;
+        .formula {
+            position: absolute;
+            font-family: 'Times New Roman', serif;
             font-style: italic;
+            font-weight: 600;
+            color: #1e293b;
+            opacity: 0;
+            white-space: nowrap;
+            text-shadow: 0 0 15px rgba(255,255,255,0.8);
+            will-change: transform, opacity;
         }
-
-        .progress-container {
-            width: 100%;
-            height: 2px;
-            background: rgba(0,0,0,0.05);
-            position: relative;
-            overflow: hidden;
-            border-radius: 2px;
-        }
-
-        #progress-bar {
-            width: 0%;
-            height: 100%;
-            background: var(--text);
-            transition: width 0.1s linear; 
-        }
-
-        .visible { opacity: 1 !important; }
-        .fade-out { opacity: 0 !important; pointer-events: none; }
-
-        .netflix-zoom {
-            transform: scale(40) !important;
-            opacity: 0 !important;
-        }
-
-        @media (max-height: 450px) {
-            #main-container {
-                flex-direction: row;
-                max-width: 600px;
-                justify-content: center;
-                gap: 40px;
-            }
-            #app-icon { width: 100px; }
-            #loading-ui { margin-top: 0; }
-        }
-
     </style>
 </head>
-<body>
+<body class="flex flex-col items-center justify-center min-h-screen m-0">
 
-    <canvas id="canvas"></canvas>
+    <div id="formula-container" class="hidden"></div>
 
-    <div id="overlay">
-        <div id="main-container">
-            <img id="app-icon" src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="PhyU Studio Icon">
-            
-            <button class="start-btn" id="start-btn">Launch System</button>
+    <div id="landing-screen" class="flex flex-col items-center text-center space-y-10 sm:space-y-14 px-6 relative z-10 w-full max-w-lg">
+        <div class="fade-in">
+            <!-- App Icon from GitHub -->
+            <img 
+                src="https://phyuaaphysics.github.io/phyustudio/appicon.png" 
+                alt="PH studio Icon" 
+                class="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-[2rem] sm:rounded-[2.2rem] shadow-2xl transition-all duration-700"
+                onerror="this.src='https://via.placeholder.com/512x512?text=PH+studio'"
+            >
+        </div>
+        
+        <div class="fade-in" style="animation-delay: 0.2s;">
+            <p class="text-black/60 text-[9px] sm:text-[10px] md:text-xs font-semibold tracking-[0.3em] sm:tracking-[0.5em] uppercase">
+                Self Directed Learning Platform
+            </p>
+        </div>
 
-            <div id="loading-ui">
-                <div class="loading-text" id="status-text">INITIALIZING...</div>
-                <div class="progress-container">
-                    <div id="progress-bar"></div>
-                </div>
+        <div class="fade-in w-full flex justify-center" style="animation-delay: 0.4s;">
+            <button 
+                id="launch-btn"
+                onmouseenter="playHoverSound()"
+                onclick="launchSystem()"
+                class="btn-modern px-8 py-3 sm:px-10 sm:py-3.5 text-[10px] sm:text-[11px] md:text-xs uppercase w-full sm:w-auto"
+            >
+                Launch System
+            </button>
+        </div>
+    </div>
+
+    <div id="loading-screen" class="hidden flex flex-col items-center space-y-8 sm:space-y-10 relative z-10 w-full px-6">
+        <div class="text-center w-full max-w-[280px]">
+            <p id="status-text" class="text-slate-500 font-normal tracking-[0.2em] text-[8px] sm:text-[9px] mb-6 sm:mb-8 transition-opacity duration-500">Initializing System</p>
+            <div class="loading-bar-container mx-auto" id="bar-container">
+                <div class="loading-bar-progress" id="bar-progress"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const overlay = document.getElementById('overlay');
-        const mainContainer = document.getElementById('main-container');
-        const startBtn = document.getElementById('start-btn');
-        const loadingUi = document.getElementById('loading-ui');
-        const progressBar = document.getElementById('progress-bar');
-        const statusText = document.getElementById('status-text');
-        
-        const REDIRECT_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
-
-        const AudioEngine = {
-            ctx: null,
-            buffers: {},
-            initialized: false,
-
-            init() {
-                if (this.initialized) return;
-                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                this.initialized = true;
-            },
-
-            async loadSound(name, url) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const arrayBuffer = await response.arrayBuffer();
-                    if (!this.ctx) this.init();
-                    const audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
-                    this.buffers[name] = audioBuffer;
-                } catch (e) {
-                    console.warn("Audio load deferred or failed:", name);
-                }
-            },
-
-            play(name, options = {}) {
-                const { volume = 0.5, pitch = 1, loop = false } = options;
-                if (!this.ctx || !this.buffers[name]) return null;
-                if (this.ctx.state === 'suspended') this.ctx.resume();
-                const source = this.ctx.createBufferSource();
-                const gainNode = this.ctx.createGain();
-                source.buffer = this.buffers[name];
-                source.playbackRate.value = pitch;
-                source.loop = loop;
-                gainNode.gain.value = volume;
-                source.connect(gainNode);
-                gainNode.connect(this.ctx.destination);
-                source.start(0);
-                return { source, gainNode };
-            }
-        };
-
-        const assets = {
-            tap: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
-            hum: 'https://assets.mixkit.co/active_storage/sfx/2567/2567-preview.mp3',
-            glitch: 'https://assets.mixkit.co/active_storage/sfx/2563/2563-preview.mp3',
-            ready: 'https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3',
-            chime: 'https://assets.mixkit.co/active_storage/sfx/2004/2004-preview.mp3'
-        };
-
-        Object.entries(assets).forEach(([name, url]) => AudioEngine.loadSound(name, url));
-
-        let width, height, particles = [];
-        let speed = 0.4;
-        const loadingPhases = ["SYNCING...", "LOADING MODULES...", "READY"];
-
-        class Particle {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = (Math.random() - 0.5) * width;
-                this.y = (Math.random() - 0.5) * height;
-                this.z = Math.random() * width;
-                this.pz = this.z;
-                this.color = Math.random() > 0.8 ? '#0070f3' : '#dddddd';
-            }
-            update() {
-                this.z -= speed;
-                if (this.z <= 1) this.reset();
-            }
-            show() {
-                let sx = (this.x / this.z) * (width / 2) + width / 2;
-                let sy = (this.y / this.z) * (height / 2) + height / 2;
-                let r = (1 - this.z / width) * 2;
-                let px = (this.x / this.pz) * (width / 2) + width / 2;
-                let py = (this.y / this.pz) * (height / 2) + height / 2;
-                ctx.beginPath();
-                ctx.lineWidth = r;
-                ctx.strokeStyle = this.color;
-                ctx.globalAlpha = (1 - (this.z / width)) * 0.4;
-                ctx.moveTo(px, py);
-                ctx.lineTo(sx, sy);
-                ctx.stroke();
-                ctx.globalAlpha = 1;
-                this.pz = this.z;
-            }
-        }
-
-        function initCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width * window.devicePixelRatio;
-            canvas.height = height * window.devicePixelRatio;
-            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-            particles = [];
-            const count = width < 768 ? 120 : 250;
-            for (let i = 0; i < count; i++) particles.push(new Particle());
-        }
-
-        function animate() {
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, width, height);
-            particles.forEach(p => {
-                p.update();
-                p.show();
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('https://phyuaaphysics.github.io/phyustudio/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed', err));
             });
-            requestAnimationFrame(animate);
         }
 
-        let humLoop = null;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const physicsFormulas = [
+            "v = u + at", "s = ut + ½at²", "v² = u² + 2as", "F = ma", "p = mv",
+            "E = mc²", "W = Fs cos θ", "P = IV", "V = IR", "Q = mc∆T",
+            "f = 1/T", "v = fλ", "n = c/v", "F = G m₁m₂/r²", "E = hf",
+            "L = mvr", "a = v²/r", "T = 2π√(l/g)", "pV = nRT", "λ = h/p",
+            "n₁sinθ₁ = n₂sinθ₂", "1/u + 1/v = 1/f", "∆p = F∆t", "E = ½mv²",
+            "τ = Fr sinθ", "φ = BA cosθ", "ε = -N(∆φ/∆t)"
+        ];
 
-        async function startSequence() {
-            AudioEngine.init();
-            AudioEngine.play('tap', { volume: 0.3 });
-            startBtn.classList.add('fade-out');
+        function createFormula() {
+            const container = document.getElementById('formula-container');
+            const formula = document.createElement('div');
+            formula.className = 'formula';
+            formula.innerText = physicsFormulas[Math.floor(Math.random() * physicsFormulas.length)];
+            const isMobile = window.innerWidth < 768;
+            const padding = isMobile ? 15 : 5;
+            const x = Math.random() * (100 - padding * 2) + padding;
+            const y = Math.random() * (100 - padding * 2) + padding;
+            const size = Math.random() * (isMobile ? 16 : 20) + (isMobile ? 16 : 22); 
+            const duration = Math.random() * 1.5 + 2;
+            formula.style.left = `${x}%`;
+            formula.style.top = `${y}%`;
+            formula.style.fontSize = `${size}px`;
+            formula.style.animation = `formulaFade ${duration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`;
+            container.appendChild(formula);
+            setTimeout(() => formula.remove(), duration * 1000);
+        }
+
+        function playHoverSound() {
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        function playLoadingTick(frequency = 600) {
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.03);
+        }
+
+        function launchSystem() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const landing = document.getElementById('landing-screen');
+            const loading = document.getElementById('loading-screen');
+            const formulaContainer = document.getElementById('formula-container');
+            const progress = document.getElementById('bar-progress');
+            const barContainer = document.getElementById('bar-container');
+            const statusText = document.getElementById('status-text');
+
+            document.body.style.backgroundColor = "#FFFFFF";
+            landing.style.opacity = '0';
+            landing.style.transform = 'translateY(-4px)';
+
             setTimeout(() => {
-                startBtn.style.display = 'none';
-                loadingUi.classList.add('visible');
-                humLoop = AudioEngine.play('hum', { volume: 0.1, loop: true, pitch: 0.7 });
-                runProgress();
-            }, 400); 
-        }
+                landing.classList.add('hidden');
+                loading.classList.remove('hidden');
+                loading.classList.add('flex');
+                formulaContainer.classList.remove('hidden');
+                barContainer.style.display = 'block';
 
-        function runProgress() {
-            let progress = 0;
-            const startTime = Date.now();
-            const duration = 2400; 
-            let glitchPlayed = false;
-            const step = () => {
-                const elapsed = Date.now() - startTime;
-                progress = (elapsed / duration) * 100;
-                if (progress > 100) progress = 100;
-                progressBar.style.width = progress + "%";
-                if (progress > 55 && !glitchPlayed) {
-                    AudioEngine.play('glitch', { volume: 0.15 });
-                    glitchPlayed = true;
-                }
-                const textIdx = Math.floor((progress / 100) * (loadingPhases.length - 1));
-                statusText.innerText = loadingPhases[textIdx];
-                if (progress < 100) {
-                    requestAnimationFrame(step);
-                } else {
-                    AudioEngine.play('ready', { volume: 0.4 });
-                    if (humLoop) {
-                        try {
-                            humLoop.gainNode.gain.exponentialRampToValueAtTime(0.01, AudioEngine.ctx.currentTime + 0.4);
-                            setTimeout(() => humLoop.source.stop(), 400);
-                        } catch (e) {}
+                const formulaInterval = setInterval(() => createFormula(), 250);
+                let width = 0;
+                let messageIndex = 0;
+                const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
+
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        clearInterval(formulaInterval);
+                        setTimeout(() => { window.location.href = 'home.html'; }, 500);
+                    } else {
+                        width += Math.random() * 2 + 0.5;
+                        if (width > 100) width = 100;
+                        progress.style.width = width + '%';
+                        const targetIdx = Math.min(Math.floor((width / 100) * statusMessages.length), statusMessages.length - 1);
+                        if (targetIdx !== messageIndex) {
+                            messageIndex = targetIdx;
+                            statusText.innerText = statusMessages[messageIndex];
+                            playLoadingTick(800 + (messageIndex * 50));
+                        }
                     }
-                    setTimeout(triggerLaunch, 400);
-                }
-            };
-            requestAnimationFrame(step);
+                }, 50);
+            }, 800);
         }
-
-        function triggerLaunch() {
-            AudioEngine.play('chime', { volume: 0.6 });
-            speed = 25; 
-            mainContainer.classList.add('netflix-zoom');
-            setTimeout(() => { overlay.style.opacity = "0"; }, 600); 
-            setTimeout(() => { window.location.href = REDIRECT_URL; }, 1100); 
-        }
-
-        window.addEventListener('resize', initCanvas);
-        startBtn.addEventListener('click', startSequence);
-        startBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            startSequence();
-        }, { passive: false });
-
-        window.onload = () => {
-            initCanvas();
-            animate();
-        };
     </script>
 </body>
 </html>
