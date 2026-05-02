@@ -138,7 +138,7 @@
         .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
     </style>
 </head>
-<body class="pb-28">
+<body class="pb-20">
 
     <!-- 載入層 -->
     <div id="page-loader">
@@ -170,8 +170,11 @@
             <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top" alt="Hero Background">
             <div class="absolute inset-0 hero-gradient-overlay"></div>
             <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 px-6 text-center">
-                <span class="text-[10px] md:text-xs font-black tracking-[0.5em] text-blue-700 uppercase mb-3">Live Streaming & Archive</span>
-                <h1 class="text-4xl md:text-7xl font-black mb-8 tracking-tighter text-black uppercase leading-none">課堂錄影</h1>
+                <span class="text-[10px] md:text-xs font-black tracking-[0.5em] text-blue-700 uppercase mb-5">Live Streaming & Archive</span>
+                
+                <!-- 替換原本的大字標題為圖片 -->
+                <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" alt="課堂錄影" class="w-full max-w-[280px] md:max-w-[500px] h-auto mb-10 object-contain">
+                
                 <button onclick="openLink('hero', this)" class="btn-press bg-black text-white px-10 py-4 font-bold flex items-center hover:bg-gray-800 transition rounded-full text-xs tracking-widest uppercase">
                     <i class="fas fa-play mr-3 text-[10px]"></i> 即刻進入
                 </button>
@@ -228,24 +231,24 @@
 
     </main>
 
-    <!-- 底部導航 -->
-    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-gray-100 px-8 py-4 pb-8 md:pb-6">
+    <!-- 底部導航 (Narrow 版本 + 大圖標) -->
+    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-gray-100 px-8 py-2 pb-5 md:pb-3">
         <div class="flex items-center justify-between max-w-lg mx-auto">
             <button onclick="scrollToHero()" class="flex flex-col items-center text-blue-600 btn-press">
                 <i class="fas fa-home text-xl"></i>
-                <span class="text-[9px] font-black mt-1 uppercase">首頁</span>
+                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">首頁</span>
             </button>
             <button onclick="openLink('func5', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
                 <i class="fas fa-cube text-xl"></i>
-                <span class="text-[9px] font-black mt-1 uppercase">模擬器</span>
+                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">模擬器</span>
             </button>
             <button onclick="openLink('func6', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
                 <i class="fas fa-bolt text-xl"></i>
-                <span class="text-[9px] font-black mt-1 uppercase">更新</span>
+                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">更新</span>
             </button>
             <button onclick="openLink('google', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
                 <i class="fab fa-google text-xl"></i>
-                <span class="text-[9px] font-black mt-1 uppercase">信箱</span>
+                <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">信箱</span>
             </button>
         </div>
     </nav>
