@@ -172,7 +172,7 @@
             <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 px-6 text-center">
                 <span class="text-[10px] md:text-xs font-black tracking-[0.5em] text-blue-700 uppercase mb-5">Live Streaming & Archive</span>
                 
-                <!-- 替換原本的大字標題為圖片 -->
+                <!-- 標題 Banner 圖片 -->
                 <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" alt="課堂錄影" class="w-full max-w-[280px] md:max-w-[500px] h-auto mb-10 object-contain">
                 
                 <button onclick="openLink('hero', this)" class="btn-press bg-black text-white px-10 py-4 font-bold flex items-center hover:bg-gray-800 transition rounded-full text-xs tracking-widest uppercase">
@@ -238,7 +238,7 @@
                 <i class="fas fa-home text-xl"></i>
                 <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">首頁</span>
             </button>
-            <button onclick="openLink('func5', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
+            <button onclick="openLink('simulator', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
                 <i class="fas fa-cube text-xl"></i>
                 <span class="text-[8px] font-black mt-0.5 uppercase tracking-tighter">模擬器</span>
             </button>
@@ -257,6 +257,7 @@
         const config = {
             heroUrl: 'https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home',
             googleUrl: 'https://mail.google.com/mail/u/0/#inbox',
+            simulatorUrl: 'https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html',
             data: [
                 // 課程全庫
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg', url: 'https://sites.google.com/np2c.edu.hk/heatcourse/home' },
@@ -403,6 +404,7 @@
         window.openLink = (key, element) => {
             if(key === 'hero') handleNavigation(config.heroUrl, null);
             if(key === 'google') handleNavigation(config.googleUrl, null);
+            if(key === 'simulator') handleNavigation(config.simulatorUrl, element);
             if(key.startsWith('func')) {
                 const num = key.replace('func', '');
                 const item = config.data.find(x => x.category === 'func' && x.img.includes(`function-${num}.png`));
