@@ -47,6 +47,7 @@
             cursor: pointer;
             position: relative;
             border-radius: 0 !important;
+            overflow: hidden;
         }
 
         /* 更多功能卡片設計 (1:1 正方形) */
@@ -56,6 +57,7 @@
             cursor: pointer;
             position: relative;
             border-radius: 0 !important;
+            overflow: hidden;
         }
         
         @media (min-width: 1024px) {
@@ -99,7 +101,6 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* 手機端間距更緊湊 */
         @media (max-width: 768px) {
             .slider-container {
                 gap: 4px; 
@@ -123,17 +124,15 @@
     <header class="fixed top-0 w-full z-50 transition-all duration-300">
         <div class="max-w-screen-2xl mx-auto px-5 py-3 flex items-center relative">
             <div class="z-10 cursor-pointer" onclick="scrollToHero()">
-                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="[Lumina 標誌]" class="app-logo">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina Logo" class="app-logo">
             </div>
             
             <div class="absolute inset-x-0 flex justify-center pointer-events-none">
                 <div class="flex items-center space-x-6 md:space-x-12 text-[12px] md:text-[14px] font-bold text-gray-800 pointer-events-auto tracking-widest uppercase">
                     <button onclick="scrollToHero()" class="hover:opacity-60 transition-opacity">課堂錄影</button>
                     <button onclick="scrollToCourses()" class="hover:opacity-60 transition-opacity">課程全庫</button>
-                    <button class="hover:opacity-60 transition-opacity">基礎練習</button>
-                    <button onclick="scrollToMore()" class="flex items-center hover:opacity-60 transition-opacity group">
-                        更多功能
-                    </button>
+                    <button onclick="openLink('func1')" class="hover:opacity-60 transition-opacity">資源中心</button>
+                    <button onclick="scrollToMore()" class="flex items-center hover:opacity-60 transition-opacity">更多功能</button>
                 </div>
             </div>
         </div>
@@ -144,7 +143,7 @@
         <div class="relative w-full h-[55vh] md:h-[70vh] overflow-hidden border-b border-gray-100 md:border md:border-gray-200">
             <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" 
                  class="absolute inset-0 w-full h-full object-cover object-[center_30%]" 
-                 alt="[英雄區域背景]">
+                 alt="Hero Background">
             <div class="absolute inset-0 hero-card-overlay"></div>
             <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 md:pb-16 px-6 text-center">
                 <div class="mb-4">
@@ -153,11 +152,10 @@
                 <h1 class="text-4xl md:text-7xl font-black mb-8 tracking-tighter text-black leading-none uppercase">
                     課堂錄影
                 </h1>
-                <a href="https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home" 
-                   target="_blank" 
+                <button onclick="openLink('hero')" 
                    class="bg-black text-white px-10 md:px-16 py-3 md:py-4 font-bold flex items-center shadow-none hover:bg-gray-800 transition transform active:scale-95 text-xs md:text-sm tracking-widest uppercase">
                     <i class="fas fa-play mr-3 text-[10px]"></i> 進入課程
-                </a>
+                </button>
             </div>
         </div>
     </section>
@@ -165,98 +163,91 @@
     <!-- 內容區塊 -->
     <main class="space-y-10 mt-10 max-w-screen-2xl mx-auto">
         
-        <!-- 課程全庫 (可滑動) -->
+        <!-- 課程全庫 -->
         <section id="course-library" class="pl-5 md:px-10 scroll-mt-header">
             <div class="flex items-end justify-between mb-2 pr-5 md:pr-0">
                 <h2 class="text-xl md:text-2xl font-black text-black tracking-widest uppercase">課程全庫</h2>
             </div>
             
-            <div class="slider-container hide-scrollbar">
+            <div class="slider-container hide-scrollbar" id="course-slider">
                 <div class="slider-item w-32 md:w-48">
-                    <a href="https://sites.google.com/np2c.edu.hk/heatcourse/home" target="_blank" class="block poster-card border border-gray-100">
+                    <div onclick="openLink('heat')" class="poster-card border border-gray-100">
                         <img src="https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg" class="w-full h-full object-cover" alt="[熱學]">
-                    </a>
+                    </div>
                 </div>
                 <div class="slider-item w-32 md:w-48">
-                    <a href="https://sites.google.com/np2c.edu.hk/mechanics-all/home" target="_blank" class="block poster-card border border-gray-100">
+                    <div onclick="openLink('mechanics')" class="poster-card border border-gray-100">
                         <img src="https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg" class="w-full h-full object-cover" alt="[力學]">
-                    </a>
+                    </div>
                 </div>
                 <div class="slider-item w-32 md:w-48">
-                    <a href="https://sites.google.com/np2c.edu.hk/wave/home" target="_blank" class="block poster-card border border-gray-100">
+                    <div onclick="openLink('waves')" class="poster-card border border-gray-100">
                         <img src="https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg" class="w-full h-full object-cover" alt="[波動]">
-                    </a>
+                    </div>
                 </div>
                 <div class="slider-item w-32 md:w-48">
-                    <a href="https://sites.google.com/np2c.edu.hk/emcourse/home" target="_blank" class="block poster-card border border-gray-100">
+                    <div onclick="openLink('electromagnetism')" class="poster-card border border-gray-100">
                         <img src="https://phyuaaphysics.github.io/phyustudio/vb-4-ennm.jpg" class="w-full h-full object-cover" alt="[電磁學]">
-                    </a>
+                    </div>
                 </div>
                 <div class="slider-item w-32 md:w-48">
-                    <a href="https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home" target="_blank" class="block poster-card border border-gray-100">
+                    <div onclick="openLink('nuclear')" class="poster-card border border-gray-100">
                         <img src="https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg" class="w-full h-full object-cover" alt="[放射性]">
-                    </a>
+                    </div>
                 </div>
                 <div class="slider-item w-32 md:w-48">
-                    <a href="https://sites.google.com/np2c.edu.hk/atomic-world/home" target="_blank" class="block poster-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover" alt="[原子]">
-                    </a>
+                    <div onclick="openLink('atomic')" class="poster-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg" class="w-full h-full object-cover" alt="[原子世界]">
+                    </div>
                 </div>
                 <div class="slider-item w-32 md:w-48">
-                    <a href="https://sites.google.com/np2c.edu.hk/medicalphysics/home" target="_blank" class="block poster-card border border-gray-100">
+                    <div onclick="openLink('medical')" class="poster-card border border-gray-100">
                         <img src="https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg" class="w-full h-full object-cover" alt="[醫學物理]">
-                    </a>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- 更多功能 (7 個正方形卡片, 可滑動) -->
+        <!-- 更多功能 -->
         <section id="more-functions" class="pl-5 md:px-10 scroll-mt-header pb-20">
             <div class="flex items-end justify-between mb-2 pr-5 md:pr-0">
                 <h2 class="text-xl md:text-2xl font-black text-black tracking-widest uppercase">更多功能</h2>
             </div>
             
             <div class="slider-container hide-scrollbar">
-                <!-- 1. 學生資源中心 -->
                 <div class="slider-item w-28 md:w-40">
-                    <a href="https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home" target="_blank" class="block square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-1.png" class="w-full h-full object-cover" alt="[學生資源中心]">
-                    </a>
-                </div>
-                <!-- 2. 2425 課堂錄影 -->
-                <div class="slider-item w-28 md:w-40">
-                    <a href="https://sites.google.com/np2c.edu.hk/2425physicslessonrecording/home" target="_blank" class="block square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-2.png" class="w-full h-full object-cover" alt="[2425 課堂錄影]">
-                    </a>
-                </div>
-                <!-- 3. 2324 課堂錄影 -->
-                <div class="slider-item w-28 md:w-40">
-                    <a href="https://sites.google.com/np2c.edu.hk/2324physicslessonrecording/home" target="_blank" class="block square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-3.png" class="w-full h-full object-cover" alt="[2324 課堂錄影]">
-                    </a>
-                </div>
-                <!-- 4. 功能 4 -->
-                <div class="slider-item w-28 md:w-40">
-                    <div class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-4.png" class="w-full h-full object-cover" alt="[功能 4]">
+                    <div onclick="openLink('func1')" class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-1.png" class="w-full h-full object-cover" alt="Function 1">
                     </div>
                 </div>
-                <!-- 5. 功能 5 -->
                 <div class="slider-item w-28 md:w-40">
-                    <div class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-5.png" class="w-full h-full object-cover" alt="[功能 5]">
+                    <div onclick="openLink('func2')" class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-2.png" class="w-full h-full object-cover" alt="Function 2">
                     </div>
                 </div>
-                <!-- 6. 功能 6 -->
                 <div class="slider-item w-28 md:w-40">
-                    <div class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-6.png" class="w-full h-full object-cover" alt="[功能 6]">
+                    <div onclick="openLink('func3')" class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-3.png" class="w-full h-full object-cover" alt="Function 3">
                     </div>
                 </div>
-                <!-- 7. 功能 7 -->
                 <div class="slider-item w-28 md:w-40">
-                    <div class="square-card border border-gray-100">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/function-7.png" class="w-full h-full object-cover" alt="[功能 7]">
+                    <div onclick="openLink('func4')" class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-4.png" class="w-full h-full object-cover" alt="Function 4">
+                    </div>
+                </div>
+                <div class="slider-item w-28 md:w-40">
+                    <div onclick="openLink('func5')" class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-5.png" class="w-full h-full object-cover" alt="Function 5">
+                    </div>
+                </div>
+                <div class="slider-item w-28 md:w-40">
+                    <div onclick="openLink('func6')" class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-6.png" class="w-full h-full object-cover" alt="Function 6">
+                    </div>
+                </div>
+                <div class="slider-item w-28 md:w-40">
+                    <div onclick="openLink('func7')" class="square-card border border-gray-100">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/function-7.png" class="w-full h-full object-cover" alt="Function 7">
                     </div>
                 </div>
             </div>
@@ -271,36 +262,68 @@
                 <i class="fas fa-house text-lg"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">主頁</span>
             </button>
-            <button class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+            <button onclick="openLink('func5')" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
                 <i class="fas fa-gamepad text-lg"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">模擬器</span>
             </button>
-            <button class="flex flex-col items-center text-gray-400 hover:text-black transition group">
-                <div class="relative">
-                    <i class="fas fa-bullhorn text-lg"></i>
-                </div>
+            <button onclick="openLink('func6')" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+                <i class="fas fa-bullhorn text-lg"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">更新</span>
             </button>
-            <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
+            <button onclick="openLink('google')" class="flex flex-col items-center text-gray-400 hover:text-black transition group">
                 <i class="fab fa-google text-lg google-icon-color"></i>
                 <span class="text-[9px] font-black mt-1 uppercase tracking-widest">Google</span>
-            </a>
+            </button>
         </div>
     </nav>
 
     <script>
+        /**
+         * 集中管理超連結
+         */
+        const links = {
+            // 頂部 Hero 按鈕
+            hero: "https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home",
+            
+            // 課程全庫
+            heat: "https://sites.google.com/np2c.edu.hk/heatcourse/home",
+            mechanics: "https://sites.google.com/np2c.edu.hk/mechanics-all/home",
+            waves: "https://sites.google.com/np2c.edu.hk/wave/home",
+            electromagnetism: "https://sites.google.com/np2c.edu.hk/emcourse/home",
+            nuclear: "https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home",
+            atomic: "https://sites.google.com/np2c.edu.hk/atomic-world/home",
+            medical: "https://sites.google.com/np2c.edu.hk/medicalphysics/home",
+
+            // 更多功能
+            func1: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home",
+            func2: "https://sites.google.com/view/lessonremarkphyu2025start/home",
+            func3: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home",
+            func4: "https://sites.google.com/np2c.edu.hk/phyformulabook/home", // 已更新
+            func5: "https://sites.google.com/np2c.edu.hk/physics-simulator/home",
+            func6: "https://sites.google.com/np2c.edu.hk/dse-physics-update/home",
+            func7: "https://youtube.com/@phyustudio?si=V-k49O8oK6NntS6P",
+
+            // 底部導航 Google 連結
+            google: "https://mail.google.com/mail/u/0/#inbox"
+        };
+
+        function openLink(key) {
+            const url = links[key];
+            if (url && url !== "#") {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
+        }
+
         function scrollToHero() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function scrollToCourses() {
-            const section = document.getElementById('course-library');
-            section.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('course-library').scrollIntoView({ behavior: 'smooth' });
         }
 
         function scrollToMore() {
-            const section = document.getElementById('more-functions');
-            section.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('more-functions').scrollIntoView({ behavior: 'smooth' });
         }
 
         window.addEventListener('scroll', () => {
