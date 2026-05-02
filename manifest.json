@@ -20,12 +20,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "appicon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ],
   "categories": [
@@ -38,14 +32,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "PH studio Mobile View"
+      "label": "PH studio Home"
     },
     {
       "src": "appicon.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "PH studio Desktop View"
+      "label": "PH studio Desktop"
     }
   ]
 }
