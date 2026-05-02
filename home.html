@@ -9,11 +9,17 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
         
+        :root {
+            --primary-blue: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-color: #ffffff;
-            color: #000000;
+            background-color: #fafafa;
+            color: #111;
             -webkit-tap-highlight-color: transparent;
             overflow-x: hidden;
         }
@@ -21,158 +27,165 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+        /* 全螢幕載入動畫 */
         #page-loader {
             position: fixed; inset: 0; background-color: white; z-index: 1000;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s;
         }
         #page-loader.active { opacity: 1; visibility: visible; }
-
-        .loader-icon { width: 80px; height: 80px; animation: pulse-icon 1.5s infinite ease-in-out; }
+        .loader-icon { width: 70px; height: 70px; animation: pulse-icon 1s infinite ease-in-out; }
         @keyframes pulse-icon {
-            0%, 100% { transform: scale(0.9); opacity: 0.7; }
+            0%, 100% { transform: scale(1); opacity: 0.8; }
             50% { transform: scale(1.1); opacity: 1; }
         }
 
-        .bottom-nav-blur { backdrop-filter: blur(20px); background-color: rgba(255, 255, 255, 0.9); }
-        .top-nav-blur { backdrop-filter: blur(20px); background-color: rgba(255, 255, 255, 0.85); }
-
+        .nav-blur { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background-color: var(--glass-bg); }
+        
+        /* 初始進入動畫 */
         .card-animate {
-            opacity: 0; transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            opacity: 0; transform: translateY(15px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
         .card-animate.visible { opacity: 1; transform: translateY(0); }
 
+        /* 卡片樣式 */
         .poster-card, .square-card {
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer; position: relative; overflow: hidden; background: #f3f4f6;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            cursor: pointer; position: relative; overflow: hidden; 
+            background: #eee; border-radius: 12px;
         }
         .poster-card { aspect-ratio: 2/3; }
         .square-card { aspect-ratio: 1/1; }
 
         .card-img {
             width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease;
-            filter: brightness(0.95);
+            transition: transform 0.7s ease;
         }
         
+        /* 點擊時的壓下動畫 */
+        .card-clicking {
+            transform: scale(0.92) !important;
+            filter: brightness(0.8);
+            transition: transform 0.15s ease, filter 0.15s ease !important;
+        }
+
         @media (min-width: 1024px) {
             .poster-card:hover, .square-card:hover {
-                transform: scale(1.05); z-index: 30;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                transform: translateY(-8px);
+                box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12);
             }
             .poster-card:hover .card-img, .square-card:hover .card-img {
-                transform: scale(1.1); filter: brightness(1.05);
+                transform: scale(1.05);
             }
         }
 
-        .app-logo { height: 35px; width: auto; object-fit: contain; }
-        .google-icon-color {
-            background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg) text;
-            -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
-        }
-
-        .scroll-mt-header { scroll-margin-top: 80px; }
-        .hero-card-overlay {
-            background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+        .hero-gradient-overlay {
+            background: linear-gradient(to top, #fafafa 0%, rgba(250,250,250,0.4) 40%, transparent 100%);
         }
 
         .slider-container {
             display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-            gap: 12px; padding-bottom: 25px; padding-top: 15px; -webkit-overflow-scrolling: touch;
+            gap: 16px; padding: 5px 0 30px 0; -webkit-overflow-scrolling: touch;
         }
         .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
-        
-        .rounded-sm-custom { border-radius: 4px !important; }
+
+        .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-28">
 
+    <!-- 載入層 -->
     <div id="page-loader">
         <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="loader-icon" alt="Loading">
+        <p class="mt-4 text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">Connecting to Lumina</p>
     </div>
 
     <!-- 頂部導航 -->
-    <header class="fixed top-0 w-full z-50 transition-all duration-500">
-        <div class="max-w-screen-2xl mx-auto px-5 py-3 flex items-center relative">
-            <div class="z-10 cursor-pointer" onclick="scrollToHero()">
-                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina Logo" class="app-logo">
+    <header id="main-header" class="fixed top-0 w-full z-50 transition-all duration-300">
+        <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between relative">
+            <div class="z-10 cursor-pointer btn-press" onclick="scrollToHero()">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-8 w-auto">
             </div>
             
-            <div class="absolute inset-x-0 flex justify-center pointer-events-none">
-                <div class="flex items-center space-x-4 md:space-x-10 text-[11px] md:text-[13px] font-bold text-gray-800 pointer-events-auto tracking-widest uppercase">
-                    <button onclick="scrollToHero()" class="hover:text-blue-600 transition-colors">錄影</button>
+            <nav class="absolute inset-x-0 flex justify-center pointer-events-none">
+                <div class="flex items-center space-x-6 md:space-x-12 text-[10px] md:text-xs font-black text-gray-800 pointer-events-auto tracking-[0.15em] uppercase">
+                    <button onclick="scrollToHero()" class="hover:text-blue-600 transition-colors">録影</button>
                     <button onclick="scrollToSection('course-library')" class="hover:text-blue-600 transition-colors">全庫</button>
                     <button onclick="scrollToSection('practice-1-10')" class="hover:text-blue-600 transition-colors">練習</button>
                     <button onclick="scrollToSection('more-functions')" class="hover:text-blue-600 transition-colors">更多</button>
                 </div>
-            </div>
+            </nav>
         </div>
     </header>
 
-    <!-- 英雄區域 -->
-    <section id="hero" class="pt-16 md:pt-20 px-0 md:px-10 max-w-screen-2xl mx-auto">
-        <div class="relative w-full h-[50vh] md:h-[65vh] overflow-hidden border-b border-gray-100 md:rounded-sm-custom md:border md:border-gray-200">
-            <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-[center_30%]" alt="Hero">
-            <div class="absolute inset-0 hero-card-overlay"></div>
-            <div class="absolute inset-0 flex flex-col items-center justify-end pb-10 md:pb-14 px-6 text-center">
-                <div class="mb-3">
-                    <span class="text-[10px] md:text-xs font-black tracking-[0.4em] text-blue-700 uppercase">Class Recording</span>
-                </div>
-                <h1 class="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-black uppercase">課堂錄影</h1>
-                <button onclick="openLink('hero')" class="bg-black text-white px-10 md:px-14 py-3 md:py-4 font-bold flex items-center hover:bg-gray-800 transition transform active:scale-95 text-xs tracking-widest uppercase rounded-sm-custom">
-                    <i class="fas fa-play mr-3 text-[10px]"></i> 進入課程
+    <!-- 英雄區塊 -->
+    <section id="hero" class="pt-20 px-0 md:px-8 max-w-screen-2xl mx-auto">
+        <div class="relative w-full h-[55vh] md:h-[70vh] overflow-hidden md:rounded-2xl shadow-sm border-b border-gray-100">
+            <!-- 修改 object-top 確保保留圖片頂部 -->
+            <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top" alt="Hero Background">
+            <div class="absolute inset-0 hero-gradient-overlay"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-end pb-12 px-6 text-center">
+                <span class="text-[10px] md:text-xs font-black tracking-[0.5em] text-blue-700 uppercase mb-3">Live Streaming & Archive</span>
+                <h1 class="text-4xl md:text-7xl font-black mb-8 tracking-tighter text-black uppercase leading-none">課堂錄影</h1>
+                <button onclick="openLink('hero', this)" class="btn-press bg-black text-white px-10 py-4 font-bold flex items-center hover:bg-gray-800 transition rounded-full text-xs tracking-widest uppercase">
+                    <i class="fas fa-play mr-3 text-[10px]"></i> 即刻進入
                 </button>
             </div>
         </div>
     </section>
 
-    <main class="space-y-8 mt-8 max-w-screen-2xl mx-auto">
+    <!-- 主要內容 -->
+    <main class="mt-12 space-y-16 max-w-screen-2xl mx-auto px-6">
         
         <!-- 課程全庫 -->
-        <section id="course-library" class="pl-5 md:px-10 scroll-mt-header">
-            <h2 class="text-lg md:text-xl font-black text-black tracking-widest uppercase mb-1">課程全庫</h2>
+        <section id="course-library" class="scroll-mt-24">
+            <div class="flex items-end justify-between mb-2">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black tracking-tight">課程全庫</h2>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Comprehensive Archives</p>
+                </div>
+            </div>
             <div class="slider-container hide-scrollbar" id="course-slider"></div>
         </section>
 
-        <!-- 基礎練習冊 1-10 -->
-        <section id="practice-1-10" class="pl-5 md:px-10 scroll-mt-header">
-            <h2 class="text-lg md:text-xl font-black text-black tracking-widest uppercase mb-1">基礎練習冊 1-10</h2>
+        <!-- 練習冊系列 -->
+        <section id="practice-1-10" class="scroll-mt-24">
+            <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">基礎練習冊 01-10</h2>
             <div class="slider-container hide-scrollbar" id="funda-1-slider"></div>
         </section>
 
-        <!-- 基礎練習冊 11-20 -->
-        <section id="practice-11-20" class="pl-5 md:px-10 scroll-mt-header">
-            <h2 class="text-lg md:text-xl font-black text-black tracking-widest uppercase mb-1">基礎練習冊 11-20</h2>
+        <section id="practice-11-20" class="scroll-mt-24">
+            <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">基礎練習冊 11-19</h2>
             <div class="slider-container hide-scrollbar" id="funda-2-slider"></div>
         </section>
 
         <!-- 更多功能 -->
-        <section id="more-functions" class="pl-5 md:px-10 scroll-mt-header pb-12">
-            <h2 class="text-lg md:text-xl font-black text-black tracking-widest uppercase mb-1">更多功能</h2>
+        <section id="more-functions" class="scroll-mt-24 pb-12">
+            <h2 class="text-xl md:text-2xl font-black tracking-tight mb-2">核心功能</h2>
             <div class="slider-container hide-scrollbar" id="function-slider"></div>
         </section>
 
     </main>
 
     <!-- 底部導航 -->
-    <nav class="fixed bottom-0 w-full z-50 bottom-nav-blur border-t border-gray-200 px-6 py-2 pb-6 md:pb-4">
-        <div class="flex items-center justify-between max-w-md mx-auto">
-            <button onclick="scrollToHero()" class="flex flex-col items-center text-black">
-                <i class="fas fa-house text-lg"></i>
-                <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">主頁</span>
+    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-gray-100 px-8 py-4 pb-8 md:pb-6">
+        <div class="flex items-center justify-between max-w-lg mx-auto">
+            <button onclick="scrollToHero()" class="flex flex-col items-center text-blue-600 btn-press">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-[9px] font-black mt-1 uppercase">首頁</span>
             </button>
-            <button onclick="openLink('func5')" class="flex flex-col items-center text-gray-400 hover:text-black">
-                <i class="fas fa-gamepad text-lg"></i>
-                <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">模擬器</span>
+            <button onclick="openLink('func5', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
+                <i class="fas fa-cube text-xl"></i>
+                <span class="text-[9px] font-black mt-1 uppercase">模擬器</span>
             </button>
-            <button onclick="openLink('func6')" class="flex flex-col items-center text-gray-400 hover:text-black">
-                <i class="fas fa-bullhorn text-lg"></i>
-                <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">更新</span>
+            <button onclick="openLink('func6', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
+                <i class="fas fa-bolt text-xl"></i>
+                <span class="text-[9px] font-black mt-1 uppercase">更新</span>
             </button>
-            <button onclick="openLink('google')" class="flex flex-col items-center text-gray-400 hover:text-black">
-                <i class="fab fa-google text-lg google-icon-color"></i>
-                <span class="text-[9px] font-bold mt-1 uppercase tracking-tighter">Google</span>
+            <button onclick="openLink('google', this)" class="flex flex-col items-center text-gray-400 hover:text-black btn-press">
+                <i class="fab fa-google text-xl"></i>
+                <span class="text-[9px] font-black mt-1 uppercase">信箱</span>
             </button>
         </div>
     </nav>
@@ -191,28 +204,29 @@
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg', url: 'https://sites.google.com/np2c.edu.hk/atomic-world/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg', url: 'https://sites.google.com/np2c.edu.hk/medicalphysics/home' },
                 
-                // 基礎練習冊 1-10 (手動列出確保路徑準確)
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda1.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda2.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda3.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda4.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda5.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda6.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda7.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda8.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda9.jpg', url: 'no link' },
-                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda10.jpg', url: 'no link' },
-
+                // 基礎練習冊 01-10 (加入特別卡片並處理順序)
+                ...(() => {
+                    const items = [];
+                    // 特別卡片 S301, S302
+                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS301.png', url: 'no link' });
+                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'no link' });
+                    // 01A 和 01B
+                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'no link' });
+                    items.push({ category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01B.png', url: 'no link' });
+                    // 02-10
+                    for(let i=2; i<=10; i++){
+                        const num = i.toString().padStart(2, '0');
+                        items.push({ category: 'funda-1', img: `https://phyuaaphysics.github.io/phyustudio/funda${num}.png`, url: 'no link' });
+                    }
+                    return items;
+                })(),
+                
                 // 基礎練習冊 11-19
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda11.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda12.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda13.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda14.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda15.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda16.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda17.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda18.jpg', url: 'no link' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda19.jpg', url: 'no link' },
+                ...Array.from({length: 9}, (_, i) => ({ 
+                    category: 'funda-2', 
+                    img: `https://phyuaaphysics.github.io/phyustudio/funda${i+11}.png`, 
+                    url: 'no link' 
+                })),
 
                 // 更多功能
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-1.png', url: 'https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home' },
@@ -227,28 +241,33 @@
 
         const loader = document.getElementById('page-loader');
 
-        function openUrl(url) {
-            if (!url || url === 'no link' || url === '#') return;
-            loader.classList.add('active');
+        function handleNavigation(url, element) {
+            if (!url || url === '#' || url === 'no link') return;
+            
+            if (element) {
+                element.classList.add('card-clicking');
+            }
+
             setTimeout(() => {
-                window.open(url, '_blank', 'noopener,noreferrer');
-                setTimeout(() => loader.classList.remove('active'), 500);
-            }, 600);
+                loader.classList.add('active');
+                
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                    
+                    setTimeout(() => {
+                        loader.classList.remove('active');
+                        if (element) element.classList.remove('card-clicking');
+                    }, 500);
+                }, 800); 
+            }, 150); 
         }
 
-        // 終極錯誤處理：如果載入失敗，先試試看重新載入一次，或者換成 PNG
         function handleImgError(img) {
-            const originalSrc = img.src;
-            if (!img.dataset.retried) {
-                img.dataset.retried = "true";
-                img.src = originalSrc + "?t=" + new Date().getTime(); // 加時間戳破快取
-            } else if (img.src.endsWith('.jpg')) {
-                img.src = originalSrc.replace('.jpg', '.png');
-            } else {
-                img.parentElement.classList.add('bg-gray-100');
-                img.style.opacity = '0';
-                img.parentElement.innerHTML += `<div class="absolute inset-0 flex items-center justify-center text-[8px] text-gray-300 font-bold tracking-tighter">PHOTO ERROR</div>`;
-            }
+            img.classList.add('opacity-0');
+            const placeholder = document.createElement('div');
+            placeholder.className = "absolute inset-0 flex items-center justify-center bg-gray-100 text-[10px] font-bold text-gray-300";
+            placeholder.innerText = "NO IMAGE";
+            img.parentElement.appendChild(placeholder);
         }
 
         function render() {
@@ -259,18 +278,26 @@
                 'func': document.getElementById('function-slider')
             };
 
+            Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
+
             config.data.forEach(item => {
                 const target = containers[item.category];
                 if (!target) return;
 
                 const isSquare = item.category === 'func';
                 const div = document.createElement('div');
-                div.className = `slider-item ${isSquare ? 'w-28 md:w-36' : 'w-32 md:w-44'} card-animate`;
+                div.className = `slider-item ${isSquare ? 'w-32 md:w-40' : 'w-36 md:w-52'} card-animate`;
+                
+                const cardClass = isSquare ? 'square-card' : 'poster-card';
                 div.innerHTML = `
-                    <div onclick="openUrl('${item.url}')" class="${isSquare ? 'square-card' : 'poster-card'} border border-gray-100 rounded-sm-custom shadow-sm">
+                    <div class="${cardClass} shadow-sm">
                         <img src="${item.img}" class="card-img" alt="Content" onerror="handleImgError(this)" loading="lazy">
                     </div>
                 `;
+                
+                const cardElement = div.querySelector(`.${cardClass}`);
+                cardElement.addEventListener('click', () => handleNavigation(item.url, cardElement));
+                
                 target.appendChild(div);
             });
         }
@@ -282,9 +309,9 @@
         }
 
         window.addEventListener('scroll', () => {
-            const header = document.querySelector('header');
-            if (window.scrollY > 20) header.classList.add('top-nav-blur', 'shadow-sm');
-            else header.classList.remove('top-nav-blur', 'shadow-sm');
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 50) header.classList.add('nav-blur', 'shadow-sm');
+            else header.classList.remove('nav-blur', 'shadow-sm');
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -292,20 +319,24 @@
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach((entry, index) => {
                     if (entry.isIntersecting) {
-                        setTimeout(() => entry.target.classList.add('visible'), (index % 5) * 60);
+                        setTimeout(() => entry.target.classList.add('visible'), index * 50);
                         observer.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.1 });
-            document.querySelectorAll('.card-animate').forEach(card => observer.observe(card));
+            }, { threshold: 0.05 });
+            
+            setTimeout(() => {
+                document.querySelectorAll('.card-animate').forEach(card => observer.observe(card));
+            }, 100);
         });
 
-        window.openLink = (key) => {
-            if(key === 'hero') openUrl(config.heroUrl);
-            if(key === 'google') openUrl(config.googleUrl);
+        window.openLink = (key, element) => {
+            if(key === 'hero') handleNavigation(config.heroUrl, null);
+            if(key === 'google') handleNavigation(config.googleUrl, null);
             if(key.startsWith('func')) {
-                const f = config.data.find(x => x.category === 'func' && x.img.includes(key.replace('func','')));
-                if(f) openUrl(f.url);
+                const num = key.replace('func', '');
+                const item = config.data.find(x => x.category === 'func' && x.img.includes(`function-${num}.png`));
+                if(item) handleNavigation(item.url, element);
             }
         };
     </script>
