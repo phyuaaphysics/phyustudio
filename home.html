@@ -218,7 +218,12 @@
 
             <!-- 更多功能 -->
             <section id="more-functions" class="scroll-mt-24 pb-12">
-                <h2 class="text-xl md:text-2xl font-black tracking-tight mb-4">更多功能</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl md:text-2xl font-black tracking-tight">更多功能</h2>
+                    <button onclick="handleNavigation('http://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="btn-press px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors flex items-center">
+                        <i class="fas fa-expand-alt mr-2"></i> Expand
+                    </button>
+                </div>
                 <div class="slider-wrapper">
                     <div class="scroll-arrow arrow-left" onclick="slideSlider('func-slider', -1)"><i class="fas fa-chevron-left"></i></div>
                     <div class="slider-container hide-scrollbar" id="func-slider"></div>
@@ -311,8 +316,34 @@
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg', url: 'https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg', url: 'https://sites.google.com/np2c.edu.hk/atomic-world/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg', url: 'https://sites.google.com/np2c.edu.hk/medicalphysics/home' },
-                ...[ '01A', '01B', 'S301', 'S302', '02', '03', '04', '05', '06', '07', '08', '09', '10' ].map(n => ({ category: 'funda-1', img: `https://phyuaaphysics.github.io/phyustudio/funda${n}.png`, url: 'no link' })),
-                ...[ '11', '12', '13', '14', '15', '16', '17', '18', '19' ].map(n => ({ category: 'funda-2', img: `https://phyuaaphysics.github.io/phyustudio/funda${n}.png`, url: 'no link' })),
+                
+                // 基礎練習冊 01-10 
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS301.png', url: 'https://phyuphysics.com/video-fundamental-s3-bk01/' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'https://sites.google.com/np2c.edu.hk/vols3ii/home' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'https://sites.google.com/np2c.edu.hk/vol01a/home' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01B.png', url: 'https://phyuphysics.com/video-fundamental-01b/' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda02.png', url: 'https://sites.google.com/np2c.edu.hk/vol02/home' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda03.png', url: 'https://sites.google.com/np2c.edu.hk/vol03/home' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda04.png', url: 'https://sites.google.com/np2c.edu.hk/vol04/home' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda05.png', url: 'https://sites.google.com/np2c.edu.hk/vol05/home' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda06.png', url: 'https://phyuphysics.com/video-fundamental-06-oppenheimer/' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda07.png', url: 'https://sites.google.com/np2c.edu.hk/hw-vol-07/home?authuser=1' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda08.png', url: 'https://phyuphysics.com/video-fundamental-06-oppenheimer/' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda09.png', url: 'https://sites.google.com/np2c.edu.hk/vol09/home' },
+                { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda10.png', url: 'https://sites.google.com/np2c.edu.hk/vol10/home' },
+
+                // 基礎練習冊 11-20
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda11.png', url: 'https://sites.google.com/np2c.edu.hk/vol11/home' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda12.png', url: 'https://phyuphysics.com/video-fundamental-012/' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda13.png', url: 'https://sites.google.com/np2c.edu.hk/vol-13/?pli=1&authuser=1' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda14.png', url: 'https://sites.google.com/np2c.edu.hk/vol14/home' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda15.png', url: 'https://sites.google.com/np2c.edu.hk/vol15/home' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda16.png', url: 'https://sites.google.com/np2c.edu.hk/vol16/home' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda17.png', url: 'https://sites.google.com/np2c.edu.hk/vol-17/home' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda18.png', url: 'https://sites.google.com/np2c.edu.hk/vol-18/home' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda19.png', url: 'https://sites.google.com/np2c.edu.hk/vol19/home' },
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda20.png', url: 'https://sites.google.com/np2c.edu.hk/vol20/home' },
+
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-1.png', url: 'https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home' },
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-2.png', url: 'https://sites.google.com/view/lessonremarkphyu2025start/home' },
                 { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-3.png', url: 'https://sites.google.com/np2c.edu.hk/pastpaper-system/home' },
@@ -453,7 +484,7 @@
             }
         }
 
-        // 其他基礎邏輯維持不變
+        // 其他基礎邏輯
         function slideSlider(id, direction) {
             const container = document.getElementById(id);
             if (!container) return;
