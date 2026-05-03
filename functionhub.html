@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Function Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Noto Sans TC', sans-serif;
+            background-image: url('https://phyuaaphysics.github.io/phyustudio/1468.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            color: #000;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 響應式格線系統 */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 40px 20px;
+        }
+
+        @media (min-width: 768px) {
+            .icon-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 24px;
+                padding: 60px 40px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .icon-grid {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 32px;
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 80px 20px;
+            }
+        }
+
+        /* iOS 原生 App Icon 風格 - 無邊框，無背景色 */
+        .icon-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
+        }
+
+        .icon-card:active {
+            transform: scale(0.9); /* 點擊時縮放 */
+        }
+
+        .icon-img-wrapper {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            /* 移除背景與邊框，僅保留圓角剪裁 */
+            background: transparent;
+            border-radius: 22.5%; 
+            overflow: hidden;
+            /* 輕微陰影使圖標浮起 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .icon-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .icon-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 鎖定狀態遮罩 */
+        .no-link-badge {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            backdrop-filter: grayscale(100%);
+        }
+
+        /* 自定義彈出視窗 */
+        #ios-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 14px;
+            width: 270px;
+            text-align: center;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: modalPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            border-top: 0.5px solid rgba(0,0,0,0.1);
+            color: #007aff;
+            font-weight: 600;
+            background: transparent;
+            font-size: 17px;
+        }
+
+        .modal-btn:active {
+            background: rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <div id="core-grid" class="icon-grid">
+            <!-- 動態填入 -->
+        </div>
+    </main>
+
+    <!-- iOS Alert Modal -->
+    <div id="ios-modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <h3 class="font-bold text-[17px]">尚未開放</h3>
+                <p class="text-[13px] text-gray-600 mt-1 leading-tight">此功能目前正在開發中<br>或暫未提供線上連結。</p>
+            </div>
+            <button onclick="closeModal()" class="modal-btn">確定</button>
+        </div>
+    </div>
+
+    <script>
+        // 根據 tab2.csv 更新後的數據
+        const functions = [
+            { label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home" },
+            { label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home" },
+            { label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home" },
+            { label: "Formula book", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home" },
+            { label: "Simulator", img: "https://phyuaaphysics.github.io/phyustudio/function-5.png", url: "no link" },
+            { label: "Special X", img: "https://phyuaaphysics.github.io/phyustudio/function-6.png", url: "no link" },
+            { label: "MathPie", img: "https://phyuaaphysics.github.io/phyustudio/function-7.png", url: "no link" },
+            { label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode" }
+        ];
+
+        function renderGrid(containerId, data) {
+            const grid = document.getElementById(containerId);
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'icon-card';
+                
+                const hasLink = item.url && item.url !== "no link";
+                
+                card.innerHTML = `
+                    <div class="icon-img-wrapper">
+                        <img src="${item.img}" alt="${item.label}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=App'">
+                        ${!hasLink ? '<div class="no-link-badge"><i class="fas fa-lock text-white/50 text-lg"></i></div>' : ''}
+                    </div>
+                    <span class="icon-label">${item.label}</span>
+                `;
+
+                card.onclick = () => {
+                    if (hasLink) {
+                        window.location.href = item.url;
+                    } else {
+                        showModal();
+                    }
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function showModal() {
+            document.getElementById('ios-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('ios-modal').style.display = 'none';
+        }
+
+        window.onload = () => {
+            renderGrid('core-grid', functions);
+        };
+    </script>
+</body>
+</html>
