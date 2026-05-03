@@ -37,24 +37,19 @@
         /* 導航欄樣式 */
         .nav-blur { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background-color: var(--glass-bg); }
 
-        /* 分頁切換動畫 */
-        .page-fade { transition: opacity 0.3s ease, transform 0.3s ease; }
-        .hidden-page { display: none; opacity: 0; transform: translateY(15px); }
-
         /* 卡片動畫 */
         .card-animate { opacity: 0; transform: translateY(15px); transition: all 0.5s ease-out; }
         .card-animate.visible { opacity: 1; transform: translateY(0); }
 
         /* 卡片基礎樣式 */
         .poster-card { aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; background: #eee; position: relative; transition: all 0.3s ease; cursor: pointer; }
-        .square-card { aspect-ratio: 1/1; border-radius: 12px; overflow: hidden; background: #eee; position: relative; transition: all 0.3s ease; cursor: pointer; }
         
         .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
         .card-clicking { transform: scale(0.92) !important; filter: brightness(0.8); transition: transform 0.1s ease !important; }
 
         @media (min-width: 1024px) {
-            .poster-card:hover, .square-card:hover { transform: translateY(-8px); box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12); }
-            .poster-card:hover .card-img, .square-card:hover .card-img { transform: scale(1.05); }
+            .poster-card:hover { transform: translateY(-8px); box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12); }
+            .poster-card:hover .card-img { transform: scale(1.05); }
         }
 
         /* 滑動控制區域 */
@@ -81,54 +76,7 @@
 
         .hero-gradient-overlay { background: linear-gradient(to top, #fafafa 0%, rgba(250,250,250,0.4) 40%, transparent 100%); }
 
-        /* 彈出式容器 */
-        #sim-overlay {
-            position: fixed; inset: 0; background: white; z-index: 2000;
-            display: none; flex-direction: column; opacity: 0; transition: opacity 0.4s ease;
-        }
-        #sim-overlay.active { display: flex; opacity: 1; }
-        
-        .close-btn {
-            position: absolute; top: 20px; right: 20px; width: 44px; height: 44px;
-            background: rgba(255, 255, 255, 0.9); border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; cursor: pointer;
-            z-index: 2100; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            color: #333;
-        }
-        .close-btn:hover { background: #ff4d4d; color: white; transform: rotate(90deg); }
-        
-        .sim-iframe { width: 100%; height: 100%; border: none; }
         .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
-
-        /* 標籤與搜尋框樣式 */
-        .tag-pill {
-            padding: 8px 18px;
-            border-radius: 99px;
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            border: 1px solid #e5e7eb;
-            background: white;
-            color: #4b5563;
-        }
-        .tag-pill.active {
-            background: #2563eb;
-            color: white;
-            border-color: #2563eb;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-        }
-        .search-input {
-            background: #f3f4f6;
-            border: 1.5px solid transparent;
-            transition: all 0.2s;
-        }
-        .search-input:focus {
-            background: white;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
     </style>
 </head>
 <body class="pb-24">
@@ -141,34 +89,26 @@
         </div>
     </div>
 
-    <!-- 彈出式容器 -->
-    <div id="sim-overlay">
-        <div class="close-btn" onclick="closeOverlay()">
-            <i class="fas fa-times text-xl"></i>
-        </div>
-        <iframe id="sim-frame" class="sim-iframe" src=""></iframe>
-    </div>
-
     <!-- Header -->
     <header id="main-header" class="fixed top-0 w-full z-50 nav-blur">
         <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between relative">
-            <div class="z-10 cursor-pointer btn-press" onclick="switchPage('home.html')">
+            <div class="z-10 cursor-pointer btn-press" onclick="scrollToHero()">
                 <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-8 w-auto">
             </div>
             
             <nav class="absolute inset-x-0 flex justify-center pointer-events-none">
                 <div class="flex items-center space-x-6 md:space-x-12 text-[10px] md:text-xs font-black text-gray-800 pointer-events-auto tracking-[0.15em] uppercase">
-                    <button onclick="switchPage('home.html'); setTimeout(() => scrollToHero(), 100)" class="hover:text-blue-600 transition-colors">録影</button>
-                    <button onclick="switchPage('home.html'); setTimeout(() => scrollToSection('course-library'), 100)" class="hover:text-blue-600 transition-colors">全庫</button>
-                    <button onclick="switchPage('home.html'); setTimeout(() => scrollToSection('practice-sections'), 100)" class="hover:text-blue-600 transition-colors">練習</button>
-                    <button onclick="switchPage('simulator.html')" class="hover:text-blue-600 transition-colors" id="nav-sim-text">模擬</button>
+                    <button onclick="scrollToHero()" class="hover:text-blue-600 transition-colors">録影</button>
+                    <button onclick="scrollToSection('course-library')" class="hover:text-blue-600 transition-colors">全庫</button>
+                    <button onclick="scrollToSection('practice-sections')" class="hover:text-blue-600 transition-colors">練習</button>
+                    <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="hover:text-blue-600 transition-colors">模擬</button>
                 </div>
             </nav>
         </div>
     </header>
 
-    <!-- 分頁: home.html -->
-    <div id="page-home" class="page-fade">
+    <!-- 分頁內容 -->
+    <div id="page-home">
         <section id="hero" class="pt-20 px-0 md:px-8 max-w-screen-2xl mx-auto">
             <div class="relative w-full h-[55vh] md:h-[70vh] overflow-hidden md:rounded-2xl shadow-sm border-b border-gray-100">
                 <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top" alt="Hero">
@@ -218,60 +158,19 @@
         </main>
     </div>
 
-    <!-- 分頁: simulator.html -->
-    <div id="page-simulator" class="page-fade hidden-page pt-28 px-6 max-w-screen-2xl mx-auto">
-        <header class="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            <div>
-                <h1 class="text-3xl md:text-5xl font-black tracking-tight mb-3">互動模擬器</h1>
-                <p class="text-gray-400 text-sm font-medium">Interactive Physics Simulation Lab.</p>
-            </div>
-            <!-- 搜尋框 -->
-            <div class="relative w-full md:w-80 group">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors"></i>
-                <input type="text" id="sim-search" placeholder="搜尋模擬器名稱或關鍵字..." 
-                       class="w-full pl-11 pr-4 py-3 rounded-2xl search-input outline-none text-sm font-medium"
-                       oninput="handleSimFilter()">
-            </div>
-        </header>
-
-        <!-- 標籤篩選器 -->
-        <div class="space-y-4 mb-10">
-            <div class="flex flex-col gap-2">
-                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">主要範疇</span>
-                <div class="overflow-x-auto hide-scrollbar flex items-center gap-2 pb-2" id="main-tags-container">
-                    <button onclick="setMainCategory('全部')" class="tag-pill active">全部</button>
-                </div>
-            </div>
-            
-            <div id="sub-tags-wrapper" class="flex flex-col gap-2 transition-all duration-300 opacity-0 pointer-events-none">
-                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">相關課題</span>
-                <div class="overflow-x-auto hide-scrollbar flex items-center gap-2 pb-2" id="sub-tags-container"></div>
-            </div>
-        </div>
-
-        <!-- 模擬器清單 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="simulator-grid"></div>
-
-        <!-- 空狀態提示 -->
-        <div id="sim-empty-state" class="hidden py-20 flex flex-col items-center justify-center text-gray-300">
-            <i class="fas fa-search text-6xl mb-4 opacity-20"></i>
-            <p class="font-bold tracking-tight">找不到相關的模擬器</p>
-        </div>
-    </div>
-
     <!-- 底部導航 -->
     <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-gray-100 px-10 py-3 pb-8 md:pb-3">
         <div class="flex items-center justify-between max-w-lg mx-auto">
-            <button onclick="switchPage('home.html')" id="tab-home" class="flex flex-col items-center gap-1 text-blue-600 transition-all scale-110">
+            <button onclick="scrollToHero()" id="tab-home" class="flex flex-col items-center gap-1 text-blue-600 transition-all scale-110">
                 <i class="fas fa-home text-xl"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">録影</span>
             </button>
-            <button onclick="switchPage('simulator.html')" id="tab-sim" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
+            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" id="tab-sim" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
                 <i class="fas fa-cube text-xl"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">模擬器</span>
             </button>
             
-            <!-- 已移除紅點的功能按鍵 -->
+            <!-- 「功能」導向也改為直接跳轉 -->
             <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" id="tab-func" class="flex flex-col items-center gap-1 text-gray-400 transition-all group">
                 <div class="relative w-8 h-8 flex items-center justify-center rounded-xl transition-colors group-hover:bg-blue-50">
                     <i class="fas fa-shapes text-xl group-hover:text-blue-500"></i>
@@ -321,115 +220,10 @@
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda18.png', url: 'https://sites.google.com/np2c.edu.hk/vol-18/home' },
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda19.png', url: 'https://sites.google.com/np2c.edu.hk/vol19/home' },
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda20.png', url: 'https://sites.google.com/np2c.edu.hk/vol20/home' }
-            ],
-            simulators: [
-                {
-                    mainCat: '原子世界',
-                    subCat: '原子模型',
-                    name: '氫原子躍遷模擬器',
-                    desc: '透過視覺化波耳模型，直觀呈現能級躍遷、光譜序列與能量量子化。',
-                    img: 'https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png',
-                    url: 'https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html'
-                },
-                {
-                    mainCat: '醫學物理學',
-                    subCat: '眼',
-                    name: '近視糾正光路圖',
-                    desc: '視覺化呈現近視成像位置及凹透鏡糾正原理，直觀掌握視力矯正核心概念。',
-                    img: 'https://phyuaaphysics.github.io/phyustudio/simulator-eye.png',
-                    url: 'https://phyuaaphysics.github.io/simulatorbank/eye.html'
-                },
-                {
-                    mainCat: '醫學物理學',
-                    subCat: '眼',
-                    name: '近視糾正光路圖(虛像)',
-                    desc: '視覺化呈現近視矯正光路，動態展示晶體調節過程及凹透鏡成虛像原理。',
-                    img: 'https://phyuaaphysics.github.io/phyustudio/simulator-eye2.png',
-                    url: 'https://phyuaaphysics.github.io/simulatorbank/eye2.html'
-                }
             ]
         };
 
         const loader = document.getElementById('page-loader');
-        let currentMainCat = '全部';
-        let currentSubCat = '全部';
-
-        function initSimFilters() {
-            const mainContainer = document.getElementById('main-tags-container');
-            const mainCats = [...new Set(config.simulators.map(s => s.mainCat))];
-            mainContainer.innerHTML = `<button onclick=\"setMainCategory('全部')\" class=\"tag-pill ${currentMainCat === '全部' ? 'active' : ''}\">全部</button>`;
-            mainCats.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.className = `tag-pill ${currentMainCat === cat ? 'active' : ''}`;
-                btn.innerText = cat;
-                btn.onclick = () => setMainCategory(cat);
-                mainContainer.appendChild(btn);
-            });
-            handleSimFilter();
-        }
-
-        function setMainCategory(cat) {
-            currentMainCat = cat;
-            currentSubCat = '全部';
-            document.querySelectorAll('#main-tags-container .tag-pill').forEach(btn => btn.classList.toggle('active', btn.innerText === cat));
-            const subWrapper = document.getElementById('sub-tags-wrapper');
-            const subContainer = document.getElementById('sub-tags-container');
-            if (cat === '全部') {
-                subWrapper.classList.add('opacity-0', 'pointer-events-none');
-            } else {
-                const subCats = [...new Set(config.simulators.filter(s => s.mainCat === cat).map(s => s.subCat))];
-                subContainer.innerHTML = `<button onclick=\"setSubCategory('全部')\" class=\"tag-pill active\">全部</button>`;
-                subCats.forEach(sub => {
-                    const btn = document.createElement('button');
-                    btn.className = `tag-pill`;
-                    btn.innerText = sub;
-                    btn.onclick = () => setSubCategory(sub);
-                    subContainer.appendChild(btn);
-                });
-                subWrapper.classList.remove('opacity-0', 'pointer-events-none');
-            }
-            handleSimFilter();
-        }
-
-        function setSubCategory(sub) {
-            currentSubCat = sub;
-            document.querySelectorAll('#sub-tags-container .tag-pill').forEach(btn => btn.classList.toggle('active', btn.innerText === sub));
-            handleSimFilter();
-        }
-
-        function handleSimFilter() {
-            const searchText = document.getElementById('sim-search').value.toLowerCase();
-            const grid = document.getElementById('simulator-grid');
-            const emptyState = document.getElementById('sim-empty-state');
-            grid.innerHTML = '';
-            const filtered = config.simulators.filter(sim => {
-                const matchMain = currentMainCat === '全部' || sim.mainCat === currentMainCat;
-                const matchSub = currentSubCat === '全部' || sim.subCat === currentSubCat;
-                const matchSearch = sim.name.toLowerCase().includes(searchText) || sim.desc.toLowerCase().includes(searchText);
-                return matchMain && matchSub && matchSearch;
-            });
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-                filtered.forEach(sim => {
-                    const card = document.createElement('div');
-                    card.className = "sim-card group bg-white border border-gray-100 p-5 rounded-3xl shadow-sm hover:shadow-xl hover:border-blue-500 transition-all duration-300 card-animate visible";
-                    card.innerHTML = `
-                        <div class="aspect-video bg-gray-50 rounded-2xl overflow-hidden mb-5 relative">
-                            <img src="${sim.img}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="${sim.name}">
-                        </div>
-                        <div class="px-1 mb-5">
-                            <h3 class="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors">${sim.name}</h3>
-                            <p class="text-gray-500 text-xs mt-2 leading-relaxed line-clamp-2">${sim.desc}</p>
-                        </div>
-                        <button onclick="handleNavigation('${sim.url}')" class="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black tracking-widest uppercase hover:bg-blue-600 transition-all duration-300 btn-press">
-                            啟動模擬
-                        </button>`;
-                    grid.appendChild(card);
-                });
-            }
-        }
 
         function slideSlider(id, direction) {
             const container = document.getElementById(id);
@@ -439,67 +233,24 @@
 
         function handleNavigation(url, element) {
             if (!url) return;
-            const isIframeFriendly = url.includes('github.io');
-            const overlay = document.getElementById('sim-overlay');
-            const frame = document.getElementById('sim-frame');
             const loaderText = document.getElementById('loader-text');
+            
             if (element) element.classList.add('card-clicking');
             loader.classList.add('active');
-            if (isIframeFriendly) {
-                loaderText.innerText = "Opening Interface";
-                setTimeout(() => {
-                    frame.src = url;
-                    overlay.style.display = 'flex';
-                    frame.onload = () => {
-                        loader.classList.remove('active');
-                        overlay.classList.add('active');
-                        if (element) element.classList.remove('card-clicking');
-                    };
-                    setTimeout(() => { if(loader.classList.contains('active')) { loader.classList.remove('active'); overlay.classList.add('active'); } }, 3000);
-                }, 400);
-            } else {
-                loaderText.innerText = "External Resource";
-                setTimeout(() => {
-                    window.open(url, '_blank');
-                    setTimeout(() => {
-                        loader.classList.remove('active');
-                        if (element) element.classList.remove('card-clicking');
-                    }, 500);
-                }, 600);
-            }
-        }
-
-        function closeOverlay() {
-            const overlay = document.getElementById('sim-overlay');
-            overlay.classList.remove('active');
-            setTimeout(() => { overlay.style.display = 'none'; document.getElementById('sim-frame').src = ""; }, 400);
-        }
-
-        function switchPage(pageFileName) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            const isSimulator = (pageFileName === 'simulator.html');
-            const homePage = document.getElementById('page-home');
-            const simPage = document.getElementById('page-simulator');
-            const tabs = { home: document.getElementById('tab-home'), sim: document.getElementById('tab-sim'), func: document.getElementById('tab-func') };
-            if (isSimulator) {
-                homePage.style.opacity = '0'; homePage.classList.add('hidden-page');
-                simPage.classList.remove('hidden-page');
-                setTimeout(() => { simPage.style.opacity = '1'; initSimFilters(); }, 10);
-                tabs.home.classList.replace('text-blue-600', 'text-gray-400'); tabs.home.classList.remove('scale-110');
-                tabs.sim.classList.replace('text-gray-400', 'text-blue-600'); tabs.sim.classList.add('scale-110');
-                tabs.func.classList.replace('text-blue-600', 'text-gray-400');
-            } else {
-                simPage.style.opacity = '0'; simPage.classList.add('hidden-page');
-                homePage.classList.remove('hidden-page');
-                setTimeout(() => homePage.style.opacity = '1', 10);
-                tabs.sim.classList.replace('text-blue-600', 'text-gray-400'); tabs.sim.classList.remove('scale-110');
-                tabs.home.classList.replace('text-gray-400', 'text-blue-600'); tabs.home.classList.add('scale-110');
-                tabs.func.classList.replace('text-blue-600', 'text-gray-400');
-            }
+            
+            loaderText.innerText = "Redirecting";
+            setTimeout(() => {
+                window.location.href = url;
+            }, 500);
         }
 
         function render() {
-            const containers = { 'course': document.getElementById('course-slider'), 'funda-1': document.getElementById('funda-1-slider'), 'funda-2': document.getElementById('funda-2-slider') };
+            const containers = { 
+                'course': document.getElementById('course-slider'), 
+                'funda-1': document.getElementById('funda-1-slider'), 
+                'funda-2': document.getElementById('funda-2-slider') 
+            };
+            
             config.data.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `slider-item w-40 md:w-60 card-animate`;
@@ -511,7 +262,12 @@
         }
 
         function scrollToHero() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function scrollToSection(id) { const el = document.getElementById(id); if(el) el.scrollIntoView({ behavior: 'smooth' }); }
+        
+        function scrollToSection(id) { 
+            const el = document.getElementById(id); 
+            if(el) el.scrollIntoView({ behavior: 'smooth' }); 
+        }
+
         function openLink(type) {
             if(type === 'hero') handleNavigation(config.heroUrl);
             if(type === 'google') handleNavigation(config.googleUrl);
@@ -520,9 +276,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             render();
             const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+                entries.forEach(entry => { 
+                    if (entry.isIntersecting) entry.target.classList.add('visible'); 
+                });
             }, { threshold: 0.1 });
-            setTimeout(() => { document.querySelectorAll('.card-animate').forEach(card => observer.observe(card)); }, 300);
+            
+            setTimeout(() => { 
+                document.querySelectorAll('.card-animate').forEach(card => observer.observe(card)); 
+            }, 300);
         });
     </script>
 </body>
