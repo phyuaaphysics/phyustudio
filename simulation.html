@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Simulation Lab - 物理模擬中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --pdd-red: #e02e24;
+            --pdd-bg: #f7f7f7;
+        }
+
+        body {
+            background-color: var(--pdd-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding-bottom: 80px;
+        }
+
+        /* 頂部導航 */
+        .pdd-header {
+            background-color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            color: var(--pdd-red);
+            font-size: 18px;
+            white-space: nowrap;
+            letter-spacing: -0.5px;
+        }
+
+        .search-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .category-nav {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            background: white;
+            scrollbar-width: none;
+        }
+        .category-nav::-webkit-scrollbar { display: none; }
+        .nav-item {
+            padding: 12px 20px;
+            font-size: 15px;
+            color: #555;
+            position: relative;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            color: var(--pdd-red);
+            font-weight: bold;
+        }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            left: 25%;
+            right: 25%;
+            height: 3px;
+            background: var(--pdd-red);
+            border-radius: 2px;
+        }
+
+        /* 商品格線 */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            padding: 6px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; padding: 16px; } }
+
+        .product-card {
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .product-card:active { transform: scale(0.97); }
+        
+        .product-img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+        .product-info { padding: 10px; }
+        .product-title {
+            font-size: 13px;
+            line-height: 1.4;
+            height: 36px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 8px;
+            color: #222;
+            font-weight: 500;
+        }
+
+        .category-tag {
+            background: #f0f0f0;
+            color: #777;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* 全螢幕 Iframe 彈窗 - 修正為由右至左掃入 */
+        .pdd-modal { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: white; 
+            z-index: 2000; 
+            flex-direction: column; 
+            animation: slideInRight 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* 由右至左掃入動畫 */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* 關閉動畫 (用於平滑退出) */
+        .modal-exit {
+            animation: slideOutRight 0.3s forwards cubic-bezier(0.5, 0, 0.75, 0);
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); }
+            to { transform: translateX(100%); }
+        }
+
+        .modal-header {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .close-circle-btn {
+            width: 32px;
+            height: 32px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .close-circle-btn:hover { background: #e5e5e5; }
+
+        /* 底部導航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 50;
+        }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; color: #999; }
+        .nav-btn.active { color: var(--pdd-red); }
+
+        #pdd-toast {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            z-index: 3000;
+            font-size: 14px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="pdd-header">
+        <div class="header-top">
+            <div class="brand-logo">Simulation Lab</div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜尋物理實驗..." class="bg-transparent border-none outline-none w-full" oninput="render()">
+            </div>
+        </div>
+        <div class="category-nav" id="categoryNav">
+            <div class="nav-item active" onclick="setMainCategory('all', this)">熱門推薦</div>
+            <div class="nav-item" onclick="setMainCategory('原子世界', this)">原子世界</div>
+            <div class="nav-item" onclick="setMainCategory('醫學物理學', this)">醫學物理</div>
+            <div class="nav-item" onclick="setMainCategory('力學', this)">經典力學</div>
+            <div class="nav-item" onclick="setMainCategory('電磁', this)">電磁感應</div>
+        </div>
+    </header>
+
+    <main class="product-grid" id="productGrid"></main>
+
+    <nav class="bottom-nav">
+        <div class="nav-btn active" onclick="navigateTo('home')">
+            <i class="fas fa-microscope text-xl"></i>
+            <span class="text-[10px] mt-1">實驗</span>
+        </div>
+        <div class="nav-btn" onclick="navigateTo('random')">
+            <i class="fas fa-dice text-xl"></i>
+            <span class="text-[10px] mt-1">隨機</span>
+        </div>
+        <div class="nav-btn" onclick="navigateTo('resources')">
+            <i class="fas fa-layer-group text-xl"></i>
+            <span class="text-[10px] mt-1">分類</span>
+        </div>
+        <div class="nav-btn" onclick="navigateTo('back')">
+            <i class="fas fa-arrow-left text-xl"></i>
+            <span class="text-[10px] mt-1">返回</span>
+        </div>
+    </nav>
+
+    <!-- 全螢幕模擬器容器 -->
+    <div id="pdd-modal" class="pdd-modal">
+        <div class="modal-header">
+            <div class="flex items-center gap-2 overflow-hidden">
+                <i class="fas fa-flask text-red-500"></i>
+                <span id="detail-title" class="font-bold truncate text-sm">實驗室</span>
+            </div>
+            <div class="close-circle-btn" onclick="closeDetail()">
+                <i class="fas fa-times text-gray-500"></i>
+            </div>
+        </div>
+        <iframe id="sim-iframe" class="flex-1 w-full border-none"></iframe>
+    </div>
+
+    <div id="pdd-toast"></div>
+
+    <script>
+        const products = [
+            { id: 101, title: "氫原子躍遷模擬器：視覺化波耳模型實驗室", category: "原子世界", sub: "原子物理", img: "https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png", url: "https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html" },
+            { id: 102, title: "近視糾正光路圖：凹透鏡成像原理分析", category: "醫學物理學", sub: "視覺光學", img: "https://phyuaaphysics.github.io/phyustudio/simulator-eye.png", url: "https://phyuaaphysics.github.io/simulatorbank/eye.html" },
+            { id: 103, title: "近視糾正(虛像模式)：動態晶體調節模擬", category: "醫學物理學", sub: "視覺光學", img: "https://phyuaaphysics.github.io/phyustudio/simulator-eye2.png", url: "https://phyuaaphysics.github.io/simulatorbank/eye2.html" },
+            { id: 1, title: "拋體運動：初始速度與重力加速度交互實驗", category: "力學", sub: "運動學", img: "https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion-600.png", url: "https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_all.html" },
+            { id: 2, title: "DC 直流電路：虛擬電子元件組裝實驗室", category: "電磁", sub: "電路分析", img: "https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc-600.png", url: "https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html" }
+        ];
+
+        let currentMain = 'all';
+
+        function render() {
+            const grid = document.getElementById('productGrid');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = products.filter(p => {
+                const mMatch = currentMain === 'all' || p.category === currentMain;
+                return mMatch && p.title.toLowerCase().includes(search);
+            });
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card" onclick="openDetail('${p.title}', '${p.url}')">
+                    <img src="${p.img}" class="product-img">
+                    <div class="product-info">
+                        <div class="product-title">${p.title}</div>
+                        <div class="category-tag">${p.sub}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setMainCategory(cat, el) {
+            currentMain = cat;
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            render();
+        }
+
+        function openDetail(t, u) {
+            const modal = document.getElementById('pdd-modal');
+            const iframe = document.getElementById('sim-iframe');
+            
+            // 重置動畫與狀態
+            modal.classList.remove('modal-exit');
+            document.getElementById('detail-title').innerText = t;
+            iframe.src = u;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDetail() {
+            const modal = document.getElementById('pdd-modal');
+            const iframe = document.getElementById('sim-iframe');
+            
+            // 加入退出動畫
+            modal.classList.add('modal-exit');
+            
+            // 等待動畫結束後關閉
+            setTimeout(() => {
+                modal.style.display = 'none';
+                iframe.src = "";
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('pdd-toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+
+        function navigateTo(page) {
+            if (page === 'random') {
+                const rand = products[Math.floor(Math.random() * products.length)];
+                openDetail(rand.title, rand.url);
+                showToast("隨機推薦：" + rand.title.split('：')[0]);
+            } else if (page === 'home') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (page === 'back') {
+                window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
+            } else {
+                showToast("建設中...");
+            }
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
