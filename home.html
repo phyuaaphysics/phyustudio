@@ -7,19 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
         
         :root {
-            --primary-blue: #1e40af; /* 深靛藍提升專業感 */
-            --bg-ice-blue: #f4f7fa; /* 高貴淡粉藍 */
-            --glass-bg: rgba(244, 247, 250, 0.85);
+            --primary-blue: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.9);
         }
 
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-color: var(--bg-ice-blue);
-            color: #1a202c;
+            background-color: #fafafa;
+            color: #111;
             -webkit-tap-highlight-color: transparent;
             overflow-x: hidden;
         }
@@ -29,170 +28,182 @@
 
         /* 載入動畫層 */
         #page-loader {
-            position: fixed; inset: 0; background-color: var(--bg-ice-blue); z-index: 1000;
+            position: fixed; inset: 0; background-color: white; z-index: 1000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
         }
         #page-loader.active { opacity: 1; visibility: visible; }
         
-        /* 導航欄樣式 - 高及透明感 */
-        .nav-blur { 
-            backdrop-filter: blur(25px); 
-            -webkit-backdrop-filter: blur(25px); 
-            background-color: var(--glass-bg); 
-            border-bottom: 1px solid rgba(30, 64, 175, 0.05); 
+        /* 導航欄樣式 */
+        .nav-blur { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); background-color: var(--glass-bg); }
+
+        /* Netflix Style Filter Buttons */
+        .filter-btn {
+            background: transparent;
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #111;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
         }
+        .filter-btn.active {
+            background: #111;
+            color: white;
+            border-color: #111;
+        }
+        .filter-btn:not(.active):hover { background: rgba(0,0,0,0.05); }
 
         /* 卡片動畫 */
-        .card-animate { opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .card-animate { opacity: 0; transform: translateY(10px); transition: all 0.4s ease-out; }
         .card-animate.visible { opacity: 1; transform: translateY(0); }
 
-        /* 卡片基礎樣式 - 緊湊排版優化 */
+        /* 卡片基礎樣式 - 緊湊型 */
         .poster-card { 
             aspect-ratio: 2/3; 
-            border-radius: 4px; /* 減小圓角使緊湊排版更和諧 */
+            border-radius: 4px; 
             overflow: hidden; 
-            background: #ffffff; 
+            background: #eee; 
             position: relative; 
-            transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.5s ease; 
-            cursor: pointer;
-            z-index: 1;
-            border: 1px solid rgba(30, 64, 175, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: pointer; 
+            border: 1px solid rgba(0,0,0,0.03);
         }
         
-        .card-img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.4s ease; }
-        .card-clicking { transform: scale(0.96) !important; filter: brightness(0.9); transition: transform 0.1s ease !important; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .card-clicking { transform: scale(0.94) !important; filter: brightness(0.8); transition: transform 0.1s ease !important; }
 
         @media (min-width: 1024px) {
-            .poster-card:hover { 
-                transform: scale(1.1); 
-                box-shadow: 0 15px 35px -10px rgba(30, 64, 175, 0.2);
-                z-index: 50; /* 提升層級避免被遮擋 */
-                border: 1px solid rgba(30, 64, 175, 0.2);
-            }
+            .poster-card:hover { transform: scale(1.03); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15); z-index: 10; }
         }
 
         /* 滑動控制區域 */
         .slider-wrapper { position: relative; width: 100%; }
-
         .slider-container { 
             display: flex; 
             overflow-x: auto; 
             scroll-snap-type: x mandatory; 
-            gap: 2px; /* 極小間距，達成緊湊感 */
-            padding: 4px 0 16px 0; /* 大幅縮小上下內邊距 */
-            scroll-behavior: smooth;
-            padding-right: 20px; 
+            gap: 6px; 
+            padding: 4px 0 16px 0; 
+            scroll-behavior: smooth; 
         }
         .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
 
         /* 導覽箭頭 */
         .scroll-arrow {
             position: absolute; top: 40%; transform: translateY(-50%);
-            width: 44px; height: 70px; background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(8px); border-radius: 6px;
+            width: 40px; height: 40px; background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            z-index: 20; cursor: pointer; border: 1px solid rgba(30,64,175,0.1);
-            transition: all 0.3s ease;
-            opacity: 0;
-            color: var(--primary-blue);
+            z-index: 20; cursor: pointer; border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            opacity: 0; pointer-events: none; transition: all 0.3s ease;
         }
         @media (hover: hover) {
-            .slider-wrapper:hover .scroll-arrow { opacity: 1; }
+            .slider-wrapper:hover .scroll-arrow { opacity: 1; pointer-events: auto; }
         }
-        .scroll-arrow:hover { background: white; transform: translateY(-50%) scale(1.05); box-shadow: 0 5px 15px rgba(30,64,175,0.1); }
-        .arrow-left { left: 0; }
-        .arrow-right { right: 0; }
+        .scroll-arrow:hover { transform: translateY(-50%) scale(1.1); background: white; }
+        .arrow-left { left: -10px; }
+        .arrow-right { right: -10px; }
 
-        .hero-gradient-overlay { 
-            background: linear-gradient(to top, var(--bg-ice-blue) 0%, rgba(244, 247, 250, 0.3) 60%, transparent 100%); 
-        }
+        .hero-gradient-overlay { background: linear-gradient(to top, #fafafa 0%, rgba(250,250,250,0.1) 40%, transparent 100%); }
 
-        .btn-press:active { transform: scale(0.96); transition: transform 0.1s; }
-        
-        /* 標題強化 - 縮小 margin 以達成緊湊效果 */
+        .btn-press:active { transform: scale(0.95); transition: transform 0.1s; }
+
+        /* Netflix 標題加強 */
         .section-title {
-            font-size: 1rem;
-            font-weight: 800;
-            letter-spacing: 0.02em;
-            margin-bottom: 2px; /* 緊貼圖片欄 */
-            color: #2d3748;
-            padding-left: 2px;
-            border-left: 3px solid var(--primary-blue);
-            margin-left: -2px;
-            line-height: 1.2;
+            font-size: 1.1rem; /* 增加大小 */
+            font-weight: 900; /* 更粗 */
+            letter-spacing: -0.02em;
+            margin-bottom: 2px;
+            color: #111;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         section {
-            margin-bottom: 0.75rem !important; /* 大幅減少欄目之間的間距 (原本為 2.5rem) */
+            margin-bottom: 8px !important;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        section.hidden-section {
+            display: none;
         }
 
-        /* 英雄區按鈕優化 */
-        .btn-hero-primary {
-            background: #1a202c;
-            color: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .btn-hero-secondary {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(30, 64, 175, 0.1);
+        .category-tag {
+            font-size: 10px;
+            background: #e2e8f0;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: #64748b;
         }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-24">
 
     <!-- 載入層 -->
     <div id="page-loader">
         <div class="flex flex-col items-center">
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-12 h-12 animate-pulse mb-4" alt="Loading">
-            <p id="loader-text" class="text-[10px] font-bold tracking-[0.2em] text-blue-900 uppercase opacity-60">Initializing Studio</p>
+            <p id="loader-text" class="text-[10px] font-black tracking-widest text-gray-400 uppercase">Processing</p>
         </div>
     </div>
 
     <!-- Header -->
     <header id="main-header" class="fixed top-0 w-full z-50 nav-blur">
-        <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between relative">
-            <div class="z-10 cursor-pointer btn-press" onclick="scrollToHero()">
-                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-8 w-auto">
-            </div>
-            
-            <nav class="absolute inset-x-0 flex justify-center pointer-events-none">
-                <div class="flex items-center space-x-8 md:space-x-14 text-[10px] md:text-xs font-bold text-slate-600 pointer-events-auto tracking-[0.2em] uppercase">
-                    <button onclick="scrollToHero()" class="hover:text-blue-800 transition-colors">録影</button>
-                    <button onclick="scrollToSection('course-library')" class="hover:text-blue-800 transition-colors">全庫</button>
-                    <button onclick="scrollToSection('practice-sections')" class="hover:text-blue-800 transition-colors">練習</button>
-                    <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="hover:text-blue-800 transition-colors">模擬</button>
+        <div class="max-w-screen-2xl mx-auto px-6 pt-4 pb-2 flex flex-col gap-3">
+            <div class="flex items-center justify-between relative">
+                <div class="z-10 cursor-pointer btn-press" onclick="scrollToHero()">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-8 w-auto">
                 </div>
-            </nav>
+                
+                <nav class="absolute inset-x-0 flex justify-center pointer-events-none">
+                    <div class="flex items-center space-x-6 md:space-x-12 text-[11px] md:text-xs font-black text-gray-800 pointer-events-auto tracking-[0.1em] uppercase">
+                        <button onclick="scrollToHero()" class="hover:text-blue-600 transition-colors">録影</button>
+                        <button onclick="scrollToSection('course-library')" class="hover:text-blue-600 transition-colors">全庫</button>
+                        <button onclick="scrollToSection('practice-sections')" class="hover:text-blue-600 transition-colors">練習</button>
+                        <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="hover:text-blue-600 transition-colors">模擬</button>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Netflix Style Filter Bar -->
+            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+                <button onclick="setFilter('all', this)" class="filter-btn active">全部</button>
+                <button onclick="setFilter('practice', this)" class="filter-btn">基礎練習冊 <i class="fas fa-chevron-down text-[8px] opacity-50 ml-1"></i></button>
+                <button onclick="setFilter('course', this)" class="filter-btn">核心課程 <i class="fas fa-chevron-down text-[8px] opacity-50 ml-1"></i></button>
+            </div>
         </div>
     </header>
 
     <!-- 分頁內容 -->
     <div id="page-home">
-        <section id="hero" class="pt-20 px-0 md:px-8 max-w-screen-2xl mx-auto">
-            <div class="relative w-full h-[60vh] md:h-[72vh] overflow-hidden md:rounded-2xl shadow-sm border border-white/50">
+        <section id="hero" class="pt-28 px-0 md:px-8 max-w-screen-2xl mx-auto">
+            <div class="relative w-full h-[55vh] md:h-[65vh] overflow-hidden md:rounded-xl shadow-sm border-b border-gray-100">
                 <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top" alt="Hero">
                 <div class="absolute inset-0 hero-gradient-overlay"></div>
-                <div class="absolute inset-0 flex flex-col items-center justify-end pb-14 px-6 text-center">
-                    <span class="text-[10px] md:text-xs font-bold tracking-[0.6em] text-blue-900/60 uppercase mb-5">Professional Archive System</span>
-                    <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" alt="課堂錄影" class="w-full max-w-[260px] md:max-w-[420px] h-auto mb-8 object-contain">
-                    <div class="flex gap-4">
-                        <button onclick="openLink('hero')" class="btn-press btn-hero-primary px-10 py-3.5 font-bold rounded-lg text-xs tracking-widest uppercase hover:bg-black transition flex items-center">
-                            <i class="fas fa-play mr-2 text-[10px]"></i> 立即觀看
-                        </button>
-                        <button onclick="scrollToSection('course-library')" class="btn-press btn-hero-secondary text-slate-800 px-10 py-3.5 font-bold rounded-lg text-xs tracking-widest uppercase hover:bg-white transition flex items-center">
-                            <i class="fas fa-layer-group mr-2 text-[10px]"></i> 瀏覽目錄
-                        </button>
-                    </div>
+                <div class="absolute inset-0 flex flex-col items-center justify-end pb-8 px-6 text-center">
+                    <span class="text-[10px] font-black tracking-[0.4em] text-blue-700 uppercase mb-3">Live Streaming & Archive</span>
+                    <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" alt="課堂錄影" class="w-full max-w-[240px] md:max-w-[420px] h-auto mb-6 object-contain">
+                    <button onclick="openLink('hero')" class="btn-press bg-black text-white px-10 py-3.5 font-bold rounded-full text-xs tracking-widest uppercase hover:bg-gray-800 transition shadow-xl">
+                        <i class="fas fa-play mr-2"></i> 即刻進入
+                    </button>
                 </div>
             </div>
         </section>
 
         <main class="mt-4 space-y-0 max-w-screen-2xl mx-auto px-6 pb-20">
-            <!-- 課程全庫 -->
-            <section id="course-library" class="scroll-mt-28">
-                <h2 class="section-title">核心課程全庫</h2>
+            <!-- 核心課程欄目 -->
+            <section id="course-library" data-type="course" class="scroll-mt-32">
+                <h2 class="section-title">核心課程全庫 <span class="category-tag">CORE</span></h2>
                 <div class="slider-wrapper">
                     <div class="scroll-arrow arrow-left" onclick="slideSlider('course-slider', -1)"><i class="fas fa-chevron-left"></i></div>
                     <div class="slider-container hide-scrollbar" id="course-slider"></div>
@@ -200,18 +211,18 @@
                 </div>
             </section>
 
-            <!-- 練習冊區域容器 -->
+            <!-- 練習冊區域容器 (會根據 filter 顯示或隱藏內容) -->
             <div id="practice-sections" class="space-y-0">
-                <section id="practice-1" class="scroll-mt-28">
-                    <h2 class="section-title">基礎練習冊 01-10</h2>
+                <section id="practice-1" data-type="practice" class="scroll-mt-32">
+                    <h2 class="section-title">基礎練習冊 01-10 <span class="category-tag">FUNDAMENTAL</span></h2>
                     <div class="slider-wrapper">
                         <div class="scroll-arrow arrow-left" onclick="slideSlider('funda-1-slider', -1)"><i class="fas fa-chevron-left"></i></div>
                         <div class="slider-container hide-scrollbar" id="funda-1-slider"></div>
                         <div class="scroll-arrow arrow-right" onclick="slideSlider('funda-1-slider', 1)"><i class="fas fa-chevron-right"></i></div>
                     </div>
                 </section>
-                <section id="practice-2" class="scroll-mt-28">
-                    <h2 class="section-title">基礎練習冊 11-20</h2>
+                <section id="practice-2" data-type="practice" class="scroll-mt-32">
+                    <h2 class="section-title">基礎練習冊 11-20 <span class="category-tag">FUNDAMENTAL</span></h2>
                     <div class="slider-wrapper">
                         <div class="scroll-arrow arrow-left" onclick="slideSlider('funda-2-slider', -1)"><i class="fas fa-chevron-left"></i></div>
                         <div class="slider-container hide-scrollbar" id="funda-2-slider"></div>
@@ -223,13 +234,13 @@
     </div>
 
     <!-- 底部導航 -->
-    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-blue-900/5 px-10 py-2 pb-3 md:pb-2">
+    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-gray-100 px-10 py-2 pb-8 md:pb-2">
         <div class="flex items-center justify-between max-w-lg mx-auto">
-            <button onclick="scrollToHero()" id="tab-home" class="flex flex-col items-center gap-0.5 text-blue-700 transition-all scale-105">
+            <button onclick="scrollToHero()" id="tab-home" class="flex flex-col items-center gap-0.5 text-blue-600 transition-all scale-105">
                 <i class="fas fa-home text-lg"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">録影</span>
             </button>
-            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" id="tab-sim" class="flex flex-col items-center gap-0.5 text-gray-400 transition-all hover:text-blue-700">
+            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" id="tab-sim" class="flex flex-col items-center gap-0.5 text-gray-400 transition-all">
                 <i class="fas fa-cube text-lg"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">模擬器</span>
             </button>
@@ -241,7 +252,7 @@
                 <span class="text-[8px] font-black uppercase tracking-tighter">功能</span>
             </button>
             
-            <button onclick="openLink('google')" class="flex flex-col items-center gap-0.5 text-gray-400 transition-all hover:text-blue-700">
+            <button onclick="openLink('google')" class="flex flex-col items-center gap-0.5 text-gray-400 transition-all">
                 <i class="fab fa-google text-lg"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">信箱</span>
             </button>
@@ -297,14 +308,31 @@
         function handleNavigation(url, element) {
             if (!url) return;
             const loaderText = document.getElementById('loader-text');
-            
             if (element) element.classList.add('card-clicking');
             loader.classList.add('active');
-            
-            loaderText.innerText = "Processing Access";
-            setTimeout(() => {
-                window.location.href = url;
-            }, 500);
+            loaderText.innerText = "Connecting";
+            setTimeout(() => { window.location.href = url; }, 500);
+        }
+
+        function setFilter(type, btn) {
+            // 切換按鈕狀態
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // 執行過濾
+            const sections = document.querySelectorAll('section[data-type]');
+            sections.forEach(sec => {
+                if (type === 'all' || sec.dataset.type === type) {
+                    sec.classList.remove('hidden-section');
+                } else {
+                    sec.classList.add('hidden-section');
+                }
+            });
+
+            // 如果選中特定項且目前在下方，自動捲動回頂部
+            if (type !== 'all') {
+                window.scrollTo({ top: 300, behavior: 'smooth' });
+            }
         }
 
         function render() {
@@ -329,7 +357,7 @@
         function scrollToSection(id) { 
             const el = document.getElementById(id); 
             if(el) {
-                const yOffset = -100; 
+                const yOffset = -140; 
                 const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
                 window.scrollTo({top: y, behavior: 'smooth'});
             }
@@ -339,16 +367,6 @@
             if(type === 'hero') handleNavigation(config.heroUrl);
             if(type === 'google') handleNavigation(config.googleUrl);
         }
-
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
-                const loader = document.getElementById('page-loader');
-                if (loader) {
-                    loader.classList.remove('active');
-                    document.querySelectorAll('.card-clicking').forEach(el => el.classList.remove('card-clicking'));
-                }
-            }
-        });
 
         document.addEventListener('DOMContentLoaded', () => {
             render();
@@ -360,7 +378,7 @@
             
             setTimeout(() => { 
                 document.querySelectorAll('.card-animate').forEach(card => observer.observe(card)); 
-            }, 200);
+            }, 300);
         });
     </script>
 </body>
