@@ -47,17 +47,17 @@
         .card-animate { opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
         .card-animate.visible { opacity: 1; transform: translateY(0); }
 
-        /* 卡片基礎樣式 - 高貴專業感優化 */
+        /* 卡片基礎樣式 - 緊湊排版優化 */
         .poster-card { 
             aspect-ratio: 2/3; 
-            border-radius: 8px; 
+            border-radius: 4px; /* 減小圓角使緊湊排版更和諧 */
             overflow: hidden; 
             background: #ffffff; 
             position: relative; 
             transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.5s ease; 
             cursor: pointer;
             z-index: 1;
-            border: 1px solid rgba(30, 64, 175, 0.08);
+            border: 1px solid rgba(30, 64, 175, 0.05);
         }
         
         .card-img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.4s ease; }
@@ -65,39 +65,30 @@
 
         @media (min-width: 1024px) {
             .poster-card:hover { 
-                transform: scale(1.08); 
-                box-shadow: 0 15px 35px -10px rgba(30, 64, 175, 0.15);
-                z-index: 10;
+                transform: scale(1.1); 
+                box-shadow: 0 15px 35px -10px rgba(30, 64, 175, 0.2);
+                z-index: 50; /* 提升層級避免被遮擋 */
                 border: 1px solid rgba(30, 64, 175, 0.2);
             }
         }
 
         /* 滑動控制區域 */
         .slider-wrapper { position: relative; width: 100%; }
-        .slider-wrapper::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0; bottom: 0;
-            width: 60px;
-            background: linear-gradient(to right, transparent, var(--bg-ice-blue));
-            pointer-events: none;
-            z-index: 5;
-        }
 
         .slider-container { 
             display: flex; 
             overflow-x: auto; 
             scroll-snap-type: x mandatory; 
-            gap: 16px; 
-            padding: 4px 0 24px 0; 
+            gap: 2px; /* 極小間距，達成緊湊感 */
+            padding: 4px 0 16px 0; /* 大幅縮小上下內邊距 */
             scroll-behavior: smooth;
-            padding-right: 60px;
+            padding-right: 20px; 
         }
         .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
 
         /* 導覽箭頭 */
         .scroll-arrow {
-            position: absolute; top: 45%; transform: translateY(-50%);
+            position: absolute; top: 40%; transform: translateY(-50%);
             width: 44px; height: 70px; background: rgba(255,255,255,0.9);
             backdrop-filter: blur(8px); border-radius: 6px;
             display: flex; align-items: center; justify-content: center;
@@ -119,23 +110,21 @@
 
         .btn-press:active { transform: scale(0.96); transition: transform 0.1s; }
         
-        /* 標題強化 */
+        /* 標題強化 - 縮小 margin 以達成緊湊效果 */
         .section-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 800;
             letter-spacing: 0.02em;
-            margin-bottom: 4px;
+            margin-bottom: 2px; /* 緊貼圖片欄 */
             color: #2d3748;
             padding-left: 2px;
             border-left: 3px solid var(--primary-blue);
             margin-left: -2px;
-            line-height: 1;
-            padding-top: 2px;
-            padding-bottom: 2px;
+            line-height: 1.2;
         }
         
         section {
-            margin-bottom: 2.5rem !important;
+            margin-bottom: 0.75rem !important; /* 大幅減少欄目之間的間距 (原本為 2.5rem) */
         }
 
         /* 英雄區按鈕優化 */
@@ -151,7 +140,7 @@
         }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-20">
 
     <!-- 載入層 -->
     <div id="page-loader">
@@ -200,7 +189,7 @@
             </div>
         </section>
 
-        <main class="mt-4 space-y-2 max-w-screen-2xl mx-auto px-6 pb-20">
+        <main class="mt-4 space-y-0 max-w-screen-2xl mx-auto px-6 pb-20">
             <!-- 課程全庫 -->
             <section id="course-library" class="scroll-mt-28">
                 <h2 class="section-title">核心課程全庫</h2>
@@ -212,7 +201,7 @@
             </section>
 
             <!-- 練習冊區域容器 -->
-            <div id="practice-sections" class="space-y-2">
+            <div id="practice-sections" class="space-y-0">
                 <section id="practice-1" class="scroll-mt-28">
                     <h2 class="section-title">基礎練習冊 01-10</h2>
                     <div class="slider-wrapper">
@@ -233,27 +222,27 @@
         </main>
     </div>
 
-    <!-- 底部導航 - 已還原回舊版圖標組合 -->
-    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-blue-900/5 px-10 py-3 pb-8 md:pb-3">
+    <!-- 底部導航 -->
+    <nav class="fixed bottom-0 w-full z-50 nav-blur border-t border-blue-900/5 px-10 py-2 pb-3 md:pb-2">
         <div class="flex items-center justify-between max-w-lg mx-auto">
-            <button onclick="scrollToHero()" id="tab-home" class="flex flex-col items-center gap-1 text-blue-700 transition-all scale-105">
-                <i class="fas fa-home text-xl"></i>
+            <button onclick="scrollToHero()" id="tab-home" class="flex flex-col items-center gap-0.5 text-blue-700 transition-all scale-105">
+                <i class="fas fa-home text-lg"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">録影</span>
             </button>
-            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" id="tab-sim" class="flex flex-col items-center gap-1 text-gray-400 transition-all hover:text-blue-700">
-                <i class="fas fa-cube text-xl"></i>
+            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" id="tab-sim" class="flex flex-col items-center gap-0.5 text-gray-400 transition-all hover:text-blue-700">
+                <i class="fas fa-cube text-lg"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">模擬器</span>
             </button>
             
-            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" id="tab-func" class="flex flex-col items-center gap-1 text-gray-400 transition-all group">
-                <div class="relative w-8 h-8 flex items-center justify-center rounded-xl transition-colors group-hover:bg-blue-50">
-                    <i class="fas fa-shapes text-xl group-hover:text-blue-500"></i>
+            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" id="tab-func" class="flex flex-col items-center gap-0.5 text-gray-400 transition-all group">
+                <div class="relative w-7 h-7 flex items-center justify-center rounded-lg transition-colors group-hover:bg-blue-50">
+                    <i class="fas fa-shapes text-lg group-hover:text-blue-500"></i>
                 </div>
                 <span class="text-[8px] font-black uppercase tracking-tighter">功能</span>
             </button>
             
-            <button onclick="openLink('google')" class="flex flex-col items-center gap-1 text-gray-400 transition-all hover:text-blue-700">
-                <i class="fab fa-google text-xl"></i>
+            <button onclick="openLink('google')" class="flex flex-col items-center gap-0.5 text-gray-400 transition-all hover:text-blue-700">
+                <i class="fab fa-google text-lg"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">信箱</span>
             </button>
         </div>
