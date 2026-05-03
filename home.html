@@ -273,6 +273,19 @@
             if(type === 'google') handleNavigation(config.googleUrl);
         }
 
+        // 修正 PWA/Web 返回時卡在 Redirecting 的 Bug
+        window.addEventListener('pageshow', (event) => {
+            // 如果頁面是從 bfcache (往返快取) 恢復的，強制隱藏 loader
+            if (event.persisted) {
+                const loader = document.getElementById('page-loader');
+                if (loader) {
+                    loader.classList.remove('active');
+                    // 同時清除卡片的縮放效果
+                    document.querySelectorAll('.card-clicking').forEach(el => el.classList.remove('card-clicking'));
+                }
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             render();
             const observer = new IntersectionObserver((entries) => {
