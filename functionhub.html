@@ -7,7 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        :root {
+            --ios-radius: 22.5%;
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Noto Sans TC', sans-serif;
@@ -16,7 +20,7 @@
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
-            color: #000;
+            color: #fff;
             -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
@@ -24,19 +28,52 @@
             min-height: 100vh;
         }
 
-        /* 響應式格線系統 */
+        /* 桌面主容器 */
+        .home-screen {
+            padding: 40px 20px 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Widget 樣式 */
+        .widget-container {
+            width: 100%;
+            max-width: 340px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .widget-container:active { transform: scale(0.98); }
+
+        .widget-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .widget-time { font-size: 3.5rem; font-weight: 200; line-height: 1; letter-spacing: -2px; }
+        .widget-info { text-align: right; }
+        .widget-date { font-size: 1.1rem; font-weight: 600; }
+
+        /* Icon Grid 樣式 */
         .icon-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
-            padding: 40px 20px;
+            width: 100%;
+            max-width: 100%;
         }
 
         @media (min-width: 768px) {
             .icon-grid {
                 grid-template-columns: repeat(6, 1fr);
                 gap: 24px;
-                padding: 60px 40px;
             }
         }
 
@@ -45,32 +82,29 @@
                 grid-template-columns: repeat(8, 1fr);
                 gap: 32px;
                 max-width: 1100px;
-                margin: 0 auto;
-                padding: 80px 20px;
             }
         }
 
-        /* iOS 原生 App Icon 風格 - 無邊框，無背景色 */
+        /* Icon 樣式 */
         .icon-card {
             display: flex;
             flex-direction: column;
             align-items: center;
-            cursor: pointer;
+            text-decoration: none;
             transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
+            cursor: pointer;
         }
 
         .icon-card:active {
-            transform: scale(0.9); /* 點擊時縮放 */
+            transform: scale(0.9);
         }
 
         .icon-img-wrapper {
             width: 100%;
             aspect-ratio: 1 / 1;
-            /* 移除背景與邊框，僅保留圓角剪裁 */
-            background: transparent;
-            border-radius: 22.5%; 
+            background: #fff; 
+            border-radius: var(--ios-radius); 
             overflow: hidden;
-            /* 輕微陰影使圖標浮起 */
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             margin-bottom: 8px;
             position: relative;
@@ -94,7 +128,62 @@
             white-space: nowrap;
         }
 
-        /* 鎖定狀態遮罩 */
+        /* 底部 Dock 欄 */
+        .dock-container {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            padding: 12px 16px;
+            border-radius: 32px;
+            display: flex;
+            gap: 15px;
+            width: fit-content;
+            max-width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
+        .dock-item { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: var(--ios-radius); 
+            overflow: hidden; 
+            cursor: pointer; 
+            transition: transform 0.2s;
+            background: #fff;
+        }
+        .dock-item:active { transform: scale(0.8); }
+        .dock-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Modal & Overlay */
+        .ios-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        #timer-plugin {
+            width: 90%;
+            max-width: 350px;
+            background: #fff;
+            border-radius: 35px;
+            padding: 30px;
+            color: #000;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* 鎖屏徽章 */
         .no-link-badge {
             position: absolute;
             inset: 0;
@@ -106,122 +195,282 @@
             backdrop-filter: grayscale(100%);
         }
 
-        /* 自定義彈出視窗 */
-        #ios-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            background: rgba(0,0,0,0.4);
+        /* 調整按鈕樣式 */
+        .stepper-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #f2f2f7;
+            color: #007aff;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            font-size: 1.5rem;
+            transition: all 0.2s;
         }
-
-        .modal-content {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 14px;
-            width: 270px;
-            text-align: center;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            animation: modalPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+        .stepper-btn:active { background: #e5e5ea; transform: scale(0.9); }
+        
+        .timer-unit-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
-
-        @keyframes modalPop {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-btn {
-            width: 100%;
-            padding: 14px;
-            border-top: 0.5px solid rgba(0,0,0,0.1);
-            color: #007aff;
+        
+        .timer-unit-label {
+            font-size: 10px;
+            color: #8e8e93;
+            text-transform: uppercase;
             font-weight: 600;
-            background: transparent;
-            font-size: 17px;
         }
 
-        .modal-btn:active {
-            background: rgba(0,0,0,0.05);
-        }
     </style>
 </head>
 <body>
 
-    <main>
-        <div id="core-grid" class="icon-grid">
-            <!-- 動態填入 -->
-        </div>
-    </main>
-
-    <!-- iOS Alert Modal -->
-    <div id="ios-modal" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="p-6">
-                <h3 class="font-bold text-[17px]">尚未開放</h3>
-                <p class="text-[13px] text-gray-600 mt-1 leading-tight">此功能目前正在開發中<br>或暫未提供線上連結。</p>
+    <div class="home-screen">
+        <!-- 大型 Widget -->
+        <div class="widget-container" onclick="getRealWeather()">
+            <div class="widget-top">
+                <div id="widget-time" class="widget-time">00:00</div>
+                <div class="widget-info">
+                    <div id="widget-date" class="widget-date">--月--日 週-</div>
+                    <div class="flex items-center justify-end gap-2 mt-1">
+                        <i id="weather-icon" class="fas fa-spinner fa-spin text-white"></i>
+                        <span id="weather-temp">--°C</span>
+                    </div>
+                    <div id="weather-desc" class="text-[10px] opacity-70 italic">正在獲取天氣...</div>
+                </div>
             </div>
-            <button onclick="closeModal()" class="modal-btn">確定</button>
+            <div class="w-full h-[1px] bg-white/20 mt-2"></div>
+            <div class="text-[11px] opacity-90 font-medium">接下來：物理科資源更新</div>
+        </div>
+
+        <!-- App 格線 (桌面) -->
+        <div id="desktop-grid" class="icon-grid"></div>
+    </div>
+
+    <!-- 底部 Dock -->
+    <div id="dock-bar" class="dock-container"></div>
+
+    <!-- 計時器 Modal -->
+    <div id="timer-overlay" class="ios-overlay" onclick="closeTimer()">
+        <div id="timer-plugin" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">計時器</h2>
+                <button onclick="closeTimer()" class="text-blue-500 font-bold text-lg">關閉</button>
+            </div>
+            
+            <!-- 圓形進度條 -->
+            <div class="relative w-48 h-48 mx-auto mb-6">
+                <svg width="192" height="192" class="transform -rotate-90">
+                    <circle cx="96" cy="96" r="88" stroke="#f2f2f7" stroke-width="8" fill="none" />
+                    <circle id="progress-circle" cx="96" cy="96" r="88" stroke="#007aff" stroke-width="8" stroke-linecap="round" fill="none" />
+                </svg>
+                <div id="timer-display" class="absolute inset-0 flex items-center justify-center text-4xl font-light tracking-tighter">01:00</div>
+            </div>
+
+            <!-- 時間調整器 -->
+            <div id="timer-adjusters" class="flex justify-center gap-8 mb-8">
+                <!-- 分鐘調整 -->
+                <div class="timer-unit-box">
+                    <button onclick="adjustTime(60)" class="stepper-btn"><i class="fas fa-plus"></i></button>
+                    <span class="timer-unit-label">分鐘</span>
+                    <button onclick="adjustTime(-60)" class="stepper-btn"><i class="fas fa-minus"></i></button>
+                </div>
+                <!-- 秒數調整 -->
+                <div class="timer-unit-box">
+                    <button onclick="adjustTime(1)" class="stepper-btn"><i class="fas fa-plus"></i></button>
+                    <span class="timer-unit-label">秒</span>
+                    <button onclick="adjustTime(-1)" class="stepper-btn"><i class="fas fa-minus"></i></button>
+                </div>
+            </div>
+
+            <div class="flex justify-between gap-4">
+                <button onclick="resetTimer()" class="flex-1 bg-gray-100 py-4 rounded-2xl font-bold">重置</button>
+                <button id="toggle-btn" onclick="toggleTimer()" class="flex-1 bg-blue-500 text-white py-4 rounded-2xl font-bold">開始</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="ios-modal" class="ios-overlay" onclick="closeModal()">
+        <div class="bg-white/90 backdrop-blur-md rounded-[20px] w-72 text-center overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-black font-bold text-lg">尚未開放</h3>
+                <p class="text-gray-600 text-sm mt-2">此功能目前正在開發中<br>或暫未提供線上連結。</p>
+            </div>
+            <button onclick="closeModal()" class="w-full py-4 text-blue-500 font-bold border-t border-gray-200">確定</button>
         </div>
     </div>
 
     <script>
-        // 根據 tab2.csv 更新後的數據
-        const functions = [
-            { label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home" },
-            { label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home" },
-            { label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home" },
-            { label: "Formula book", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home" },
-            { label: "Simulator", img: "https://phyuaaphysics.github.io/phyustudio/function-5.png", url: "no link" },
+        const apps = [
+            { label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home", dock: true },
+            { label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home", dock: true },
+            { label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home", dock: true },
+            { label: "計時器", img: "https://phyuaaphysics.github.io/phyustudio/timer.png", url: "plugin:timer", dock: true },
+            { label: "Formula", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home" },
             { label: "Special X", img: "https://phyuaaphysics.github.io/phyustudio/function-6.png", url: "no link" },
             { label: "MathPie", img: "https://phyuaaphysics.github.io/phyustudio/function-7.png", url: "no link" },
             { label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode" }
         ];
 
-        function renderGrid(containerId, data) {
-            const grid = document.getElementById(containerId);
-            data.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'icon-card';
-                
-                const hasLink = item.url && item.url !== "no link";
-                
-                card.innerHTML = `
-                    <div class="icon-img-wrapper">
-                        <img src="${item.img}" alt="${item.label}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=App'">
-                        ${!hasLink ? '<div class="no-link-badge"><i class="fas fa-lock text-white/50 text-lg"></i></div>' : ''}
-                    </div>
-                    <span class="icon-label">${item.label}</span>
-                `;
+        let timeLeft = 60;
+        let totalTime = 60;
+        let timerId = null;
 
-                card.onclick = () => {
-                    if (hasLink) {
-                        window.location.href = item.url;
-                    } else {
-                        showModal();
-                    }
-                };
+        function renderUI() {
+            const deskGrid = document.getElementById('desktop-grid');
+            const dockBar = document.getElementById('dock-bar');
+            deskGrid.innerHTML = '';
+            dockBar.innerHTML = '';
 
-                grid.appendChild(card);
+            apps.forEach(app => {
+                const hasLink = app.url !== 'no link';
+                if (app.dock) {
+                    const dockItem = document.createElement('div');
+                    dockItem.className = 'dock-item';
+                    dockItem.innerHTML = `<img src="${app.img}" alt="${app.label}">`;
+                    dockItem.onclick = () => handleAppClick(app);
+                    dockBar.appendChild(dockItem);
+                }
+                
+                if (app.label !== "計時器") {
+                    const element = document.createElement('div');
+                    element.className = 'icon-card';
+                    element.innerHTML = `
+                        <div class="icon-img-wrapper">
+                            <img src="${app.img}" alt="${app.label}">
+                            ${!hasLink ? '<div class="no-link-badge"><i class="fas fa-lock text-white/50"></i></div>' : ''}
+                        </div>
+                        <span class="icon-label">${app.label}</span>
+                    `;
+                    element.onclick = () => handleAppClick(app);
+                    deskGrid.appendChild(element);
+                }
             });
         }
 
-        function showModal() {
-            document.getElementById('ios-modal').style.display = 'flex';
+        function handleAppClick(app) {
+            if (app.url === 'plugin:timer') openTimer();
+            else if (app.url !== 'no link') window.open(app.url, '_blank');
+            else showModal();
         }
 
-        function closeModal() {
-            document.getElementById('ios-modal').style.display = 'none';
+        // 時間 Widget
+        function updateTime() {
+            const now = new Date();
+            const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+            const h = now.getHours().toString().padStart(2, '0');
+            const m = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('widget-time').innerText = `${h}:${m}`;
+            document.getElementById('widget-date').innerText = `${now.getMonth() + 1}月${now.getDate()}日 ${days[now.getDay()]}`;
         }
+
+        async function getRealWeather() {
+            const descEl = document.getElementById('weather-desc');
+            const iconEl = document.getElementById('weather-icon');
+            descEl.innerText = "定位中...";
+            if (!navigator.geolocation) { descEl.innerText = "不支援定位"; return; }
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                try {
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current_weather=true`);
+                    const data = await res.json();
+                    const w = data.current_weather;
+                    document.getElementById('weather-temp').innerText = Math.round(w.temperature) + '°C';
+                    descEl.innerText = "數據已同步";
+                    const code = w.weathercode;
+                    let icon = 'fa-cloud';
+                    if (code === 0) icon = 'fa-sun text-yellow-400';
+                    else if (code <= 3) icon = 'fa-cloud-sun text-yellow-300';
+                    else if (code >= 61) icon = 'fa-cloud-rain text-blue-400';
+                    iconEl.className = `fas ${icon}`;
+                } catch (e) { descEl.innerText = "更新失敗"; }
+            }, () => { descEl.innerText = "定位被拒絕"; });
+        }
+
+        // --- 計時器邏輯 ---
+
+        function adjustTime(amount) {
+            if (timerId) return; // 正在倒數時不允許調整
+            timeLeft += amount;
+            if (timeLeft < 1) timeLeft = 1;
+            if (timeLeft > 3600) timeLeft = 3600; // 最多1小時
+            totalTime = timeLeft;
+            updateTimerDisplay();
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('toggle-btn');
+            const adjusters = document.getElementById('timer-adjusters');
+
+            if (timerId) {
+                // 暫停
+                clearInterval(timerId);
+                timerId = null;
+                btn.innerText = "繼續";
+                btn.className = "flex-1 bg-green-500 text-white py-4 rounded-2xl font-bold";
+                adjusters.style.opacity = "1";
+                adjusters.style.pointerEvents = "auto";
+            } else {
+                // 開始
+                btn.innerText = "暫停";
+                btn.className = "flex-1 bg-red-500 text-white py-4 rounded-2xl font-bold";
+                adjusters.style.opacity = "0.3";
+                adjusters.style.pointerEvents = "none";
+
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        timerId = null;
+                        document.getElementById('timer-display').innerText = "完成";
+                        btn.innerText = "重啟";
+                        adjusters.style.opacity = "1";
+                        adjusters.style.pointerEvents = "auto";
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+            
+            const circle = document.getElementById('progress-circle');
+            const circumference = 2 * Math.PI * 88;
+            circle.style.strokeDasharray = circumference;
+            // 倒數時進度條動畫
+            const offset = circumference - (timeLeft / totalTime) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            timeLeft = totalTime || 60;
+            updateTimerDisplay();
+            const btn = document.getElementById('toggle-btn');
+            btn.innerText = "開始";
+            btn.className = "flex-1 bg-blue-500 text-white py-4 rounded-2xl font-bold";
+            const adjusters = document.getElementById('timer-adjusters');
+            adjusters.style.opacity = "1";
+            adjusters.style.pointerEvents = "auto";
+        }
+
+        function openTimer() { document.getElementById('timer-overlay').style.display = 'flex'; updateTimerDisplay(); }
+        function closeTimer() { document.getElementById('timer-overlay').style.display = 'none'; }
+        function showModal() { document.getElementById('ios-modal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('ios-modal').style.display = 'none'; }
 
         window.onload = () => {
-            renderGrid('core-grid', functions);
+            renderUI();
+            updateTime();
+            setInterval(updateTime, 1000);
+            getRealWeather();
         };
     </script>
 </body>
