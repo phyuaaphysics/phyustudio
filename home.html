@@ -183,7 +183,7 @@
             </div>
         </section>
 
-        <main class="mt-12 space-y-16 max-w-screen-2xl mx-auto px-6">
+        <main class="mt-12 space-y-16 max-w-screen-2xl mx-auto px-6 pb-20">
             <!-- 課程全庫 -->
             <section id="course-library" class="scroll-mt-24">
                 <div class="mb-2">
@@ -215,21 +215,6 @@
                     </div>
                 </section>
             </div>
-
-            <!-- 更多功能 -->
-            <section id="more-functions" class="scroll-mt-24 pb-12">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl md:text-2xl font-black tracking-tight">更多功能</h2>
-                    <button onclick="handleNavigation('http://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="btn-press px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors flex items-center">
-                        <i class="fas fa-expand-alt mr-2"></i> Expand
-                    </button>
-                </div>
-                <div class="slider-wrapper">
-                    <div class="scroll-arrow arrow-left" onclick="slideSlider('func-slider', -1)"><i class="fas fa-chevron-left"></i></div>
-                    <div class="slider-container hide-scrollbar" id="func-slider"></div>
-                    <div class="scroll-arrow arrow-right" onclick="slideSlider('func-slider', 1)"><i class="fas fa-chevron-right"></i></div>
-                </div>
-            </section>
         </main>
     </div>
 
@@ -249,30 +234,23 @@
             </div>
         </header>
 
-        <!-- 優化後的標籤篩選器 -->
+        <!-- 標籤篩選器 -->
         <div class="space-y-4 mb-10">
-            <!-- 主分類標籤 -->
             <div class="flex flex-col gap-2">
                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">主要範疇</span>
                 <div class="overflow-x-auto hide-scrollbar flex items-center gap-2 pb-2" id="main-tags-container">
                     <button onclick="setMainCategory('全部')" class="tag-pill active">全部</button>
-                    <!-- 動態生成 -->
                 </div>
             </div>
             
-            <!-- 課題細分標籤 -->
             <div id="sub-tags-wrapper" class="flex flex-col gap-2 transition-all duration-300 opacity-0 pointer-events-none">
                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 px-1">相關課題</span>
-                <div class="overflow-x-auto hide-scrollbar flex items-center gap-2 pb-2" id="sub-tags-container">
-                    <!-- 動態生成 -->
-                </div>
+                <div class="overflow-x-auto hide-scrollbar flex items-center gap-2 pb-2" id="sub-tags-container"></div>
             </div>
         </div>
 
         <!-- 模擬器清單 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="simulator-grid">
-            <!-- 內容由 JavaScript 動態生成 -->
-        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="simulator-grid"></div>
 
         <!-- 空狀態提示 -->
         <div id="sim-empty-state" class="hidden py-20 flex flex-col items-center justify-center text-gray-300">
@@ -292,10 +270,15 @@
                 <i class="fas fa-cube text-xl"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">模擬器</span>
             </button>
-            <button onclick="openLink('update')" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
-                <i class="fas fa-bolt text-xl"></i>
-                <span class="text-[8px] font-black uppercase tracking-tighter">更新</span>
+            
+            <!-- 已移除紅點的功能按鍵 -->
+            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" id="tab-func" class="flex flex-col items-center gap-1 text-gray-400 transition-all group">
+                <div class="relative w-8 h-8 flex items-center justify-center rounded-xl transition-colors group-hover:bg-blue-50">
+                    <i class="fas fa-shapes text-xl group-hover:text-blue-500"></i>
+                </div>
+                <span class="text-[8px] font-black uppercase tracking-tighter">功能</span>
             </button>
+            
             <button onclick="openLink('google')" class="flex flex-col items-center gap-1 text-gray-400 transition-all">
                 <i class="fab fa-google text-xl"></i>
                 <span class="text-[8px] font-black uppercase tracking-tighter">信箱</span>
@@ -307,7 +290,6 @@
         const config = {
             heroUrl: 'https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home',
             googleUrl: 'https://mail.google.com/mail/u/0/#inbox',
-            updateUrl: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home',
             data: [
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg', url: 'https://sites.google.com/np2c.edu.hk/heatcourse/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg', url: 'https://sites.google.com/np2c.edu.hk/mechanics-all/home' },
@@ -316,8 +298,6 @@
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg', url: 'https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg', url: 'https://sites.google.com/np2c.edu.hk/atomic-world/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg', url: 'https://sites.google.com/np2c.edu.hk/medicalphysics/home' },
-                
-                // 基礎練習冊 01-10 
                 { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS301.png', url: 'https://phyuphysics.com/video-fundamental-s3-bk01/' },
                 { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'https://sites.google.com/np2c.edu.hk/vols3ii/home' },
                 { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'https://sites.google.com/np2c.edu.hk/vol01a/home' },
@@ -331,8 +311,6 @@
                 { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda08.png', url: 'https://phyuphysics.com/video-fundamental-06-oppenheimer/' },
                 { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda09.png', url: 'https://sites.google.com/np2c.edu.hk/vol09/home' },
                 { category: 'funda-1', img: 'https://phyuaaphysics.github.io/phyustudio/funda10.png', url: 'https://sites.google.com/np2c.edu.hk/vol10/home' },
-
-                // 基礎練習冊 11-20
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda11.png', url: 'https://sites.google.com/np2c.edu.hk/vol11/home' },
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda12.png', url: 'https://phyuphysics.com/video-fundamental-012/' },
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda13.png', url: 'https://sites.google.com/np2c.edu.hk/vol-13/?pli=1&authuser=1' },
@@ -342,16 +320,7 @@
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda17.png', url: 'https://sites.google.com/np2c.edu.hk/vol-17/home' },
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda18.png', url: 'https://sites.google.com/np2c.edu.hk/vol-18/home' },
                 { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda19.png', url: 'https://sites.google.com/np2c.edu.hk/vol19/home' },
-                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda20.png', url: 'https://sites.google.com/np2c.edu.hk/vol20/home' },
-
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-1.png', url: 'https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-2.png', url: 'https://sites.google.com/view/lessonremarkphyu2025start/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-3.png', url: 'https://sites.google.com/np2c.edu.hk/pastpaper-system/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-4.png', url: 'https://sites.google.com/np2c.edu.hk/phyformulabook/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-5.png', url: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-6.png', url: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-7.png', url: 'https://sites.google.com/np2c.edu.hk/dse-physics-update/home' },
-                { category: 'func', img: 'https://phyuaaphysics.github.io/phyustudio/function-8.png', url: 'https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode%26state%3De5da325236e5410c48b6aa40917aaab5%26approval_prompt%3Dauto%26client_name%3DCasOAuthClient' }
+                { category: 'funda-2', img: 'https://phyuaaphysics.github.io/phyustudio/funda20.png', url: 'https://sites.google.com/np2c.edu.hk/vol20/home' }
             ],
             simulators: [
                 {
@@ -385,12 +354,10 @@
         let currentMainCat = '全部';
         let currentSubCat = '全部';
 
-        // 初始化模擬器標籤
         function initSimFilters() {
             const mainContainer = document.getElementById('main-tags-container');
             const mainCats = [...new Set(config.simulators.map(s => s.mainCat))];
-            
-            mainContainer.innerHTML = `<button onclick="setMainCategory('全部')" class="tag-pill ${currentMainCat === '全部' ? 'active' : ''}">全部</button>`;
+            mainContainer.innerHTML = `<button onclick=\"setMainCategory('全部')\" class=\"tag-pill ${currentMainCat === '全部' ? 'active' : ''}\">全部</button>`;
             mainCats.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = `tag-pill ${currentMainCat === cat ? 'active' : ''}`;
@@ -404,21 +371,14 @@
         function setMainCategory(cat) {
             currentMainCat = cat;
             currentSubCat = '全部';
-            
-            // 更新主分類 UI
-            document.querySelectorAll('#main-tags-container .tag-pill').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText === cat);
-            });
-
-            // 更新課題標籤
+            document.querySelectorAll('#main-tags-container .tag-pill').forEach(btn => btn.classList.toggle('active', btn.innerText === cat));
             const subWrapper = document.getElementById('sub-tags-wrapper');
             const subContainer = document.getElementById('sub-tags-container');
-            
             if (cat === '全部') {
                 subWrapper.classList.add('opacity-0', 'pointer-events-none');
             } else {
                 const subCats = [...new Set(config.simulators.filter(s => s.mainCat === cat).map(s => s.subCat))];
-                subContainer.innerHTML = `<button onclick="setSubCategory('全部')" class="tag-pill active">全部</button>`;
+                subContainer.innerHTML = `<button onclick=\"setSubCategory('全部')\" class=\"tag-pill active\">全部</button>`;
                 subCats.forEach(sub => {
                     const btn = document.createElement('button');
                     btn.className = `tag-pill`;
@@ -433,9 +393,7 @@
 
         function setSubCategory(sub) {
             currentSubCat = sub;
-            document.querySelectorAll('#sub-tags-container .tag-pill').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText === sub);
-            });
+            document.querySelectorAll('#sub-tags-container .tag-pill').forEach(btn => btn.classList.toggle('active', btn.innerText === sub));
             handleSimFilter();
         }
 
@@ -443,16 +401,13 @@
             const searchText = document.getElementById('sim-search').value.toLowerCase();
             const grid = document.getElementById('simulator-grid');
             const emptyState = document.getElementById('sim-empty-state');
-            
             grid.innerHTML = '';
-
             const filtered = config.simulators.filter(sim => {
                 const matchMain = currentMainCat === '全部' || sim.mainCat === currentMainCat;
                 const matchSub = currentSubCat === '全部' || sim.subCat === currentSubCat;
                 const matchSearch = sim.name.toLowerCase().includes(searchText) || sim.desc.toLowerCase().includes(searchText);
                 return matchMain && matchSub && matchSearch;
             });
-
             if (filtered.length === 0) {
                 emptyState.classList.remove('hidden');
             } else {
@@ -463,28 +418,19 @@
                     card.innerHTML = `
                         <div class="aspect-video bg-gray-50 rounded-2xl overflow-hidden mb-5 relative">
                             <img src="${sim.img}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="${sim.name}">
-                            <div class="absolute top-3 left-3 flex gap-2">
-                                <span class="px-3 py-1 bg-white/90 backdrop-blur text-[9px] font-bold text-blue-600 rounded-full shadow-sm">${sim.mainCat}</span>
-                            </div>
                         </div>
                         <div class="px-1 mb-5">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${sim.subCat}</span>
-                            </div>
                             <h3 class="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors">${sim.name}</h3>
                             <p class="text-gray-500 text-xs mt-2 leading-relaxed line-clamp-2">${sim.desc}</p>
                         </div>
                         <button onclick="handleNavigation('${sim.url}')" class="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black tracking-widest uppercase hover:bg-blue-600 transition-all duration-300 btn-press">
-                            <i class="fas fa-external-link-alt mr-2"></i> 啟動模擬
-                        </button>
-                    `;
+                            啟動模擬
+                        </button>`;
                     grid.appendChild(card);
                 });
             }
         }
 
-        // 其他基礎邏輯
         function slideSlider(id, direction) {
             const container = document.getElementById(id);
             if (!container) return;
@@ -492,17 +438,15 @@
         }
 
         function handleNavigation(url, element) {
-            if (!url || url === 'no link') return;
-            const isIframeFriendly = url.includes('github.io') || url.includes('phyuaaphysics.github.io');
+            if (!url) return;
+            const isIframeFriendly = url.includes('github.io');
             const overlay = document.getElementById('sim-overlay');
             const frame = document.getElementById('sim-frame');
             const loaderText = document.getElementById('loader-text');
-            
             if (element) element.classList.add('card-clicking');
             loader.classList.add('active');
-
             if (isIframeFriendly) {
-                loaderText.innerText = "Opening Simulator";
+                loaderText.innerText = "Opening Interface";
                 setTimeout(() => {
                     frame.src = url;
                     overlay.style.display = 'flex';
@@ -536,38 +480,30 @@
             const isSimulator = (pageFileName === 'simulator.html');
             const homePage = document.getElementById('page-home');
             const simPage = document.getElementById('page-simulator');
-            const tabHome = document.getElementById('tab-home');
-            const tabSim = document.getElementById('tab-sim');
-            
+            const tabs = { home: document.getElementById('tab-home'), sim: document.getElementById('tab-sim'), func: document.getElementById('tab-func') };
             if (isSimulator) {
                 homePage.style.opacity = '0'; homePage.classList.add('hidden-page');
                 simPage.classList.remove('hidden-page');
                 setTimeout(() => { simPage.style.opacity = '1'; initSimFilters(); }, 10);
-                tabHome.classList.replace('text-blue-600', 'text-gray-400'); tabHome.classList.remove('scale-110');
-                tabSim.classList.replace('text-gray-400', 'text-blue-600'); tabSim.classList.add('scale-110');
+                tabs.home.classList.replace('text-blue-600', 'text-gray-400'); tabs.home.classList.remove('scale-110');
+                tabs.sim.classList.replace('text-gray-400', 'text-blue-600'); tabs.sim.classList.add('scale-110');
+                tabs.func.classList.replace('text-blue-600', 'text-gray-400');
             } else {
                 simPage.style.opacity = '0'; simPage.classList.add('hidden-page');
                 homePage.classList.remove('hidden-page');
                 setTimeout(() => homePage.style.opacity = '1', 10);
-                tabSim.classList.replace('text-blue-600', 'text-gray-400'); tabSim.classList.remove('scale-110');
-                tabHome.classList.replace('text-gray-400', 'text-blue-600'); tabHome.classList.add('scale-110');
+                tabs.sim.classList.replace('text-blue-600', 'text-gray-400'); tabs.sim.classList.remove('scale-110');
+                tabs.home.classList.replace('text-gray-400', 'text-blue-600'); tabs.home.classList.add('scale-110');
+                tabs.func.classList.replace('text-blue-600', 'text-gray-400');
             }
         }
 
         function render() {
-            const containers = {
-                'course': document.getElementById('course-slider'),
-                'funda-1': document.getElementById('funda-1-slider'),
-                'funda-2': document.getElementById('funda-2-slider'),
-                'func': document.getElementById('func-slider')
-            };
-
+            const containers = { 'course': document.getElementById('course-slider'), 'funda-1': document.getElementById('funda-1-slider'), 'funda-2': document.getElementById('funda-2-slider') };
             config.data.forEach(item => {
                 const div = document.createElement('div');
-                const isSquare = item.category === 'func';
-                div.className = `slider-item ${isSquare ? 'w-32 md:w-48' : 'w-40 md:w-60'} card-animate`;
-                const cardClass = isSquare ? 'square-card' : 'poster-card';
-                div.innerHTML = `<div class="${cardClass} shadow-sm border border-gray-100"><img src="${item.img}" class="card-img" alt="Content" loading="lazy"></div>`;
+                div.className = `slider-item w-40 md:w-60 card-animate`;
+                div.innerHTML = `<div class="poster-card shadow-sm border border-gray-100"><img src="${item.img}" class="card-img" alt="Content" loading="lazy"></div>`;
                 const card = div.querySelector('div');
                 card.onclick = () => handleNavigation(item.url, card);
                 if (containers[item.category]) containers[item.category].appendChild(div);
@@ -575,15 +511,10 @@
         }
 
         function scrollToHero() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function scrollToSection(id) { 
-            const el = document.getElementById(id);
-            if(el) el.scrollIntoView({ behavior: 'smooth' });
-        }
-
+        function scrollToSection(id) { const el = document.getElementById(id); if(el) el.scrollIntoView({ behavior: 'smooth' }); }
         function openLink(type) {
             if(type === 'hero') handleNavigation(config.heroUrl);
             if(type === 'google') handleNavigation(config.googleUrl);
-            if(type === 'update') handleNavigation(config.updateUrl);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
