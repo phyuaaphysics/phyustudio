@@ -16,16 +16,19 @@
             background-color: var(--pdd-bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding-bottom: 80px;
+            /* 考慮到底部導航欄的高度與安全區域 */
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
         }
 
-        /* 頂部導航 */
+        /* 頂部導航 - 修正 iPhone 靈動島/狀態列重疊 */
         .pdd-header {
             background-color: white;
             position: sticky;
             top: 0;
             z-index: 100;
             border-bottom: 1px solid #f0f0f0;
+            /* 重要：適應 iOS 安全區域 */
+            padding-top: env(safe-area-inset-top);
         }
 
         .header-top {
@@ -38,7 +41,7 @@
         .brand-logo {
             font-weight: 800;
             color: var(--pdd-red);
-            font-size: 18px;
+            font-size: 24px; /* 字大一點：從 18px 改為 24px */
             white-space: nowrap;
             letter-spacing: -0.5px;
         }
@@ -55,6 +58,7 @@
             flex: 1;
         }
 
+        /* 一級分類 */
         .category-nav {
             display: flex;
             overflow-x: auto;
@@ -85,6 +89,60 @@
             border-radius: 2px;
         }
 
+        /* 二級分類 - 拼多多風格圖案 */
+        .sub-filter-panel {
+            display: none; /* 預設隱藏 */
+            background: white;
+            padding: 12px 0;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            border-bottom: 1px solid #f0f0f0;
+            animation: fadeInDown 0.3s ease-out;
+        }
+        .sub-filter-panel::-webkit-scrollbar { display: none; }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sub-item {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .sub-icon {
+            width: 44px;
+            height: 44px;
+            background: #f9f9f9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            font-size: 18px;
+            color: #555;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .sub-item.active .sub-icon {
+            background: #fff0f0;
+            color: var(--pdd-red);
+            border-color: var(--pdd-red);
+        }
+        .sub-label {
+            font-size: 11px;
+            color: #666;
+        }
+        .sub-item.active .sub-label {
+            color: var(--pdd-red);
+            font-weight: bold;
+        }
+
         /* 商品格線 */
         .product-grid {
             display: grid;
@@ -95,7 +153,13 @@
             margin: 0 auto;
         }
         
-        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; padding: 16px; } }
+        @media (min-width: 768px) { 
+            .product-grid { 
+                grid-template-columns: repeat(6, minmax(0, 1fr)); 
+                gap: 12px; 
+                padding: 20px; 
+            } 
+        }
 
         .product-card {
             background: white;
@@ -131,7 +195,7 @@
             display: inline-block;
         }
 
-        /* 全螢幕 Iframe 彈窗 - 修正為由右至左掃入 */
+        /* 全螢幕 Iframe 彈窗 - 修正 iOS 頂部安全區域 */
         .pdd-modal { 
             display: none; 
             position: fixed; 
@@ -140,15 +204,15 @@
             z-index: 2000; 
             flex-direction: column; 
             animation: slideInRight 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            /* 修正模態視窗內的安全距離 */
+            padding-top: env(safe-area-inset-top);
         }
 
-        /* 由右至左掃入動畫 */
         @keyframes slideInRight {
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
         }
 
-        /* 關閉動畫 (用於平滑退出) */
         .modal-exit {
             animation: slideOutRight 0.3s forwards cubic-bezier(0.5, 0, 0.75, 0);
         }
@@ -177,11 +241,9 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background 0.2s;
         }
-        .close-circle-btn:hover { background: #e5e5e5; }
 
-        /* 底部導航 */
+        /* 底部導航 - 修正 iOS 底部 Home Bar 重疊 */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -190,7 +252,7 @@
             border-top: 1px solid #f0f0f0;
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
+            padding: 10px 0 calc(10px + env(safe-area-inset-bottom)) 0;
             z-index: 50;
         }
         .nav-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; color: #999; }
@@ -222,6 +284,7 @@
                 <input type="text" id="searchInput" placeholder="搜尋物理實驗..." class="bg-transparent border-none outline-none w-full" oninput="render()">
             </div>
         </div>
+        <!-- 一級分類 -->
         <div class="category-nav" id="categoryNav">
             <div class="nav-item active" onclick="setMainCategory('all', this)">熱門推薦</div>
             <div class="nav-item" onclick="setMainCategory('原子世界', this)">原子世界</div>
@@ -229,6 +292,8 @@
             <div class="nav-item" onclick="setMainCategory('力學', this)">經典力學</div>
             <div class="nav-item" onclick="setMainCategory('電磁', this)">電磁感應</div>
         </div>
+        <!-- 二級分類面板 -->
+        <div class="sub-filter-panel" id="subFilterPanel"></div>
     </header>
 
     <main class="product-grid" id="productGrid"></main>
@@ -273,18 +338,42 @@
             { id: 101, title: "氫原子躍遷模擬器：視覺化波耳模型實驗室", category: "原子世界", sub: "原子物理", img: "https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png", url: "https://phyuaaphysics.github.io/simulatorbank/atomic-hydrogen-1.html" },
             { id: 102, title: "近視糾正光路圖：凹透鏡成像原理分析", category: "醫學物理學", sub: "視覺光學", img: "https://phyuaaphysics.github.io/phyustudio/simulator-eye.png", url: "https://phyuaaphysics.github.io/simulatorbank/eye.html" },
             { id: 103, title: "近視糾正(虛像模式)：動態晶體調節模擬", category: "醫學物理學", sub: "視覺光學", img: "https://phyuaaphysics.github.io/phyustudio/simulator-eye2.png", url: "https://phyuaaphysics.github.io/simulatorbank/eye2.html" },
+            { id: 104, title: "光電效應：金屬表面電子溢出實驗", category: "原子世界", sub: "光電效應", img: "https://phet.colorado.edu/sims/html/photoelectric-effect/latest/photoelectric-effect-600.png", url: "https://phet.colorado.edu/sims/html/photoelectric-effect/latest/photoelectric-effect_all.html" },
             { id: 1, title: "拋體運動：初始速度與重力加速度交互實驗", category: "力學", sub: "運動學", img: "https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion-600.png", url: "https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_all.html" },
             { id: 2, title: "DC 直流電路：虛擬電子元件組裝實驗室", category: "電磁", sub: "電路分析", img: "https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc-600.png", url: "https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html" }
         ];
 
+        const subCategories = {
+            "原子世界": [
+                { name: "全部", icon: "fa-atom" },
+                { name: "光電效應", icon: "fa-bolt" },
+                { name: "原子物理", icon: "fa-microchip" }
+            ],
+            "醫學物理學": [
+                { name: "全部", icon: "fa-briefcase-medical" },
+                { name: "視覺光學", icon: "fa-eye" }
+            ],
+            "力學": [
+                { name: "全部", icon: "fa-cog" },
+                { name: "運動學", icon: "fa-running" }
+            ],
+            "電磁": [
+                { name: "全部", icon: "fa-magnet" },
+                { name: "電路分析", icon: "fa-plug" }
+            ]
+        };
+
         let currentMain = 'all';
+        let currentSub = '全部';
 
         function render() {
             const grid = document.getElementById('productGrid');
             const search = document.getElementById('searchInput').value.toLowerCase();
+            
             const filtered = products.filter(p => {
                 const mMatch = currentMain === 'all' || p.category === currentMain;
-                return mMatch && p.title.toLowerCase().includes(search);
+                const sMatch = currentSub === '全部' || p.sub === currentSub;
+                return mMatch && sMatch && p.title.toLowerCase().includes(search);
             });
 
             grid.innerHTML = filtered.map(p => `
@@ -300,7 +389,34 @@
 
         function setMainCategory(cat, el) {
             currentMain = cat;
+            currentSub = '全部'; 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            renderSubPanel(cat);
+            render();
+        }
+
+        function renderSubPanel(cat) {
+            const panel = document.getElementById('subFilterPanel');
+            if (cat === 'all' || !subCategories[cat]) {
+                panel.style.display = 'none';
+                return;
+            }
+            panel.style.display = 'block';
+            const subs = subCategories[cat];
+            panel.innerHTML = subs.map(s => `
+                <div class="sub-item ${currentSub === s.name ? 'active' : ''}" onclick="setSubCategory('${s.name}', this)">
+                    <div class="sub-icon">
+                        <i class="fas ${s.icon}"></i>
+                    </div>
+                    <div class="sub-label">${s.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function setSubCategory(subName, el) {
+            currentSub = subName;
+            document.querySelectorAll('.sub-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
             render();
         }
@@ -308,8 +424,6 @@
         function openDetail(t, u) {
             const modal = document.getElementById('pdd-modal');
             const iframe = document.getElementById('sim-iframe');
-            
-            // 重置動畫與狀態
             modal.classList.remove('modal-exit');
             document.getElementById('detail-title').innerText = t;
             iframe.src = u;
@@ -319,15 +433,10 @@
 
         function closeDetail() {
             const modal = document.getElementById('pdd-modal');
-            const iframe = document.getElementById('sim-iframe');
-            
-            // 加入退出動畫
             modal.classList.add('modal-exit');
-            
-            // 等待動畫結束後關閉
             setTimeout(() => {
                 modal.style.display = 'none';
-                iframe.src = "";
+                document.getElementById('sim-iframe').src = "";
                 document.body.style.overflow = 'auto';
             }, 300);
         }
@@ -349,11 +458,14 @@
             } else if (page === 'back') {
                 window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
             } else {
-                showToast("建設中...");
+                showToast("功能開發中...");
             }
         }
 
-        window.onload = render;
+        window.onload = () => {
+            render();
+            renderSubPanel('all');
+        };
     </script>
 </body>
 </html>
