@@ -28,7 +28,7 @@
             min-height: 100vh;
         }
 
-        /* 桌面主容器 */
+        /* 桌面佈局 */
         .home-screen {
             padding: 40px 20px 140px;
             display: flex;
@@ -61,7 +61,7 @@
         .widget-info { text-align: right; }
         .widget-date { font-size: 1.1rem; font-weight: 600; }
 
-        /* Icon Grid 樣式 */
+        /* 圖標格線 */
         .icon-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -71,21 +71,13 @@
         }
 
         @media (min-width: 768px) {
-            .icon-grid {
-                grid-template-columns: repeat(6, 1fr);
-                gap: 24px;
-            }
+            .icon-grid { grid-template-columns: repeat(6, 1fr); gap: 24px; }
         }
 
         @media (min-width: 1024px) {
-            .icon-grid {
-                grid-template-columns: repeat(8, 1fr);
-                gap: 32px;
-                max-width: 1100px;
-            }
+            .icon-grid { grid-template-columns: repeat(8, 1fr); gap: 32px; max-width: 1100px; }
         }
 
-        /* Icon 樣式 */
         .icon-card {
             display: flex;
             flex-direction: column;
@@ -94,10 +86,7 @@
             transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
             cursor: pointer;
         }
-
-        .icon-card:active {
-            transform: scale(0.9);
-        }
+        .icon-card:active { transform: scale(0.9); }
 
         .icon-img-wrapper {
             width: 100%;
@@ -109,12 +98,7 @@
             margin-bottom: 8px;
             position: relative;
         }
-
-        .icon-img-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .icon-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
         .icon-label {
             font-size: 11px;
@@ -128,7 +112,7 @@
             white-space: nowrap;
         }
 
-        /* 底部 Dock 欄 */
+        /* 底部 Dock */
         .dock-container {
             position: fixed;
             bottom: 25px;
@@ -156,37 +140,28 @@
             transition: transform 0.2s;
             background: #fff;
         }
-        .dock-item:active { transform: scale(0.8); }
+        .dock-item:active { transform: scale(0.85); }
         .dock-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Modal & Overlay */
+        /* Modal 容器 */
         .ios-overlay {
             display: none;
             position: fixed;
             inset: 0;
             z-index: 1000;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             align-items: center;
             justify-content: center;
         }
 
-        .plugin-card {
-            width: 95%;
-            max-width: 380px;
-            background: #fff;
-            border-radius: 35px;
-            padding: 25px;
-            color: #000;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        /* PDF Viewer Modal 樣式 */
-        .pdf-modal {
+        /* 彈窗樣式 */
+        .ios-modal {
             width: 95vw;
-            height: 90vh;
-            max-width: 1000px;
+            height: auto;
+            aspect-ratio: 16 / 10;
+            max-width: 900px;
             background: #fff;
             border-radius: 30px;
             overflow: hidden;
@@ -194,10 +169,16 @@
             box-shadow: 0 30px 60px rgba(0,0,0,0.4);
             display: flex;
             flex-direction: column;
+            animation: modalScale 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
         }
 
-        .pdf-header {
-            padding: 15px 25px;
+        @keyframes modalScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            padding: 12px 20px;
             background: #f8f8f8;
             border-bottom: 1px solid #ddd;
             display: flex;
@@ -220,65 +201,19 @@
         .close-btn:hover { background: #d1d1d6; }
         .close-btn i { color: #8e8e93; font-size: 14px; }
 
-        #pdf-iframe {
+        .modal-body {
             flex: 1;
             width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
             border: none;
         }
 
-        /* 計算機專屬樣式 */
-        #calc-display {
-            width: 100%;
-            height: 90px;
-            background: #f2f2f7;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-end;
-            padding: 0 15px;
-            overflow: hidden;
-        }
-        #calc-history { font-size: 14px; color: #8e8e93; height: 20px; }
-        #calc-main { font-size: 36px; font-weight: 300; color: #000; }
-
-        .calc-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-        .calc-btn {
-            aspect-ratio: 1/1;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            font-weight: 500;
-            transition: opacity 0.1s;
-            user-select: none;
-        }
-        .calc-btn:active { opacity: 0.4; }
-        .btn-num { background: #333; color: #fff; }
-        .btn-op { background: #ff9f0a; color: #fff; font-size: 1.5rem; }
-        .btn-sci { background: #a5a5a5; color: #000; font-size: 0.95rem; }
-        .btn-ac { background: #a5a5a5; color: #000; }
-
-        /* 計時器 Stepper */
-        .stepper-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #f2f2f7;
-            color: #007aff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-        .stepper-btn:active { background: #e5e5ea; }
-        
         .no-link-badge {
             position: absolute;
             inset: 0;
@@ -287,15 +222,13 @@
             align-items: center;
             justify-content: center;
             pointer-events: none;
-            backdrop-filter: grayscale(100%);
         }
-
     </style>
 </head>
 <body>
 
     <div class="home-screen">
-        <!-- 大型 Widget -->
+        <!-- 天氣 Widget -->
         <div class="widget-container" onclick="getRealWeather()">
             <div class="widget-top">
                 <div id="widget-time" class="widget-time">00:00</div>
@@ -305,144 +238,59 @@
                         <i id="weather-icon" class="fas fa-spinner fa-spin text-white"></i>
                         <span id="weather-temp">--°C</span>
                     </div>
-                    <div id="weather-desc" class="text-[10px] opacity-70 italic">正在獲取天氣...</div>
+                    <div id="weather-desc" class="text-[10px] opacity-70 italic">點擊更新天氣</div>
                 </div>
             </div>
-            <div class="w-full h-[1px] bg-white/20 mt-2"></div>
-            <div class="text-[11px] opacity-90 font-medium">接下來：物理科資源更新</div>
+            <div class="w-full h-[0.5px] bg-white/20 mt-2"></div>
+            <div class="text-[10px] opacity-90 tracking-wide">PHYU STUDIO • EDUCATION HUB</div>
         </div>
 
-        <!-- App 格線 (桌面) -->
+        <!-- 桌面圖標區域 -->
         <div id="desktop-grid" class="icon-grid"></div>
     </div>
 
     <!-- 底部 Dock -->
     <div id="dock-bar" class="dock-container"></div>
 
-    <!-- 公式表 PDF Modal -->
-    <div id="pdf-overlay" class="ios-overlay" onclick="closePdf()">
-        <div class="pdf-modal" onclick="event.stopPropagation()">
-            <div class="pdf-header">
-                <span class="font-semibold">公式表 (PDF)</span>
-                <div class="close-btn" onclick="closePdf()">
+    <!-- 通用 Iframe 容器 (PDF & YouTube) -->
+    <div id="iframe-overlay" class="ios-overlay" onclick="closeIframe()">
+        <div class="ios-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="flex items-center gap-2">
+                    <i id="modal-icon" class="fas fa-file-pdf"></i>
+                    <span id="modal-title" class="font-semibold">視窗</span>
+                </div>
+                <div class="close-btn" onclick="closeIframe()">
                     <i class="fas fa-times"></i>
                 </div>
             </div>
-            <iframe id="pdf-iframe" src=""></iframe>
-        </div>
-    </div>
-
-    <!-- 計算機 Modal -->
-    <div id="calc-overlay" class="ios-overlay" onclick="closeCalc()">
-        <div class="plugin-card" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">科學計算機</h2>
-                <button onclick="closeCalc()" class="text-blue-500 font-bold text-lg">關閉</button>
+            <div class="modal-body">
+                <iframe id="app-iframe" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
             </div>
-            <div id="calc-display">
-                <div id="calc-history"></div>
-                <div id="calc-main">0</div>
-            </div>
-            <div class="calc-grid">
-                <button class="calc-btn btn-sci" onclick="calcSci('sin')">sin</button>
-                <button class="calc-btn btn-sci" onclick="calcSci('cos')">cos</button>
-                <button class="calc-btn btn-sci" onclick="calcSci('tan')">tan</button>
-                <button class="calc-btn btn-ac" onclick="calcClear()">AC</button>
-                
-                <button class="calc-btn btn-sci" onclick="calcSci('log')">log</button>
-                <button class="calc-btn btn-sci" onclick="calcSci('ln')">ln</button>
-                <button class="calc-btn btn-sci" onclick="calcSci('sqrt')">√</button>
-                <button class="calc-btn btn-op" onclick="calcOp('/')">÷</button>
-                
-                <button class="calc-btn btn-num" onclick="calcNum('7')">7</button>
-                <button class="calc-btn btn-num" onclick="calcNum('8')">8</button>
-                <button class="calc-btn btn-num" onclick="calcNum('9')">9</button>
-                <button class="calc-btn btn-op" onclick="calcOp('*')">×</button>
-                
-                <button class="calc-btn btn-num" onclick="calcNum('4')">4</button>
-                <button class="calc-btn btn-num" onclick="calcNum('5')">5</button>
-                <button class="calc-btn btn-num" onclick="calcNum('6')">6</button>
-                <button class="calc-btn btn-op" onclick="calcOp('-')">-</button>
-                
-                <button class="calc-btn btn-num" onclick="calcNum('1')">1</button>
-                <button class="calc-btn btn-num" onclick="calcNum('2')">2</button>
-                <button class="calc-btn btn-num" onclick="calcNum('3')">3</button>
-                <button class="calc-btn btn-op" onclick="calcOp('+')">+</button>
-                
-                <button class="calc-btn btn-num" onclick="calcSci('pi')">π</button>
-                <button class="calc-btn btn-num" onclick="calcNum('0')">0</button>
-                <button class="calc-btn btn-num" onclick="calcNum('.')">.</button>
-                <button class="calc-btn btn-op" onclick="calcEqual()">=</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 計時器 Modal -->
-    <div id="timer-overlay" class="ios-overlay" onclick="closeTimer()">
-        <div class="plugin-card text-center" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">計時器</h2>
-                <button onclick="closeTimer()" class="text-blue-500 font-bold text-lg">關閉</button>
-            </div>
-            <div class="relative w-48 h-48 mx-auto mb-6">
-                <svg width="192" height="192" class="transform -rotate-90">
-                    <circle cx="96" cy="96" r="88" stroke="#f2f2f7" stroke-width="8" fill="none" />
-                    <circle id="progress-circle" cx="96" cy="96" r="88" stroke="#007aff" stroke-width="8" stroke-linecap="round" fill="none" />
-                </svg>
-                <div id="timer-display" class="absolute inset-0 flex items-center justify-center text-4xl font-light">01:00</div>
-            </div>
-            <div id="timer-adjusters" class="flex justify-center gap-8 mb-8">
-                <div class="flex flex-col items-center gap-2">
-                    <button onclick="adjustTime(60)" class="stepper-btn"><i class="fas fa-plus"></i></button>
-                    <span class="text-[10px] text-gray-400 font-bold">分鐘</span>
-                    <button onclick="adjustTime(-60)" class="stepper-btn"><i class="fas fa-minus"></i></button>
-                </div>
-                <div class="flex flex-col items-center gap-2">
-                    <button onclick="adjustTime(1)" class="stepper-btn"><i class="fas fa-plus"></i></button>
-                    <span class="text-[10px] text-gray-400 font-bold">秒數</span>
-                    <button onclick="adjustTime(-1)" class="stepper-btn"><i class="fas fa-minus"></i></button>
-                </div>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="resetTimer()" class="flex-1 bg-gray-100 py-4 rounded-2xl font-bold">重置</button>
-                <button id="toggle-btn" onclick="toggleTimer()" class="flex-1 bg-blue-500 text-white py-4 rounded-2xl font-bold">開始</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Alert Modal -->
-    <div id="ios-modal" class="ios-overlay" onclick="closeModal()">
-        <div class="bg-white/90 backdrop-blur-md rounded-[20px] w-72 text-center overflow-hidden">
-            <div class="p-6 text-black">
-                <h3 class="font-bold text-lg">尚未開放</h3>
-                <p class="text-sm mt-2 opacity-70">此功能目前正在開發中。</p>
-            </div>
-            <button onclick="closeModal()" class="w-full py-4 text-blue-500 font-bold border-t border-gray-200">確定</button>
         </div>
     </div>
 
     <script>
+        // 定義應用清單
         const apps = [
+            // Dock 應用
             { label: "計算機", img: "https://phyuaaphysics.github.io/phyustudio/calculator.png", url: "plugin:calc", dock: true },
             { label: "公式表", img: "https://phyuaaphysics.github.io/phyustudio/formula.png", url: "plugin:pdf", dock: true },
-            { label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home", dock: true },
+            { label: "音樂", img: "https://phyuaaphysics.github.io/phyustudio/music.png", url: "plugin:music", dock: true },
             { label: "計時器", img: "https://phyuaaphysics.github.io/phyustudio/timer.png", url: "plugin:timer", dock: true },
-            { label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home" },
+            
+            // 桌面應用
+            { label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home" },
             { label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home" },
+            { label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home" },
             { label: "Formula", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home" },
             { label: "Special X", img: "https://phyuaaphysics.github.io/phyustudio/function-6.png", url: "no link" },
             { label: "MathPie", img: "https://phyuaaphysics.github.io/phyustudio/function-7.png", url: "no link" },
-            { label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode" }
+            { label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode" },
+            
+            // 新增返回按鈕
+            { label: "返回首頁", img: "http://phyuaaphysics.github.io/phyustudio/exit.png", url: "http://phyuaaphysics.github.io/phyustudio/home.html" }
         ];
-
-        let timeLeft = 60;
-        let totalTime = 60;
-        let timerId = null;
-
-        // 計算機狀態
-        let calcVal = "0";
-        let calcOpStored = null;
-        let calcPrevVal = null;
 
         function renderUI() {
             const deskGrid = document.getElementById('desktop-grid');
@@ -452,181 +300,68 @@
 
             apps.forEach(app => {
                 if (app.dock) {
-                    const dockItem = document.createElement('div');
-                    dockItem.className = 'dock-item';
-                    dockItem.innerHTML = `<img src="${app.img}" alt="${app.label}">`;
-                    dockItem.onclick = () => handleAppClick(app);
-                    dockBar.appendChild(dockItem);
-                }
-                
-                if (!app.dock) {
-                    const element = document.createElement('div');
-                    element.className = 'icon-card';
-                    element.innerHTML = `
+                    const item = document.createElement('div');
+                    item.className = 'dock-item';
+                    item.innerHTML = `<img src="${app.img}" alt="${app.label}">`;
+                    item.onclick = () => handleAppClick(app);
+                    dockBar.appendChild(item);
+                } else {
+                    const card = document.createElement('div');
+                    card.className = 'icon-card';
+                    card.innerHTML = `
                         <div class="icon-img-wrapper">
                             <img src="${app.img}" alt="${app.label}">
                             ${app.url === 'no link' ? '<div class="no-link-badge"><i class="fas fa-lock text-white/50"></i></div>' : ''}
                         </div>
                         <span class="icon-label">${app.label}</span>
                     `;
-                    element.onclick = () => handleAppClick(app);
-                    deskGrid.appendChild(element);
+                    card.onclick = () => handleAppClick(app);
+                    deskGrid.appendChild(card);
                 }
             });
         }
 
         function handleAppClick(app) {
-            if (app.url === 'plugin:timer') openTimer();
-            else if (app.url === 'plugin:calc') openCalc();
-            else if (app.url === 'plugin:pdf') openPdf();
-            else if (app.url !== 'no link') window.open(app.url, '_blank');
-            else showModal();
+            if (app.url === 'plugin:pdf') {
+                openIframe("物理科公式表", "https://phyuaaphysics.github.io/phyustudio/formula1.pdf", "fa-file-pdf text-red-500");
+            } else if (app.url === 'plugin:music') {
+                // 使用 YouTube Embed 連結以確保 Iframe 內正常播放
+                openIframe("放鬆音樂", "https://www.youtube.com/embed/iqEr3P78fz8?si=W3MlN1Iw4KkGTGCP&autoplay=1", "fa-music text-pink-500");
+            } else if (app.url === 'plugin:calc') {
+                alert("計算機功能正在準備中...");
+            } else if (app.url === 'plugin:timer') {
+                alert("計時器功能正在準備中...");
+            } else if (app.url === 'http://phyuaaphysics.github.io/phyustudio/home.html') {
+                // 直接跳轉，不使用 iframe
+                window.location.href = app.url;
+            } else if (app.url !== 'no link') {
+                window.open(app.url, '_blank');
+            } else {
+                alert("此功能尚未開放");
+            }
         }
 
-        // --- PDF 功能 ---
-        function openPdf() {
-            const overlay = document.getElementById('pdf-overlay');
-            const iframe = document.getElementById('pdf-iframe');
-            iframe.src = "https://phyuaaphysics.github.io/phyustudio/formula1.pdf";
+        // --- Iframe 彈窗控制 ---
+        function openIframe(title, src, iconClass) {
+            const overlay = document.getElementById('iframe-overlay');
+            const iframe = document.getElementById('app-iframe');
+            const titleEl = document.getElementById('modal-title');
+            const iconEl = document.getElementById('modal-icon');
+            
+            titleEl.innerText = title;
+            iconEl.className = `fas ${iconClass}`;
+            iframe.src = src;
             overlay.style.display = 'flex';
         }
-        function closePdf() {
-            const overlay = document.getElementById('pdf-overlay');
-            const iframe = document.getElementById('pdf-iframe');
-            iframe.src = "";
+
+        function closeIframe() {
+            const overlay = document.getElementById('iframe-overlay');
+            const iframe = document.getElementById('app-iframe');
+            iframe.src = ""; 
             overlay.style.display = 'none';
         }
 
-        // --- 計算機功能 ---
-        function openCalc() { document.getElementById('calc-overlay').style.display = 'flex'; }
-        function closeCalc() { document.getElementById('calc-overlay').style.display = 'none'; }
-        
-        function calcNum(n) {
-            if (calcVal === "0" && n !== ".") calcVal = n;
-            else if (calcVal.length < 12) calcVal += n;
-            updateCalcDisplay();
-        }
-
-        function calcOp(op) {
-            calcPrevVal = parseFloat(calcVal);
-            calcOpStored = op;
-            calcVal = "0";
-            document.getElementById('calc-history').innerText = calcPrevVal + " " + op;
-        }
-
-        function calcEqual() {
-            if (calcOpStored === null || calcPrevVal === null) return;
-            const current = parseFloat(calcVal);
-            let result = 0;
-            switch(calcOpStored) {
-                case '+': result = calcPrevVal + current; break;
-                case '-': result = calcPrevVal - current; break;
-                case '*': result = calcPrevVal * current; break;
-                case '/': result = current !== 0 ? calcPrevVal / current : "Error"; break;
-            }
-            calcVal = result.toString();
-            calcOpStored = null;
-            calcPrevVal = null;
-            document.getElementById('calc-history').innerText = "";
-            updateCalcDisplay();
-        }
-
-        function calcSci(type) {
-            let v = parseFloat(calcVal);
-            let res = 0;
-            switch(type) {
-                case 'sin': res = Math.sin(v * Math.PI / 180); break;
-                case 'cos': res = Math.cos(v * Math.PI / 180); break;
-                case 'tan': res = Math.tan(v * Math.PI / 180); break;
-                case 'log': res = v > 0 ? Math.log10(v) : "Error"; break;
-                case 'ln': res = v > 0 ? Math.log(v) : "Error"; break;
-                case 'sqrt': res = v >= 0 ? Math.sqrt(v) : "Error"; break;
-                case 'pi': res = Math.PI; break;
-            }
-            if (res === "Error") calcVal = "Error";
-            else calcVal = Number(res.toFixed(8)).toString();
-            updateCalcDisplay();
-        }
-
-        function calcClear() {
-            calcVal = "0";
-            calcOpStored = null;
-            calcPrevVal = null;
-            document.getElementById('calc-history').innerText = "";
-            updateCalcDisplay();
-        }
-
-        function updateCalcDisplay() {
-            let display = calcVal;
-            if (display.length > 10) display = parseFloat(display).toPrecision(8);
-            document.getElementById('calc-main').innerText = display;
-        }
-
-        // --- 計時器功能 ---
-        function adjustTime(amount) {
-            if (timerId) return;
-            timeLeft += amount;
-            if (timeLeft < 1) timeLeft = 1;
-            if (timeLeft > 5999) timeLeft = 5999;
-            totalTime = timeLeft;
-            updateTimerDisplay();
-        }
-
-        function toggleTimer() {
-            const btn = document.getElementById('toggle-btn');
-            const adj = document.getElementById('timer-adjusters');
-            if (timerId) {
-                clearInterval(timerId);
-                timerId = null;
-                btn.innerText = "繼續";
-                btn.className = "flex-1 bg-green-500 text-white py-4 rounded-2xl font-bold";
-                adj.style.opacity = "1";
-            } else {
-                btn.innerText = "暫停";
-                btn.className = "flex-1 bg-red-500 text-white py-4 rounded-2xl font-bold";
-                adj.style.opacity = "0.3";
-                timerId = setInterval(() => {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    if (timeLeft <= 0) {
-                        clearInterval(timerId);
-                        timerId = null;
-                        document.getElementById('timer-display').innerText = "完成";
-                        btn.innerText = "開始";
-                        btn.className = "flex-1 bg-blue-500 text-white py-4 rounded-2xl font-bold";
-                        adj.style.opacity = "1";
-                    }
-                }, 1000);
-            }
-        }
-
-        function updateTimerDisplay() {
-            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const s = (timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${m}:${s}`;
-            const circle = document.getElementById('progress-circle');
-            const circumference = 2 * Math.PI * 88;
-            circle.style.strokeDasharray = circumference;
-            circle.style.strokeDashoffset = circumference - (timeLeft / totalTime) * circumference;
-        }
-
-        function resetTimer() {
-            clearInterval(timerId);
-            timerId = null;
-            timeLeft = totalTime;
-            updateTimerDisplay();
-            const btn = document.getElementById('toggle-btn');
-            btn.innerText = "開始";
-            btn.className = "flex-1 bg-blue-500 text-white py-4 rounded-2xl font-bold";
-            document.getElementById('timer-adjusters').style.opacity = "1";
-        }
-
-        function openTimer() { document.getElementById('timer-overlay').style.display = 'flex'; updateTimerDisplay(); }
-        function closeTimer() { document.getElementById('timer-overlay').style.display = 'none'; }
-        function showModal() { document.getElementById('ios-modal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('ios-modal').style.display = 'none'; }
-
-        // 時間與天氣
+        // --- 時間與天氣 ---
         function updateTime() {
             const now = new Date();
             const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
@@ -635,20 +370,21 @@
         }
 
         async function getRealWeather() {
-            const descEl = document.getElementById('weather-desc');
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 try {
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current_weather=true`);
                     const data = await res.json();
                     document.getElementById('weather-temp').innerText = Math.round(data.current_weather.temperature) + '°C';
-                    descEl.innerText = "數據已同步";
+                    document.getElementById('weather-desc').innerText = "數據已同步";
                     const code = data.current_weather.weathercode;
                     const iconEl = document.getElementById('weather-icon');
                     if (code === 0) iconEl.className = 'fas fa-sun text-yellow-400';
                     else if (code <= 3) iconEl.className = 'fas fa-cloud-sun text-yellow-200';
                     else iconEl.className = 'fas fa-cloud';
-                } catch (e) { descEl.innerText = "更新失敗"; }
+                } catch (e) {
+                    document.getElementById('weather-desc').innerText = "無法更新";
+                }
             });
         }
 
