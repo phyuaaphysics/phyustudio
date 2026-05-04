@@ -11,432 +11,6 @@
 
         :root {
             --ios-radius: 22.5%;
-            /* 調整為更符合 iOS 標準的圖標尺寸 */
-            --icon-size: 60px;
-            --dock-icon-size: 58px;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Noto Sans TC', sans-serif;
-            background-image: url('https://phyuaaphysics.github.io/phyustudio/1468.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            color: #fff;
-            -webkit-tap-highlight-color: transparent;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            min-height: 100vh;
-            user-select: none;
-        }
-
-        .home-screen {
-            padding: 20px 15px 140px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        /* Widget 樣式微調 */
-        .widget-container {
-            width: 100%;
-            max-width: 320px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-radius: 24px;
-            padding: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-            border: 0.5px solid rgba(255,255,255,0.2);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            position: relative;
-        }
-
-        /* 抖動動畫 */
-        @keyframes jiggle {
-            0% { transform: rotate(-1deg); }
-            50% { transform: rotate(1deg); }
-            100% { transform: rotate(-1deg); }
-        }
-
-        .editing .icon-card, .editing .widget-container, .editing .dock-item {
-            animation: jiggle 0.25s infinite ease-in-out;
-            cursor: grab;
-        }
-
-        .widget-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .widget-time { font-size: 3rem; font-weight: 200; line-height: 1; letter-spacing: -1.5px; }
-        .widget-info { text-align: right; }
-        .widget-date { font-size: 1rem; font-weight: 600; }
-
-        /* 圖標格線 - 限制寬度使其更接近 iPhone 排版 */
-        .icon-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px 10px;
-            width: 100%;
-            max-width: 340px; /* 模擬 iPhone 寬度 */
-            min-height: 100px;
-        }
-
-        @media (min-width: 768px) {
-            .icon-grid { 
-                grid-template-columns: repeat(6, 1fr); 
-                max-width: 600px; /* iPad 模式 */
-                gap: 25px 20px;
-            }
-        }
-
-        .icon-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        .icon-img-wrapper {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            background: #fff; 
-            border-radius: var(--ios-radius); 
-            overflow: hidden;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-            margin-bottom: 6px;
-            position: relative;
-        }
-        .icon-img-wrapper img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-
-        .delete-badge {
-            display: none;
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            width: 20px;
-            height: 20px;
-            background: rgba(60, 60, 60, 0.9);
-            color: #fff;
-            border-radius: 50%;
-            font-size: 10px;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .editing .delete-badge { display: flex; }
-
-        .icon-label {
-            font-size: 11px;
-            font-weight: 400;
-            color: #fff;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            letter-spacing: -0.2px;
-        }
-
-        /* --- 底部 Dock --- */
-        .dock-wrapper {
-            position: fixed;
-            bottom: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.4s;
-        }
-
-        .dock-wrapper.collapsed {
-            transform: translateX(-50%) translateY(130%);
-            opacity: 0;
-        }
-
-        .dock-container {
-            background: rgba(255, 255, 255, 0.28);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            padding: 10px 14px;
-            border-radius: 30px;
-            display: flex;
-            gap: 12px;
-            width: fit-content;
-            min-width: 100px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-            border: 0.5px solid rgba(255,255,255,0.25);
-        }
-
-        .dock-item { 
-            width: var(--dock-icon-size); 
-            height: var(--dock-icon-size); 
-            border-radius: var(--ios-radius); 
-            overflow: hidden; 
-            cursor: pointer; 
-            background: #fff;
-            position: relative;
-            transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
-        }
-        .dock-item:active { transform: scale(0.85); }
-
-        /* 獨立切換按鈕 */
-        .dock-toggle-trigger {
-            position: fixed;
-            bottom: 22px;
-            right: 22px;
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 110;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border: 0.5px solid rgba(255,255,255,0.2);
-            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-            color: rgba(255,255,255,0.8);
-        }
-
-        .dock-toggle-trigger:hover { background: rgba(255, 255, 255, 0.25); color: white; }
-        .dock-toggle-trigger:active { transform: scale(0.9); }
-
-        .editing .dock-toggle-trigger { display: none; }
-
-        .drag-over { background: rgba(255, 255, 255, 0.4) !important; }
-
-        /* Iframe 視窗 */
-        .ios-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(15px);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .ios-modal {
-            width: 95vw;
-            height: auto;
-            aspect-ratio: 16 / 10;
-            max-width: 900px;
-            background: #fff;
-            border-radius: 28px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            animation: modalScale 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
-        }
-
-        @keyframes modalScale {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-header { padding: 10px 18px; background: #f8f8f8; display: flex; justify-content: space-between; align-items: center; color: #000; border-bottom: 0.5px solid #ddd; }
-        .close-btn { width: 28px; height: 28px; background: #e5e5ea; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .modal-body { flex: 1; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; }
-    </style>
-</head>
-<body onclick="exitEditingMode()">
-
-    <div class="home-screen" id="home-screen">
-        <!-- 天氣 Widget -->
-        <div class="widget-container" id="weather-widget">
-            <div class="delete-badge" onclick="removeWidget(event)"><i class="fas fa-minus"></i></div>
-            <div class="widget-top">
-                <div id="widget-time" class="widget-time">00:00</div>
-                <div class="widget-info">
-                    <div id="widget-date" class="widget-date">--月--日 週-</div>
-                    <div class="flex items-center justify-end gap-2 mt-1">
-                        <i id="weather-icon" class="fas fa-spinner fa-spin text-white"></i>
-                        <span id="weather-temp">--°C</span>
-                    </div>
-                    <div id="weather-desc" class="text-[10px] opacity-70 italic">點擊更新天氣</div>
-                </div>
-            </div>
-            <div class="w-full h-[0.5px] bg-white/20 mt-2"></div>
-            <div class="text-[9px] opacity-80 tracking-wide">PHYU STUDIO • EDUCATION HUB</div>
-        </div>
-
-        <!-- 桌面圖標區域 -->
-        <div id="desktop-grid" class="icon-grid" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'desktop')"></div>
-    </div>
-
-    <!-- 底部 Dock -->
-    <div id="dock-wrapper" class="dock-wrapper">
-        <div id="dock-bar" class="dock-container" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'dock')">
-            <!-- 圖標會動態生成到這裡 -->
-        </div>
-    </div>
-
-    <!-- 獨立切換按鈕 -->
-    <div id="dock-toggle" class="dock-toggle-trigger" onclick="toggleDock(event)">
-        <i id="toggle-icon" class="fas fa-bars"></i>
-    </div>
-
-    <!-- Iframe 視窗 -->
-    <div id="iframe-overlay" class="ios-overlay" onclick="closeIframe()">
-        <div class="ios-modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="flex items-center gap-2">
-                    <i id="modal-icon" class="fas fa-file-pdf"></i>
-                    <span id="modal-title" class="font-semibold text-sm">視窗</span>
-                </div>
-                <div class="close-btn" onclick="closeIframe()">
-                    <i class="fas fa-times text-xs"></i>
-                </div>
-            </div>
-            <div class="modal-body">
-                <iframe id="app-iframe" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let appList = [
-            { id: 1, label: "計算機", img: "https://phyuaaphysics.github.io/phyustudio/calculator.png", url: "plugin:calc", dock: true },
-            { id: 2, label: "公式表", img: "https://phyuaaphysics.github.io/phyustudio/formula.png", url: "plugin:pdf", dock: true },
-            { id: 3, label: "音樂", img: "https://phyuaaphysics.github.io/phyustudio/music.png", url: "plugin:music", dock: true },
-            { id: 4, label: "計時器", img: "https://phyuaaphysics.github.io/phyustudio/timer.png", url: "plugin:timer", dock: true },
-            { id: 5, label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home", dock: false },
-            { id: 6, label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home", dock: false },
-            { id: 7, label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home", dock: false },
-            { id: 8, label: "Formula", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home", dock: false },
-            { id: 11, label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode", dock: false },
-            { id: 12, label: "返回首頁", img: "http://phyuaaphysics.github.io/phyustudio/exit.png", url: "http://phyuaaphysics.github.io/phyustudio/home.html", dock: false }
-        ];
-
-        let isEditing = false;
-        let pressTimer;
-
-        function renderUI() {
-            const deskGrid = document.getElementById('desktop-grid');
-            const dockBar = document.getElementById('dock-bar');
-            
-            deskGrid.innerHTML = '';
-            dockBar.innerHTML = '';
-
-            appList.forEach(app => {
-                const item = document.createElement('div');
-                item.draggable = isEditing;
-                item.ondragstart = (e) => e.dataTransfer.setData("text/plain", app.id);
-                
-                if (app.dock) {
-                    item.className = 'dock-item';
-                    item.innerHTML = `
-                        <img src="${app.img}" class="w-full h-full object-cover" alt="${app.label}">
-                        <div class="delete-badge" onclick="removeApp(event, ${app.id})"><i class="fas fa-minus"></i></div>
-                    `;
-                    item.onclick = (e) => { e.stopPropagation(); if(!isEditing) handleAppClick(app); };
-                    setupLongPress(item);
-                    dockBar.appendChild(item);
-                } else {
-                    item.className = 'icon-card';
-                    item.innerHTML = `
-                        <div class="icon-img-wrapper">
-                            <img src="${app.img}" alt="${app.label}">
-                            <div class="delete-badge" onclick="removeApp(event, ${app.id})"><i class="fas fa-minus"></i></div>
-                        </div>
-                        <span class="icon-label">${app.label}</span>
-                    `;
-                    item.onclick = (e) => { e.stopPropagation(); if(!isEditing) handleAppClick(app); };
-                    setupLongPress(item);
-                    deskGrid.appendChild(item);
-                }
-            });
-        }
-
-        function toggleDock(e) {
-            e.stopPropagation();
-            const wrapper = document.getElementById('dock-wrapper');
-            const icon = document.getElementById('toggle-icon');
-            const isCollapsed = wrapper.classList.toggle('collapsed');
-            
-            icon.className = isCollapsed ? 'fas fa-th-large' : 'fas fa-bars';
-        }
-
-        function allowDrop(e) {
-            if (!isEditing) return;
-            e.preventDefault();
-            e.currentTarget.classList.add('drag-over');
-        }
-
-        function handleDrop(e, targetType) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
-            if (!isEditing) return;
-
-            const appId = parseInt(e.dataTransfer.getData("text/plain"));
-            const app = appList.find(a => a.id === appId);
-            if (app) {
-                app.dock = (targetType === 'dock');
-                renderUI();
-            }
-        }
-
-        function setupLongPress(element) {
-            const start = () => { if (!isEditing) pressTimer = setTimeout(enterEditingMode, 800); };
-            const cancel = () => clearTimeout(pressTimer);
-            element.addEventListener('mousedown', start);
-            element.addEventListener('touchstart', start);
-            element.addEventListener('mouseup', cancel);
-            element.addEventListener('touchend', cancel);
-        }
-
-        function enterEditingMode() { 
-            isEditing = true; 
-            document.body.classList.add('editing'); 
-            const wrapper = document.getElementById('dock-wrapper');
-            wrapper.classList.remove('collapsed');
-            document.getElementById('toggle-icon').className = 'fas fa-bars';
-            renderUI(); 
-        }
-
-        function exitEditingMode() { if (!isEditing) return; isEditing = false; document.body.classList.remove('editing'); renderUI(); }
-
-        function removeApp(event, appId) {
-            event.stopPropagation();
-            appList = appList.filter(a => a.id !== appId);
-            renderUI();
-        }
-
-        function removeWidget(event) {
-            event.stopPropagation();
-            document.getElementById('weather-widget').style.display = 'none';
-        }
-
-        function handleAppClick(app) {
-            if (app.url === 'plugin:pdf') openIframe("公式表", "https://phyuaaphysics.github.io/phyustudio/formula1.pdf", "fa-file-pdf");
-            else if (app.url === 'plugin:music') openIframe("音樂", "https://www.youtube.com/embed/iqEr3P78fz8?autoplay=1", "fa-music");
-            else if (app.url !== 'no link') window.open(app.url, app.url.includes('phyustudio') ? '_self' : '_blank');
-        }
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Function Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-
-        :root {
-            --ios-radius: 22.5%;
             --icon-size: 60px;
             --dock-icon-size: 58px;
         }
@@ -541,16 +115,17 @@
             position: absolute;
             top: -4px;
             left: -4px;
-            width: 20px;
-            height: 20px;
-            background: rgba(60, 60, 60, 0.9);
+            width: 22px;
+            height: 22px;
+            background: rgba(60, 60, 60, 0.95);
             color: #fff;
             border-radius: 50%;
-            font-size: 10px;
+            font-size: 11px;
             align-items: center;
             justify-content: center;
             z-index: 20;
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1.5px solid rgba(255,255,255,0.4);
+            cursor: pointer;
         }
         
         .editing .delete-badge { display: flex; }
@@ -568,27 +143,21 @@
             letter-spacing: -0.2px;
         }
 
-        /* Dock 膠囊樣式 */
+        /* 固定 Dock */
         .dock-wrapper {
             position: fixed;
-            bottom: 18px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
-            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.4s;
-        }
-
-        .dock-wrapper.collapsed {
-            transform: translateX(-50%) translateY(130%);
-            opacity: 0;
         }
 
         .dock-container {
             background: rgba(255, 255, 255, 0.28);
             backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
-            padding: 10px 14px;
-            border-radius: 30px;
+            padding: 12px 16px;
+            border-radius: 32px;
             display: flex;
             gap: 12px;
             width: fit-content;
@@ -609,37 +178,13 @@
         }
         .dock-item:active { transform: scale(0.85); }
 
-        /* 切換按鈕 */
-        .dock-toggle-trigger {
-            position: fixed;
-            bottom: 22px;
-            right: 22px;
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 110;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border: 0.5px solid rgba(255,255,255,0.2);
-            transition: all 0.3s;
-            color: rgba(255,255,255,0.8);
-        }
-
-        .editing .dock-toggle-trigger { display: none; }
-
         /* Widget 浮窗通用樣式 */
         .widget-modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
             z-index: 2000;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.65);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             align-items: center;
@@ -655,11 +200,11 @@
             box-shadow: 0 30px 60px rgba(0,0,0,0.6);
             border: 0.5px solid rgba(255,255,255,0.1);
             position: relative;
-            animation: widgetPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.2);
+            animation: widgetPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.1);
         }
 
         @keyframes widgetPop {
-            from { transform: scale(0.85); opacity: 0; }
+            from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
@@ -667,9 +212,9 @@
             position: absolute;
             top: 15px;
             right: 15px;
-            width: 30px;
-            height: 30px;
-            background: rgba(255,255,255,0.1);
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.15);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -679,17 +224,17 @@
             color: white;
             transition: background 0.2s;
         }
-        .widget-close-btn:hover { background: rgba(255,255,255,0.2); }
+        .widget-close-btn:active { background: rgba(255,255,255,0.3); }
 
-        /* 科學計算機專屬樣式 */
+        /* 科學計算機樣式 */
         .calc-display {
-            padding: 45px 25px 15px;
+            padding: 50px 25px 15px;
             text-align: right;
             font-size: 3.5rem;
             font-weight: 200;
             color: white;
             background: #000;
-            min-height: 120px;
+            min-height: 130px;
             word-break: break-all;
         }
         .calc-grid {
@@ -705,27 +250,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             font-weight: 500;
             cursor: pointer;
-            transition: filter 0.1s;
+            transition: opacity 0.1s;
         }
-        .calc-btn:active { filter: brightness(1.5); }
+        .calc-btn:active { opacity: 0.5; }
         .btn-gray { background: #a5a5a5; color: #000; }
         .btn-dark { background: #333; color: #fff; }
         .btn-orange { background: #ff9f0a; color: #fff; }
-        .btn-sci { background: #2c2c2e; color: #fff; font-size: 1rem; } /* 科學運算符號顏色 */
+        .btn-sci { background: #2c2c2e; color: #fff; font-size: 0.95rem; }
 
-        /* 計時器專屬樣式 */
-        .timer-view { padding: 40px 20px; text-align: center; color: white; }
+        /* 計時器樣式 */
+        .timer-view { padding: 45px 20px; text-align: center; color: white; }
         .timer-display { font-size: 4rem; font-weight: 100; margin: 25px 0; font-variant-numeric: tabular-nums; }
         .timer-controls { display: flex; justify-content: space-around; margin-top: 25px; }
-        .timer-btn { width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; cursor: pointer; border: 2px solid transparent; }
+        .timer-btn { width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; }
         .timer-start { color: #30d158; background: rgba(48, 209, 88, 0.15); }
         .timer-stop { color: #ff453a; background: rgba(255, 69, 58, 0.15); }
         .timer-reset { color: #fff; background: rgba(255,255,255,0.1); }
         .timer-inputs { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .timer-input { background: #2c2c2e; border: none; color: #fff; width: 65px; text-align: center; border-radius: 12px; padding: 10px 5px; font-size: 1.3rem; }
+        .timer-input { background: #2c2c2e; border: none; color: #fff; width: 70px; text-align: center; border-radius: 12px; padding: 12px 5px; font-size: 1.4rem; }
 
         /* Iframe 視窗 */
         .ios-overlay {
@@ -763,7 +308,7 @@
         <!-- 天氣 Widget -->
         <div class="widget-container" id="weather-widget">
             <div class="delete-badge" onclick="removeWidget(event)"><i class="fas fa-minus"></i></div>
-            <div class="widget-top">
+            <div class="widget-top" onclick="getRealWeather()">
                 <div id="widget-time" class="widget-time">00:00</div>
                 <div class="widget-info">
                     <div id="widget-date" class="widget-date">--月--日 週-</div>
@@ -786,24 +331,17 @@
         <div id="dock-bar" class="dock-container" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'dock')"></div>
     </div>
 
-    <!-- 獨立切換按鈕 -->
-    <div id="dock-toggle" class="dock-toggle-trigger" onclick="toggleDock(event)">
-        <i id="toggle-icon" class="fas fa-bars"></i>
-    </div>
-
     <!-- 科學計算機 Widget 浮窗 -->
     <div id="calc-overlay" class="widget-modal-overlay" onclick="closeWidget('calc-overlay')">
         <div class="widget-content" onclick="event.stopPropagation()">
             <div class="widget-close-btn" onclick="closeWidget('calc-overlay')"><i class="fas fa-times"></i></div>
             <div class="calc-display" id="calc-result">0</div>
             <div class="calc-grid">
-                <!-- 第一排：科學運算 -->
                 <div class="calc-btn btn-sci" onclick="calcAction('sq')">x²</div>
                 <div class="calc-btn btn-sci" onclick="calcAction('sqrt')">√x</div>
                 <div class="calc-btn btn-sci" onclick="calcAction('pi')">π</div>
                 <div class="calc-btn btn-sci" onclick="calcAction('inv')">1/x</div>
                 
-                <!-- 標準鍵盤 -->
                 <div class="calc-btn btn-gray" onclick="calcAction('C')">AC</div>
                 <div class="calc-btn btn-gray" onclick="calcAction('+/-')">±</div>
                 <div class="calc-btn btn-gray" onclick="calcAction('%')">%</div>
@@ -836,11 +374,11 @@
         <div class="widget-content" onclick="event.stopPropagation()">
             <div class="widget-close-btn" onclick="closeWidget('timer-overlay')"><i class="fas fa-times"></i></div>
             <div class="timer-view">
-                <div class="text-xs font-semibold opacity-50 mb-6 tracking-widest">計時器</div>
+                <div class="text-xs font-bold opacity-40 mb-6 tracking-widest uppercase">Timer</div>
                 <div class="timer-inputs" id="timer-setting">
-                    <input type="number" id="t-min" class="timer-input" placeholder="00" value="1">
+                    <input type="number" id="t-min" class="timer-input" value="1">
                     <span class="text-3xl">:</span>
-                    <input type="number" id="t-sec" class="timer-input" placeholder="00" value="00">
+                    <input type="number" id="t-sec" class="timer-input" value="00">
                 </div>
                 <div id="timer-val" class="timer-display">01:00</div>
                 <div class="timer-controls">
@@ -919,6 +457,18 @@
             });
         }
 
+        // --- 刪除功能 ---
+        function removeApp(e, id) {
+            e.stopPropagation();
+            appList = appList.filter(app => app.id !== id);
+            renderUI();
+        }
+
+        function removeWidget(e) {
+            e.stopPropagation();
+            document.getElementById('weather-widget').style.display = 'none';
+        }
+
         // --- App 點擊邏輯 ---
         function handleAppClick(app) {
             if (app.type === 'calc') document.getElementById('calc-overlay').style.display = 'flex';
@@ -928,7 +478,6 @@
             else if (app.url) window.open(app.url, app.url.includes('phyustudio') ? '_self' : '_blank');
         }
 
-        // --- Widget 通用關閉 ---
         function closeWidget(id) {
             document.getElementById(id).style.display = 'none';
         }
@@ -937,21 +486,19 @@
         let calcVal = "0";
         function calcAction(act) {
             const res = document.getElementById('calc-result');
-            if (act === 'C') calcVal = "0";
-            else if (act === '=') { 
-                try { 
-                    calcVal = eval(calcVal.replace('×', '*').replace('÷', '/')).toString(); 
-                } catch(e) { calcVal = "Error"; } 
-            }
-            else if (act === '+/-') calcVal = (parseFloat(calcVal) * -1).toString();
-            else if (act === 'sq') calcVal = (Math.pow(parseFloat(calcVal), 2)).toString();
-            else if (act === 'sqrt') calcVal = (Math.sqrt(parseFloat(calcVal))).toString();
-            else if (act === 'pi') calcVal = Math.PI.toFixed(6).toString();
-            else if (act === 'inv') calcVal = (1 / parseFloat(calcVal)).toString();
-            else {
-                if (calcVal === "0" && act !== '.') calcVal = act;
-                else calcVal += act;
-            }
+            try {
+                if (act === 'C') calcVal = "0";
+                else if (act === '=') calcVal = eval(calcVal.replace('×', '*').replace('÷', '/')).toString();
+                else if (act === '+/-') calcVal = (parseFloat(calcVal) * -1).toString();
+                else if (act === 'sq') calcVal = (Math.pow(parseFloat(calcVal), 2)).toString();
+                else if (act === 'sqrt') calcVal = (Math.sqrt(parseFloat(calcVal))).toString();
+                else if (act === 'pi') calcVal = Math.PI.toFixed(6).toString();
+                else if (act === 'inv') calcVal = (1 / parseFloat(calcVal)).toString();
+                else {
+                    if (calcVal === "0" && act !== '.') calcVal = act;
+                    else calcVal += act;
+                }
+            } catch(e) { calcVal = "Error"; }
             res.innerText = calcVal.length > 10 ? calcVal.substring(0, 10) : calcVal;
         }
 
@@ -1002,15 +549,7 @@
             document.getElementById('timer-val').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
 
-        // --- 系統基礎功能 ---
-        function toggleDock(e) {
-            e.stopPropagation();
-            const wrapper = document.getElementById('dock-wrapper');
-            const icon = document.getElementById('toggle-icon');
-            const isCollapsed = wrapper.classList.toggle('collapsed');
-            icon.className = isCollapsed ? 'fas fa-th-large' : 'fas fa-bars';
-        }
-
+        // --- 拖放與編輯模式 ---
         function allowDrop(e) { if (!isEditing) return; e.preventDefault(); }
         function handleDrop(e, targetType) {
             e.preventDefault();
@@ -1039,29 +578,7 @@
         }
         function closeIframe() { document.getElementById('app-iframe').src = ""; document.getElementById('iframe-overlay').style.display = 'none'; }
 
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('widget-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-            const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-            document.getElementById('widget-date').innerText = `${now.getMonth()+1}月${now.getDate()}日 ${days[now.getDay()]}`;
-        }
-
-        window.onload = () => { renderUI(); updateTime(); setInterval(updateTime, 1000); };
-    </script>
-</body>
-</html>
-        function openIframe(title, src, icon) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-icon').className = `fas ${icon}`;
-            document.getElementById('app-iframe').src = src;
-            document.getElementById('iframe-overlay').style.display = 'flex';
-        }
-
-        function closeIframe() {
-            document.getElementById('app-iframe').src = "";
-            document.getElementById('iframe-overlay').style.display = 'none';
-        }
-
+        // --- 時間與天氣 ---
         function updateTime() {
             const now = new Date();
             document.getElementById('widget-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
@@ -1082,16 +599,13 @@
                     if (code === 0) iconEl.className = 'fas fa-sun text-yellow-400';
                     else if (code <= 3) iconEl.className = 'fas fa-cloud-sun text-yellow-200';
                     else iconEl.className = 'fas fa-cloud';
-                } catch (e) { document.getElementById('weather-desc').innerText = "無法更新"; }
+                } catch (e) {
+                    document.getElementById('weather-desc').innerText = "無法更新";
+                }
             });
         }
 
-        window.onload = () => {
-            renderUI();
-            updateTime();
-            setInterval(updateTime, 1000);
-            getRealWeather();
-        };
+        window.onload = () => { renderUI(); updateTime(); setInterval(updateTime, 1000); getRealWeather(); };
     </script>
 </body>
 </html>
