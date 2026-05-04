@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
         
         :root {
             --glacier-deep: #0f172a;
@@ -42,13 +42,6 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        #page-loader {
-            position: fixed; inset: 0; background-color: var(--glacier-bg); z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
-        }
-        #page-loader.active { opacity: 1; visibility: visible; }
-        
         .logo-bar {
             position: fixed; 
             top: 0; 
@@ -264,13 +257,6 @@
 </head>
 <body class="pb-40 hide-scrollbar">
 
-    <div id="page-loader">
-        <div class="flex flex-col items-center">
-            <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-12 h-12 animate-pulse mb-4">
-            <p class="text-[10px] font-black tracking-[0.3em] text-slate-400 uppercase">Glacier Stream</p>
-        </div>
-    </div>
-
     <header id="header-root">
         <div class="logo-bar px-6" id="logo-nav-bar"> 
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
@@ -306,7 +292,7 @@
                     <div class="hero-gradient-overlay"></div>
                     <div class="absolute inset-0 flex flex-col items-center justify-end pb-16 px-6 text-center">
                         <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-12 relative z-10">
-                        <button onclick="openLink('hero')" class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
+                        <button onclick="handleNavigation(config.heroUrl)" class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
                             馬上開始
                         </button>
                     </div>
@@ -340,6 +326,30 @@
                         <button class="nav-btn next" onclick="scrollSlider('funda-11-20-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
                     </div>
                 </section>
+
+                <!-- Pastpaper Archive 英雄卡片 (更新視覺設計) -->
+                <section id="sec-archive" class="mt-20 pb-16">
+                    <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                        <!-- 背景圖片 -->
+                        <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <!-- 高級感漸層遮罩 (由下往上變黑) -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
+                        
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                            <!-- 高級海報字體風格標題 -->
+                            <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
+                                Pastpaper Archive
+                            </h2>
+                            <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+                            <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
+                                Detailed Examination Resource Collections
+                            </p>
+                            <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
+                                Enter Archive
+                            </button>
+                        </div>
+                    </div>
+                </section>
             </main>
         </div>
     </div>
@@ -357,7 +367,7 @@
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
-                <button onclick="openLink('google')" class="dock-item">
+                <button onclick="handleNavigation(config.googleUrl)" class="dock-item">
                     <i class="fab fa-google"></i><span class="uppercase">郵箱</span>
                 </button>
             </div>
@@ -407,7 +417,6 @@
             ]
         };
 
-        const loader = document.getElementById('page-loader');
         let lastScrollY = window.scrollY;
 
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
@@ -439,12 +448,16 @@
                 else btn.classList.remove('active');
             });
             const heroSection = document.getElementById('hero-section');
-            const sections = document.querySelectorAll('#view-home main section');
+            const archiveSection = document.getElementById('sec-archive');
+            const sections = document.querySelectorAll('#view-home main section:not(#sec-archive)');
+            
             if (filterType === 'all') {
                 heroSection.classList.remove('section-hidden');
+                archiveSection.classList.remove('section-hidden');
                 sections.forEach(sec => sec.classList.remove('section-hidden'));
             } else {
                 heroSection.classList.add('section-hidden');
+                archiveSection.classList.add('section-hidden');
                 sections.forEach(sec => {
                     if (sec.dataset.group === filterType) sec.classList.remove('section-hidden');
                     else sec.classList.add('section-hidden');
@@ -482,16 +495,7 @@
             lastScrollY = currentScrollY;
         }, { passive: true });
 
-        function openLink(type) {
-            if(type === 'hero') handleNavigation(config.heroUrl);
-            if(type === 'google') handleNavigation(config.googleUrl);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            render();
-            loader.classList.add('active');
-            setTimeout(() => loader.classList.remove('active'), 500);
-        });
+        document.addEventListener('DOMContentLoaded', render);
     </script>
 </body>
 </html>
