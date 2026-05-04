@@ -351,10 +351,10 @@
                 <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
                     <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
                 </button>
-                <button onclick="handleNavigation(config.simUrl, false)" class="dock-item">
+                <button onclick="handleNavigation(config.simUrl)" class="dock-item">
                     <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
                 </button>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', true)" class="dock-item">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
                 <button onclick="openLink('google')" class="dock-item">
@@ -427,14 +427,9 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function handleNavigation(url, showAnim = false) {
+        function handleNavigation(url) {
             if (!url || url === '#' || url === 'no link') return;
-            if (showAnim) {
-                loader.classList.add('active');
-                setTimeout(() => { window.location.href = url; }, 400);
-            } else {
-                window.location.href = url;
-            }
+            window.location.href = url;
         }
 
         function setFilter(filterType) {
@@ -468,7 +463,7 @@
                 const div = document.createElement('div');
                 div.className = `slider-item w-32 md:w-56`;
                 div.innerHTML = `<div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>`;
-                div.onclick = () => handleNavigation(item.url, false);
+                div.onclick = () => handleNavigation(item.url);
                 let containerKey = item.category;
                 if (containers[containerKey]) containers[containerKey].appendChild(div);
             });
@@ -488,8 +483,8 @@
         }, { passive: true });
 
         function openLink(type) {
-            if(type === 'hero') handleNavigation(config.heroUrl, false);
-            if(type === 'google') handleNavigation(config.googleUrl, false);
+            if(type === 'hero') handleNavigation(config.heroUrl);
+            if(type === 'google') handleNavigation(config.googleUrl);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
