@@ -11,6 +11,9 @@
 
         :root {
             --ios-radius: 22.5%;
+            /* 調整為更符合 iOS 標準的圖標尺寸 */
+            --icon-size: 60px;
+            --dock-icon-size: 58px;
         }
 
         body {
@@ -24,126 +27,195 @@
             -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            overflow: hidden;
             min-height: 100vh;
+            user-select: none;
         }
 
-        /* 桌面佈局 */
         .home-screen {
-            padding: 40px 20px 140px;
+            padding: 20px 15px 140px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
+            overflow-y: auto;
         }
 
-        /* Widget 樣式 */
+        /* Widget 樣式微調 */
         .widget-container {
             width: 100%;
-            max-width: 340px;
+            max-width: 320px;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
-            border-radius: 28px;
-            padding: 20px;
-            margin-bottom: 40px;
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 30px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.15);
             border: 0.5px solid rgba(255,255,255,0.2);
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
+            gap: 8px;
+            position: relative;
         }
-        .widget-container:active { transform: scale(0.98); }
+
+        /* 抖動動畫 */
+        @keyframes jiggle {
+            0% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+            100% { transform: rotate(-1deg); }
+        }
+
+        .editing .icon-card, .editing .widget-container, .editing .dock-item {
+            animation: jiggle 0.25s infinite ease-in-out;
+            cursor: grab;
+        }
 
         .widget-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .widget-time { font-size: 3.5rem; font-weight: 200; line-height: 1; letter-spacing: -2px; }
+        .widget-time { font-size: 3rem; font-weight: 200; line-height: 1; letter-spacing: -1.5px; }
         .widget-info { text-align: right; }
-        .widget-date { font-size: 1.1rem; font-weight: 600; }
+        .widget-date { font-size: 1rem; font-weight: 600; }
 
-        /* 圖標格線 */
+        /* 圖標格線 - 限制寬度使其更接近 iPhone 排版 */
         .icon-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
+            gap: 15px 10px;
             width: 100%;
-            max-width: 100%;
+            max-width: 340px; /* 模擬 iPhone 寬度 */
+            min-height: 100px;
         }
 
         @media (min-width: 768px) {
-            .icon-grid { grid-template-columns: repeat(6, 1fr); gap: 24px; }
-        }
-
-        @media (min-width: 1024px) {
-            .icon-grid { grid-template-columns: repeat(8, 1fr); gap: 32px; max-width: 1100px; }
+            .icon-grid { 
+                grid-template-columns: repeat(6, 1fr); 
+                max-width: 600px; /* iPad 模式 */
+                gap: 25px 20px;
+            }
         }
 
         .icon-card {
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-decoration: none;
-            transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
-            cursor: pointer;
+            position: relative;
         }
-        .icon-card:active { transform: scale(0.9); }
 
         .icon-img-wrapper {
-            width: 100%;
-            aspect-ratio: 1 / 1;
+            width: var(--icon-size);
+            height: var(--icon-size);
             background: #fff; 
             border-radius: var(--ios-radius); 
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            margin-bottom: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            margin-bottom: 6px;
             position: relative;
         }
-        .icon-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .icon-img-wrapper img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+
+        .delete-badge {
+            display: none;
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(60, 60, 60, 0.9);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 10px;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .editing .delete-badge { display: flex; }
 
         .icon-label {
             font-size: 11px;
-            font-weight: 500;
+            font-weight: 400;
             color: #fff;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             text-align: center;
             width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            letter-spacing: -0.2px;
         }
 
-        /* 底部 Dock */
-        .dock-container {
+        /* --- 底部 Dock --- */
+        .dock-wrapper {
             position: fixed;
-            bottom: 25px;
+            bottom: 18px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            padding: 12px 16px;
-            border-radius: 32px;
-            display: flex;
-            gap: 15px;
-            width: fit-content;
-            max-width: 95%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             z-index: 100;
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.4s;
+        }
+
+        .dock-wrapper.collapsed {
+            transform: translateX(-50%) translateY(130%);
+            opacity: 0;
+        }
+
+        .dock-container {
+            background: rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            padding: 10px 14px;
+            border-radius: 30px;
+            display: flex;
+            gap: 12px;
+            width: fit-content;
+            min-width: 100px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            border: 0.5px solid rgba(255,255,255,0.25);
         }
 
         .dock-item { 
-            width: 60px; 
-            height: 60px; 
+            width: var(--dock-icon-size); 
+            height: var(--dock-icon-size); 
             border-radius: var(--ios-radius); 
             overflow: hidden; 
             cursor: pointer; 
-            transition: transform 0.2s;
             background: #fff;
+            position: relative;
+            transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
         }
         .dock-item:active { transform: scale(0.85); }
-        .dock-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Modal 容器 */
+        /* 獨立切換按鈕 */
+        .dock-toggle-trigger {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 110;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 0.5px solid rgba(255,255,255,0.2);
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+            color: rgba(255,255,255,0.8);
+        }
+
+        .dock-toggle-trigger:hover { background: rgba(255, 255, 255, 0.25); color: white; }
+        .dock-toggle-trigger:active { transform: scale(0.9); }
+
+        .editing .dock-toggle-trigger { display: none; }
+
+        .drag-over { background: rgba(255, 255, 255, 0.4) !important; }
+
+        /* Iframe 視窗 */
         .ios-overlay {
             display: none;
             position: fixed;
@@ -151,85 +223,40 @@
             z-index: 1000;
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             align-items: center;
             justify-content: center;
         }
 
-        /* 彈窗樣式 */
         .ios-modal {
             width: 95vw;
             height: auto;
             aspect-ratio: 16 / 10;
             max-width: 900px;
             background: #fff;
-            border-radius: 30px;
+            border-radius: 28px;
             overflow: hidden;
-            position: relative;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
             display: flex;
             flex-direction: column;
             animation: modalScale 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
         }
 
         @keyframes modalScale {
-            from { opacity: 0; transform: scale(0.9); }
+            from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
 
-        .modal-header {
-            padding: 12px 20px;
-            background: #f8f8f8;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #000;
-        }
-
-        .close-btn {
-            width: 32px;
-            height: 32px;
-            background: #e5e5ea;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .close-btn:hover { background: #d1d1d6; }
-        .close-btn i { color: #8e8e93; font-size: 14px; }
-
-        .modal-body {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            background: #000;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .no-link-badge {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-        }
+        .modal-header { padding: 10px 18px; background: #f8f8f8; display: flex; justify-content: space-between; align-items: center; color: #000; border-bottom: 0.5px solid #ddd; }
+        .close-btn { width: 28px; height: 28px; background: #e5e5ea; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .modal-body { flex: 1; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
-<body>
+<body onclick="exitEditingMode()">
 
-    <div class="home-screen">
+    <div class="home-screen" id="home-screen">
         <!-- 天氣 Widget -->
-        <div class="widget-container" onclick="getRealWeather()">
+        <div class="widget-container" id="weather-widget">
+            <div class="delete-badge" onclick="removeWidget(event)"><i class="fas fa-minus"></i></div>
             <div class="widget-top">
                 <div id="widget-time" class="widget-time">00:00</div>
                 <div class="widget-info">
@@ -242,130 +269,178 @@
                 </div>
             </div>
             <div class="w-full h-[0.5px] bg-white/20 mt-2"></div>
-            <div class="text-[10px] opacity-90 tracking-wide">PHYU STUDIO • EDUCATION HUB</div>
+            <div class="text-[9px] opacity-80 tracking-wide">PHYU STUDIO • EDUCATION HUB</div>
         </div>
 
         <!-- 桌面圖標區域 -->
-        <div id="desktop-grid" class="icon-grid"></div>
+        <div id="desktop-grid" class="icon-grid" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'desktop')"></div>
     </div>
 
     <!-- 底部 Dock -->
-    <div id="dock-bar" class="dock-container"></div>
+    <div id="dock-wrapper" class="dock-wrapper">
+        <div id="dock-bar" class="dock-container" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'dock')">
+            <!-- 圖標會動態生成到這裡 -->
+        </div>
+    </div>
 
-    <!-- 通用 Iframe 容器 (PDF & YouTube) -->
+    <!-- 獨立切換按鈕 -->
+    <div id="dock-toggle" class="dock-toggle-trigger" onclick="toggleDock(event)">
+        <i id="toggle-icon" class="fas fa-bars"></i>
+    </div>
+
+    <!-- Iframe 視窗 -->
     <div id="iframe-overlay" class="ios-overlay" onclick="closeIframe()">
         <div class="ios-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <div class="flex items-center gap-2">
                     <i id="modal-icon" class="fas fa-file-pdf"></i>
-                    <span id="modal-title" class="font-semibold">視窗</span>
+                    <span id="modal-title" class="font-semibold text-sm">視窗</span>
                 </div>
                 <div class="close-btn" onclick="closeIframe()">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-times text-xs"></i>
                 </div>
             </div>
             <div class="modal-body">
-                <iframe id="app-iframe" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <iframe id="app-iframe" allowfullscreen></iframe>
             </div>
         </div>
     </div>
 
     <script>
-        // 定義應用清單
-        const apps = [
-            // Dock 應用
-            { label: "計算機", img: "https://phyuaaphysics.github.io/phyustudio/calculator.png", url: "plugin:calc", dock: true },
-            { label: "公式表", img: "https://phyuaaphysics.github.io/phyustudio/formula.png", url: "plugin:pdf", dock: true },
-            { label: "音樂", img: "https://phyuaaphysics.github.io/phyustudio/music.png", url: "plugin:music", dock: true },
-            { label: "計時器", img: "https://phyuaaphysics.github.io/phyustudio/timer.png", url: "plugin:timer", dock: true },
-            
-            // 桌面應用
-            { label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home" },
-            { label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home" },
-            { label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home" },
-            { label: "Formula", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home" },
-            { label: "Special X", img: "https://phyuaaphysics.github.io/phyustudio/function-6.png", url: "no link" },
-            { label: "MathPie", img: "https://phyuaaphysics.github.io/phyustudio/function-7.png", url: "no link" },
-            { label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode" },
-            
-            // 新增返回按鈕
-            { label: "返回首頁", img: "http://phyuaaphysics.github.io/phyustudio/exit.png", url: "http://phyuaaphysics.github.io/phyustudio/home.html" }
+        let appList = [
+            { id: 1, label: "計算機", img: "https://phyuaaphysics.github.io/phyustudio/calculator.png", url: "plugin:calc", dock: true },
+            { id: 2, label: "公式表", img: "https://phyuaaphysics.github.io/phyustudio/formula.png", url: "plugin:pdf", dock: true },
+            { id: 3, label: "音樂", img: "https://phyuaaphysics.github.io/phyustudio/music.png", url: "plugin:music", dock: true },
+            { id: 4, label: "計時器", img: "https://phyuaaphysics.github.io/phyustudio/timer.png", url: "plugin:timer", dock: true },
+            { id: 5, label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home", dock: false },
+            { id: 6, label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home", dock: false },
+            { id: 7, label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home", dock: false },
+            { id: 8, label: "Formula", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home", dock: false },
+            { id: 11, label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode", dock: false },
+            { id: 12, label: "返回首頁", img: "http://phyuaaphysics.github.io/phyustudio/exit.png", url: "http://phyuaaphysics.github.io/phyustudio/home.html", dock: false }
         ];
+
+        let isEditing = false;
+        let pressTimer;
 
         function renderUI() {
             const deskGrid = document.getElementById('desktop-grid');
             const dockBar = document.getElementById('dock-bar');
+            
             deskGrid.innerHTML = '';
             dockBar.innerHTML = '';
 
-            apps.forEach(app => {
+            appList.forEach(app => {
+                const item = document.createElement('div');
+                item.draggable = isEditing;
+                item.ondragstart = (e) => e.dataTransfer.setData("text/plain", app.id);
+                
                 if (app.dock) {
-                    const item = document.createElement('div');
                     item.className = 'dock-item';
-                    item.innerHTML = `<img src="${app.img}" alt="${app.label}">`;
-                    item.onclick = () => handleAppClick(app);
+                    item.innerHTML = `
+                        <img src="${app.img}" class="w-full h-full object-cover" alt="${app.label}">
+                        <div class="delete-badge" onclick="removeApp(event, ${app.id})"><i class="fas fa-minus"></i></div>
+                    `;
+                    item.onclick = (e) => { e.stopPropagation(); if(!isEditing) handleAppClick(app); };
+                    setupLongPress(item);
                     dockBar.appendChild(item);
                 } else {
-                    const card = document.createElement('div');
-                    card.className = 'icon-card';
-                    card.innerHTML = `
+                    item.className = 'icon-card';
+                    item.innerHTML = `
                         <div class="icon-img-wrapper">
                             <img src="${app.img}" alt="${app.label}">
-                            ${app.url === 'no link' ? '<div class="no-link-badge"><i class="fas fa-lock text-white/50"></i></div>' : ''}
+                            <div class="delete-badge" onclick="removeApp(event, ${app.id})"><i class="fas fa-minus"></i></div>
                         </div>
                         <span class="icon-label">${app.label}</span>
                     `;
-                    card.onclick = () => handleAppClick(app);
-                    deskGrid.appendChild(card);
+                    item.onclick = (e) => { e.stopPropagation(); if(!isEditing) handleAppClick(app); };
+                    setupLongPress(item);
+                    deskGrid.appendChild(item);
                 }
             });
         }
 
-        function handleAppClick(app) {
-            if (app.url === 'plugin:pdf') {
-                openIframe("物理科公式表", "https://phyuaaphysics.github.io/phyustudio/formula1.pdf", "fa-file-pdf text-red-500");
-            } else if (app.url === 'plugin:music') {
-                // 使用 YouTube Embed 連結以確保 Iframe 內正常播放
-                openIframe("放鬆音樂", "https://www.youtube.com/embed/iqEr3P78fz8?si=W3MlN1Iw4KkGTGCP&autoplay=1", "fa-music text-pink-500");
-            } else if (app.url === 'plugin:calc') {
-                alert("計算機功能正在準備中...");
-            } else if (app.url === 'plugin:timer') {
-                alert("計時器功能正在準備中...");
-            } else if (app.url === 'http://phyuaaphysics.github.io/phyustudio/home.html') {
-                // 直接跳轉，不使用 iframe
-                window.location.href = app.url;
-            } else if (app.url !== 'no link') {
-                window.open(app.url, '_blank');
-            } else {
-                alert("此功能尚未開放");
+        function toggleDock(e) {
+            e.stopPropagation();
+            const wrapper = document.getElementById('dock-wrapper');
+            const icon = document.getElementById('toggle-icon');
+            const isCollapsed = wrapper.classList.toggle('collapsed');
+            
+            icon.className = isCollapsed ? 'fas fa-th-large' : 'fas fa-bars';
+        }
+
+        function allowDrop(e) {
+            if (!isEditing) return;
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDrop(e, targetType) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            if (!isEditing) return;
+
+            const appId = parseInt(e.dataTransfer.getData("text/plain"));
+            const app = appList.find(a => a.id === appId);
+            if (app) {
+                app.dock = (targetType === 'dock');
+                renderUI();
             }
         }
 
-        // --- Iframe 彈窗控制 ---
-        function openIframe(title, src, iconClass) {
-            const overlay = document.getElementById('iframe-overlay');
-            const iframe = document.getElementById('app-iframe');
-            const titleEl = document.getElementById('modal-title');
-            const iconEl = document.getElementById('modal-icon');
-            
-            titleEl.innerText = title;
-            iconEl.className = `fas ${iconClass}`;
-            iframe.src = src;
-            overlay.style.display = 'flex';
+        function setupLongPress(element) {
+            const start = () => { if (!isEditing) pressTimer = setTimeout(enterEditingMode, 800); };
+            const cancel = () => clearTimeout(pressTimer);
+            element.addEventListener('mousedown', start);
+            element.addEventListener('touchstart', start);
+            element.addEventListener('mouseup', cancel);
+            element.addEventListener('touchend', cancel);
+        }
+
+        function enterEditingMode() { 
+            isEditing = true; 
+            document.body.classList.add('editing'); 
+            const wrapper = document.getElementById('dock-wrapper');
+            wrapper.classList.remove('collapsed');
+            document.getElementById('toggle-icon').className = 'fas fa-bars';
+            renderUI(); 
+        }
+
+        function exitEditingMode() { if (!isEditing) return; isEditing = false; document.body.classList.remove('editing'); renderUI(); }
+
+        function removeApp(event, appId) {
+            event.stopPropagation();
+            appList = appList.filter(a => a.id !== appId);
+            renderUI();
+        }
+
+        function removeWidget(event) {
+            event.stopPropagation();
+            document.getElementById('weather-widget').style.display = 'none';
+        }
+
+        function handleAppClick(app) {
+            if (app.url === 'plugin:pdf') openIframe("公式表", "https://phyuaaphysics.github.io/phyustudio/formula1.pdf", "fa-file-pdf");
+            else if (app.url === 'plugin:music') openIframe("音樂", "https://www.youtube.com/embed/iqEr3P78fz8?autoplay=1", "fa-music");
+            else if (app.url !== 'no link') window.open(app.url, app.url.includes('phyustudio') ? '_self' : '_blank');
+        }
+
+        function openIframe(title, src, icon) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-icon').className = `fas ${icon}`;
+            document.getElementById('app-iframe').src = src;
+            document.getElementById('iframe-overlay').style.display = 'flex';
         }
 
         function closeIframe() {
-            const overlay = document.getElementById('iframe-overlay');
-            const iframe = document.getElementById('app-iframe');
-            iframe.src = ""; 
-            overlay.style.display = 'none';
+            document.getElementById('app-iframe').src = "";
+            document.getElementById('iframe-overlay').style.display = 'none';
         }
 
-        // --- 時間與天氣 ---
         function updateTime() {
             const now = new Date();
-            const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
             document.getElementById('widget-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
             document.getElementById('widget-date').innerText = `${now.getMonth()+1}月${now.getDate()}日 ${days[now.getDay()]}`;
         }
 
@@ -382,9 +457,7 @@
                     if (code === 0) iconEl.className = 'fas fa-sun text-yellow-400';
                     else if (code <= 3) iconEl.className = 'fas fa-cloud-sun text-yellow-200';
                     else iconEl.className = 'fas fa-cloud';
-                } catch (e) {
-                    document.getElementById('weather-desc').innerText = "無法更新";
-                }
+                } catch (e) { document.getElementById('weather-desc').innerText = "無法更新"; }
             });
         }
 
