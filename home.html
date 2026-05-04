@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -36,7 +37,6 @@
             -webkit-tap-highlight-color: transparent;
             height: 100%;
             overflow-y: auto;
-            /* 修正頂部間距以適應安全區域 */
             padding-top: 0;
         }
 
@@ -60,7 +60,6 @@
             backdrop-filter: blur(24px); 
             -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid rgba(14, 165, 233, 0.1);
-            /* 關鍵修正：加入安全區域 padding */
             padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
             padding-bottom: 12px;
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -76,7 +75,6 @@
 
         .filter-bar {
             position: fixed;
-            /* 修正過濾列位置以跟隨 logo-bar 的高度 */
             top: calc(env(safe-area-inset-top, 0px) + 68px);
             left: 0;
             width: 100%;
@@ -143,7 +141,6 @@
             transform: rotate(180deg);
         }
 
-        /* 修正內容區域的頂部間距 */
         #page-home { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
 
         .slider-wrapper { position: relative; width: 100%; }
@@ -213,7 +210,8 @@
 
         .dock-wrapper {
             position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            /* 修正 iOS PWA 模式下 Dock 距離底部邊緣太遠的問題 */
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 2px);
             left: 50%;
             transform: translateX(-50%);
             z-index: 200;
@@ -505,3 +503,5 @@
     </script>
 </body>
 </html>
+
+
