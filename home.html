@@ -378,9 +378,9 @@
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'https://sites.google.com/np2c.edu.hk/vols3ii/home' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'https://sites.google.com/np2c.edu.hk/vol01a/home' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda01B.png', url: 'https://phyuphysics.com/video-fundamental-01b/' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda02.png', url: 'no link' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda03.png', url: 'no link' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda04.png', url: 'no link' },
+                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda02.png', url: 'https://sites.google.com/np2c.edu.hk/vol02/home' },
+                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda03.png', url: 'https://sites.google.com/np2c.edu.hk/vol03/home' },
+                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda04.png', url: 'https://sites.google.com/np2c.edu.hk/vol04/home' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda05.png', url: 'https://sites.google.com/np2c.edu.hk/vol05/home' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda06.png', url: 'https://phyuphysics.com/video-fundamental-06-oppenheimer/' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda07.png', url: 'https://sites.google.com/np2c.edu.hk/hw-vol-07/home?authuser=1' },
@@ -420,17 +420,15 @@
         /**
          * 導覽處理器
          * @param {string} url - 跳轉網址
-         * @param {boolean} showAnim - 是否顯示過場動畫（模擬器與功能區為 true）
+         * @param {boolean} showAnim - 是否顯示過場動畫
          */
         function handleNavigation(url, showAnim = false) {
             if (!url || url === '#' || url === 'no link') return;
             
             if (showAnim) {
-                // 僅模擬器與功能區顯示過場
                 loader.classList.add('active');
                 setTimeout(() => { window.location.href = url; }, 400);
             } else {
-                // 其他連結立即跳轉，減少卡頓
                 window.location.href = url;
             }
         }
@@ -472,7 +470,6 @@
                 const div = document.createElement('div');
                 div.className = `slider-item w-32 md:w-56`;
                 div.innerHTML = `<div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>`;
-                // 課程與練習冊連結不使用動畫
                 div.onclick = () => handleNavigation(item.url, false);
                 
                 let containerKey = item.category;
@@ -508,14 +505,14 @@
         }
         
         function openLink(type) {
-            // 頂部與 Banner 跳轉不使用動畫
             if(type === 'hero') handleNavigation(config.heroUrl, false);
             if(type === 'google') handleNavigation(config.googleUrl, false);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             render();
-            // 初次進入頁面的載入動畫保留以維持質感
+            // 初次進入頁面顯示載入動畫
+            loader.classList.add('active');
             setTimeout(() => loader.classList.remove('active'), 500);
         });
     </script>
