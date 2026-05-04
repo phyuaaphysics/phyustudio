@@ -1,601 +1,626 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Function Hub</title>
+    <title>Functions - Lumina Studio</title>
+    
+    <!-- iOS PWA 狀態列修正 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
         :root {
-            --ios-radius: 22.5%;
-            --icon-size: 60px;
-            --dock-icon-size: 58px;
+            --mint-deep: #064e3b;
+            --mint-primary: #10b981; 
+            --mint-accent: #34d399;
+            --mint-bg: #f0fdf4;
+            --sage-deep: #2d3a35;
+            --sage-muted: #6b8278;
+            --ios-bg: url('https://phyuaaphysics.github.io/phyustudio/1468.jpg');
+        }
+
+        html { 
+            height: 100%;
+            overflow: hidden; 
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Noto Sans TC', sans-serif;
-            background-image: url('https://phyuaaphysics.github.io/phyustudio/1468.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            color: #fff;
-            -webkit-tap-highlight-color: transparent;
-            margin: 0;
-            padding: 0;
+            font-family: 'Inter', 'Noto Sans TC', -apple-system, sans-serif;
+            height: 100%;
             overflow: hidden;
-            min-height: 100vh;
-            user-select: none;
+            background: var(--ios-bg) no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
         }
 
-        /* 調整 Padding Top 讓內容適度下移，不至於掉到最底 */
-        .home-screen {
-            padding: 80px 15px 140px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
+        /* 頂部導覽列 (全透明並移除右側按鈕) */
+        .logo-bar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 120;
+            background-color: transparent;
+            backdrop-filter: none; -webkit-backdrop-filter: none;
+            border-bottom: none;
+            padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+            padding-bottom: 12px;
+        }
+
+        /* iOS 主界面佈局 */
+        #page-content {
+            padding-top: calc(env(safe-area-inset-top, 0px) + 80px);
+            padding-bottom: 140px;
             height: 100vh;
             overflow-y: auto;
-            box-sizing: border-box;
         }
 
         /* Widget 樣式 */
         .widget-container {
-            width: 100%;
-            max-width: 320px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-radius: 24px;
-            padding: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-            border: 0.5px solid rgba(255,255,255,0.2);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            position: relative;
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
+        .ios-widget {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 16px;
+            aspect-ratio: 1/1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .ios-widget:active { transform: scale(0.96); }
+
+        /* 傳統指針時鐘樣式 */
+        .analog-clock {
+            width: 44px;
+            height: 44px;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            top: 16px;
+            right: 16px;
+        }
+        .clock-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            background: white;
+            border-radius: 4px;
+        }
+        .hour-hand { width: 2px; height: 12px; margin-left: -1px; }
+        .min-hand { width: 1.5px; height: 18px; margin-left: -0.75px; }
+        .sec-hand { width: 1px; height: 20px; margin-left: -0.5px; background: #ff3b30; }
+        .clock-center {
+            position: absolute; top: 50%; left: 50%; width: 4px; height: 4px;
+            background: white; border-radius: 50%; transform: translate(-50%, -50%);
+        }
+
+        /* App 網格 - 響應式佈局：iPhone 4格, iPad/PC 6格 */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 24px;
+            max-width: 800px; /* 增加寬度以適應更多列 */
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .app-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        .app-item {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            cursor: pointer; transition: transform 0.2s; user-select: none;
+        }
+
+        .app-item:active { transform: scale(0.9); }
+
+        .app-icon {
+            width: 60px; height: 60px; border-radius: 14px;
+            background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            object-fit: cover; pointer-events: none;
+        }
+
+        .app-label {
+            font-size: 11px; font-weight: 500; color: white;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5); text-align: center;
+        }
+
+        /* 抖動動畫 */
         @keyframes jiggle {
             0% { transform: rotate(-1deg); }
             50% { transform: rotate(1deg); }
             100% { transform: rotate(-1deg); }
         }
+        .jiggling { animation: jiggle 0.2s infinite; }
 
-        .editing .icon-card, .editing .widget-container, .editing .dock-item {
-            animation: jiggle 0.25s infinite ease-in-out;
-            cursor: grab;
+        /* 模態框 (iOS 彈窗樣式) */
+        .ios-modal {
+            position: fixed; inset: 0; z-index: 300;
+            display: none; align-items: flex-end; justify-content: center;
+            background: rgba(0,0,0,0.2); backdrop-filter: blur(5px);
         }
-
-        .widget-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .widget-time { font-size: 3rem; font-weight: 200; line-height: 1; letter-spacing: -1.5px; }
-        .widget-info { text-align: right; }
-        .widget-date { font-size: 1rem; font-weight: 600; }
-
-        .icon-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px 10px;
-            width: 100%;
-            max-width: 340px;
-            min-height: 100px;
-        }
-
-        @media (min-width: 768px) {
-            .icon-grid { 
-                grid-template-columns: repeat(6, 1fr); 
-                max-width: 600px;
-                gap: 25px 20px;
-            }
-        }
-
-        .icon-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        .icon-img-wrapper {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            background: #fff; 
-            border-radius: var(--ios-radius); 
+        .modal-content {
+            background: rgba(245, 245, 245, 0.95);
+            width: 100%; height: 85vh; border-radius: 20px 20px 0 0;
+            padding: 20px; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative;
             overflow: hidden;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-            margin-bottom: 6px;
-            position: relative;
         }
-        .icon-img-wrapper img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        .ios-modal.active { display: flex; }
+        .ios-modal.active .modal-content { transform: translateY(0); }
 
-        .delete-badge {
-            display: none;
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            width: 22px;
-            height: 22px;
-            background: rgba(60, 60, 60, 0.95);
-            color: #fff;
-            border-radius: 50%;
-            font-size: 11px;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            border: 1.5px solid rgba(255,255,255,0.4);
-            cursor: pointer;
-        }
-        
-        .editing .delete-badge { display: flex; }
-
-        .icon-label {
-            font-size: 11px;
-            font-weight: 400;
-            color: #fff;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            letter-spacing: -0.2px;
+        .modal-handle {
+            width: 40px; height: 5px; background: rgba(0,0,0,0.1);
+            border-radius: 10px; margin: 0 auto 20px;
         }
 
-        /* 固定 Dock */
-        .dock-wrapper {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+        /* 計算機專屬窄模態框尺寸 */
+        .ios-modal.calc-mode .modal-content {
+            max-width: 400px;
+            height: 70vh;
+            border-radius: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
 
-        .dock-container {
-            background: rgba(255, 255, 255, 0.28);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            padding: 12px 16px;
-            border-radius: 32px;
-            display: flex;
-            gap: 12px;
-            width: fit-content;
-            min-width: 100px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-            border: 0.5px solid rgba(255,255,255,0.25);
-        }
+        /* 行事曆樣式 */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .calendar-day-label { font-size: 12px; font-weight: bold; color: #888; padding-bottom: 10px; }
+        .calendar-date { padding: 10px 0; border-radius: 10px; font-size: 14px; position: relative; }
+        .calendar-date.today { background: #ff3b30; color: white; font-weight: bold; }
+        .calendar-date.other-month { opacity: 0.3; }
 
-        .dock-item { 
-            width: var(--dock-icon-size); 
-            height: var(--dock-icon-size); 
-            border-radius: var(--ios-radius); 
-            overflow: hidden; 
-            cursor: pointer; 
-            background: #fff;
-            position: relative;
-            transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
-        }
-        .dock-item:active { transform: scale(0.85); }
-
-        /* Widget 浮窗通用樣式 */
-        .widget-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .widget-content {
-            width: 92%;
-            max-width: 350px;
-            background: #1c1c1e;
-            border-radius: 35px;
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
-            border: 0.5px solid rgba(255,255,255,0.1);
-            position: relative;
-            animation: widgetPop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.1);
-        }
-
-        @keyframes widgetPop {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .widget-close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 32px;
-            height: 32px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-            color: white;
-            transition: background 0.2s;
-        }
-        .widget-close-btn:active { background: rgba(255,255,255,0.3); }
-
-        /* 科學計算機樣式 */
-        .calc-display {
-            padding: 50px 25px 15px;
-            text-align: right;
-            font-size: 3.5rem;
-            font-weight: 200;
-            color: white;
-            background: #000;
-            min-height: 130px;
-            word-break: break-all;
-        }
+        /* 科學計算機樣式修正 */
         .calc-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            padding: 15px;
-            background: #1c1c1e;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; height: auto;
         }
         .calc-btn {
-            aspect-ratio: 1;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: opacity 0.1s;
+            background: #fff; border-radius: 50%; aspect-ratio: 1/1;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            user-select: none;
         }
-        .calc-btn:active { opacity: 0.5; }
-        .btn-gray { background: #a5a5a5; color: #000; }
-        .btn-dark { background: #333; color: #fff; }
-        .btn-orange { background: #ff9f0a; color: #fff; }
-        .btn-sci { background: #2c2c2e; color: #fff; font-size: 0.95rem; }
-
-        /* 計時器樣式 */
-        .timer-view { padding: 45px 20px; text-align: center; color: white; }
-        .timer-display { font-size: 4rem; font-weight: 100; margin: 25px 0; font-variant-numeric: tabular-nums; }
-        .timer-controls { display: flex; justify-content: space-around; margin-top: 25px; }
-        .timer-btn { width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; }
-        .timer-start { color: #30d158; background: rgba(48, 209, 88, 0.15); }
-        .timer-stop { color: #ff453a; background: rgba(255, 69, 58, 0.15); }
-        .timer-reset { color: #fff; background: rgba(255,255,255,0.1); }
-        .timer-inputs { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .timer-input { background: #2c2c2e; border: none; color: #fff; width: 70px; text-align: center; border-radius: 12px; padding: 12px 5px; font-size: 1.4rem; }
-
-        /* Iframe 視窗 */
-        .ios-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(15px);
-            align-items: center;
-            justify-content: center;
+        .calc-btn:active { background: #eee; }
+        .calc-btn.op { background: #fca311; color: white; }
+        .calc-btn.sci { background: #e5e7eb; color: #374151; font-size: 13px; font-weight: 600; }
+        .calc-display {
+            grid-column: span 4; background: transparent; text-align: right;
+            font-size: 42px; padding: 10px 20px; height: 70px; overflow: hidden;
+            color: #333; font-family: -apple-system, sans-serif;
         }
 
-        .ios-modal {
-            width: 95vw;
-            height: auto;
-            aspect-ratio: 16 / 10;
-            max-width: 900px;
-            background: #fff;
-            border-radius: 28px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+        /* 底部 Dock (磨砂白透明風格) */
+        .dock-wrapper {
+            position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            left: 50%; transform: translateX(-50%); z-index: 200; min-width: 340px;
+        }
+        .dock-nav {
+            background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 14px; border-radius: 42px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex; align-items: center; justify-content: center; gap: 14px;
+        }
+        .dock-item {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            color: rgba(0, 0, 0, 0.45); transition: all 0.3s; min-width: 58px;
+            background: transparent; border: none; cursor: pointer;
+        }
+        .dock-item i { font-size: 1.6rem; }
+        .dock-item span { font-size: 9px; font-weight: 600; opacity: 0.8; }
+        .dock-item.active { color: #ffffff; }
+
+        @media (max-width: 768px) {
+            .app-grid { gap: 15px; }
+            .dock-wrapper { width: 92%; max-width: 400px; }
         }
 
-        .modal-header { padding: 10px 18px; background: #f8f8f8; display: flex; justify-content: space-between; align-items: center; color: #000; border-bottom: 0.5px solid #ddd; }
-        .close-btn { width: 28px; height: 28px; background: #e5e5ea; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .modal-body { flex: 1; background: #000; }
-        iframe { width: 100%; height: 100%; border: none; }
+        /* Timer 調整器樣式 */
+        .timer-adjuster {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .adjust-btn {
+            width: 32px; height: 32px; border-radius: 50%; background: #e5e7eb;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .adjust-btn:active { background: #d1d5db; }
+        .timer-unit-label { font-size: 10px; color: #888; text-transform: uppercase; }
     </style>
 </head>
-<body onclick="exitEditingMode()">
+<body class="hide-scrollbar">
 
-    <div class="home-screen">
-        <!-- 天氣 Widget -->
-        <div class="widget-container" id="weather-widget">
-            <div class="delete-badge" onclick="removeWidget(event)"><i class="fas fa-minus"></i></div>
-            <div class="widget-top" onclick="getRealWeather()">
-                <div id="widget-time" class="widget-time">00:00</div>
-                <div class="widget-info">
-                    <div id="widget-date" class="widget-date">--月--日 週-</div>
-                    <div class="flex items-center justify-end gap-2 mt-1">
-                        <i id="weather-icon" class="fas fa-spinner fa-spin text-white"></i>
-                        <span id="weather-temp">--°C</span>
-                    </div>
-                    <div id="weather-desc" class="text-[10px] opacity-70 italic">點擊更新天氣</div>
-                </div>
+    <header class="logo-bar px-6"> 
+        <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
+            <div class="cursor-pointer flex items-center gap-3" onclick="handleNavigation('home.html')">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-10 w-auto">
+                <span class="text-lg font-black text-white tracking-tighter drop-shadow-md">Functions</span>
             </div>
-            <div class="w-full h-[0.5px] bg-white/20 mt-2"></div>
-            <div class="text-[9px] opacity-80 tracking-wide">PHYU STUDIO • EDUCATION HUB</div>
+        </div>
+    </header>
+
+    <div id="page-content">
+        <!-- iOS Widgets -->
+        <div class="widget-container">
+            <div class="ios-widget" onclick="openModal('calendar')">
+                <!-- 數字鐘佈局 -->
+                <div class="flex flex-col">
+                    <span id="date-weekday" class="text-xs font-bold text-red-100 uppercase">--</span>
+                    <span id="date-time" class="text-3xl font-light leading-tight">00:00</span>
+                </div>
+                <!-- 傳統鐘佈局 -->
+                <div class="analog-clock">
+                    <div id="h-hand" class="clock-hand hour-hand"></div>
+                    <div id="m-hand" class="clock-hand min-hand"></div>
+                    <div id="s-hand" class="clock-hand sec-hand"></div>
+                    <div class="clock-center"></div>
+                </div>
+                <div id="date-full" class="text-xs font-medium opacity-80">-- -- ----</div>
+            </div>
+            <div class="ios-widget bg-blue-400/30">
+                <div class="flex justify-between items-start">
+                    <span id="weather-temp" class="text-3xl font-light">--°</span>
+                    <i id="weather-icon" class="fas fa-sun text-2xl"></i>
+                </div>
+                <div class="text-[10px] font-bold tracking-widest uppercase">Hong Kong</div>
+            </div>
         </div>
 
-        <div id="desktop-grid" class="icon-grid" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'desktop')"></div>
+        <!-- App Grid -->
+        <div id="app-grid" class="app-grid">
+            <!-- 由 JS 渲染 -->
+        </div>
+    </div>
+
+    <!-- 功能模態視窗 -->
+    <div id="ios-modal" class="ios-modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <div id="modal-body-content" class="h-full">
+                <!-- 動態注入內容 -->
+            </div>
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400"><i class="fas fa-times"></i></button>
+        </div>
     </div>
 
     <!-- 底部 Dock -->
-    <div id="dock-wrapper" class="dock-wrapper">
-        <div id="dock-bar" class="dock-container" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'dock')"></div>
-    </div>
-
-    <!-- 彈窗內容保留 -->
-    <div id="calc-overlay" class="widget-modal-overlay" onclick="closeWidget('calc-overlay')">
-        <div class="widget-content" onclick="event.stopPropagation()">
-            <div class="widget-close-btn" onclick="closeWidget('calc-overlay')"><i class="fas fa-times"></i></div>
-            <div class="calc-display" id="calc-result">0</div>
-            <div class="calc-grid">
-                <div class="calc-btn btn-sci" onclick="calcAction('sq')">x²</div>
-                <div class="calc-btn btn-sci" onclick="calcAction('sqrt')">√x</div>
-                <div class="calc-btn btn-sci" onclick="calcAction('pi')">π</div>
-                <div class="calc-btn btn-sci" onclick="calcAction('inv')">1/x</div>
-                <div class="calc-btn btn-gray" onclick="calcAction('C')">AC</div>
-                <div class="calc-btn btn-gray" onclick="calcAction('+/-')">±</div>
-                <div class="calc-btn btn-gray" onclick="calcAction('%')">%</div>
-                <div class="calc-btn btn-orange" onclick="calcAction('/')">÷</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('7')">7</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('8')">8</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('9')">9</div>
-                <div class="calc-btn btn-orange" onclick="calcAction('*')">×</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('4')">4</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('5')">5</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('6')">6</div>
-                <div class="calc-btn btn-orange" onclick="calcAction('-')">−</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('1')">1</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('2')">2</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('3')">3</div>
-                <div class="calc-btn btn-orange" onclick="calcAction('+')">+</div>
-                <div class="calc-btn btn-dark col-span-2" style="aspect-ratio: auto; border-radius: 40px; justify-content: flex-start; padding-left: 25px;" onclick="calcAction('0')">0</div>
-                <div class="calc-btn btn-dark" onclick="calcAction('.')">.</div>
-                <div class="calc-btn btn-orange" onclick="calcAction('=')">=</div>
+    <div id="dock-nav-wrapper" class="dock-wrapper">
+        <nav class="dock-nav">
+            <div class="dock-content flex items-center gap-14">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/home.html')" class="dock-item">
+                    <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
+                </button>
+                <button onclick="handleNavigation('index.html')" class="dock-item">
+                    <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
+                </button>
+                <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="dock-item active">
+                    <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
+                </button>
+                <button onclick="handleNavigation('https://mail.google.com/mail/u/0/#inbox')" class="dock-item">
+                    <i class="fab fa-google"></i><span class="uppercase">郵箱</span>
+                </button>
             </div>
-        </div>
-    </div>
-
-    <div id="timer-overlay" class="widget-modal-overlay" onclick="closeWidget('timer-overlay')">
-        <div class="widget-content" onclick="event.stopPropagation()">
-            <div class="widget-close-btn" onclick="closeWidget('timer-overlay')"><i class="fas fa-times"></i></div>
-            <div class="timer-view">
-                <div class="text-xs font-bold opacity-40 mb-6 tracking-widest uppercase">Timer</div>
-                <div class="timer-inputs" id="timer-setting">
-                    <input type="number" id="t-min" class="timer-input" value="1">
-                    <span class="text-3xl">:</span>
-                    <input type="number" id="t-sec" class="timer-input" value="00">
-                </div>
-                <div id="timer-val" class="timer-display">01:00</div>
-                <div class="timer-controls">
-                    <div class="timer-btn timer-reset" onclick="resetTimer()">重設</div>
-                    <div id="timer-toggle-btn" class="timer-btn timer-start" onclick="toggleTimer()">開始</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="iframe-overlay" class="ios-overlay" onclick="closeIframe()">
-        <div class="ios-modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <div class="flex items-center gap-2">
-                    <i id="modal-icon" class="fas fa-file-pdf"></i>
-                    <span id="modal-title" class="font-semibold text-sm">視窗</span>
-                </div>
-                <div class="close-btn" onclick="closeIframe()"><i class="fas fa-times text-xs"></i></div>
-            </div>
-            <div class="modal-body"><iframe id="app-iframe" allowfullscreen></iframe></div>
-        </div>
+        </nav>
     </div>
 
     <script>
-        let appList = [
-            { id: 1, label: "計算機", img: "https://phyuaaphysics.github.io/phyustudio/calculator.png", type: "calc", dock: true },
-            { id: 2, label: "公式表", img: "https://phyuaaphysics.github.io/phyustudio/formula.png", type: "pdf", dock: true },
-            { id: 3, label: "音樂", img: "https://phyuaaphysics.github.io/phyustudio/music.png", type: "music", dock: true },
-            { id: 4, label: "計時器", img: "https://phyuaaphysics.github.io/phyustudio/timer.png", type: "timer", dock: true },
-            { id: 5, label: "Pastpaper", img: "https://phyuaaphysics.github.io/phyustudio/function-3.png", url: "https://sites.google.com/np2c.edu.hk/pastpaper-system/home", dock: false },
-            { id: 6, label: "資源中心", img: "https://phyuaaphysics.github.io/phyustudio/function-1.png", url: "https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home", dock: false },
-            { id: 7, label: "電子書", img: "https://phyuaaphysics.github.io/phyustudio/function-2.png", url: "https://sites.google.com/view/lessonremarkphyu2025start/home", dock: false },
-            { id: 8, label: "Formula", img: "https://phyuaaphysics.github.io/phyustudio/function-4.png", url: "https://sites.google.com/np2c.edu.hk/phyformulabook/home", dock: false },
-            { id: 11, label: "Edcity", img: "https://phyuaaphysics.github.io/phyustudio/function-8.png", url: "https://wapps1.hkedcity.net/cas/login?service=https%3A%2F%2Fwapps1.hkedcity.net%2Fcas%2Foauth2.0%2FcallbackAuthorize%3Fclient_id%3DOqb%26redirect_uri%3Dhttps%253A%252F%252Foqb.edcity.hk%252F%26response_type%3Dcode", dock: false },
-            { id: 12, label: "返回首頁", img: "http://phyuaaphysics.github.io/phyustudio/exit.png", url: "http://phyuaaphysics.github.io/phyustudio/home.html", dock: false }
+        const API_PREFIX = "https://phyuaaphysics.github.io/phyustudio/";
+        
+        const appList = [
+            { id: 1, label: '計算機', icon: 'calculator.png', type: 'calc' },
+            { id: 2, label: '公式表', icon: 'formula.png', type: 'pdf', url: API_PREFIX + 'formula1.pdf' },
+            { id: 3, label: '音樂', icon: 'music.png', type: 'music', url: 'https://www.youtube.com/embed/videoseries?list=PL4fGSI1pDJn5kI81J1u6z79_7sT_yM0eW' },
+            { id: 4, label: '計時器', icon: 'timer.png', type: 'timer' },
+            { id: 5, label: 'Pastpaper', icon: 'function-3.png', type: 'link', url: 'https://sites.google.com/np2c.edu.hk/pastpaper-system/home' },
+            { id: 6, label: '資源中心', icon: 'function-1.png', type: 'link', url: 'https://sites.google.com/np2c.edu.hk/phy-student-resource-centre/home' },
+            { id: 7, label: '電子書', icon: 'function-2.png', type: 'link', url: 'https://sites.google.com/view/lessonremarkphyu2025start/home' },
+            { id: 8, label: 'Formula', icon: 'function-4.png', type: 'link', url: 'https://sites.google.com/np2c.edu.hk/phyformulabook/home' },
+            { id: 11, label: 'Edcity', icon: 'function-8.png', type: 'link', url: 'https://wapps1.hkedcity.net/cas/login' },
+            { id: 12, label: '返回首頁', icon: 'exit.png', type: 'local', url: 'https://phyuaaphysics.github.io/phyustudio/home.html' }
         ];
 
-        let isEditing = false;
-        let pressTimer;
-
-        function renderUI() {
-            const deskGrid = document.getElementById('desktop-grid');
-            const dockBar = document.getElementById('dock-bar');
-            deskGrid.innerHTML = '';
-            dockBar.innerHTML = '';
-
-            appList.forEach(app => {
-                const item = document.createElement('div');
-                item.draggable = isEditing;
-                item.ondragstart = (e) => e.dataTransfer.setData("text/plain", app.id);
-                
-                if (app.dock) {
-                    item.className = 'dock-item';
-                    item.innerHTML = `
-                        <img src="${app.img}" class="w-full h-full object-cover">
-                        <div class="delete-badge" onclick="removeApp(event, ${app.id})"><i class="fas fa-minus"></i></div>
-                    `;
-                    item.onclick = (e) => { e.stopPropagation(); if(!isEditing) handleAppClick(app); };
-                    setupLongPress(item);
-                    dockBar.appendChild(item);
-                } else {
-                    item.className = 'icon-card';
-                    item.innerHTML = `
-                        <div class="icon-img-wrapper">
-                            <img src="${app.img}">
-                            <div class="delete-badge" onclick="removeApp(event, ${app.id})"><i class="fas fa-minus"></i></div>
-                        </div>
-                        <span class="icon-label">${app.label}</span>
-                    `;
-                    item.onclick = (e) => { e.stopPropagation(); if(!isEditing) handleAppClick(app); };
-                    setupLongPress(item);
-                    deskGrid.appendChild(item);
-                }
-            });
-        }
-
-        function removeApp(e, id) {
-            e.stopPropagation();
-            appList = appList.filter(app => app.id !== id);
-            renderUI();
-        }
-
-        function removeWidget(e) {
-            e.stopPropagation();
-            document.getElementById('weather-widget').style.display = 'none';
+        function renderApps() {
+            const grid = document.getElementById('app-grid');
+            grid.innerHTML = appList.map(app => `
+                <div class="app-item" oncontextmenu="return false;" onmousedown="startLongPress(event)" onmouseup="cancelLongPress()" ontouchstart="startLongPress(event)" ontouchend="cancelLongPress()" onclick="handleAppClick(${JSON.stringify(app).replace(/"/g, '&quot;')})">
+                    <img src="${API_PREFIX}${app.icon}" class="app-icon" alt="${app.label}">
+                    <span class="app-label">${app.label}</span>
+                </div>
+            `).join('');
         }
 
         function handleAppClick(app) {
-            if (app.type === 'calc') document.getElementById('calc-overlay').style.display = 'flex';
-            else if (app.type === 'timer') document.getElementById('timer-overlay').style.display = 'flex';
-            else if (app.type === 'pdf') openIframe("公式表", "https://phyuaaphysics.github.io/phyustudio/formula1.pdf", "fa-file-pdf");
-            else if (app.type === 'music') openIframe("音樂", "https://www.youtube.com/embed/iqEr3P78fz8?autoplay=1", "fa-music");
-            else if (app.url) window.open(app.url, app.url.includes('phyustudio') ? '_self' : '_blank');
+            if (document.body.classList.contains('edit-mode')) return;
+            if (app.type === 'link') window.open(app.url, '_blank');
+            else if (app.type === 'local') window.location.href = app.url;
+            else if (app.type === 'calc') openModal('calc');
+            else if (app.type === 'timer') openModal('timer');
+            else if (app.type === 'pdf' || app.type === 'music') openModal('iframe', app.url);
         }
 
-        function closeWidget(id) { document.getElementById(id).style.display = 'none'; }
-
-        // 計算機邏輯
-        let calcVal = "0";
-        function calcAction(act) {
-            const res = document.getElementById('calc-result');
-            try {
-                if (act === 'C') calcVal = "0";
-                else if (act === '=') calcVal = eval(calcVal.replace('×', '*').replace('÷', '/')).toString();
-                else if (act === '+/-') calcVal = (parseFloat(calcVal) * -1).toString();
-                else if (act === 'sq') calcVal = (Math.pow(parseFloat(calcVal), 2)).toString();
-                else if (act === 'sqrt') calcVal = (Math.sqrt(parseFloat(calcVal))).toString();
-                else if (act === 'pi') calcVal = Math.PI.toFixed(6).toString();
-                else if (act === 'inv') calcVal = (1 / parseFloat(calcVal)).toString();
-                else {
-                    if (calcVal === "0" && act !== '.') calcVal = act;
-                    else calcVal += act;
-                }
-            } catch(e) { calcVal = "Error"; }
-            res.innerText = calcVal.length > 10 ? calcVal.substring(0, 10) : calcVal;
-        }
-
-        // 計時器邏輯
-        let timerSeconds = 0;
+        // 計時器邏輯變數
+        let timerSeconds = 300; // 預設5分鐘
         let timerInterval = null;
+
+        function openModal(type, url = '') {
+            const modal = document.getElementById('ios-modal');
+            const content = document.getElementById('modal-body-content');
+            modal.classList.add('active');
+            
+            // 根據類型切換模態框樣式
+            if (type === 'calc') modal.classList.add('calc-mode');
+            else modal.classList.remove('calc-mode');
+
+            if (type === 'calc') {
+                content.innerHTML = `
+                    <div class="calc-display" id="calc-res">0</div>
+                    <div class="calc-grid">
+                        <div class="calc-btn op" onclick="calcInput('C')">AC</div>
+                        <div class="calc-btn sci" onclick="calcInput('sqrt')">√</div>
+                        <div class="calc-btn sci" onclick="calcInput('%')">%</div>
+                        <div class="calc-btn op" onclick="calcInput('/')">÷</div>
+
+                        <div class="calc-btn" onclick="calcInput('7')">7</div>
+                        <div class="calc-btn" onclick="calcInput('8')">8</div>
+                        <div class="calc-btn" onclick="calcInput('9')">9</div>
+                        <div class="calc-btn op" onclick="calcInput('*')">×</div>
+
+                        <div class="calc-btn" onclick="calcInput('4')">4</div>
+                        <div class="calc-btn" onclick="calcInput('5')">5</div>
+                        <div class="calc-btn" onclick="calcInput('6')">6</div>
+                        <div class="calc-btn op" onclick="calcInput('-')">-</div>
+
+                        <div class="calc-btn" onclick="calcInput('1')">1</div>
+                        <div class="calc-btn" onclick="calcInput('2')">2</div>
+                        <div class="calc-btn" onclick="calcInput('3')">3</div>
+                        <div class="calc-btn op" onclick="calcInput('+')">+</div>
+
+                        <div class="calc-btn sci" onclick="calcInput('sin')">sin</div>
+                        <div class="calc-btn" onclick="calcInput('0')">0</div>
+                        <div class="calc-btn" onclick="calcInput('.')">.</div>
+                        <div class="calc-btn op" onclick="calcInput('=')">=</div>
+
+                        <div class="calc-btn sci" onclick="calcInput('cos')">cos</div>
+                        <div class="calc-btn sci" onclick="calcInput('tan')">tan</div>
+                        <div class="calc-btn sci" onclick="calcInput('PI')">π</div>
+                        <div class="calc-btn sci" onclick="calcInput('sq')">x²</div>
+                    </div>`;
+            } else if (type === 'timer') {
+                content.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full space-y-6">
+                    <div class="text-6xl font-thin tracking-tight" id="timer-display">00:05:00</div>
+                    
+                    <div class="flex gap-8 items-center bg-white/50 p-6 rounded-3xl shadow-sm">
+                        <div class="timer-adjuster">
+                            <button class="adjust-btn" onclick="adjustTimer(3600)"><i class="fas fa-plus"></i></button>
+                            <span class="timer-unit-label">H</span>
+                            <button class="adjust-btn" onclick="adjustTimer(-3600)"><i class="fas fa-minus"></i></button>
+                        </div>
+                        <div class="timer-adjuster">
+                            <button class="adjust-btn" onclick="adjustTimer(60)"><i class="fas fa-plus"></i></button>
+                            <span class="timer-unit-label">M</span>
+                            <button class="adjust-btn" onclick="adjustTimer(-60)"><i class="fas fa-minus"></i></button>
+                        </div>
+                        <div class="timer-adjuster">
+                            <button class="adjust-btn" onclick="adjustTimer(1)"><i class="fas fa-plus"></i></button>
+                            <span class="timer-unit-label">S</span>
+                            <button class="adjust-btn" onclick="adjustTimer(-1)"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button class="w-20 h-20 rounded-full bg-gray-200 font-medium" onclick="resetTimer()">重置</button>
+                        <button id="timer-toggle" class="w-20 h-20 rounded-full bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-200" onclick="toggleTimer()">開始</button>
+                    </div>
+                </div>`;
+                updateTimerDisplay();
+            } else if (type === 'calendar') {
+                renderCalendar(content);
+            } else content.innerHTML = `<iframe src="${url}" class="w-full h-full border-none rounded-lg"></iframe>`;
+        }
+
+        // 計時器功能函數
+        function adjustTimer(secs) {
+            if (timerInterval) return; // 執行中不可調整
+            timerSeconds = Math.max(0, timerSeconds + secs);
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const h = Math.floor(timerSeconds / 3600);
+            const m = Math.floor((timerSeconds % 3600) / 60);
+            const s = timerSeconds % 60;
+            const display = document.getElementById('timer-display');
+            if (display) {
+                display.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+        }
+
         function toggleTimer() {
-            const btn = document.getElementById('timer-toggle-btn');
+            const btn = document.getElementById('timer-toggle');
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
                 btn.innerText = "開始";
-                btn.className = "timer-btn timer-start";
+                btn.className = "w-20 h-20 rounded-full bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-200";
             } else {
-                if (timerSeconds <= 0) {
-                    const m = parseInt(document.getElementById('t-min').value) || 0;
-                    const s = parseInt(document.getElementById('t-sec').value) || 0;
-                    timerSeconds = (m * 60) + s;
-                }
                 if (timerSeconds <= 0) return;
-                document.getElementById('timer-setting').style.display = 'none';
                 timerInterval = setInterval(() => {
                     timerSeconds--;
-                    updateTimerUI();
+                    updateTimerDisplay();
                     if (timerSeconds <= 0) {
                         clearInterval(timerInterval);
                         timerInterval = null;
                         btn.innerText = "開始";
-                        document.getElementById('timer-setting').style.display = 'flex';
+                        alert("時間到！");
                     }
                 }, 1000);
                 btn.innerText = "暫停";
-                btn.className = "timer-btn timer-stop";
+                btn.className = "w-20 h-20 rounded-full bg-orange-500 text-white font-medium shadow-lg shadow-orange-200";
             }
         }
+
         function resetTimer() {
             clearInterval(timerInterval);
             timerInterval = null;
-            timerSeconds = 0;
-            document.getElementById('timer-setting').style.display = 'flex';
-            document.getElementById('timer-toggle-btn').innerText = "開始";
-            document.getElementById('timer-toggle-btn').className = "timer-btn timer-start";
-            updateTimerUI();
-        }
-        function updateTimerUI() {
-            const m = Math.floor(timerSeconds / 60);
-            const s = timerSeconds % 60;
-            document.getElementById('timer-val').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            timerSeconds = 300;
+            updateTimerDisplay();
+            const btn = document.getElementById('timer-toggle');
+            if (btn) {
+                btn.innerText = "開始";
+                btn.className = "w-20 h-20 rounded-full bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-200";
+            }
         }
 
-        function allowDrop(e) { if (!isEditing) return; e.preventDefault(); }
-        function handleDrop(e, targetType) {
-            e.preventDefault();
-            const appId = parseInt(e.dataTransfer.getData("text/plain"));
-            const app = appList.find(a => a.id === appId);
-            if (app) { app.dock = (targetType === 'dock'); renderUI(); }
-        }
-
-        function setupLongPress(element) {
-            const start = () => { if (!isEditing) pressTimer = setTimeout(enterEditingMode, 800); };
-            const cancel = () => clearTimeout(pressTimer);
-            element.addEventListener('mousedown', start);
-            element.addEventListener('touchstart', start);
-            element.addEventListener('mouseup', cancel);
-            element.addEventListener('touchend', cancel);
-        }
-
-        function enterEditingMode() { isEditing = true; document.body.classList.add('editing'); renderUI(); }
-        function exitEditingMode() { if (!isEditing) return; isEditing = false; document.body.classList.remove('editing'); renderUI(); }
-
-        function openIframe(title, src, icon) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-icon').className = `fas ${icon}`;
-            document.getElementById('app-iframe').src = src;
-            document.getElementById('iframe-overlay').style.display = 'flex';
-        }
-        function closeIframe() { document.getElementById('app-iframe').src = ""; document.getElementById('iframe-overlay').style.display = 'none'; }
-
-        function updateTime() {
+        function renderCalendar(container) {
             const now = new Date();
-            document.getElementById('widget-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-            const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-            document.getElementById('widget-date').innerText = `${now.getMonth()+1}月${now.getDate()}日 ${days[now.getDay()]}`;
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+            
+            let html = `
+                <div class="p-4 bg-white h-full rounded-xl shadow-inner">
+                    <div class="calendar-header">
+                        <h2 class="text-2xl font-bold text-gray-800">${year}年 ${monthNames[month]}</h2>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-day-label">日</div><div class="calendar-day-label">一</div>
+                        <div class="calendar-day-label">二</div><div class="calendar-day-label">三</div>
+                        <div class="calendar-day-label">四</div><div class="calendar-day-label">五</div>
+                        <div class="calendar-day-label">六</div>
+            `;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const prevDays = new Date(year, month, 0).getDate();
+
+            // 填充前一個月
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="calendar-date other-month">${prevDays - i}</div>`;
+            }
+
+            // 填充當前月
+            for (let i = 1; i <= daysInMonth; i++) {
+                const isToday = i === now.getDate() ? "today" : "";
+                html += `<div class="calendar-date ${isToday}">${i}</div>`;
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
         }
 
-        async function getRealWeather() {
-            if (!navigator.geolocation) return;
-            navigator.geolocation.getCurrentPosition(async (pos) => {
+        function closeModal() { document.getElementById('ios-modal').classList.remove('active'); }
+
+        let calcStr = "";
+        function calcInput(v) {
+            const res = document.getElementById('calc-res');
+            if (v === 'C') calcStr = "";
+            else if (v === '=') {
                 try {
-                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current_weather=true`);
-                    const data = await res.json();
-                    document.getElementById('weather-temp').innerText = Math.round(data.current_weather.temperature) + '°C';
-                    document.getElementById('weather-desc').innerText = "數據已同步";
-                    const code = data.current_weather.weathercode;
-                    const iconEl = document.getElementById('weather-icon');
-                    if (code === 0) iconEl.className = 'fas fa-sun text-yellow-400';
-                    else if (code <= 3) iconEl.className = 'fas fa-cloud-sun text-yellow-200';
-                    else iconEl.className = 'fas fa-cloud';
-                } catch (e) { document.getElementById('weather-desc').innerText = "無法更新"; }
-            });
+                    let expression = calcStr
+                        .replace(/sin/g, 'Math.sin')
+                        .replace(/cos/g, 'Math.cos')
+                        .replace(/tan/g, 'Math.tan')
+                        .replace(/PI/g, 'Math.PI')
+                        .replace(/sqrt/g, 'Math.sqrt')
+                        .replace(/log/g, 'Math.log10')
+                        .replace(/exp/g, 'Math.exp')
+                        .replace(/\^/g, '**');
+                    calcStr = eval(expression).toString();
+                } catch(e) { calcStr = "Error"; }
+            } else if (v === 'sin' || v === 'cos' || v === 'tan' || v === 'sqrt' || v === 'log' || v === 'exp') {
+                calcStr += v + "(";
+            } else if (v === 'sq') {
+                calcStr += "**2";
+            } else if (v === 'PI') {
+                calcStr += "PI";
+            } else if (v === 'pow') {
+                calcStr += "^";
+            } else {
+                calcStr += v;
+            }
+            res.innerText = calcStr || "0";
         }
 
-        window.onload = () => { renderUI(); updateTime(); setInterval(updateTime, 1000); getRealWeather(); };
+        let pressTimer;
+        function startLongPress(e) {
+            pressTimer = setTimeout(() => {
+                document.querySelectorAll('.app-item').forEach(el => el.classList.add('jiggling'));
+                document.body.classList.add('edit-mode');
+            }, 800);
+        }
+        function cancelLongPress() { clearTimeout(pressTimer); }
+        document.body.addEventListener('click', (e) => {
+            if (!e.target.closest('.app-item')) {
+                document.querySelectorAll('.app-item').forEach(el => el.classList.remove('jiggling'));
+                document.body.classList.remove('edit-mode');
+            }
+        });
+
+        async function fetchWeather() {
+            try {
+                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=22.3&longitude=114.1&current_weather=true');
+                const data = await res.json();
+                document.getElementById('weather-temp').innerText = Math.round(data.current_weather.temperature) + "°";
+            } catch(e) {}
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // 數字鐘更新
+            document.getElementById('date-weekday').innerText = days[now.getDay()];
+            document.getElementById('date-time').innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            document.getElementById('date-full').innerText = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+            // 傳統鐘指針轉動更新
+            const hDeg = (hours % 12) * 30 + (minutes / 60) * 30;
+            const mDeg = minutes * 6;
+            const sDeg = seconds * 6;
+            
+            const hHand = document.getElementById('h-hand');
+            const mHand = document.getElementById('m-hand');
+            const sHand = document.getElementById('s-hand');
+            
+            if(hHand) hHand.style.transform = `rotate(${hDeg}deg)`;
+            if(mHand) mHand.style.transform = `rotate(${mDeg}deg)`;
+            if(sHand) sHand.style.transform = `rotate(${sDeg}deg)`;
+        }
+
+        function handleNavigation(url) { window.location.href = url; }
+
+        window.onload = () => {
+            renderApps();
+            fetchWeather();
+            updateClock();
+            setInterval(updateClock, 1000);
+        };
     </script>
 </body>
 </html>
-
-
