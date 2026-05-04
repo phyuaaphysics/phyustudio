@@ -20,11 +20,11 @@
             --glacier-ice: #38bdf8;
             --glacier-bg: #eef2f6;
             --glacier-glass: rgba(224, 242, 254, 0.85); 
-            --glacier-nav-glass: rgba(255, 255, 255, 0.75); 
+            --glacier-nav-glass: rgba(255, 255, 255, 0.75);
         }
 
         html { 
-            scroll-behavior: smooth; 
+            scroll-behavior: smooth;
             height: 100%;
             overflow: hidden; 
         }
@@ -43,7 +43,7 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         .logo-bar {
-            position: fixed; 
+            position: fixed;
             top: 0; 
             left: 0; 
             width: 100%; 
@@ -80,7 +80,7 @@
         }
 
         .filter-bar.collapsed {
-            transform: translateY(-56px); 
+            transform: translateY(-56px);
             opacity: 0.9;
         }
 
@@ -133,7 +133,7 @@
         .slider-wrapper { position: relative; width: 100%; }
 
         .slider-container { 
-            display: flex; 
+            display: flex;
             overflow-x: auto; 
             scroll-snap-type: x mandatory; 
             gap: 2px; 
@@ -167,8 +167,9 @@
         .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
 
         .poster-card { 
-            aspect-ratio: 2/3; border-radius: 4px; overflow: hidden; background: #cbd5e1; 
-            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; 
+            aspect-ratio: 2/3;
+            border-radius: 4px; overflow: hidden; background: #cbd5e1; 
+            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
             border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
             will-change: transform;
         }
@@ -179,9 +180,10 @@
         }
 
         .hero-container-framed {
-            border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
             box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
-            overflow: hidden; position: relative; background-color: #fff; 
+            overflow: hidden; position: relative; background-color: #fff;
             transition: all 0.4s ease;
         }
 
@@ -219,14 +221,16 @@
         }
 
         .dock-toggle-btn {
-            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            width: 32px;
+            height: 32px; display: flex; align-items: center; justify-content: center;
             color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
         }
 
         .dock-content { display: flex; align-items: center; gap: 14px; }
 
         .dock-item {
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            display: flex;
+            flex-direction: column; align-items: center; gap: 5px;
             color: #94a3b8; transition: all 0.3s; min-width: 58px;
         }
 
@@ -241,17 +245,60 @@
             transform: translateX(-50%);
             width: 60px; height: 5px;
             background: rgba(15, 23, 42, 0.2);
-            border-radius: 10px; z-index: 199; cursor: pointer; display: none;
+            border-radius: 10px;
+            z-index: 199; cursor: pointer; display: none;
         }
         .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
 
         .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px; }
+
+        /* 同步按鈕樣式 */
+        .sync-btn {
+            position: absolute;
+            right: 24px;
+            bottom: 24px;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .sync-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+        .sync-btn:active { transform: scale(0.95); }
+        .sync-btn.loading i { animation: spin 1s linear infinite; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Loading Animation */
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 12px;
+            color: var(--glacier-primary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
 
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
             .dock-wrapper { width: 92%; max-width: 400px; }
             #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
             .nav-btn { display: none !important; }
+            .sync-btn { right: 16px; bottom: 16px; padding: 8px 14px; }
         }
     </style>
 </head>
@@ -271,11 +318,8 @@
         </div>
         
         <div class="filter-bar px-6" id="filter-bar">
-            <div class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
-                <button class="filter-capsule active" data-filter="all" onclick="setFilter('all')">全部</button>
-                <button class="filter-capsule" data-filter="course" onclick="setFilter('course')">核心課程全庫</button>
-                <button class="filter-capsule" data-filter="funda" onclick="setFilter('funda')">基礎練習冊</button>
-                <button class="filter-capsule" data-filter="other" onclick="setFilter('other')">其他分類</button>
+            <div id="filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
+                <button class="filter-capsule active" onclick="setFilter('all')">載入中...</button>
             </div>
             <div class="filter-toggle-trigger" onclick="toggleFilter()">
                 <i class="fas fa-chevron-up text-[10px]" id="filter-chevron"></i>
@@ -290,67 +334,47 @@
                 <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
                     <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
                     <div class="hero-gradient-overlay"></div>
+                    
+                    <!-- 手動同步按鈕 -->
+                    <button id="sync-button" onclick="manualSync()" class="sync-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>與雲端同步</span>
+                    </button>
+
                     <div class="absolute inset-0 flex flex-col items-center justify-end pb-16 px-6 text-center">
                         <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-12 relative z-10">
-                        <button onclick="handleNavigation(config.heroUrl)" class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
+                        <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')" 
+                                class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
                             馬上開始
                         </button>
                     </div>
                 </div>
             </section>
 
-            <main class="space-y-12 max-w-screen-2xl mx-auto px-6">
-                <section id="sec-course" data-group="course">
-                    <h2 class="section-title">核心課程全庫</h2>
-                    <div class="slider-wrapper">
-                        <button class="nav-btn prev" onclick="scrollSlider('course-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
-                        <div class="slider-container hide-scrollbar" id="course-slider"></div>
-                        <button class="nav-btn next" onclick="scrollSlider('course-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
-                    </div>
-                </section>
-                
-                <section id="sec-funda-01-10" data-group="funda">
-                    <h2 class="section-title">基礎練習冊 01-10</h2>
-                    <div class="slider-wrapper">
-                        <button class="nav-btn prev" onclick="scrollSlider('funda-01-10-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
-                        <div class="slider-container hide-scrollbar" id="funda-01-10-slider"></div>
-                        <button class="nav-btn next" onclick="scrollSlider('funda-01-10-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
-                    </div>
-                </section>
-
-                <section id="sec-funda-11-20" data-group="funda">
-                    <h2 class="section-title">基礎練習冊 11-20</h2>
-                    <div class="slider-wrapper">
-                        <button class="nav-btn prev" onclick="scrollSlider('funda-11-20-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
-                        <div class="slider-container hide-scrollbar" id="funda-11-20-slider"></div>
-                        <button class="nav-btn next" onclick="scrollSlider('funda-11-20-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
-                    </div>
-                </section>
-
-                <!-- Pastpaper Archive 英雄卡片 (更新視覺設計) -->
-                <section id="sec-archive" class="mt-20 pb-16">
-                    <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
-                        <!-- 背景圖片 -->
-                        <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                        <!-- 高級感漸層遮罩 (由下往上變黑) -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
-                        
-                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                            <!-- 高級海報字體風格標題 -->
-                            <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
-                                Pastpaper Archive
-                            </h2>
-                            <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
-                            <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
-                                Detailed Examination Resource Collections
-                            </p>
-                            <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
-                                Enter Archive
-                            </button>
-                        </div>
-                    </div>
-                </section>
+            <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
+                <!-- 動態生成的內容將放在這裡 -->
+                <div class="loader">正在從數據庫獲取內容...</div>
             </main>
+
+            <section id="sec-archive" class="mt-20 pb-16 px-6">
+                <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
+                    
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                        <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
+                            Pastpaper Archive
+                        </h2>
+                        <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+                        <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
+                            Detailed Examination Resource Collections
+                        </p>
+                        <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
+                            Enter Archive
+                        </button>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
@@ -361,13 +385,13 @@
                 <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
                     <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
                 </button>
-                <button onclick="handleNavigation(config.simUrl)" class="dock-item">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
                     <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
                 </button>
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
-                <button onclick="handleNavigation(config.googleUrl)" class="dock-item">
+                <button onclick="handleNavigation('https://mail.google.com/mail/u/0/#inbox')" class="dock-item">
                     <i class="fab fa-google"></i><span class="uppercase">郵箱</span>
                 </button>
             </div>
@@ -377,50 +401,120 @@
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
     <script>
-        const config = {
-            heroUrl: 'https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home',
-            googleUrl: 'https://mail.google.com/mail/u/0/#inbox',
-            simUrl: 'https://phyuaaphysics.github.io/phyustudio/simulation.html',
-            data: [
-                { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg', url: 'https://sites.google.com/np2c.edu.hk/heatcourse/home' },
-                { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg', url: 'https://sites.google.com/np2c.edu.hk/mechanics-all/home' },
-                { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg', url: 'https://sites.google.com/np2c.edu.hk/wave/home' },
-                { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-4-ennm.jpg', url: 'https://sites.google.com/np2c.edu.hk/emcourse/home' },
-                { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-5-nu.jpg', url: 'https://sites.google.com/np2c.edu.hk/nuclearandradioactivity/home' },
-                { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg', url: 'https://sites.google.com/np2c.edu.hk/atomic-world/home' },
-                { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg', url: 'https://sites.google.com/np2c.edu.hk/medicalphysics/home' },
-                
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS301.png', url: 'https://phyuphysics.com/video-fundamental-s3-bk01/' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'https://sites.google.com/np2c.edu.hk/vols3ii/home' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'https://sites.google.com/np2c.edu.hk/vol01a/home' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda01B.png', url: 'https://phyuphysics.com/video-fundamental-01b/' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda02.png', url: 'https://sites.google.com/np2c.edu.hk/vol02/home' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda03.png', url: 'https://sites.google.com/np2c.edu.hk/vol03/home' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda04.png', url: 'https://sites.google.com/np2c.edu.hk/vol04/home' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda05.png', url: 'https://sites.google.com/np2c.edu.hk/vol05/home' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda06.png', url: 'https://phyuphysics.com/video-fundamental-06-oppenheimer/' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda07.png', url: 'https://sites.google.com/np2c.edu.hk/hw-vol-07/home?authuser=1' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda08.png', url: 'https://phyuphysics.com/video-fundamental-06-oppenheimer/' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda09.png', url: 'no link' },
-                { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda10.png', url: 'no link' },
+        // Google Sheet CSV URL
+        const SPREADSHEET_ID = '1QIwkfmUZPRWMLrDVHYe-bUtUMSmkU2Ad6PlZnYIij_M';
+        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&cachebust=${Date.now()}`;
 
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda11.png', url: 'https://sites.google.com/np2c.edu.hk/vol11/home' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda12.png', url: 'https://phyuphysics.com/video-fundamental-012/' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda13.png', url: 'https://sites.google.com/np2c.edu.hk/vol-13/?pli=1&authuser=1' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda14.png', url: 'https://sites.google.com/np2c.edu.hk/vol-14/home' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda15.png', url: 'https://sites.google.com/np2c.edu.hk/vol-15/home' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda16.png', url: 'https://sites.google.com/np2c.edu.hk/vol-16/home' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda17.png', url: 'https://sites.google.com/np2c.edu.hk/vol-17/home' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda18.png', url: 'https://sites.google.com/np2c.edu.hk/vol-18/home' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda19.png', url: 'https://sites.google.com/np2c.edu.hk/vol-19/home' },
-                { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda20.png', url: 'https://sites.google.com/np2c.edu.hk/vol-20/home' }
-            ]
-        };
-
+        let rawData = [];
         let lastScrollY = window.scrollY;
 
-        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        // 初始化與數據抓取
+        async function initData() {
+            try {
+                // 每次抓取都加上 timestamp 防止快取
+                const currentUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
+                const response = await fetch(currentUrl);
+                const csvText = await response.text();
+                rawData = parseCSV(csvText);
+                renderFilters();
+                renderContent();
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請檢查網路連線。</div>`;
+            }
+        }
 
+        // 手動同步邏輯
+        async function manualSync() {
+            const btn = document.getElementById('sync-button');
+            btn.classList.add('loading');
+            btn.querySelector('span').innerText = '同步中...';
+            
+            await initData();
+            
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                btn.querySelector('span').innerText = '與雲端同步';
+            }, 800);
+        }
+
+        // CSV 解析
+        function parseCSV(text) {
+            const rows = text.split('\n').map(row => {
+                const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+                return row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim());
+            });
+            
+            return rows.slice(1) 
+                .filter(row => row[1]) 
+                .map(row => ({
+                    filter: row[0],
+                    section: row[1],
+                    order: parseInt(row[2]) || 0,
+                    img: row[3],
+                    url: row[4]
+                }));
+        }
+
+        // 渲染 Filter Bar
+        function renderFilters() {
+            const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
+            const container = document.getElementById('filter-container');
+            container.innerHTML = filters.map(f => `
+                <button class="filter-capsule ${f === 'all' ? 'active' : ''}" 
+                        data-filter="${f}" 
+                        onclick="setFilter('${f}')">
+                    ${f === 'all' ? '全部' : f}
+                </button>
+            `).join('');
+        }
+
+        // 渲染主要內容
+        function renderContent() {
+            const mainArea = document.getElementById('main-content-area');
+            mainArea.innerHTML = '';
+
+            const sections = [...new Set(rawData.map(d => d.section))];
+
+            sections.forEach(secName => {
+                const itemsInSec = rawData
+                    .filter(d => d.section === secName)
+                    .sort((a, b) => a.order - b.order);
+
+                if (itemsInSec.length === 0) return;
+
+                const filterTag = itemsInSec[0].filter;
+                const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
+                const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+
+                const sectionHtml = `
+                    <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
+                        <h2 class="section-title">${secName}</h2>
+                        <div class="slider-wrapper">
+                            <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
+                                <i class="fas fa-chevron-left text-xs text-slate-400"></i>
+                            </button>
+                            <div class="slider-container hide-scrollbar" id="${sliderId}">
+                                ${itemsInSec.map(item => `
+                                    <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
+                                        <div class="poster-card">
+                                            <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
+                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                            </button>
+                        </div>
+                    </section>
+                `;
+                mainArea.insertAdjacentHTML('beforeend', sectionHtml);
+            });
+        }
+
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        
         function toggleFilter() {
             const bar = document.getElementById('filter-bar');
             bar.classList.toggle('collapsed');
@@ -437,7 +531,7 @@
         }
 
         function handleNavigation(url) {
-            if (!url || url === '#' || url === 'no link') return;
+            if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
             window.location.href = url;
         }
 
@@ -447,10 +541,11 @@
                 if(btn.dataset.filter === filterType) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
+
             const heroSection = document.getElementById('hero-section');
             const archiveSection = document.getElementById('sec-archive');
-            const sections = document.querySelectorAll('#view-home main section:not(#sec-archive)');
-            
+            const sections = document.querySelectorAll('.dynamic-section');
+
             if (filterType === 'all') {
                 heroSection.classList.remove('section-hidden');
                 archiveSection.classList.remove('section-hidden');
@@ -459,33 +554,17 @@
                 heroSection.classList.add('section-hidden');
                 archiveSection.classList.add('section-hidden');
                 sections.forEach(sec => {
-                    if (sec.dataset.group === filterType) sec.classList.remove('section-hidden');
+                    if (sec.getAttribute('data-group') === filterType) sec.classList.remove('section-hidden');
                     else sec.classList.add('section-hidden');
                 });
             }
-        }
-
-        function render() {
-            const containers = { 
-                'course': document.getElementById('course-slider'), 
-                'funda-01-10': document.getElementById('funda-01-10-slider'),
-                'funda-11-20': document.getElementById('funda-11-20-slider')
-            };
-            Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
-            config.data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = `slider-item w-32 md:w-56`;
-                div.innerHTML = `<div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>`;
-                div.onclick = () => handleNavigation(item.url);
-                let containerKey = item.category;
-                if (containers[containerKey]) containers[containerKey].appendChild(div);
-            });
         }
 
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY || document.documentElement.scrollTop;
             if (currentScrollY > 30) document.body.classList.add('scrolled');
             else document.body.classList.remove('scrolled');
+            
             const filterBar = document.getElementById('filter-bar');
             if (currentScrollY > lastScrollY && currentScrollY > 150) {
                 if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
@@ -495,7 +574,7 @@
             lastScrollY = currentScrollY;
         }, { passive: true });
 
-        document.addEventListener('DOMContentLoaded', render);
+        document.addEventListener('DOMContentLoaded', initData);
     </script>
 </body>
 </html>
