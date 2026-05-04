@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         
         :root {
             --mint-deep: #064e3b;
@@ -258,7 +258,7 @@
 
         .hero-container-framed {
             border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 24px;
-            overflow: hidden; position: relative; background-color: var(--mint-deep); 
+            overflow: hidden; position: relative; background-color: #000; 
         }
 
         .section-hidden { display: none !important; }
@@ -360,17 +360,17 @@
 </head>
 <body class="pb-40 hide-scrollbar">
 
-    <div id="page-loader">
+    <div id="page-loader" class="active">
         <div class="flex flex-col items-center">
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-12 h-12 animate-pulse mb-4">
             <p class="text-[10px] font-black tracking-[0.3em] text-emerald-400 uppercase">Simulation Lab</p>
+            <p id="loader-status" class="text-[10px] text-emerald-800 mt-2 opacity-50">載入雲端資料中...</p>
         </div>
     </div>
 
     <header id="header-root">
         <div class="logo-bar px-6" id="logo-nav-bar"> 
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
-                <!-- 直接跳轉，不觸發動畫 -->
                 <div class="cursor-pointer" onclick="window.location.href='https://phyuaaphysics.github.io/phyustudio/home.html'" id="main-logo">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                     <span class="text-xl font-black text-emerald-900 tracking-tighter">Simulation Lab</span>
@@ -383,23 +383,14 @@
         </div>
         
         <div class="filter-bar" id="filter-bar">
-            <div class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar px-6 pr-12">
+            <!-- 動態生成分類按鈕 -->
+            <div id="category-filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar px-6 pr-12">
                 <button class="filter-capsule active" data-filter="all" onclick="setFilter('all')">全部模擬</button>
-                <button class="filter-capsule" data-filter="atomic" onclick="setFilter('atomic')">原子世界</button>
-                <button class="filter-capsule" data-filter="medical" onclick="setFilter('medical')">醫學物理</button>
             </div>
             
-            <div id="sub-filter-atomic" class="sub-filter-container hide-scrollbar overflow-x-auto">
-                <div class="flex items-center gap-3">
-                    <button class="filter-capsule active text-[11px]" data-subfilter="all" onclick="setSubFilter('atomic', 'all')">
-                        <i class="fas fa-th-large"></i>全選
-                    </button>
-                    <button class="filter-capsule text-[11px]" data-subfilter="光電效應" onclick="setSubFilter('atomic', '光電效應')">
-                        <i class="fas fa-bolt"></i>光電效應
-                    </button>
-                    <button class="filter-capsule text-[11px]" data-subfilter="原子模型" onclick="setSubFilter('atomic', '原子模型')">
-                        <i class="fas fa-atom"></i>原子模型
-                    </button>
+            <div id="sub-filter-bar" class="sub-filter-container hide-scrollbar overflow-x-auto">
+                <div id="sub-filter-items" class="flex items-center gap-3">
+                    <!-- 動態生成子分類按鈕 -->
                 </div>
                 
                 <!-- 好手氣浮窗 -->
@@ -419,12 +410,27 @@
         <div id="view-sim">
             <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
                 <div class="hero-container-framed relative w-full h-[50vh] md:h-[60vh]">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png" class="absolute inset-0 w-full h-full object-cover opacity-50 filter saturate-150">
+                    <!-- 背景圖片與專業漸層 -->
+                    <img id="hero-bg" src="https://phyuaaphysics.github.io/phyustudio/virtuallab.png" class="absolute inset-0 w-full h-full object-cover filter saturate-125">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent"></div>
+                    
                     <div class="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-                        <h1 class="text-4xl md:text-6xl font-black text-white mb-4 tracking-tight">虛擬實驗室</h1>
-                        <p class="text-emerald-100 text-sm md:text-lg mb-8 max-w-lg">探索物理世界的奧秘，透過互動模擬深入理解科學原理。</p>
-                        <button onclick="scrollToContent()" class="bg-emerald-500 text-white px-12 py-3 font-bold rounded-full text-[11px] tracking-[0.2em] uppercase shadow-2xl hover:bg-emerald-400 transition-colors">
-                            瀏覽所有模擬
+                        <!-- 標題樣式調整：採用 Cinzel 幼長且 GRAND 的字體 -->
+                        <h1 class="text-3xl md:text-6xl text-white mb-3 tracking-[0.15em] uppercase" style="font-family: 'Cinzel', serif; font-weight: 400;">Physics Simulation Laboratory</h1>
+                        <p class="text-emerald-400 text-[10px] md:text-xs font-light tracking-[0.6em] mb-10 uppercase">PHYSICS IN ACTION</p>
+                        
+                        <!-- 按鈕更新 -->
+                        <button onclick="scrollToContent()" class="bg-white text-black px-14 py-4 font-black rounded-full text-[10px] tracking-[0.3em] uppercase shadow-2xl hover:bg-emerald-500 hover:text-white transition-all transform active:scale-95">
+                            Browse all
+                        </button>
+                    </div>
+                    
+                    <!-- 與雲端同步按鈕 -->
+                    <div class="absolute bottom-6 right-6 z-20">
+                        <button onclick="loadSheetData()" class="flex items-center gap-2 px-4 py-2 bg-black/30 backdrop-blur-md border border-white/20 rounded-xl text-white/80 hover:text-white hover:bg-black/40 transition-all active:scale-95 group">
+                            <i class="fas fa-sync-alt text-xs group-active:animate-spin" id="sync-icon"></i>
+                            <span class="text-[10px] font-bold tracking-widest uppercase">與雲端同步</span>
                         </button>
                     </div>
                 </div>
@@ -466,14 +472,13 @@
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
-                <!-- 直接跳轉 -->
-                <button onclick="window.location.href='https://phyuaaphysics.github.io/phyustudio/home.html'" id="dock-home" class="dock-item">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/home.html', false)" id="dock-home" class="dock-item">
                     <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
                 </button>
                 <button onclick="scrollToTop()" class="dock-item active">
                     <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
                 </button>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', true)" class="dock-item">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', false)" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
                 <button onclick="handleNavigation('https://mail.google.com/mail/u/0/#inbox', false)" class="dock-item">
@@ -486,33 +491,89 @@
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
     <script>
-        const config = {
-            categories: [
-                { id: 'atomic', title: '原子世界' },
-                { id: 'medical', title: '醫學物理學' }
-            ],
-            data: [
-                { category: 'atomic', topic: '原子模型', name: '氫原子躍遷模擬器', desc: '探索氫原子的波耳模型，觀察電子在不同能級間躍遷時吸收或釋放光子的過程，深入理解原子光譜的形成原理。', img: 'https://phyuaaphysics.github.io/phyustudio/simulator-atomic-hydrogen.png', url: 'https://phyuaaphysics.github.io/simulator-atomic-hydrogen.html' },
-                { category: 'atomic', topic: '光電效應', name: '光電效應基礎實驗', desc: '透過調整入射光頻率與強度，觀察金屬表面電子的逸出情況。驗證愛因斯坦的光電效應方程式。', img: 'https://phet.colorado.edu/sims/html/photoelectric-effect/latest/photoelectric-effect-600.png', url: 'https://phet.colorado.edu/sims/html/photoelectric-effect/latest/photoelectric-effect_all.html' },
-                { category: 'medical', topic: '眼', name: '近視糾正光路圖', desc: '互動式演示近視眼的成像缺陷，以及如何利用凹透鏡發散光線使焦點重新落在視網膜上。', img: 'https://phyuaaphysics.github.io/phyustudio/simulator-eye.png', url: 'https://phyuaaphysics.github.io/simulator-eye.html' },
-                { category: 'medical', topic: '眼', name: '近視糾正光路圖(虛像)', desc: '從虛像角度分析透鏡對成像位置的改變，進一步理解光學矯正的幾何原理。', img: 'https://phyuaaphysics.github.io/phyustudio/simulator-eye2.png', url: 'https://phyuaaphysics.github.io/simulator-eye2.html' }
-            ]
+        // Google Sheet CSV URL (導出格式)
+        const SPREADSHEET_ID = '1epq97ag6xvqjGsljmLXhLkkqS1AkDkMFjh6w01i6JvE';
+        const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+
+        let config = {
+            categories: [],
+            data: []
         };
 
         const loader = document.getElementById('page-loader');
         let lastScrollY = window.scrollY;
 
+        // 解析 CSV 資料
+        async function loadSheetData() {
+            const syncIcon = document.getElementById('sync-icon');
+            if (syncIcon) syncIcon.classList.add('animate-spin');
+            
+            try {
+                const response = await fetch(FETCH_URL);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => {
+                    // 處理 CSV 引用內容中的逗號
+                    const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    return matches ? matches.map(m => m.replace(/^"|"$/g, '')) : [];
+                });
+
+                const simulations = [];
+                const categorySet = new Set();
+
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.length < 6) continue;
+
+                    const [category, topic, name, desc, img, url] = row;
+                    simulations.push({ category, topic, name, desc, img, url });
+                    categorySet.add(category);
+                }
+
+                config.data = simulations;
+                config.categories = Array.from(categorySet).map(cat => ({ id: cat, title: cat }));
+
+                // 重新初始化過濾器與列表
+                initFilters();
+                render();
+
+                setTimeout(() => {
+                    if (syncIcon) syncIcon.classList.remove('animate-spin');
+                    loader.classList.remove('active');
+                }, 400);
+            } catch (error) {
+                console.error("資料載入失敗:", error);
+                if (syncIcon) syncIcon.classList.remove('animate-spin');
+                document.getElementById('loader-status').innerText = "載入失敗，請檢查網路連線。";
+            }
+        }
+
+        function initFilters() {
+            const container = document.getElementById('category-filter-container');
+            // 保留「全部模擬」按鈕，清空其他動態產生的
+            const allBtn = container.querySelector('[data-filter="all"]');
+            container.innerHTML = '';
+            container.appendChild(allBtn);
+            
+            config.categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-capsule';
+                btn.dataset.filter = cat.id;
+                btn.innerText = cat.title;
+                btn.onclick = () => setFilter(cat.id);
+                container.appendChild(btn);
+            });
+        }
+
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
         function toggleFilter() { document.getElementById('filter-bar').classList.toggle('collapsed'); }
 
-        // 好手氣處理
         function handleIAmLucky() {
+            if (config.data.length === 0) return;
             const randomIndex = Math.floor(Math.random() * config.data.length);
             const luckyItem = config.data[randomIndex];
             openPreview(luckyItem);
         }
 
-        // 詳情彈窗控制
         function openPreview(item) {
             const modal = document.getElementById('sim-preview-modal');
             document.getElementById('modal-img').src = item.img;
@@ -537,7 +598,6 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Iframe 控制
         function openIframe(url) {
             const container = document.getElementById('iframe-container');
             const frame = document.getElementById('sim-frame');
@@ -572,8 +632,7 @@
 
         function handleNavigation(url, showAnim = false) {
             if (!url || url === '#') return;
-            // 針對主頁跳轉優化：如果點的是主頁且 showAnim 即使為真也跳過
-            if (showAnim && !url.includes('home.html')) {
+            if (showAnim) {
                 loader.classList.add('active');
                 setTimeout(() => { window.location.href = url; }, 400);
             } else {
@@ -582,36 +641,41 @@
         }
 
         function setFilter(filterType) {
-            const buttons = document.querySelectorAll('#filter-bar > .max-w-screen-2xl > .filter-capsule');
+            const buttons = document.querySelectorAll('#category-filter-container .filter-capsule');
             buttons.forEach(btn => {
                 if(btn.dataset.filter === filterType) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
 
-            const atomicSub = document.getElementById('sub-filter-atomic');
-            if (filterType === 'atomic') atomicSub.classList.add('expanded');
-            else {
-                atomicSub.classList.remove('expanded');
-                resetSubFilters('atomic');
+            const subFilterBar = document.getElementById('sub-filter-bar');
+            const subItemsContainer = document.getElementById('sub-filter-items');
+            
+            if (filterType === 'all') {
+                subFilterBar.classList.remove('expanded');
+            } else {
+                subItemsContainer.innerHTML = `
+                    <button class="filter-capsule active text-[11px]" onclick="setSubFilter('${filterType}', 'all', this)">
+                        <i class="fas fa-th-large"></i>全選
+                    </button>
+                `;
+                const topics = [...new Set(config.data.filter(d => d.category === filterType).map(d => d.topic))];
+                topics.forEach(t => {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-capsule text-[11px]';
+                    btn.innerHTML = `<i class="fas fa-tag"></i>${t}`;
+                    btn.onclick = () => setSubFilter(filterType, t, btn);
+                    subItemsContainer.appendChild(btn);
+                });
+                subFilterBar.classList.add('expanded');
             }
             applyFilters(filterType, 'all');
         }
 
-        function setSubFilter(parentCategory, subTopic) {
-            const buttons = document.querySelectorAll(`#sub-filter-${parentCategory} .filter-capsule`);
-            buttons.forEach(btn => {
-                if(btn.dataset.subfilter === subTopic) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-            applyFilters(parentCategory, subTopic);
-        }
-
-        function resetSubFilters(parentCategory) {
-            const buttons = document.querySelectorAll(`#sub-filter-${parentCategory} .filter-capsule`);
-            buttons.forEach((btn, idx) => {
-                if(idx === 0) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
+        function setSubFilter(category, topic, btn) {
+            const buttons = document.querySelectorAll(`#sub-filter-items .filter-capsule`);
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyFilters(category, topic);
         }
 
         function applyFilters(category, topic) {
@@ -700,8 +764,7 @@
         }, { passive: true });
 
         document.addEventListener('DOMContentLoaded', () => {
-            render();
-            setTimeout(() => loader.classList.remove('active'), 400);
+            loadSheetData();
         });
     </script>
 </body>
