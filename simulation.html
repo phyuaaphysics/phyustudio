@@ -21,7 +21,7 @@
             --mint-bg: #f0fdf4;
             --mint-glass: rgba(240, 253, 244, 0.85); 
             --mint-nav-glass: rgba(255, 255, 255, 0.75);
-            /* 調整後的灰綠色調 Docking */
+            /* 灰綠色調 Docking 變數 */
             --sage-deep: #2d3a35;
             --sage-muted: #6b8278;
             --sage-active: #4a6d5d;
@@ -256,7 +256,7 @@
             cursor: pointer; border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* 灰綠色調 Docking */
+        /* Docking 樣式區 */
         .dock-wrapper {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
@@ -265,7 +265,9 @@
             z-index: 200;
             transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
             width: auto;
-            min-width: 340px;
+            display: flex;
+            align-items: center;
+            gap: 12px; /* 按鈕間距 */
         }
 
         .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
@@ -280,6 +282,29 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: flex; align-items: center; justify-content: center; gap: 14px;
         }
+
+        /* 好手氣按鈕風格 - 圓形且與 Docking 相同風格 */
+        .lucky-btn {
+            width: 68px;
+            height: 68px;
+            background-color: rgba(60, 75, 68, 0.85); /* 與 Dock 一致的灰綠色 */
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+        }
+        .lucky-btn:active { transform: scale(0.9); }
+        .lucky-btn i { font-size: 1.3rem; margin-bottom: 2px; }
+        .lucky-btn span { font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
 
         .dock-toggle-btn {
             width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
@@ -313,7 +338,7 @@
 
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
-            .dock-wrapper { width: 92%; max-width: 400px; }
+            .dock-wrapper { width: 92%; max-width: 440px; }
             #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 160px); }
         }
     </style>
@@ -414,6 +439,13 @@
     </div>
 
     <div id="dock-nav-wrapper" class="dock-wrapper">
+        <!-- 「好手氣」圓形按鈕 -->
+        <button class="lucky-btn" onclick="luckyDraw()">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <span>好手氣</span>
+        </button>
+
+        <!-- 原有 Docking 導航欄 -->
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
@@ -454,6 +486,15 @@
 
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
         function toggleFilter() { document.getElementById('filter-bar').classList.toggle('collapsed'); }
+
+        // 好手氣隨機抽選模擬器
+        function luckyDraw() {
+            const items = config.data;
+            if (items.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * items.length);
+            const selectedItem = items[randomIndex];
+            openIframe(selectedItem.url);
+        }
 
         // 詳情彈窗控制
         function openPreview(item) {
