@@ -1,287 +1,143 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Simulation Lab - 物理模擬中心</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap');
+        
         :root {
             --pdd-red: #e02e24;
-            --pdd-bg: #f7f7f7;
+            --glacier-bg: #f8fafc;
+            --glacier-glass: rgba(255, 255, 255, 0.9); 
+            --glacier-nav-glass: rgba(255, 255, 255, 0.8);
+            --primary-blue: #0284c7;
         }
 
         body {
-            background-color: var(--pdd-bg);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--glacier-bg);
             margin: 0;
-            /* 考慮到底部導航欄的高度與安全區域 */
-            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+            padding-bottom: calc(100px + env(safe-area-inset-bottom));
         }
 
-        /* 頂部導航 - 修正 iPhone 靈動島/狀態列重疊 */
-        .pdd-header {
-            background-color: white;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid #f0f0f0;
-            /* 重要：適應 iOS 安全區域 */
+        /* 頂部 Logo Bar */
+        .logo-bar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 120;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             padding-top: env(safe-area-inset-top);
         }
 
-        .header-top {
-            display: flex;
-            align-items: center;
-            padding: 10px 14px;
-            gap: 12px;
+        .header-content {
+            display: flex; align-items: center; padding: 10px 16px; gap: 12px;
         }
 
         .brand-logo {
-            font-weight: 800;
-            color: var(--pdd-red);
-            font-size: 24px; /* 字大一點：從 18px 改為 24px */
-            white-space: nowrap;
-            letter-spacing: -0.5px;
+            font-weight: 800; color: var(--pdd-red); font-size: 20px;
+            white-space: nowrap; letter-spacing: -0.5px;
         }
 
-        .search-bar {
-            background: #f0f0f0;
-            border-radius: 10px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #888;
-            font-size: 14px;
-            flex: 1;
+        .search-box {
+            flex: 1; background: #f1f5f9; border-radius: 12px; padding: 8px 12px;
+            display: flex; align-items: center; gap: 8px; color: #94a3b8;
         }
 
         /* 一級分類 */
         .category-nav {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            background: white;
-            scrollbar-width: none;
+            display: flex; overflow-x: auto; white-space: nowrap; background: white;
+            scrollbar-width: none; border-bottom: 1px solid #f1f5f9;
         }
         .category-nav::-webkit-scrollbar { display: none; }
         .nav-item {
-            padding: 12px 20px;
-            font-size: 15px;
-            color: #555;
-            position: relative;
-            cursor: pointer;
+            padding: 14px 18px; font-size: 14px; color: #64748b; position: relative; cursor: pointer;
         }
-        .nav-item.active {
-            color: var(--pdd-red);
-            font-weight: bold;
-        }
+        .nav-item.active { color: var(--pdd-red); font-weight: bold; }
         .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 6px;
-            left: 25%;
-            right: 25%;
-            height: 3px;
-            background: var(--pdd-red);
-            border-radius: 2px;
+            content: ''; position: absolute; bottom: 8px; left: 25%; right: 25%; height: 3px; background: var(--pdd-red); border-radius: 2px;
         }
 
-        /* 二級分類 - 拼多多風格圖案 */
+        /* 二級分類 (舊版圓形 Icon 風格) */
         .sub-filter-panel {
-            display: none; /* 預設隱藏 */
-            background: white;
-            padding: 12px 0;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: none;
-            border-bottom: 1px solid #f0f0f0;
-            animation: fadeInDown 0.3s ease-out;
+            display: none; background: white; padding: 12px 0; overflow-x: auto;
+            white-space: nowrap; scrollbar-width: none; border-bottom: 1px solid #f1f5f9;
+            animation: fadeIn 0.3s ease-out;
         }
         .sub-filter-panel::-webkit-scrollbar { display: none; }
-        
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .sub-item {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            width: 80px;
-            margin: 0 5px;
-            cursor: pointer;
-        }
+        .sub-item { display: inline-flex; flex-direction: column; align-items: center; width: 75px; margin: 0 4px; cursor: pointer; }
         .sub-icon {
-            width: 44px;
-            height: 44px;
-            background: #f9f9f9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 6px;
-            font-size: 18px;
-            color: #555;
-            border: 2px solid transparent;
-            transition: all 0.2s;
+            width: 42px; height: 42px; background: #f8fafc; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 6px;
+            font-size: 16px; color: #64748b; border: 2px solid transparent; transition: all 0.2s;
         }
-        .sub-item.active .sub-icon {
-            background: #fff0f0;
-            color: var(--pdd-red);
-            border-color: var(--pdd-red);
-        }
-        .sub-label {
-            font-size: 11px;
-            color: #666;
-        }
-        .sub-item.active .sub-label {
-            color: var(--pdd-red);
-            font-weight: bold;
-        }
+        .sub-item.active .sub-icon { background: #fff0f0; color: var(--pdd-red); border-color: var(--pdd-red); }
+        .sub-label { font-size: 11px; color: #64748b; }
+        .sub-item.active .sub-label { color: var(--pdd-red); font-weight: bold; }
 
         /* 商品格線 */
         .product-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 6px;
-            padding: 6px;
-            max-width: 1400px;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px;
+            margin-top: 10px;
         }
-        
-        @media (min-width: 768px) { 
-            .product-grid { 
-                grid-template-columns: repeat(6, minmax(0, 1fr)); 
-                gap: 12px; 
-                padding: 20px; 
-            } 
-        }
+        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
 
         .product-card {
-            background: white;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: white; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: transform 0.2s;
         }
         .product-card:active { transform: scale(0.97); }
-        
         .product-img { width: 100%; aspect-ratio: 1; object-fit: cover; }
         .product-info { padding: 10px; }
-        .product-title {
-            font-size: 13px;
-            line-height: 1.4;
-            height: 36px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 8px;
-            color: #222;
-            font-weight: 500;
-        }
+        .product-title { font-size: 13px; line-height: 1.4; height: 36px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; color: #1e293b; font-weight: 500; }
+        .category-tag { background: #f1f5f9; color: #94a3b8; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
 
-        .category-tag {
-            background: #f0f0f0;
-            color: #777;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: inline-block;
+        /* 統一 Dock */
+        .dock-wrapper {
+            position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px);
+            left: 50%; transform: translateX(-50%); z-index: 200; width: 92%; max-width: 400px;
         }
+        .dock-nav {
+            background-color: var(--glacier-nav-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5); padding: 12px; border-radius: 35px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08); display: flex; justify-content: center; gap: 15px;
+        }
+        .dock-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #94a3b8; min-width: 60px; transition: 0.3s; }
+        .dock-item i { font-size: 1.4rem; }
+        .dock-item span { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+        .dock-item.active { color: var(--primary-blue); }
 
-        /* 全螢幕 Iframe 彈窗 - 修正 iOS 頂部安全區域 */
+        /* 模態窗 */
         .pdd-modal { 
-            display: none; 
-            position: fixed; 
-            inset: 0; 
-            background: white; 
-            z-index: 2000; 
-            flex-direction: column; 
-            animation: slideInRight 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-            /* 修正模態視窗內的安全距離 */
+            display: none; position: fixed; inset: 0; background: white; z-index: 2000; 
+            flex-direction: column; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             padding-top: env(safe-area-inset-top);
         }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #f1f5f9; }
+        .close-btn { width: 32px; height: 32px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
-        .modal-exit {
-            animation: slideOutRight 0.3s forwards cubic-bezier(0.5, 0, 0.75, 0);
-        }
-
-        @keyframes slideOutRight {
-            from { transform: translateX(0); }
-            to { transform: translateX(100%); }
-        }
-
-        .modal-header {
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            background: white;
-            border-bottom: 1px solid #eee;
-        }
-
-        .close-circle-btn {
-            width: 32px;
-            height: 32px;
-            background: #f0f0f0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        /* 底部導航 - 修正 iOS 底部 Home Bar 重疊 */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: white;
-            border-top: 1px solid #f0f0f0;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0 calc(10px + env(safe-area-inset-bottom)) 0;
-            z-index: 50;
-        }
-        .nav-btn { display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; color: #999; }
-        .nav-btn.active { color: var(--pdd-red); }
-
-        #pdd-toast {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 20px;
-            z-index: 3000;
-            font-size: 14px;
-            pointer-events: none;
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body>
+<body class="hide-scrollbar">
 
-    <header class="pdd-header">
-        <div class="header-top">
+    <header class="logo-bar">
+        <div class="header-content">
             <div class="brand-logo">Simulation Lab</div>
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="搜尋物理實驗..." class="bg-transparent border-none outline-none w-full" oninput="render()">
+            <div class="search-box">
+                <i class="fas fa-search text-xs"></i>
+                <input type="text" id="searchInput" placeholder="搜尋物理實驗..." class="bg-transparent border-none outline-none text-xs w-full text-slate-600" oninput="render()">
             </div>
         </div>
         <!-- 一級分類 -->
@@ -292,46 +148,46 @@
             <div class="nav-item" onclick="setMainCategory('力學', this)">經典力學</div>
             <div class="nav-item" onclick="setMainCategory('電磁', this)">電磁感應</div>
         </div>
-        <!-- 二級分類面板 -->
-        <div class="sub-filter-panel" id="subFilterPanel"></div>
+        <!-- 舊版二級分類面板 -->
+        <div class="sub-filter-panel hide-scrollbar" id="subFilterPanel"></div>
     </header>
+
+    <!-- 調整內容上間距以避免被 Fixed Header 遮擋 -->
+    <div style="height: calc(env(safe-area-inset-top) + 110px);" id="header-spacer"></div>
 
     <main class="product-grid" id="productGrid"></main>
 
-    <nav class="bottom-nav">
-        <div class="nav-btn active" onclick="navigateTo('home')">
-            <i class="fas fa-microscope text-xl"></i>
-            <span class="text-[10px] mt-1">實驗</span>
-        </div>
-        <div class="nav-btn" onclick="navigateTo('random')">
-            <i class="fas fa-dice text-xl"></i>
-            <span class="text-[10px] mt-1">隨機</span>
-        </div>
-        <div class="nav-btn" onclick="navigateTo('resources')">
-            <i class="fas fa-layer-group text-xl"></i>
-            <span class="text-[10px] mt-1">分類</span>
-        </div>
-        <div class="nav-btn" onclick="navigateTo('back')">
-            <i class="fas fa-arrow-left text-xl"></i>
-            <span class="text-[10px] mt-1">返回</span>
-        </div>
-    </nav>
+    <!-- 統一 Dock -->
+    <div class="dock-wrapper">
+        <nav class="dock-nav">
+            <button onclick="window.location.href='index.html'" class="dock-item">
+                <i class="fas fa-home"></i><span>錄影庫</span>
+            </button>
+            <button onclick="scrollToTop()" class="dock-item active">
+                <i class="fas fa-cube"></i><span>模擬器</span>
+            </button>
+            <button onclick="window.location.href='functionhub.html'" class="dock-item">
+                <i class="fas fa-shapes"></i><span>功能區</span>
+            </button>
+            <button onclick="triggerRandom()" class="dock-item">
+                <i class="fas fa-dice"></i><span>隨機</span>
+            </button>
+        </nav>
+    </div>
 
-    <!-- 全螢幕模擬器容器 -->
+    <!-- 模擬器彈窗 -->
     <div id="pdd-modal" class="pdd-modal">
         <div class="modal-header">
-            <div class="flex items-center gap-2 overflow-hidden">
+            <div class="flex items-center gap-2">
                 <i class="fas fa-flask text-red-500"></i>
-                <span id="detail-title" class="font-bold truncate text-sm">實驗室</span>
+                <span id="detail-title" class="font-bold text-sm text-slate-700 truncate">實驗室</span>
             </div>
-            <div class="close-circle-btn" onclick="closeDetail()">
-                <i class="fas fa-times text-gray-500"></i>
+            <div class="close-btn" onclick="closeDetail()">
+                <i class="fas fa-times text-slate-400 text-xs"></i>
             </div>
         </div>
         <iframe id="sim-iframe" class="flex-1 w-full border-none"></iframe>
     </div>
-
-    <div id="pdd-toast"></div>
 
     <script>
         const products = [
@@ -344,23 +200,10 @@
         ];
 
         const subCategories = {
-            "原子世界": [
-                { name: "全部", icon: "fa-atom" },
-                { name: "光電效應", icon: "fa-bolt" },
-                { name: "原子物理", icon: "fa-microchip" }
-            ],
-            "醫學物理學": [
-                { name: "全部", icon: "fa-briefcase-medical" },
-                { name: "視覺光學", icon: "fa-eye" }
-            ],
-            "力學": [
-                { name: "全部", icon: "fa-cog" },
-                { name: "運動學", icon: "fa-running" }
-            ],
-            "電磁": [
-                { name: "全部", icon: "fa-magnet" },
-                { name: "電路分析", icon: "fa-plug" }
-            ]
+            "原子世界": [{ name: "全部", icon: "fa-atom" }, { name: "光電效應", icon: "fa-bolt" }, { name: "原子物理", icon: "fa-microchip" }],
+            "醫學物理學": [{ name: "全部", icon: "fa-briefcase-medical" }, { name: "視覺光學", icon: "fa-eye" }],
+            "力學": [{ name: "全部", icon: "fa-cog" }, { name: "運動學", icon: "fa-running" }],
+            "電磁": [{ name: "全部", icon: "fa-magnet" }, { name: "電路分析", icon: "fa-plug" }]
         };
 
         let currentMain = 'all';
@@ -369,13 +212,11 @@
         function render() {
             const grid = document.getElementById('productGrid');
             const search = document.getElementById('searchInput').value.toLowerCase();
-            
             const filtered = products.filter(p => {
                 const mMatch = currentMain === 'all' || p.category === currentMain;
                 const sMatch = currentSub === '全部' || p.sub === currentSub;
                 return mMatch && sMatch && p.title.toLowerCase().includes(search);
             });
-
             grid.innerHTML = filtered.map(p => `
                 <div class="product-card" onclick="openDetail('${p.title}', '${p.url}')">
                     <img src="${p.img}" class="product-img">
@@ -389,29 +230,27 @@
 
         function setMainCategory(cat, el) {
             currentMain = cat;
-            currentSub = '全部'; 
+            currentSub = '全部';
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
-            renderSubPanel(cat);
-            render();
-        }
-
-        function renderSubPanel(cat) {
+            
             const panel = document.getElementById('subFilterPanel');
+            const spacer = document.getElementById('header-spacer');
+            
             if (cat === 'all' || !subCategories[cat]) {
                 panel.style.display = 'none';
-                return;
-            }
-            panel.style.display = 'block';
-            const subs = subCategories[cat];
-            panel.innerHTML = subs.map(s => `
-                <div class="sub-item ${currentSub === s.name ? 'active' : ''}" onclick="setSubCategory('${s.name}', this)">
-                    <div class="sub-icon">
-                        <i class="fas ${s.icon}"></i>
+                spacer.style.height = 'calc(env(safe-area-inset-top) + 110px)';
+            } else {
+                panel.style.display = 'block';
+                spacer.style.height = 'calc(env(safe-area-inset-top) + 190px)';
+                panel.innerHTML = subCategories[cat].map(s => `
+                    <div class="sub-item ${currentSub === s.name ? 'active' : ''}" onclick="setSubCategory('${s.name}', this)">
+                        <div class="sub-icon"><i class="fas ${s.icon}"></i></div>
+                        <div class="sub-label">${s.name}</div>
                     </div>
-                    <div class="sub-label">${s.name}</div>
-                </div>
-            `).join('');
+                `).join('');
+            }
+            render();
         }
 
         function setSubCategory(subName, el) {
@@ -422,50 +261,30 @@
         }
 
         function openDetail(t, u) {
-            const modal = document.getElementById('pdd-modal');
-            const iframe = document.getElementById('sim-iframe');
-            modal.classList.remove('modal-exit');
             document.getElementById('detail-title').innerText = t;
-            iframe.src = u;
-            modal.style.display = 'flex';
+            document.getElementById('sim-iframe').src = u;
+            document.getElementById('pdd-modal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
 
         function closeDetail() {
-            const modal = document.getElementById('pdd-modal');
-            modal.classList.add('modal-exit');
-            setTimeout(() => {
-                modal.style.display = 'none';
-                document.getElementById('sim-iframe').src = "";
-                document.body.style.overflow = 'auto';
-            }, 300);
+            document.getElementById('pdd-modal').style.display = 'none';
+            document.getElementById('sim-iframe').src = "";
+            document.body.style.overflow = 'auto';
         }
 
-        function showToast(msg) {
-            const toast = document.getElementById('pdd-toast');
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 2000);
+        function triggerRandom() {
+            const rand = products[Math.floor(Math.random() * products.length)];
+            openDetail(rand.title, rand.url);
         }
 
-        function navigateTo(page) {
-            if (page === 'random') {
-                const rand = products[Math.floor(Math.random() * products.length)];
-                openDetail(rand.title, rand.url);
-                showToast("隨機推薦：" + rand.title.split('：')[0]);
-            } else if (page === 'home') {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else if (page === 'back') {
-                window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
-            } else {
-                showToast("功能開發中...");
-            }
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        window.onload = () => {
-            render();
-            renderSubPanel('all');
-        };
+        window.onload = () => render();
     </script>
 </body>
 </html>
+
+
