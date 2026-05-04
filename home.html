@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -131,17 +130,12 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
         }
 
-        .filter-toggle-trigger:hover {
-            color: var(--glacier-deep);
-            height: 24px;
-            bottom: -24px;
-        }
-
         .filter-bar.collapsed .filter-toggle-trigger i {
             transform: rotate(180deg);
         }
 
-        #page-home { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
+        /* 頁面內容容器 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
 
         .slider-wrapper { position: relative; width: 100%; }
 
@@ -173,7 +167,6 @@
             border: 1px solid rgba(0,0,0,0.03);
         }
         
-        .nav-btn:active { transform: translateY(-50%) scale(0.9); }
         .slider-wrapper:hover .nav-btn { opacity: 1; }
         .nav-btn.prev { left: -12px; }
         .nav-btn.next { right: -12px; }
@@ -210,8 +203,7 @@
 
         .dock-wrapper {
             position: fixed;
-            /* 修正 iOS PWA 模式下 Dock 距離底部邊緣太遠的問題 */
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 2px);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
             left: 50%;
             transform: translateX(-50%);
             z-index: 200;
@@ -237,7 +229,6 @@
             width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
             color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
         }
-        .dock-toggle-btn:hover { color: var(--glacier-deep); }
 
         .dock-content { display: flex; align-items: center; gap: 14px; }
 
@@ -266,7 +257,7 @@
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
             .dock-wrapper { width: 92%; max-width: 400px; }
-            #page-home { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
             .nav-btn { display: none !important; }
         }
     </style>
@@ -283,7 +274,7 @@
     <header id="header-root">
         <div class="logo-bar px-6" id="logo-nav-bar"> 
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
-                <div class="cursor-pointer" onclick="scrollToHero()" id="main-logo">
+                <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
                 <div class="flex items-center gap-6 text-sky-800 opacity-60">
@@ -306,58 +297,61 @@
         </div>
     </header>
 
-    <div id="page-home">
-        <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
-            <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
-                <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
-                <div class="hero-gradient-overlay"></div>
-                <div class="absolute inset-0 flex flex-col items-center justify-end pb-16 px-6 text-center">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-12 relative z-10">
-                    <button onclick="openLink('hero')" class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
-                        馬上開始
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <main class="space-y-12 max-w-screen-2xl mx-auto px-6">
-            <section id="sec-course" data-group="course">
-                <h2 class="section-title">核心課程全庫</h2>
-                <div class="slider-wrapper">
-                    <button class="nav-btn prev" onclick="scrollSlider('course-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
-                    <div class="slider-container hide-scrollbar" id="course-slider"></div>
-                    <button class="nav-btn next" onclick="scrollSlider('course-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
-                </div>
-            </section>
-            
-            <section id="sec-funda-01-10" data-group="funda">
-                <h2 class="section-title">基礎練習冊 01-10</h2>
-                <div class="slider-wrapper">
-                    <button class="nav-btn prev" onclick="scrollSlider('funda-01-10-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
-                    <div class="slider-container hide-scrollbar" id="funda-01-10-slider"></div>
-                    <button class="nav-btn next" onclick="scrollSlider('funda-01-10-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
+    <div id="page-content">
+        <!-- 錄影庫首頁 -->
+        <div id="view-home">
+            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
+                <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
+                    <div class="hero-gradient-overlay"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-end pb-16 px-6 text-center">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-12 relative z-10">
+                        <button onclick="openLink('hero')" class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
+                            馬上開始
+                        </button>
+                    </div>
                 </div>
             </section>
 
-            <section id="sec-funda-11-20" data-group="funda">
-                <h2 class="section-title">基礎練習冊 11-20</h2>
-                <div class="slider-wrapper">
-                    <button class="nav-btn prev" onclick="scrollSlider('funda-11-20-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
-                    <div class="slider-container hide-scrollbar" id="funda-11-20-slider"></div>
-                    <button class="nav-btn next" onclick="scrollSlider('funda-11-20-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
-                </div>
-            </section>
-        </main>
+            <main class="space-y-12 max-w-screen-2xl mx-auto px-6">
+                <section id="sec-course" data-group="course">
+                    <h2 class="section-title">核心課程全庫</h2>
+                    <div class="slider-wrapper">
+                        <button class="nav-btn prev" onclick="scrollSlider('course-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
+                        <div class="slider-container hide-scrollbar" id="course-slider"></div>
+                        <button class="nav-btn next" onclick="scrollSlider('course-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
+                    </div>
+                </section>
+                
+                <section id="sec-funda-01-10" data-group="funda">
+                    <h2 class="section-title">基礎練習冊 01-10</h2>
+                    <div class="slider-wrapper">
+                        <button class="nav-btn prev" onclick="scrollSlider('funda-01-10-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
+                        <div class="slider-container hide-scrollbar" id="funda-01-10-slider"></div>
+                        <button class="nav-btn next" onclick="scrollSlider('funda-01-10-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
+                    </div>
+                </section>
+
+                <section id="sec-funda-11-20" data-group="funda">
+                    <h2 class="section-title">基礎練習冊 11-20</h2>
+                    <div class="slider-wrapper">
+                        <button class="nav-btn prev" onclick="scrollSlider('funda-11-20-slider', -400)"><i class="fas fa-chevron-left text-xs text-slate-400"></i></button>
+                        <div class="slider-container hide-scrollbar" id="funda-11-20-slider"></div>
+                        <button class="nav-btn next" onclick="scrollSlider('funda-11-20-slider', 400)"><i class="fas fa-chevron-right text-xs text-slate-400"></i></button>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
     <div id="dock-nav-wrapper" class="dock-wrapper">
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
-                <button onclick="scrollToHero()" class="dock-item active">
+                <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
                     <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
                 </button>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html', true)" class="dock-item">
+                <button onclick="handleNavigation(config.simUrl, false)" class="dock-item">
                     <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
                 </button>
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', true)" class="dock-item">
@@ -376,6 +370,7 @@
         const config = {
             heroUrl: 'https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home',
             googleUrl: 'https://mail.google.com/mail/u/0/#inbox',
+            simUrl: 'https://phyuaaphysics.github.io/phyustudio/simulation.html',
             data: [
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg', url: 'https://sites.google.com/np2c.edu.hk/heatcourse/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg', url: 'https://sites.google.com/np2c.edu.hk/mechanics-all/home' },
@@ -427,6 +422,11 @@
             if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
         }
 
+        function scrollToHome() {
+            setFilter('all');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function handleNavigation(url, showAnim = false) {
             if (!url || url === '#' || url === 'no link') return;
             if (showAnim) {
@@ -444,7 +444,7 @@
                 else btn.classList.remove('active');
             });
             const heroSection = document.getElementById('hero-section');
-            const sections = document.querySelectorAll('main section');
+            const sections = document.querySelectorAll('#view-home main section');
             if (filterType === 'all') {
                 heroSection.classList.remove('section-hidden');
                 sections.forEach(sec => sec.classList.remove('section-hidden'));
@@ -487,14 +487,11 @@
             lastScrollY = currentScrollY;
         }, { passive: true });
 
-        function scrollToHero() { 
-            setFilter('all'); 
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
-        }
         function openLink(type) {
             if(type === 'hero') handleNavigation(config.heroUrl, false);
             if(type === 'google') handleNavigation(config.googleUrl, false);
         }
+
         document.addEventListener('DOMContentLoaded', () => {
             render();
             loader.classList.add('active');
@@ -503,6 +500,3 @@
     </script>
 </body>
 </html>
-
-
-
