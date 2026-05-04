@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -31,13 +32,15 @@
             user-select: none;
         }
 
+        /* 調整為中下部排佈 */
         .home-screen {
-            padding: 20px 15px 140px;
+            padding: 20px 15px 160px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-end; /* 將內容推至下方 */
             height: 100vh;
-            overflow-y: auto;
+            box-sizing: border-box;
         }
 
         /* Widget 樣式 */
@@ -49,7 +52,7 @@
             -webkit-backdrop-filter: blur(25px);
             border-radius: 24px;
             padding: 16px;
-            margin-bottom: 30px;
+            margin-bottom: 25px; /* 與下方圖標的間距 */
             box-shadow: 0 8px 32px rgba(0,0,0,0.15);
             border: 0.5px solid rgba(255,255,255,0.2);
             display: flex;
@@ -80,7 +83,6 @@
             gap: 15px 10px;
             width: 100%;
             max-width: 340px;
-            min-height: 100px;
         }
 
         @media (min-width: 768px) {
@@ -305,7 +307,7 @@
 <body onclick="exitEditingMode()">
 
     <div class="home-screen">
-        <!-- 天氣 Widget -->
+        <!-- 天氣 Widget (已下移) -->
         <div class="widget-container" id="weather-widget">
             <div class="delete-badge" onclick="removeWidget(event)"><i class="fas fa-minus"></i></div>
             <div class="widget-top" onclick="getRealWeather()">
@@ -323,6 +325,7 @@
             <div class="text-[9px] opacity-80 tracking-wide">PHYU STUDIO • EDUCATION HUB</div>
         </div>
 
+        <!-- 圖標網格 (已下移) -->
         <div id="desktop-grid" class="icon-grid" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'desktop')"></div>
     </div>
 
@@ -331,7 +334,7 @@
         <div id="dock-bar" class="dock-container" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'dock')"></div>
     </div>
 
-    <!-- 科學計算機 Widget 浮窗 -->
+    <!-- 彈窗組件 (計算機、計時器、Iframe) 保留原樣 -->
     <div id="calc-overlay" class="widget-modal-overlay" onclick="closeWidget('calc-overlay')">
         <div class="widget-content" onclick="event.stopPropagation()">
             <div class="widget-close-btn" onclick="closeWidget('calc-overlay')"><i class="fas fa-times"></i></div>
@@ -341,27 +344,22 @@
                 <div class="calc-btn btn-sci" onclick="calcAction('sqrt')">√x</div>
                 <div class="calc-btn btn-sci" onclick="calcAction('pi')">π</div>
                 <div class="calc-btn btn-sci" onclick="calcAction('inv')">1/x</div>
-                
                 <div class="calc-btn btn-gray" onclick="calcAction('C')">AC</div>
                 <div class="calc-btn btn-gray" onclick="calcAction('+/-')">±</div>
                 <div class="calc-btn btn-gray" onclick="calcAction('%')">%</div>
                 <div class="calc-btn btn-orange" onclick="calcAction('/')">÷</div>
-                
                 <div class="calc-btn btn-dark" onclick="calcAction('7')">7</div>
                 <div class="calc-btn btn-dark" onclick="calcAction('8')">8</div>
                 <div class="calc-btn btn-dark" onclick="calcAction('9')">9</div>
                 <div class="calc-btn btn-orange" onclick="calcAction('*')">×</div>
-                
                 <div class="calc-btn btn-dark" onclick="calcAction('4')">4</div>
                 <div class="calc-btn btn-dark" onclick="calcAction('5')">5</div>
                 <div class="calc-btn btn-dark" onclick="calcAction('6')">6</div>
                 <div class="calc-btn btn-orange" onclick="calcAction('-')">−</div>
-                
                 <div class="calc-btn btn-dark" onclick="calcAction('1')">1</div>
                 <div class="calc-btn btn-dark" onclick="calcAction('2')">2</div>
                 <div class="calc-btn btn-dark" onclick="calcAction('3')">3</div>
                 <div class="calc-btn btn-orange" onclick="calcAction('+')">+</div>
-                
                 <div class="calc-btn btn-dark col-span-2" style="aspect-ratio: auto; border-radius: 40px; justify-content: flex-start; padding-left: 25px;" onclick="calcAction('0')">0</div>
                 <div class="calc-btn btn-dark" onclick="calcAction('.')">.</div>
                 <div class="calc-btn btn-orange" onclick="calcAction('=')">=</div>
@@ -369,7 +367,6 @@
         </div>
     </div>
 
-    <!-- 計時器 Widget 浮窗 -->
     <div id="timer-overlay" class="widget-modal-overlay" onclick="closeWidget('timer-overlay')">
         <div class="widget-content" onclick="event.stopPropagation()">
             <div class="widget-close-btn" onclick="closeWidget('timer-overlay')"><i class="fas fa-times"></i></div>
@@ -389,7 +386,6 @@
         </div>
     </div>
 
-    <!-- Iframe 視窗 -->
     <div id="iframe-overlay" class="ios-overlay" onclick="closeIframe()">
         <div class="ios-modal" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -420,7 +416,6 @@
         let isEditing = false;
         let pressTimer;
 
-        // --- UI 渲染 ---
         function renderUI() {
             const deskGrid = document.getElementById('desktop-grid');
             const dockBar = document.getElementById('dock-bar');
@@ -457,7 +452,6 @@
             });
         }
 
-        // --- 刪除功能 ---
         function removeApp(e, id) {
             e.stopPropagation();
             appList = appList.filter(app => app.id !== id);
@@ -469,7 +463,6 @@
             document.getElementById('weather-widget').style.display = 'none';
         }
 
-        // --- App 點擊邏輯 ---
         function handleAppClick(app) {
             if (app.type === 'calc') document.getElementById('calc-overlay').style.display = 'flex';
             else if (app.type === 'timer') document.getElementById('timer-overlay').style.display = 'flex';
@@ -478,11 +471,9 @@
             else if (app.url) window.open(app.url, app.url.includes('phyustudio') ? '_self' : '_blank');
         }
 
-        function closeWidget(id) {
-            document.getElementById(id).style.display = 'none';
-        }
+        function closeWidget(id) { document.getElementById(id).style.display = 'none'; }
 
-        // --- 科學計算機邏輯 ---
+        // 計算機邏輯
         let calcVal = "0";
         function calcAction(act) {
             const res = document.getElementById('calc-result');
@@ -502,7 +493,7 @@
             res.innerText = calcVal.length > 10 ? calcVal.substring(0, 10) : calcVal;
         }
 
-        // --- 計時器邏輯 ---
+        // 計時器邏輯
         let timerSeconds = 0;
         let timerInterval = null;
         function toggleTimer() {
@@ -549,7 +540,6 @@
             document.getElementById('timer-val').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
 
-        // --- 拖放與編輯模式 ---
         function allowDrop(e) { if (!isEditing) return; e.preventDefault(); }
         function handleDrop(e, targetType) {
             e.preventDefault();
@@ -578,7 +568,6 @@
         }
         function closeIframe() { document.getElementById('app-iframe').src = ""; document.getElementById('iframe-overlay').style.display = 'none'; }
 
-        // --- 時間與天氣 ---
         function updateTime() {
             const now = new Date();
             document.getElementById('widget-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
@@ -599,9 +588,7 @@
                     if (code === 0) iconEl.className = 'fas fa-sun text-yellow-400';
                     else if (code <= 3) iconEl.className = 'fas fa-cloud-sun text-yellow-200';
                     else iconEl.className = 'fas fa-cloud';
-                } catch (e) {
-                    document.getElementById('weather-desc').innerText = "無法更新";
-                }
+                } catch (e) { document.getElementById('weather-desc').innerText = "無法更新"; }
             });
         }
 
@@ -609,3 +596,5 @@
     </script>
 </body>
 </html>
+
+
