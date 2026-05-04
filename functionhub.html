@@ -32,14 +32,15 @@
             user-select: none;
         }
 
-        /* 調整為中下部排佈 */
+        /* 調整 Padding Top 讓內容適度下移，不至於掉到最底 */
         .home-screen {
-            padding: 20px 15px 160px;
+            padding: 80px 15px 140px; 
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end; /* 將內容推至下方 */
+            justify-content: flex-start;
             height: 100vh;
+            overflow-y: auto;
             box-sizing: border-box;
         }
 
@@ -52,7 +53,7 @@
             -webkit-backdrop-filter: blur(25px);
             border-radius: 24px;
             padding: 16px;
-            margin-bottom: 25px; /* 與下方圖標的間距 */
+            margin-bottom: 30px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.15);
             border: 0.5px solid rgba(255,255,255,0.2);
             display: flex;
@@ -83,6 +84,7 @@
             gap: 15px 10px;
             width: 100%;
             max-width: 340px;
+            min-height: 100px;
         }
 
         @media (min-width: 768px) {
@@ -307,7 +309,7 @@
 <body onclick="exitEditingMode()">
 
     <div class="home-screen">
-        <!-- 天氣 Widget (已下移) -->
+        <!-- 天氣 Widget -->
         <div class="widget-container" id="weather-widget">
             <div class="delete-badge" onclick="removeWidget(event)"><i class="fas fa-minus"></i></div>
             <div class="widget-top" onclick="getRealWeather()">
@@ -325,7 +327,6 @@
             <div class="text-[9px] opacity-80 tracking-wide">PHYU STUDIO • EDUCATION HUB</div>
         </div>
 
-        <!-- 圖標網格 (已下移) -->
         <div id="desktop-grid" class="icon-grid" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'desktop')"></div>
     </div>
 
@@ -334,7 +335,7 @@
         <div id="dock-bar" class="dock-container" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'dock')"></div>
     </div>
 
-    <!-- 彈窗組件 (計算機、計時器、Iframe) 保留原樣 -->
+    <!-- 彈窗內容保留 -->
     <div id="calc-overlay" class="widget-modal-overlay" onclick="closeWidget('calc-overlay')">
         <div class="widget-content" onclick="event.stopPropagation()">
             <div class="widget-close-btn" onclick="closeWidget('calc-overlay')"><i class="fas fa-times"></i></div>
