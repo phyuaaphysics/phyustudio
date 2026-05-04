@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Lumina Studio</title>
+    
+    <!-- iOS PWA 狀態列修正 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -31,7 +36,8 @@
             -webkit-tap-highlight-color: transparent;
             height: 100%;
             overflow-y: auto;
-            padding-top: env(safe-area-inset-top, 20px);
+            /* 修正頂部間距以適應安全區域 */
+            padding-top: 0;
         }
 
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -54,7 +60,8 @@
             backdrop-filter: blur(24px); 
             -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid rgba(14, 165, 233, 0.1);
-            padding-top: 8px;
+            /* 關鍵修正：加入安全區域 padding */
+            padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
             padding-bottom: 12px;
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -69,7 +76,8 @@
 
         .filter-bar {
             position: fixed;
-            top: 68px;
+            /* 修正過濾列位置以跟隨 logo-bar 的高度 */
+            top: calc(env(safe-area-inset-top, 0px) + 68px);
             left: 0;
             width: 100%;
             z-index: 110;
@@ -135,7 +143,8 @@
             transform: rotate(180deg);
         }
 
-        #page-home { padding-top: 130px; }
+        /* 修正內容區域的頂部間距 */
+        #page-home { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
 
         .slider-wrapper { position: relative; width: 100%; }
 
@@ -202,7 +211,6 @@
 
         .section-hidden { display: none !important; }
 
-        /* 修正 iOS PWA 模式下底部間距過大的問題 */
         .dock-wrapper {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
@@ -260,7 +268,7 @@
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
             .dock-wrapper { width: 92%; max-width: 400px; }
-            #page-home { padding-top: 120px; }
+            #page-home { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
             .nav-btn { display: none !important; }
         }
     </style>
