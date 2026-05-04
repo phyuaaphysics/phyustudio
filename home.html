@@ -143,7 +143,7 @@
             display: flex; 
             overflow-x: auto; 
             scroll-snap-type: x mandatory; 
-            gap: 2px; /* 調整為極小間距 */
+            gap: 2px; 
             padding-bottom: 20px;
             scroll-behavior: smooth;
         }
@@ -181,7 +181,6 @@
             will-change: transform;
         }
 
-        /* Native App 感觸的放大動畫 */
         .poster-card:active {
             transform: scale(0.94);
             filter: brightness(0.9);
@@ -203,9 +202,10 @@
 
         .section-hidden { display: none !important; }
 
+        /* 修正 iOS PWA 模式下底部間距過大的問題 */
         .dock-wrapper {
             position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
             left: 50%;
             transform: translateX(-50%);
             z-index: 200;
@@ -246,7 +246,7 @@
 
         .dock-trigger-bar {
             position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
             left: 50%;
             transform: translateX(-50%);
             width: 60px; height: 5px;
@@ -371,7 +371,6 @@
             heroUrl: 'https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home',
             googleUrl: 'https://mail.google.com/mail/u/0/#inbox',
             data: [
-                // 核心課程
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-1-heat.jpg', url: 'https://sites.google.com/np2c.edu.hk/heatcourse/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-2-mech.jpg', url: 'https://sites.google.com/np2c.edu.hk/mechanics-all/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-3-wave.jpg', url: 'https://sites.google.com/np2c.edu.hk/wave/home' },
@@ -380,7 +379,6 @@
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-6-atomic.jpg', url: 'https://sites.google.com/np2c.edu.hk/atomic-world/home' },
                 { category: 'course', img: 'https://phyuaaphysics.github.io/phyustudio/vb-7-medic.jpg', url: 'https://sites.google.com/np2c.edu.hk/medicalphysics/home' },
                 
-                // 基礎練習冊 01-10
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS301.png', url: 'https://phyuphysics.com/video-fundamental-s3-bk01/' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/fundaS302.png', url: 'https://sites.google.com/np2c.edu.hk/vols3ii/home' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda01A.png', url: 'https://sites.google.com/np2c.edu.hk/vol01a/home' },
@@ -395,7 +393,6 @@
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda09.png', url: 'no link' },
                 { category: 'funda-01-10', img: 'https://phyuaaphysics.github.io/phyustudio/funda10.png', url: 'no link' },
 
-                // 基礎練習冊 11-20
                 { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda11.png', url: 'https://sites.google.com/np2c.edu.hk/vol11/home' },
                 { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda12.png', url: 'https://phyuphysics.com/video-fundamental-012/' },
                 { category: 'funda-11-20', img: 'https://phyuaaphysics.github.io/phyustudio/funda13.png', url: 'https://sites.google.com/np2c.edu.hk/vol-13/?pli=1&authuser=1' },
@@ -426,7 +423,6 @@
 
         function handleNavigation(url, showAnim = false) {
             if (!url || url === '#' || url === 'no link') return;
-            
             if (showAnim) {
                 loader.classList.add('active');
                 setTimeout(() => { window.location.href = url; }, 400);
@@ -441,21 +437,16 @@
                 if(btn.dataset.filter === filterType) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-
             const heroSection = document.getElementById('hero-section');
             const sections = document.querySelectorAll('main section');
-
             if (filterType === 'all') {
                 heroSection.classList.remove('section-hidden');
                 sections.forEach(sec => sec.classList.remove('section-hidden'));
             } else {
                 heroSection.classList.add('section-hidden');
                 sections.forEach(sec => {
-                    if (sec.dataset.group === filterType) {
-                        sec.classList.remove('section-hidden');
-                    } else {
-                        sec.classList.add('section-hidden');
-                    }
+                    if (sec.dataset.group === filterType) sec.classList.remove('section-hidden');
+                    else sec.classList.add('section-hidden');
                 });
             }
         }
@@ -467,38 +458,26 @@
                 'funda-11-20': document.getElementById('funda-11-20-slider')
             };
             Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
-
             config.data.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `slider-item w-32 md:w-56`;
-                // 添加 poster-card 的 wrapper
                 div.innerHTML = `<div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>`;
                 div.onclick = () => handleNavigation(item.url, false);
-                
                 let containerKey = item.category;
-                if (containers[containerKey]) {
-                    containers[containerKey].appendChild(div);
-                }
+                if (containers[containerKey]) containers[containerKey].appendChild(div);
             });
         }
 
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-            
             if (currentScrollY > 30) document.body.classList.add('scrolled');
             else document.body.classList.remove('scrolled');
-
             const filterBar = document.getElementById('filter-bar');
             if (currentScrollY > lastScrollY && currentScrollY > 150) {
-                if (!filterBar.classList.contains('collapsed')) {
-                    filterBar.classList.add('collapsed');
-                }
+                if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
             } else if (currentScrollY < lastScrollY) {
-                if (filterBar.classList.contains('collapsed')) {
-                    filterBar.classList.remove('collapsed');
-                }
+                if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
             }
-            
             lastScrollY = currentScrollY;
         }, { passive: true });
 
@@ -506,12 +485,10 @@
             setFilter('all'); 
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
-        
         function openLink(type) {
             if(type === 'hero') handleNavigation(config.heroUrl, false);
             if(type === 'google') handleNavigation(config.googleUrl, false);
         }
-
         document.addEventListener('DOMContentLoaded', () => {
             render();
             loader.classList.add('active');
