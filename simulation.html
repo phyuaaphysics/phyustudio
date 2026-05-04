@@ -370,7 +370,8 @@
     <header id="header-root">
         <div class="logo-bar px-6" id="logo-nav-bar"> 
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
-                <div class="cursor-pointer" onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/home.html', false)" id="main-logo">
+                <!-- 直接跳轉，不觸發動畫 -->
+                <div class="cursor-pointer" onclick="window.location.href='https://phyuaaphysics.github.io/phyustudio/home.html'" id="main-logo">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                     <span class="text-xl font-black text-emerald-900 tracking-tighter">Simulation Lab</span>
                 </div>
@@ -465,7 +466,8 @@
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/home.html', false)" id="dock-home" class="dock-item">
+                <!-- 直接跳轉 -->
+                <button onclick="window.location.href='https://phyuaaphysics.github.io/phyustudio/home.html'" id="dock-home" class="dock-item">
                     <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
                 </button>
                 <button onclick="scrollToTop()" class="dock-item active">
@@ -570,7 +572,8 @@
 
         function handleNavigation(url, showAnim = false) {
             if (!url || url === '#') return;
-            if (showAnim) {
+            // 針對主頁跳轉優化：如果點的是主頁且 showAnim 即使為真也跳過
+            if (showAnim && !url.includes('home.html')) {
                 loader.classList.add('active');
                 setTimeout(() => { window.location.href = url; }, 400);
             } else {
