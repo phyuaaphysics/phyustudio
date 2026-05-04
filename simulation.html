@@ -21,7 +21,6 @@
             --mint-bg: #f0fdf4;
             --mint-glass: rgba(240, 253, 244, 0.85); 
             --mint-nav-glass: rgba(255, 255, 255, 0.75);
-            /* 調整後的灰綠色調 Docking */
             --sage-deep: #2d3a35;
             --sage-muted: #6b8278;
             --sage-active: #4a6d5d;
@@ -136,13 +135,12 @@
             border-top: 1px solid rgba(16, 185, 129, 0.05);
         }
 
-        /* 好手氣固形浮窗樣式 */
         .lucky-dock {
             position: absolute;
             right: 24px;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(210, 252, 230, 0.7); /* 超淡綠色 */
+            background: rgba(210, 252, 230, 0.7); 
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             padding: 6px 14px;
@@ -162,17 +160,8 @@
             transform: translateY(-50%) scale(1.05);
         }
 
-        .lucky-dock i {
-            font-size: 14px;
-            color: var(--mint-primary);
-        }
-
-        .lucky-dock span {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--mint-deep);
-            letter-spacing: 0.05em;
-        }
+        .lucky-dock i { font-size: 14px; color: var(--mint-primary); }
+        .lucky-dock span { font-size: 11px; font-weight: 700; color: var(--mint-deep); letter-spacing: 0.05em; }
 
         .filter-toggle-trigger {
             position: absolute;
@@ -196,64 +185,54 @@
 
         #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
 
-        .slider-wrapper { position: relative; width: 100%; }
-
-        .slider-container { 
-            display: flex; 
-            overflow-x: auto; 
-            scroll-snap-type: x mandatory; 
-            gap: 12px; 
-            padding: 10px 0 20px 0;
-            scroll-behavior: smooth;
+        /* 網格系統佈局 */
+        .grid-container {
+            display: grid;
+            gap: 20px;
+            padding: 10px 0 40px 0;
+            width: 100%;
         }
-
-        .nav-btn {
-            position: absolute;
-            top: 40%;
-            transform: translateY(-50%);
-            width: 36px;
-            height: 36px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            z-index: 10;
-            opacity: 0;
-            transition: opacity 0.3s;
-            cursor: pointer;
-        }
-        
-        .slider-wrapper:hover .nav-btn { opacity: 1; }
-        .nav-btn.prev { left: -12px; }
-        .nav-btn.next { right: -12px; }
-
-        .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
 
         .poster-card { 
             aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #d1fae5; 
             position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; 
             border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(6, 78, 59, 0.1);
         }
+        
+        .poster-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(6, 78, 59, 0.2); }
+
+        /* 子課題標記與名稱並列樣式 */
+        .card-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
 
         .card-topic-tag {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700;
             color: var(--mint-primary);
             background: rgba(16, 185, 129, 0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-top: 8px;
-            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            white-space: nowrap;
         }
 
         .card-name {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--mint-deep);
-            margin-top: 4px;
-            display: block;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .hero-container-framed {
@@ -263,7 +242,6 @@
 
         .section-hidden { display: none !important; }
 
-        /* 浮窗與 iframe 樣式 */
         #sim-preview-modal {
             position: fixed; inset: 0; z-index: 300;
             background: rgba(0,0,0,0.6);
@@ -294,7 +272,6 @@
             cursor: pointer; border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* 灰綠色調 Docking */
         .dock-wrapper {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
@@ -309,7 +286,7 @@
         .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
 
         .dock-nav {
-            background-color: rgba(60, 75, 68, 0.85); /* 灰綠色 */
+            background-color: rgba(60, 75, 68, 0.85); 
             backdrop-filter: blur(28px);
             -webkit-backdrop-filter: blur(28px);
             border: 1.5px solid rgba(255, 255, 255, 0.1);
@@ -347,7 +324,7 @@
         }
         .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
 
-        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--mint-deep); margin-bottom: 8px; }
+        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--mint-deep); margin-bottom: 16px; border-left: 4px solid var(--mint-primary); padding-left: 12px; }
 
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
@@ -383,17 +360,12 @@
         </div>
         
         <div class="filter-bar" id="filter-bar">
-            <!-- 動態生成分類按鈕 -->
             <div id="category-filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar px-6 pr-12">
                 <button class="filter-capsule active" data-filter="all" onclick="setFilter('all')">全部模擬</button>
             </div>
             
             <div id="sub-filter-bar" class="sub-filter-container hide-scrollbar overflow-x-auto">
-                <div id="sub-filter-items" class="flex items-center gap-3">
-                    <!-- 動態生成子分類按鈕 -->
-                </div>
-                
-                <!-- 好手氣浮窗 -->
+                <div id="sub-filter-items" class="flex items-center gap-3"></div>
                 <div class="lucky-dock" onclick="handleIAmLucky()">
                     <i class="fas fa-dice"></i>
                     <span>好手氣</span>
@@ -410,23 +382,18 @@
         <div id="view-sim">
             <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
                 <div class="hero-container-framed relative w-full h-[50vh] md:h-[60vh]">
-                    <!-- 背景圖片與專業漸層 -->
                     <img id="hero-bg" src="https://phyuaaphysics.github.io/phyustudio/virtuallab.png" class="absolute inset-0 w-full h-full object-cover filter saturate-125">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent"></div>
                     
                     <div class="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-                        <!-- 標題樣式調整：採用 Cinzel 幼長且 GRAND 的字體 -->
                         <h1 class="text-3xl md:text-6xl text-white mb-3 tracking-[0.15em] uppercase" style="font-family: 'Cinzel', serif; font-weight: 400;">Physics Simulation Laboratory</h1>
                         <p class="text-emerald-400 text-[10px] md:text-xs font-light tracking-[0.6em] mb-10 uppercase">PHYSICS IN ACTION</p>
-                        
-                        <!-- 按鈕更新 -->
                         <button onclick="scrollToContent()" class="bg-white text-black px-14 py-4 font-black rounded-full text-[10px] tracking-[0.3em] uppercase shadow-2xl hover:bg-emerald-500 hover:text-white transition-all transform active:scale-95">
                             Browse all
                         </button>
                     </div>
                     
-                    <!-- 與雲端同步按鈕 -->
                     <div class="absolute bottom-6 right-6 z-20">
                         <button onclick="loadSheetData()" class="flex items-center gap-2 px-4 py-2 bg-black/30 backdrop-blur-md border border-white/20 rounded-xl text-white/80 hover:text-white hover:bg-black/40 transition-all active:scale-95 group">
                             <i class="fas fa-sync-alt text-xs group-active:animate-spin" id="sync-icon"></i>
@@ -440,7 +407,6 @@
         </div>
     </div>
 
-    <!-- 詳情浮窗 (Modal) -->
     <div id="sim-preview-modal" onclick="closeModal()">
         <div class="modal-body" onclick="event.stopPropagation()">
             <div class="relative w-full aspect-video bg-gray-100">
@@ -462,7 +428,6 @@
         </div>
     </div>
 
-    <!-- Iframe 容器 -->
     <div id="iframe-container">
         <div class="iframe-close-btn" onclick="closeIframe()"><i class="fas fa-times"></i></div>
         <iframe id="sim-frame" src="" class="w-full h-full border-none"></iframe>
@@ -491,19 +456,13 @@
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
     <script>
-        // Google Sheet CSV URL (導出格式)
         const SPREADSHEET_ID = '1epq97ag6xvqjGsljmLXhLkkqS1AkDkMFjh6w01i6JvE';
         const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
 
-        let config = {
-            categories: [],
-            data: []
-        };
-
+        let config = { categories: [], data: [] };
         const loader = document.getElementById('page-loader');
         let lastScrollY = window.scrollY;
 
-        // 解析 CSV 資料
         async function loadSheetData() {
             const syncIcon = document.getElementById('sync-icon');
             if (syncIcon) syncIcon.classList.add('animate-spin');
@@ -512,7 +471,6 @@
                 const response = await fetch(FETCH_URL);
                 const data = await response.text();
                 const rows = data.split('\n').map(row => {
-                    // 處理 CSV 引用內容中的逗號
                     const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
                     return matches ? matches.map(m => m.replace(/^"|"$/g, '')) : [];
                 });
@@ -523,7 +481,6 @@
                 for (let i = 1; i < rows.length; i++) {
                     const row = rows[i];
                     if (row.length < 6) continue;
-
                     const [category, topic, name, desc, img, url] = row;
                     simulations.push({ category, topic, name, desc, img, url });
                     categorySet.add(category);
@@ -532,7 +489,6 @@
                 config.data = simulations;
                 config.categories = Array.from(categorySet).map(cat => ({ id: cat, title: cat }));
 
-                // 重新初始化過濾器與列表
                 initFilters();
                 render();
 
@@ -549,7 +505,6 @@
 
         function initFilters() {
             const container = document.getElementById('category-filter-container');
-            // 保留「全部模擬」按鈕，清空其他動態產生的
             const allBtn = container.querySelector('[data-filter="all"]');
             container.innerHTML = '';
             container.appendChild(allBtn);
@@ -570,8 +525,7 @@
         function handleIAmLucky() {
             if (config.data.length === 0) return;
             const randomIndex = Math.floor(Math.random() * config.data.length);
-            const luckyItem = config.data[randomIndex];
-            openPreview(luckyItem);
+            openPreview(config.data[randomIndex]);
         }
 
         function openPreview(item) {
@@ -579,13 +533,8 @@
             document.getElementById('modal-img').src = item.img;
             document.getElementById('modal-tag').innerText = item.topic;
             document.getElementById('modal-name').innerText = item.name;
-            document.getElementById('modal-desc').innerText = item.desc || "透過互動式模擬，深入理解物理定律與現象的關聯。";
-            
-            document.getElementById('modal-play-trigger').onclick = () => {
-                closeModal();
-                openIframe(item.url);
-            };
-
+            document.getElementById('modal-desc').innerText = item.desc || "透過互動式模擬，深入理解物理定律。";
+            document.getElementById('modal-play-trigger').onclick = () => { closeModal(); openIframe(item.url); };
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
             document.body.style.overflow = 'hidden';
@@ -611,16 +560,8 @@
             const container = document.getElementById('iframe-container');
             const frame = document.getElementById('sim-frame');
             container.classList.remove('active');
-            setTimeout(() => {
-                container.style.display = 'none';
-                frame.src = '';
-            }, 300);
+            setTimeout(() => { container.style.display = 'none'; frame.src = ''; }, 300);
             document.body.style.overflow = 'auto';
-        }
-
-        function scrollSlider(id, offset) {
-            const el = document.getElementById(id);
-            if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
         }
 
         function scrollToContent() {
@@ -642,10 +583,7 @@
 
         function setFilter(filterType) {
             const buttons = document.querySelectorAll('#category-filter-container .filter-capsule');
-            buttons.forEach(btn => {
-                if(btn.dataset.filter === filterType) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
+            buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filterType));
 
             const subFilterBar = document.getElementById('sub-filter-bar');
             const subItemsContainer = document.getElementById('sub-filter-items');
@@ -686,16 +624,15 @@
                 if(heroSection) heroSection.classList.remove('section-hidden');
                 sections.forEach(sec => {
                     sec.classList.remove('section-hidden');
-                    sec.querySelectorAll('.slider-item').forEach(item => item.classList.remove('section-hidden'));
+                    sec.querySelectorAll('.grid-item-card').forEach(item => item.classList.remove('section-hidden'));
                 });
             } else {
                 if(heroSection) heroSection.classList.add('section-hidden');
                 sections.forEach(sec => {
                     if (sec.dataset.group === category) {
                         sec.classList.remove('section-hidden');
-                        const items = sec.querySelectorAll('.slider-item');
                         let visibleCount = 0;
-                        items.forEach(item => {
+                        sec.querySelectorAll('.grid-item-card').forEach(item => {
                             if (topic === 'all' || item.dataset.topic === topic) {
                                 item.classList.remove('section-hidden');
                                 visibleCount++;
@@ -724,27 +661,26 @@
                 section.dataset.group = cat.id;
                 
                 section.innerHTML = `
-                    <h2 class="section-title">${cat.title}</h2>
-                    <div class="slider-wrapper">
-                        <button class="nav-btn prev" onclick="scrollSlider('${cat.id}-slider', -400)"><i class="fas fa-chevron-left text-xs text-emerald-400"></i></button>
-                        <div class="slider-container hide-scrollbar" id="${cat.id}-slider"></div>
-                        <button class="nav-btn next" onclick="scrollSlider('${cat.id}-slider', 400)"><i class="fas fa-chevron-right text-xs text-emerald-400"></i></button>
-                    </div>
+                    <h2 class="section-title uppercase tracking-widest text-xs">${cat.title}</h2>
+                    <div class="grid-container grid grid-cols-2 md:grid-cols-3" id="${cat.id}-grid"></div>
                 `;
                 mainContent.appendChild(section);
 
-                const slider = document.getElementById(`${cat.id}-slider`);
+                const grid = document.getElementById(`${cat.id}-grid`);
                 filteredData.forEach(item => {
                     const div = document.createElement('div');
-                    div.className = `slider-item w-52 md:w-80`;
+                    div.className = `grid-item-card flex flex-col group`;
                     div.dataset.topic = item.topic;
+                    // 將 Topic Tag 與 Name 並列於一行，均使用膠囊封裝
                     div.innerHTML = `
                         <div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>
-                        <span class="card-topic-tag">${item.topic || '通用'}</span>
-                        <span class="card-name">${item.name}</span>
+                        <div class="card-info-row">
+                            <span class="card-topic-tag">${item.topic || '通用'}</span>
+                            <span class="card-name group-hover:text-emerald-500 transition-colors">${item.name}</span>
+                        </div>
                     `;
                     div.onclick = () => openPreview(item);
-                    slider.appendChild(div);
+                    grid.appendChild(div);
                 });
             });
         }
@@ -763,9 +699,7 @@
             lastScrollY = currentScrollY;
         }, { passive: true });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSheetData();
-        });
+        document.addEventListener('DOMContentLoaded', loadSheetData);
     </script>
 </body>
 </html>
