@@ -143,7 +143,7 @@
             display: flex; 
             overflow-x: auto; 
             scroll-snap-type: x mandatory; 
-            gap: 16px; 
+            gap: 2px; /* 調整為極小間距 */
             padding-bottom: 20px;
             scroll-behavior: smooth;
         }
@@ -175,9 +175,16 @@
         .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
 
         .poster-card { 
-            aspect-ratio: 2/3; border-radius: 12px; overflow: hidden; background: #cbd5e1; 
-            position: relative; transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); cursor: pointer; 
-            border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 8px 20px -8px rgba(15, 23, 42, 0.1);
+            aspect-ratio: 2/3; border-radius: 4px; overflow: hidden; background: #cbd5e1; 
+            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; 
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+            will-change: transform;
+        }
+
+        /* Native App 感觸的放大動畫 */
+        .poster-card:active {
+            transform: scale(0.94);
+            filter: brightness(0.9);
         }
 
         .hero-container-framed {
@@ -417,11 +424,6 @@
             if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
         }
 
-        /**
-         * 導覽處理器
-         * @param {string} url - 跳轉網址
-         * @param {boolean} showAnim - 是否顯示過場動畫
-         */
         function handleNavigation(url, showAnim = false) {
             if (!url || url === '#' || url === 'no link') return;
             
@@ -469,6 +471,7 @@
             config.data.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `slider-item w-32 md:w-56`;
+                // 添加 poster-card 的 wrapper
                 div.innerHTML = `<div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>`;
                 div.onclick = () => handleNavigation(item.url, false);
                 
@@ -511,7 +514,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             render();
-            // 初次進入頁面顯示載入動畫
             loader.classList.add('active');
             setTimeout(() => loader.classList.remove('active'), 500);
         });
