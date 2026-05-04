@@ -14,7 +14,6 @@
             --glacier-primary: #0284c7; 
             --glacier-ice: #38bdf8;
             --glacier-bg: #eef2f6;
-            /* 進一步調淡藍色，增加透明度，使其更自然地融入版面 */
             --glacier-glass: rgba(224, 242, 254, 0.85); 
             --glacier-nav-glass: rgba(255, 255, 255, 0.75); 
         }
@@ -345,10 +344,10 @@
                 <button onclick="scrollToHero()" class="dock-item active">
                     <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
                 </button>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html', true)" class="dock-item">
                     <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
                 </button>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', true)" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
                 <button onclick="openLink('google')" class="dock-item">
@@ -418,10 +417,22 @@
             if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
         }
 
-        function handleNavigation(url, element) {
+        /**
+         * 導覽處理器
+         * @param {string} url - 跳轉網址
+         * @param {boolean} showAnim - 是否顯示過場動畫（模擬器與功能區為 true）
+         */
+        function handleNavigation(url, showAnim = false) {
             if (!url || url === '#' || url === 'no link') return;
-            loader.classList.add('active');
-            setTimeout(() => { window.location.href = url; }, 400);
+            
+            if (showAnim) {
+                // 僅模擬器與功能區顯示過場
+                loader.classList.add('active');
+                setTimeout(() => { window.location.href = url; }, 400);
+            } else {
+                // 其他連結立即跳轉，減少卡頓
+                window.location.href = url;
+            }
         }
 
         function setFilter(filterType) {
@@ -461,7 +472,8 @@
                 const div = document.createElement('div');
                 div.className = `slider-item w-32 md:w-56`;
                 div.innerHTML = `<div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>`;
-                div.onclick = () => handleNavigation(item.url, div.firstChild);
+                // 課程與練習冊連結不使用動畫
+                div.onclick = () => handleNavigation(item.url, false);
                 
                 let containerKey = item.category;
                 if (containers[containerKey]) {
@@ -496,12 +508,14 @@
         }
         
         function openLink(type) {
-            if(type === 'hero') handleNavigation(config.heroUrl);
-            if(type === 'google') handleNavigation(config.googleUrl);
+            // 頂部與 Banner 跳轉不使用動畫
+            if(type === 'hero') handleNavigation(config.heroUrl, false);
+            if(type === 'google') handleNavigation(config.googleUrl, false);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             render();
+            // 初次進入頁面的載入動畫保留以維持質感
             setTimeout(() => loader.classList.remove('active'), 500);
         });
     </script>
