@@ -1,60 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina Deployer Bot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); }
-    </style>
-</head>
-<body class="p-4 md:p-10 flex flex-col items-center min-h-screen">
-
-    <div class="max-w-2xl w-full glass p-8 rounded-3xl shadow-xl">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <i class="fas fa-robot text-xl"></i>
-            </div>
-            <div>
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight">Lumina Deployer Bot</h1>
-                <p class="text-xs font-medium text-emerald-600 uppercase tracking-widest">Source Code Automator</p>
-            </div>
-        </div>
-
-        <div class="space-y-6">
-            <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Target Volume Number</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 font-bold">VOL</span>
-                    <input type="number" id="volInput" placeholder="14" 
-                        class="w-full pl-14 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-lg font-bold text-slate-700">
-                </div>
-            </div>
-
-            <button onclick="generateCode()" 
-                class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95">
-                <i class="fas fa-magic"></i> GENERATE SOURCE CODE
-            </button>
-        </div>
-
-        <div id="outputContainer" class="mt-8 hidden">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">New Source Code (VOL<span id="displayVol"></span>)</span>
-                <button onclick="copyToClipboard()" id="copyBtn" class="text-emerald-600 hover:text-emerald-700 text-xs font-black uppercase tracking-widest flex items-center gap-1">
-                    <i class="fas fa-copy"></i> Copy Code
-                </button>
-            </div>
-            <textarea id="resultArea" readonly 
-                class="w-full h-64 p-4 rounded-2xl bg-slate-50 border border-slate-200 font-mono text-[10px] text-slate-600 focus:outline-none"></textarea>
-        </div>
-    </div>
-
-    <script>
-        // The original template with VOL19 as the placeholder
-        const template = `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -65,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Lumina">
     
-    <script src="https://cdn.tailwindcss.com"><\/script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
@@ -486,7 +430,7 @@
 
     <script>
         const SPREADSHEET_ID = '1MeEEF8xVR2Sq-uqqshG-XLnf2hpeoElBNQTJnynP110';
-        const FETCH_URL = \`https://docs.google.com/spreadsheets/d/\${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=VOL19\`;
+        const FETCH_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=VOL2`;
 
         let hwList = [];
         let rawDataRows = [];
@@ -511,8 +455,8 @@
             try {
                 const response = await fetch(FETCH_URL);
                 const data = await response.text();
-                const rows = data.split('\\n').map(row => {
-                    const matches = row.match(/(".*?"|[^",\\s]+)(?=\\s*,|\\s*$)/g);
+                const rows = data.split('\n').map(row => {
+                    const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
                     return matches ? matches.map(m => m.replace(/^"|"$/g, '')) : [];
                 });
                 rawDataRows = rows;
@@ -535,7 +479,7 @@
                     }, 2000);
                     if (activeTabId) {
                         const tab = openTabs.find(t => t.id === activeTabId);
-                        if (tab && tab.type === 'HW') renderHWContent(tab.title, \`content-\${tab.id}\`);
+                        if (tab && tab.type === 'HW') renderHWContent(tab.title, `content-${tab.id}`);
                         if (tab && tab.id === 'HOME_FOLDER') renderHomeFolder('content-HOME_FOLDER');
                     }
                 } else {
@@ -563,13 +507,13 @@
                 const row = document.createElement('div');
                 row.className = 'list-item-row';
                 row.onclick = () => openTab(hw, 'HW');
-                row.innerHTML = \`
+                row.innerHTML = `
                     <div class="flex items-center gap-5">
                         <div class="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
                             <i class="fas fa-layer-group text-sm"></i>
                         </div>
                         <div class="flex flex-col">
-                            <span class="text-[13px] font-black text-gray-800 tracking-widest uppercase">\${hw}</span>
+                            <span class="text-[13px] font-black text-gray-800 tracking-widest uppercase">${hw}</span>
                             <span class="text-[9px] font-medium text-gray-400 tracking-wider uppercase">練習系列</span>
                         </div>
                     </div>
@@ -577,7 +521,7 @@
                         <span class="text-[10px] font-bold tracking-widest uppercase">ENTER</span>
                         <i class="fas fa-chevron-right text-[10px]"></i>
                     </div>
-                \`;
+                `;
                 listWrapper.appendChild(row);
             });
             
@@ -585,7 +529,7 @@
         }
 
         function openTab(title, type, contentUrl = null) {
-            const id = type === 'FOLDER' ? 'HOME_FOLDER' : type + "_" + title.replace(/\\s+/g, '_');
+            const id = type === 'FOLDER' ? 'HOME_FOLDER' : type + "_" + title.replace(/\s+/g, '_');
             const existing = openTabs.find(t => t.id === id);
             if (existing) { switchTab(id); return; }
 
@@ -594,23 +538,23 @@
             
             const body = document.getElementById('browser-window-body');
             const page = document.createElement('div');
-            page.id = \`page-\${id}\`;
+            page.id = `page-${id}`;
             page.className = 'win-content-page';
             if (type === 'VID') {
                 let embed = contentUrl.includes('watch?v=') ?
                 contentUrl.replace('watch?v=', 'embed/') : contentUrl.replace('youtu.be/', 'youtube.com/embed/');
-                page.innerHTML = \`<iframe class="w-full h-full" src="\${embed}\${embed.includes('?') ? '&' : '?'}playsinline=1" frameborder="0" allowfullscreen><\/iframe>\`;
+                page.innerHTML = `<iframe class="w-full h-full" src="${embed}${embed.includes('?') ? '&' : '?'}playsinline=1" frameborder="0" allowfullscreen></iframe>`;
             } else if (type === 'PIC') {
-                page.innerHTML = \`<div class="w-full h-full flex flex-col items-center justify-center p-4 bg-black/5 overflow-hidden"><img src="\${contentUrl}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl"><div class="bottom-close-container"><button class="btn-close-bottom" onclick="closeTab('\${id}')">關閉內容<\/button><\/div><\/div>\`;
+                page.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center p-4 bg-black/5 overflow-hidden"><img src="${contentUrl}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl"><div class="bottom-close-container"><button class="btn-close-bottom" onclick="closeTab('${id}')">關閉內容</button></div></div>`;
             } else if (type === 'PDF') {
-                page.innerHTML = \`<div class="w-full h-full relative"><iframe src="\${contentUrl}" class="w-full h-full" frameborder="0"><\/iframe><div class="bottom-close-container"><button class="btn-close-bottom" onclick="closeTab('\${id}')">關閉 PDF<\/button><\/div><\/div>\`;
+                page.innerHTML = `<div class="w-full h-full relative"><iframe src="${contentUrl}" class="w-full h-full" frameborder="0"></iframe><div class="bottom-close-container"><button class="btn-close-bottom" onclick="closeTab('${id}')">關閉 PDF</button></div></div>`;
             } else {
-                page.innerHTML = \`<div id="content-\${id}" class="w-full h-full flex flex-col p-0 overflow-y-auto"><\/div>\`;
+                page.innerHTML = `<div id="content-${id}" class="w-full h-full flex flex-col p-0 overflow-y-auto"></div>`;
             }
             body.appendChild(page);
             
-            if (type === 'HW') renderHWContent(title, \`content-\${id}\`);
-            if (type === 'FOLDER') renderHomeFolder(\`content-\${id}\`);
+            if (type === 'HW') renderHWContent(title, `content-${id}`);
+            if (type === 'FOLDER') renderHomeFolder(`content-${id}`);
             
             renderTabs();
             switchTab(id);
@@ -626,7 +570,7 @@
             strip.innerHTML = '';
             openTabs.forEach(tab => {
                 const el = document.createElement('div');
-                el.className = \`browser-tab \${activeTabId === tab.id ? 'active' : ''}\`;
+                el.className = `browser-tab ${activeTabId === tab.id ? 'active' : ''}`;
                 el.onclick = () => switchTab(tab.id);
                 
                 let iconClass = 'fa-file-alt text-emerald-500';
@@ -635,7 +579,7 @@
                 if (tab.type === 'PIC') iconClass = 'fa-image text-blue-500';
                 if (tab.type === 'PDF') iconClass = 'fa-file-pdf text-orange-500';
 
-                el.innerHTML = \`<i class="fas \${iconClass} text-[10px]"><\/i><span class="tab-title">\${tab.title}<\/span><i class="fas fa-times tab-close" onclick="event.stopPropagation(); closeTab('\${tab.id}')"><\/i>\`;
+                el.innerHTML = `<i class="fas ${iconClass} text-[10px]"></i><span class="tab-title">${tab.title}</span><i class="fas fa-times tab-close" onclick="event.stopPropagation(); closeTab('${tab.id}')"></i>`;
                 strip.appendChild(el);
             });
         }
@@ -643,7 +587,7 @@
         function switchTab(id) {
             activeTabId = id;
             document.querySelectorAll('.win-content-page').forEach(p => p.classList.remove('active'));
-            const activePage = document.getElementById(\`page-\${id}\`);
+            const activePage = document.getElementById(`page-${id}`);
             if (activePage) activePage.classList.add('active');
             renderTabs();
         }
@@ -652,7 +596,7 @@
             const index = openTabs.findIndex(t => t.id === id);
             if (index === -1) return;
             openTabs.splice(index, 1);
-            const pageEl = document.getElementById(\`page-\${id}\`);
+            const pageEl = document.getElementById(`page-${id}`);
             if (pageEl) pageEl.remove();
             if (openTabs.length === 0) {
                 closeAllTabs();
@@ -678,7 +622,7 @@
             const body = document.getElementById(containerId);
             body.innerHTML = ''; 
             const hwData = rawDataRows.filter(row => row[0] === hwName);
-            if (!hwData.length) { body.innerHTML = \`<div class="p-10 text-center opacity-50 uppercase tracking-widest text-xs">Waiting for Content Update<\/div>\`; return; }
+            if (!hwData.length) { body.innerHTML = `<div class="p-10 text-center opacity-50 uppercase tracking-widest text-xs">Waiting for Content Update</div>`; return; }
 
             const list = document.createElement('div');
             list.className = 'uniform-list-container';
@@ -690,18 +634,18 @@
                 const icon = subType === 'PIC' ? 'fa-image text-blue-500' : 'fa-file-pdf text-orange-500';
                 
                 const rowEl = document.createElement('div');
-                rowEl.className = \`list-item-row bg-emerald-50/20\`;
+                rowEl.className = `list-item-row bg-emerald-50/20`;
                 rowEl.onclick = () => { if (fileUrl) openTab(subType, subType, fileUrl); else showAlert('尚未配置檔案連結'); };
-                rowEl.innerHTML = \`
+                rowEl.innerHTML = `
                     <div class="flex items-center gap-5">
-                        <i class="fas \${icon} text-lg"><\/i>
-                        <span class="text-[13px] font-extrabold text-gray-800 uppercase tracking-widest">\${title}<\/span>
+                        <i class="fas ${icon} text-lg"></i>
+                        <span class="text-[13px] font-extrabold text-gray-800 uppercase tracking-widest">${title}</span>
                     </div>
                     <div class="flex items-center gap-2 text-emerald-600">
-                        <span class="text-[9px] font-bold uppercase tracking-widest">OPEN<\/span>
-                        <i class="fas fa-chevron-right text-[10px]"><\/i>
+                        <span class="text-[9px] font-bold uppercase tracking-widest">OPEN</span>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
                     </div>
-                \`;
+                `;
                 list.appendChild(rowEl);
             });
             
@@ -709,29 +653,29 @@
                 const tag = row[2] || 'UNIT';
                 const isUnlocked = row[3] === 'ACTIVE' || isProUnlocked;
                 const videoUrl = row[4] || '';
-                const safeId = (hwName + tag).replace(/\\s+/g, '');
+                const safeId = (hwName + tag).replace(/\s+/g, '');
                 
                 const rowEl = document.createElement('div');
-                rowEl.className = \`list-item-row\`;
-                const phonePlayIcon = \`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="2"/><path d="M10 9L15 12L10 15V9Z" fill="currentColor"/><line x1="11" y1="19" x2="13" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><\/svg>\`;
-                rowEl.innerHTML = \`
+                rowEl.className = `list-item-row`;
+                const phonePlayIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="2"/><path d="M10 9L15 12L10 15V9Z" fill="currentColor"/><line x1="11" y1="19" x2="13" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+                rowEl.innerHTML = `
                     <div class="flex items-center gap-5">
-                        <i class="fas fa-play-circle text-emerald-500/70 text-lg"><\/i>
-                        <span class="text-[13px] font-bold text-gray-700 uppercase tracking-widest">\${tag}<\/span>
+                        <i class="fas fa-play-circle text-emerald-500/70 text-lg"></i>
+                        <span class="text-[13px] font-bold text-gray-700 uppercase tracking-widest">${tag}</span>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all \${isUnlocked ? 'text-emerald-600 hover:bg-emerald-50' : 'text-gray-300 cursor-not-allowed'}" id="ext-\${safeId}">
-                            \${isUnlocked ? phonePlayIcon : '<i class=\\"fas fa-lock text-[11px]\\"><\/i>'}
-                        <\/button>
-                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all \${isUnlocked ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 active:scale-90' : 'bg-gray-100 text-gray-300'}" id="int-\${safeId}">
-                            <i class="fas \${isUnlocked ? 'fa-play ml-0.5' : 'fa-lock'} text-[11px]"><\/i>
-                        <\/button>
-                    <\/div>
-                \`;
+                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isUnlocked ? 'text-emerald-600 hover:bg-emerald-50' : 'text-gray-300 cursor-not-allowed'}" id="ext-${safeId}">
+                            ${isUnlocked ? phonePlayIcon : '<i class=\"fas fa-lock text-[11px]\"></i>'}
+                        </button>
+                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isUnlocked ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 active:scale-90' : 'bg-gray-100 text-gray-300'}" id="int-${safeId}">
+                            <i class="fas ${isUnlocked ? 'fa-play ml-0.5' : 'fa-lock'} text-[11px]"></i>
+                        </button>
+                    </div>
+                `;
                 list.appendChild(rowEl);
                 setTimeout(() => {
-                    const extBtn = document.getElementById(\`ext-\${safeId}\`);
-                    const intBtn = document.getElementById(\`int-\${safeId}\`);
+                    const extBtn = document.getElementById(`ext-${safeId}`);
+                    const intBtn = document.getElementById(`int-${safeId}`);
                     if (extBtn) extBtn.onclick = (e) => { e.stopPropagation(); if (isUnlocked && videoUrl) window.open(videoUrl, '_blank'); else showAlert('解鎖後即可觀看'); };
                     if (intBtn) intBtn.onclick = (e) => { e.stopPropagation(); if (isUnlocked && videoUrl) openTab(tag, 'VID', videoUrl); else showAlert('解鎖後即可觀看'); };
                 }, 0);
@@ -763,11 +707,11 @@
                 document.getElementById('success-notification').classList.add('show');
                 setTimeout(() => document.getElementById('success-notification').classList.remove('show'), 2500);
                 const locks = [document.getElementById('hero-pro-lock'), document.getElementById('win-pro-lock')];
-                locks.forEach(l => { if (l) { l.classList.add('pro-unlocked'); l.innerHTML = '<i class=\\"fas fa-unlock\\"><\/i>'; } });
+                locks.forEach(l => { if (l) { l.classList.add('pro-unlocked'); l.innerHTML = '<i class=\"fas fa-unlock\"></i>'; } });
                 hidePasscodeScreen();
                 if (activeTabId && activeTabId.startsWith('HW')) {
                     const tab = openTabs.find(t => t.id === activeTabId);
-                    renderHWContent(tab.title, \`content-\${tab.id}\`);
+                    renderHWContent(tab.title, `content-${tab.id}`);
                 }
             } else {
                 const dots = document.getElementById('dots-container').children;
@@ -782,43 +726,6 @@
             checkAppleDevice();
             loadSheetData(false);
         });
-    <\/script>
-</body>
-<\/html>`;
-
-        function generateCode() {
-            const volNum = document.getElementById('volInput').value;
-            if (!volNum) {
-                alert("Please enter a volume number!");
-                return;
-            }
-
-            // Replace VOL19 with the new VOL number
-            const newCode = template.replace(/sheet=VOL19/g, 'sheet=VOL' + volNum);
-            
-            document.getElementById('resultArea').value = newCode;
-            document.getElementById('displayVol').innerText = volNum;
-            document.getElementById('outputContainer').classList.remove('hidden');
-            
-            // Scroll to view
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-
-        function copyToClipboard() {
-            const copyText = document.getElementById("resultArea");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); 
-            navigator.clipboard.writeText(copyText.value);
-            
-            const btn = document.getElementById('copyBtn');
-            btn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
-            btn.classList.add('text-emerald-400');
-            
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-                btn.classList.remove('text-emerald-400');
-            }, 2000);
-        }
     </script>
 </body>
 </html>
