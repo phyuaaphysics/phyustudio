@@ -29,9 +29,9 @@
             display: flex;
             flex-direction: column;
             order: 2;
-            /* 極致緩慢的 1.2s 動畫 */
             transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
-            z-index: 40;
+            z-index: 40; /* 確保選單在前方 */
+            position: relative;
         }
         @media (min-width: 768px) {
             aside { width: 320px; order: 1; }
@@ -49,23 +49,31 @@
             z-index: 30;
             transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
             justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
         @media (min-width: 768px) {
             main { order: 2; }
         }
 
-        /* 擴展模式：深度沉浸感 */
+        /* 擴展模式 */
         .mode-expanded main {
             width: 0;
             flex: 0;
             opacity: 0;
             transform: scale(0.92);
             pointer-events: none;
-            overflow: hidden;
         }
         .mode-expanded aside {
             flex: 1;
             width: 100% !important;
+        }
+
+        /* 播放器容器區域 */
+        .player-region {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .video-wrapper {
@@ -73,7 +81,6 @@
             width: 100%;
             aspect-ratio: 16 / 9;
             background: #000;
-            overflow: hidden;
             transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
         }
 
@@ -93,6 +100,10 @@
             transition: background 0.2s ease;
             cursor: pointer;
             min-height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            z-index: 10;
         }
         
         .playlist-item.active {
@@ -107,10 +118,14 @@
             opacity: 0.3;
             transition: all 0.2s ease;
             padding: 10px;
+            position: relative;
+            z-index: 20; /* 確保按鈕在點擊層上方 */
         }
-        .delete-btn:active {
+        .delete-btn:hover {
             opacity: 1;
             color: #ff3b30;
+        }
+        .delete-btn:active {
             transform: scale(1.1);
         }
 
@@ -135,7 +150,6 @@
             gap: 1rem;
         }
 
-        /* 純圖示按鈕樣式 */
         #expand-btn, #done-btn {
             width: 32px;
             height: 32px;
@@ -159,8 +173,10 @@
     </div>
 
     <main id="main-container">
-        <div class="video-wrapper">
-            <div id="youtube-player"></div>
+        <div class="player-region">
+            <div class="video-wrapper">
+                <div id="youtube-player"></div>
+            </div>
         </div>
     </main>
 
@@ -304,17 +320,28 @@
             playlistData.forEach((song, index) => {
                 const container = document.createElement('div');
                 container.className = 'playlist-item-container';
-                container.innerHTML = `
-                    <div class="playlist-item flex items-center p-3.5 md:p-3.5 ${index === currentIndex ? 'active' : ''}" data-index="${index}">
-                        <div class="flex-1 flex flex-row items-center justify-between min-w-0 mr-1" onclick="loadSong(${index})">
-                            <div class="font-bold truncate text-xs song-title pr-4">${song.title}</div>
-                            <div class="text-[9px] text-gray-400 truncate font-bold uppercase tracking-wider flex-shrink-0">${song.artist}</div>
-                        </div>
-                        <button class="delete-btn flex-shrink-0" onclick="event.stopPropagation(); removeSong(${index})">
-                            <i class="fa-solid fa-xmark text-base"></i>
-                        </button>
+                
+                const item = document.createElement('div');
+                item.className = `playlist-item ${index === currentIndex ? 'active' : ''}`;
+                item.onclick = () => loadSong(index);
+                
+                item.innerHTML = `
+                    <div class="flex-1 flex flex-row items-center justify-between min-w-0 mr-1">
+                        <div class="font-bold truncate text-xs song-title pr-4">${song.title}</div>
+                        <div class="text-[9px] text-gray-400 truncate font-bold uppercase tracking-wider flex-shrink-0">${song.artist}</div>
                     </div>
                 `;
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn flex-shrink-0';
+                delBtn.innerHTML = '<i class="fa-solid fa-xmark text-base"></i>';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeSong(index);
+                };
+
+                item.appendChild(delBtn);
+                container.appendChild(item);
                 playlistEl.appendChild(container);
             });
         }
@@ -359,5 +386,4 @@
     </script>
 </body>
 </html>
-
 
