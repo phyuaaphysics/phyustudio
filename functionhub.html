@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -185,7 +186,8 @@
         }
 
         #modal-music .modal-window {
-            max-width: 70%;
+            max-width: 90%;
+            width: 500px;
         }
         
         @keyframes modalIn {
@@ -278,7 +280,7 @@
         @media (max-width: 768px) {
             .dock-wrapper { width: 92%; max-width: 400px; }
             #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 100px); }
-            #modal-music .modal-window { max-width: 90%; } 
+            #modal-music .modal-window { max-width: 95%; } 
         }
     </style>
 </head>
@@ -381,8 +383,8 @@
                 <span class="font-bold">Music Player</span>
                 <div class="modal-close" onclick="closePlugin('music')"><i class="fas fa-times"></i></div>
             </div>
-            <div class="p-0">
-                <iframe id="music-frame" src="" width="100%" height="450" frameborder="0" allow="autoplay"></iframe>
+            <div class="p-0 overflow-hidden" style="height: 500px;">
+                <iframe id="music-frame" src="" width="100%" height="100%" frameborder="0" allow="autoplay" style="overflow: auto;"></iframe>
             </div>
         </div>
     </div>
@@ -503,7 +505,7 @@
         /* Plugin Modal Logic */
         function openPlugin(type) {
             if (type === 'music') {
-                document.getElementById('music-frame').src = "https://www.youtube.com/embed/iqEr3P78fz8?autoplay=1";
+                document.getElementById('music-frame').src = "https://phyuaaphysics.github.io/phyustudio/musicplayer.html";
                 document.getElementById('modal-music').classList.add('active');
             } else if (type === 'timer') {
                 document.getElementById('modal-timer').classList.add('active');
@@ -586,3 +588,4 @@
     </script>
 </body>
 </html>
+
