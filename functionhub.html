@@ -65,11 +65,9 @@
             background-color: transparent; 
             padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
             padding-bottom: 12px;
-            /* 移除 transition */
         }
 
         #main-logo {
-            /* 移除 transition */
             transform-origin: left center;
             will-change: transform;
             display: flex;
@@ -181,13 +179,38 @@
             overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             position: relative;
-            /* 保持 Modal 彈出動畫不變 */
             animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        /* Fullscreen Music Layout - iOS Style */
         #modal-music .modal-window {
-            max-width: 90%;
-            width: 500px;
+            max-width: 100%;
+            width: 100%;
+            height: 100%;
+            /* Smaller rounding than before for a sharper iOS look */
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            animation: appLaunch 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Music Iframe Container - Ensure scrolling works */
+        #music-container {
+            margin: 10px;
+            border-radius: 12px; /* Smaller rounding inside */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Momentum scrolling for iOS */
+            flex: 1;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: transparent;
+        }
+
+        @keyframes appLaunch {
+            from { transform: scale(0.6) translateY(200px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
         }
         
         @keyframes modalIn {
@@ -200,12 +223,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
         .modal-close {
             width: 30px; height: 30px; border-radius: 50%;
-            background: #f3f4f6; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: #6b7280;
+            background: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #111;
         }
 
         /* Timer Widget Style */
@@ -280,13 +303,10 @@
         @media (max-width: 768px) {
             .dock-wrapper { width: 92%; max-width: 400px; }
             #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 100px); }
-            #modal-music .modal-window { max-width: 95%; } 
         }
     </style>
 </head>
 <body class="pb-40 hide-scrollbar">
-
-    <!-- 已移除 Loader 結構 -->
 
     <header id="header-root">
         <div class="logo-bar px-6" id="logo-nav-bar"> 
@@ -301,7 +321,6 @@
     </header>
 
     <div id="page-content">
-        <!-- iOS Style Clock Widget -->
         <div class="ios-widget" onclick="openPlugin('calendar')">
             <div id="widget-date" class="text-red-500 font-bold text-sm mb-1 uppercase tracking-widest"></div>
             <div id="widget-time" class="text-5xl font-light text-gray-800">00:00</div>
@@ -329,7 +348,6 @@
                 <div class="app-label">Edcity</div>
             </div>
 
-            <!-- Plugin Apps -->
             <div class="app-item" onclick="openPlugin('calc')">
                 <div class="app-icon"><img src="https://phyuaaphysics.github.io/phyustudio/calculator.png" alt="計算機"></div>
                 <div class="app-label">計算機</div>
@@ -370,9 +388,7 @@
                     <div class="calendar-day-header">FRI</div>
                     <div class="calendar-day-header">SAT</div>
                 </div>
-                <div id="calendar-days" class="calendar-grid pt-0">
-                    <!-- Days injected by JS -->
-                </div>
+                <div id="calendar-days" class="calendar-grid pt-0"></div>
             </div>
         </div>
     </div>
@@ -383,8 +399,9 @@
                 <span class="font-bold">Music Player</span>
                 <div class="modal-close" onclick="closePlugin('music')"><i class="fas fa-times"></i></div>
             </div>
-            <div class="p-0 overflow-hidden" style="height: 500px;">
-                <iframe id="music-frame" src="" width="100%" height="100%" frameborder="0" allow="autoplay" style="overflow: auto;"></iframe>
+            <!-- Ensure scroll behavior works properly -->
+            <div id="music-container" class="hide-scrollbar">
+                <iframe id="music-frame" src="" width="100%" height="100%" frameborder="0" allow="autoplay" style="min-height: 100vh;"></iframe>
             </div>
         </div>
     </div>
@@ -460,7 +477,6 @@
     <script>
         let lastScrollY = window.scrollY;
 
-        /* Clock & Calendar Logic */
         function updateWidget() {
             const now = new Date();
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -476,24 +492,19 @@
             const year = now.getFullYear();
             const month = now.getMonth();
             const today = now.getDate();
-            
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             document.getElementById('calendar-title').textContent = `${monthNames[month]} ${year}`;
-
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const prevMonthDays = new Date(year, month, 0).getDate();
-
             const container = document.getElementById('calendar-days');
             container.innerHTML = '';
-
             for (let i = firstDay - 1; i >= 0; i--) {
                 const div = document.createElement('div');
                 div.className = 'calendar-day prev-month';
                 div.textContent = prevMonthDays - i;
                 container.appendChild(div);
             }
-
             for (let i = 1; i <= daysInMonth; i++) {
                 const div = document.createElement('div');
                 div.className = 'calendar-day' + (i === today ? ' today' : '');
@@ -502,11 +513,11 @@
             }
         }
 
-        /* Plugin Modal Logic */
         function openPlugin(type) {
             if (type === 'music') {
                 document.getElementById('music-frame').src = "https://phyuaaphysics.github.io/phyustudio/musicplayer.html";
                 document.getElementById('modal-music').classList.add('active');
+                document.body.style.overflow = 'hidden';
             } else if (type === 'timer') {
                 document.getElementById('modal-timer').classList.add('active');
             } else if (type === 'calc') {
@@ -520,17 +531,18 @@
         function closePlugin(type) {
             const modal = document.getElementById('modal-' + type);
             if (modal) modal.classList.remove('active');
-            if (type === 'music') document.getElementById('music-frame').src = "";
+            if (type === 'music') {
+                document.getElementById('music-frame').src = "";
+                document.body.style.overflow = '';
+            }
         }
 
         function closeModal(e, id) {
             if (e.target.id === id) {
-                const type = id.replace('modal-', '');
-                closePlugin(type);
+                closePlugin(id.replace('modal-', ''));
             }
         }
 
-        /* Timer Logic */
         let tH = 0, tM = 0, tS = 0, timerInterval = null;
         function adjTimer(unit, val) {
             if (timerInterval) return;
@@ -572,10 +584,8 @@
 
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
         function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
         function handleNavigation(url, showAnim = false) {
             if (!url || url === '#') return;
-            // 這裡 showAnim 固定為 false 或由參數決定
             window.location.href = url;
         }
 
