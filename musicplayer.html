@@ -20,7 +20,7 @@
         }
 
         @media (min-width: 768px) {
-            body { flex-direction: row; background-color: #f2f2f7; }
+            body { flex-direction: row; }
         }
 
         aside {
@@ -31,6 +31,7 @@
             order: 2;
             /* 極致緩慢的 1.2s 動畫 */
             transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
+            z-index: 40;
         }
         @media (min-width: 768px) {
             aside { width: 320px; order: 1; }
@@ -40,29 +41,31 @@
         }
 
         main {
-            flex: 0 0 auto;
+            flex: 1;
             background: #000;
             display: flex;
             flex-direction: column;
             order: 1;
             z-index: 30;
-            /* 與 aside 同步的極速緩慢效果 */
             transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
+            justify-content: center;
         }
         @media (min-width: 768px) {
-            main { flex: 1; order: 2; background: #f2f2f7; }
+            main { order: 2; }
         }
 
         /* 擴展模式：深度沉浸感 */
         .mode-expanded main {
-            height: 0;
+            width: 0;
+            flex: 0;
             opacity: 0;
-            transform: scale(0.92) translateY(-30px);
+            transform: scale(0.92);
             pointer-events: none;
             overflow: hidden;
         }
         .mode-expanded aside {
             flex: 1;
+            width: 100% !important;
         }
 
         .video-wrapper {
@@ -72,15 +75,6 @@
             background: #000;
             overflow: hidden;
             transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
-            transform-origin: center center;
-        }
-        @media (min-width: 768px) {
-            .video-wrapper {
-                border-radius: 20px;
-                margin: 20px;
-                width: calc(100% - 40px);
-                box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            }
         }
 
         #youtube-player {
@@ -91,13 +85,6 @@
         .playlist-item-container {
             position: relative;
             border-bottom: 1px solid #f2f2f7;
-        }
-        @media (min-width: 768px) {
-            .playlist-item-container {
-                border-radius: 12px;
-                margin-bottom: 2px;
-                border-bottom: none;
-            }
         }
 
         .playlist-item {
@@ -148,18 +135,6 @@
             gap: 1rem;
         }
 
-        .desktop-info {
-            display: none;
-        }
-        @media (min-width: 768px) {
-            .desktop-info {
-                display: flex;
-                padding: 1.5rem;
-                justify-content: space-between;
-                align-items: center;
-            }
-        }
-
         /* 純圖示按鈕樣式 */
         #expand-btn, #done-btn {
             width: 32px;
@@ -187,16 +162,6 @@
         <div class="video-wrapper">
             <div id="youtube-player"></div>
         </div>
-        
-        <div class="desktop-info">
-            <div class="min-w-0 flex-1">
-                <h1 id="current-title" class="text-lg font-extrabold truncate">請選擇歌曲</h1>
-                <p id="current-artist" class="text-gray-400 text-xs font-medium">未知演出者</p>
-            </div>
-            <div class="ml-4">
-                <div class="text-[9px] font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest border border-blue-100">Now Playing</div>
-            </div>
-        </div>
     </main>
 
     <aside class="flex-1 overflow-hidden">
@@ -204,11 +169,9 @@
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-black tracking-tighter">媒體庫</h2>
                 <div class="flex gap-2">
-                    <!-- 純圖示展開按鈕 -->
                     <button id="expand-btn" onclick="toggleExpand(true)" class="bg-gray-50 text-gray-400 border border-gray-100 active:scale-90">
                         <i class="fa-solid fa-expand text-xs"></i>
                     </button>
-                    <!-- 完成按鈕 (保留文字以便引導返回) -->
                     <button id="done-btn" onclick="toggleExpand(false)" class="bg-blue-50 text-blue-600 px-4 rounded-full border border-blue-100 active:scale-90 text-[10px] font-bold">
                         <i class="fa-solid fa-check mr-1"></i>完成
                     </button>
@@ -242,8 +205,6 @@
         let sortable;
 
         const playlistEl = document.getElementById('playlist');
-        const titleEl = document.getElementById('current-title');
-        const artistEl = document.getElementById('current-artist');
         const bodyEl = document.getElementById('app-body');
 
         function toggleExpand(expand) {
@@ -345,9 +306,6 @@
                 container.className = 'playlist-item-container';
                 container.innerHTML = `
                     <div class="playlist-item flex items-center p-3.5 md:p-3.5 ${index === currentIndex ? 'active' : ''}" data-index="${index}">
-                        <div class="hidden md:block relative w-10 h-10 mr-4 flex-shrink-0 pointer-events-none">
-                            <img src="https://img.youtube.com/vi/${song.videoId}/default.jpg" class="w-full h-full rounded-lg object-cover">
-                        </div>
                         <div class="flex-1 flex flex-row items-center justify-between min-w-0 mr-1" onclick="loadSong(${index})">
                             <div class="font-bold truncate text-xs song-title pr-4">${song.title}</div>
                             <div class="text-[9px] text-gray-400 truncate font-bold uppercase tracking-wider flex-shrink-0">${song.artist}</div>
@@ -374,18 +332,10 @@
             renderPlaylist();
         }
 
-        function updateMeta(index) {
-            if (!playlistData[index]) return;
-            const song = playlistData[index];
-            titleEl.innerText = song.title;
-            artistEl.innerText = song.artist;
-        }
-
         function loadSong(index) {
             if (!playlistData[index]) return;
             currentIndex = index;
             player.loadVideoById(playlistData[index].videoId);
-            updateMeta(index);
             renderPlaylist();
             const activeItem = document.querySelector('.playlist-item.active');
             if(activeItem) {
