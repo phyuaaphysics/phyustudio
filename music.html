@@ -7,7 +7,6 @@
     <title>Hybrid Music Player</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 SortableJS 用於拖曳功能 -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body {
@@ -45,27 +44,28 @@
             flex-direction: column;
             order: 1;
             z-index: 30;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
         @media (min-width: 768px) {
-            main { order: 2; box-shadow: none; }
+            main { order: 2; }
         }
 
-        /* 播放清單項目容器 */
         .playlist-item-container {
             position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            margin-bottom: 4px;
+            border-bottom: 1px solid #f2f2f7;
+        }
+        @media (min-width: 768px) {
+            .playlist-item-container {
+                border-radius: 12px;
+                margin-bottom: 4px;
+                border-bottom: none;
+            }
         }
 
         .playlist-item {
             position: relative;
             background: white;
-            z-index: 2;
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.2s ease;
-            touch-action: pan-y; /* 鎖定垂直捲動，優化水平滑動 */
-            will-change: transform;
+            transition: background 0.2s ease;
+            cursor: pointer;
         }
         
         .playlist-item.active {
@@ -75,24 +75,16 @@
             color: #007aff;
         }
 
-        /* 隱藏在下方的刪除按鈕 */
-        .swipe-delete-bg {
-            position: absolute;
-            right: 0;
-            top: 0;
-            height: 100%;
-            width: 80px;
-            background: #ff3b30;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            z-index: 1;
-            border-radius: 0 12px 12px 0;
-            cursor: pointer;
+        .delete-btn {
+            opacity: 0.3;
+            transition: opacity 0.2s ease, color 0.2s ease;
+            padding: 8px;
+        }
+        .delete-btn:hover {
+            opacity: 1;
+            color: #ff3b30;
         }
 
-        /* 拖曳時的樣式 */
         .sortable-ghost {
             opacity: 0.4;
             background: #e5e5ea !important;
@@ -108,6 +100,8 @@
         @media (min-width: 768px) {
             .video-wrapper {
                 border-radius: 20px;
+                margin: 20px;
+                width: calc(100% - 40px);
                 box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             }
         }
@@ -117,26 +111,15 @@
             height: 100%;
         }
 
-        /* 改進的滾動條設計 */
         #playlist {
             scroll-behavior: smooth;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch; 
         }
 
-        #playlist::-webkit-scrollbar {
-            width: 5px;
-        }
-        #playlist::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        #playlist::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        #playlist::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.2);
-        }
+        #playlist::-webkit-scrollbar { width: 5px; }
+        #playlist::-webkit-scrollbar-track { background: transparent; }
+        #playlist::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 10px; }
 
         #loading-overlay {
             position: fixed;
@@ -160,7 +143,7 @@
 
     <div id="loading-overlay">
         <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500"></div>
-        <p id="loading-text" class="text-gray-400 text-sm">正在載入雲端清單...</p>
+        <p id="loading-text" class="text-gray-400 text-sm">載入中...</p>
     </div>
 
     <main>
@@ -170,7 +153,6 @@
             </div>
         </div>
 
-        <!-- 手機模式下減少 padding (p-3 md:p-8) -->
         <div class="p-3 md:p-8 flex justify-between items-center border-b border-gray-100 md:border-none">
             <div class="min-w-0 flex-1">
                 <h1 id="current-title" class="text-lg md:text-xl font-bold truncate">載入中...</h1>
@@ -183,12 +165,11 @@
     </main>
 
     <aside class="flex-1 overflow-hidden">
-        <!-- 手機模式下減少 padding (p-3 md:p-8) -->
         <div class="p-3 md:p-8 pb-2">
-            <h2 class="text-xl md:text-2xl font-bold tracking-tight mb-3 md:mb-4">媒體庫</h2>
+            <h2 class="text-xl md:text-2xl font-bold tracking-tight mb-2 md:mb-4">媒體庫</h2>
             <div class="flex gap-2">
                 <button onclick="shuffleAndPlay()" id="shuffle-btn" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-semibold">
-                    <i class="fa-solid fa-shuffle text-xs"></i> 隨機排序並播放
+                    <i class="fa-solid fa-shuffle text-xs"></i> 隨機播放
                 </button>
                 <button onclick="fetchSheetData()" class="w-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl flex items-center justify-center">
                     <i class="fa-solid fa-rotate text-xs"></i>
@@ -196,7 +177,7 @@
             </div>
         </div>
         
-        <div id="playlist" class="flex-1 overflow-y-auto px-3 md:px-4 space-y-1 pb-10 mt-1 md:mt-2">
+        <div id="playlist" class="flex-1 overflow-y-auto px-0 md:px-4 space-y-0 md:space-y-1 pb-10">
             <!-- 動態生成 -->
         </div>
     </aside>
@@ -212,8 +193,6 @@
         let player;
         let currentIndex = 0;
         let sortable;
-        let touchStartX = 0;
-        let currentSwipedItem = null;
 
         const playlistEl = document.getElementById('playlist');
         const titleEl = document.getElementById('current-title');
@@ -240,43 +219,30 @@
 
         async function fetchSheetData() {
             const loader = document.getElementById('loading-overlay');
-            const loadingText = document.getElementById('loading-text');
             loader.style.display = 'flex';
-            loadingText.innerText = "正在讀取雲端試算表...";
-
             try {
                 const response = await fetch(SHEET_URL);
-                if (!response.ok) throw new Error("存取 Google Sheets 失敗");
                 const text = await response.text();
                 const rows = parseCSV(text);
-
                 playlistData = rows.slice(1)
                     .filter(row => row.length >= 2 && row[1])
                     .map((row) => {
                         const videoId = extractVideoId(row[1]);
                         return videoId ? {
-                            id: Date.now() + Math.random(),
+                            id: Math.random().toString(36).substr(2, 9),
                             videoId: videoId,
                             title: row[2] || '無標題',
-                            artist: row[3] || '未知演出者'
+                            artist: row[3] || '未知'
                         } : null;
                     })
                     .filter(item => item !== null);
 
-                if (playlistData.length === 0) throw new Error("清單無效");
-
                 renderPlaylist();
                 initSortable();
-                
-                if (player && typeof player.loadVideoById === 'function') {
-                    currentIndex = 0;
-                    loadSong(0);
-                }
-                
+                if (player && typeof player.loadVideoById === 'function' && playlistData.length > 0) loadSong(0);
                 loader.style.display = 'none';
             } catch (error) {
-                console.error("Fetch Error:", error);
-                loadingText.innerHTML = `<span class="text-red-500 font-bold">載入失敗</span><br><span class="text-xs">${error.message}</span>`;
+                document.getElementById('loading-text').innerText = "載入失敗";
             }
         }
 
@@ -286,22 +252,18 @@
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 handle: '.playlist-item', 
-                onStart: function() { closeAllSwipes(); },
                 onEnd: function (evt) {
                     const item = playlistData.splice(evt.oldIndex, 1)[0];
                     playlistData.splice(evt.newIndex, 0, item);
-                    
                     if (evt.oldIndex === currentIndex) currentIndex = evt.newIndex;
                     else if (evt.oldIndex < currentIndex && evt.newIndex >= currentIndex) currentIndex--;
                     else if (evt.oldIndex > currentIndex && evt.newIndex <= currentIndex) currentIndex++;
-                    
                     renderPlaylist();
                 }
             });
         }
 
         function extractVideoId(url) {
-            if (!url) return null;
             const cleanUrl = url.replace(/"/g, '');
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = cleanUrl.match(regExp);
@@ -310,16 +272,8 @@
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
-                height: '100%',
-                width: '100%',
-                videoId: '',
-                playerVars: { 
-                    'autoplay': 0, 
-                    'controls': 1, 
-                    'rel': 0, 
-                    'modestbranding': 1, 
-                    'playsinline': 1 
-                },
+                height: '100%', width: '100%', videoId: '',
+                playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'modestbranding': 1, 'playsinline': 1 },
                 events: {
                     'onReady': () => { fetchSheetData(); },
                     'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) nextSong(); },
@@ -335,96 +289,29 @@
                 container.className = 'playlist-item-container';
                 
                 container.innerHTML = `
-                    <div class="swipe-delete-bg" onclick="removeSong(${index})">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </div>
-                    <div class="playlist-item flex items-center p-3 cursor-pointer ${index === currentIndex ? 'active' : ''}" 
-                         data-index="${index}"
-                         ontouchstart="handleTouchStart(event)"
-                         ontouchmove="handleTouchMove(event)"
-                         ontouchend="handleTouchEnd(event)">
-                        <div class="relative w-12 h-12 mr-3 flex-shrink-0 pointer-events-none">
+                    <div class="playlist-item flex items-center p-3 md:p-3 ${index === currentIndex ? 'active' : ''}" data-index="${index}">
+                        <!-- 電腦版顯示縮圖 -->
+                        <div class="hidden md:block relative w-12 h-12 mr-3 flex-shrink-0 pointer-events-none">
                             <img src="https://img.youtube.com/vi/${song.videoId}/default.jpg" class="w-full h-full rounded-lg object-cover">
                             ${index === currentIndex ? '<div class="absolute inset-0 bg-white/40 flex items-center justify-center rounded-lg"><i class="fa-solid fa-play text-blue-500 text-[10px]"></i></div>' : ''}
                         </div>
-                        <div class="flex-1 min-w-0 pointer-events-none">
-                            <div class="font-bold truncate text-sm song-title">${song.title}</div>
-                            <div class="text-[10px] text-gray-400 truncate font-semibold uppercase tracking-tight mt-0.5">${song.artist}</div>
+                        <!-- 手機/電腦共通文字內容 -->
+                        <div class="flex-1 flex flex-row items-center justify-between min-w-0 mr-2" onclick="loadSong(${index})">
+                            <div class="font-bold truncate text-sm song-title pr-4">${song.title}</div>
+                            <div class="text-[10px] text-gray-400 truncate font-semibold uppercase tracking-tight flex-shrink-0">${song.artist}</div>
                         </div>
+                        <!-- 極簡叉叉按鈕 -->
+                        <button class="delete-btn flex-shrink-0" onclick="event.stopPropagation(); removeSong(${index})">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
                     </div>
                 `;
-
-                const item = container.querySelector('.playlist-item');
-                item.onclick = (e) => {
-                    // 如果目前是滑開狀態，點擊則收回
-                    if (item.style.transform && item.style.transform !== 'translateX(0px)') {
-                        closeAllSwipes();
-                    } else {
-                        loadSong(index);
-                    }
-                };
-
                 playlistEl.appendChild(container);
             });
         }
 
-        // 滑動刪除優化
-        function handleTouchStart(e) {
-            touchStartX = e.touches[0].clientX;
-            const item = e.currentTarget;
-            item.style.transition = 'none'; // 開始滑動時取消動畫以獲取即時感
-            if (currentSwipedItem && currentSwipedItem !== item) closeAllSwipes();
-        }
-
-        function handleTouchMove(e) {
-            const item = e.currentTarget;
-            const touchX = e.touches[0].clientX;
-            const diffX = touchX - touchStartX;
-            
-            // 僅在向左滑動時處理
-            if (diffX < 0) {
-                // 限制最大滑動距離為 80px
-                const moveX = Math.max(diffX, -80);
-                item.style.transform = `translateX(${moveX}px)`;
-            } else if (diffX > 0 && item.style.transform.includes('-')) {
-                // 如果已經滑開了，往右滑則收回
-                const currentX = parseInt(item.style.transform.replace('translateX(', '').replace('px)', ''));
-                const moveX = Math.min(currentX + diffX, 0);
-                item.style.transform = `translateX(${moveX}px)`;
-            }
-        }
-
-        function handleTouchEnd(e) {
-            const item = e.currentTarget;
-            const touchEndX = e.changedTouches[0].clientX;
-            const diffX = touchEndX - touchStartX;
-            
-            item.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            
-            // 滑動超過 40px 則固定在 80px 位置，否則回彈
-            if (diffX < -40) {
-                item.style.transform = 'translateX(-80px)';
-                currentSwipedItem = item;
-            } else {
-                item.style.transform = 'translateX(0)';
-                currentSwipedItem = null;
-            }
-        }
-
-        function closeAllSwipes() {
-            document.querySelectorAll('.playlist-item').forEach(item => {
-                item.style.transition = 'transform 0.3s ease';
-                item.style.transform = 'translateX(0)';
-            });
-            currentSwipedItem = null;
-        }
-
         function removeSong(index) {
-            if (playlistData.length <= 1) {
-                alert("清單中必須保留至少一首歌曲。");
-                closeAllSwipes();
-                return;
-            }
+            if (playlistData.length <= 1) return;
             const wasCurrent = (index === currentIndex);
             playlistData.splice(index, 1);
             if (wasCurrent) {
@@ -433,7 +320,6 @@
             } else if (index < currentIndex) {
                 currentIndex--;
             }
-            closeAllSwipes();
             renderPlaylist();
         }
 
@@ -454,8 +340,7 @@
         }
 
         function nextSong() {
-            let nextIndex = (currentIndex + 1) % playlistData.length;
-            loadSong(nextIndex);
+            loadSong((currentIndex + 1) % playlistData.length);
         }
 
         function shuffleAndPlay() {
