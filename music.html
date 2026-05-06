@@ -63,8 +63,9 @@
             position: relative;
             background: white;
             z-index: 2;
-            transition: transform 0.3s ease, background 0.2s ease;
-            touch-action: pan-y; /* 允許垂直捲動 */
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.2s ease;
+            touch-action: pan-y; /* 鎖定垂直捲動，優化水平滑動 */
+            will-change: transform;
         }
         
         .playlist-item.active {
@@ -88,6 +89,7 @@
             color: white;
             z-index: 1;
             border-radius: 0 12px 12px 0;
+            cursor: pointer;
         }
 
         /* 拖曳時的樣式 */
@@ -119,10 +121,9 @@
         #playlist {
             scroll-behavior: smooth;
             overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch; /* iOS 慣性滾動 */
+            -webkit-overflow-scrolling: touch; 
         }
 
-        /* 自定義滾動條樣式 (針對電腦版) */
         #playlist::-webkit-scrollbar {
             width: 5px;
         }
@@ -169,7 +170,8 @@
             </div>
         </div>
 
-        <div class="p-4 md:p-8 flex justify-between items-center border-b border-gray-100 md:border-none">
+        <!-- 手機模式下減少 padding (p-3 md:p-8) -->
+        <div class="p-3 md:p-8 flex justify-between items-center border-b border-gray-100 md:border-none">
             <div class="min-w-0 flex-1">
                 <h1 id="current-title" class="text-lg md:text-xl font-bold truncate">載入中...</h1>
                 <p id="current-artist" class="text-gray-400 text-xs md:text-sm">請選擇歌曲</p>
@@ -181,8 +183,9 @@
     </main>
 
     <aside class="flex-1 overflow-hidden">
-        <div class="p-4 md:p-8 pb-2">
-            <h2 class="text-xl md:text-2xl font-bold tracking-tight mb-4">媒體庫</h2>
+        <!-- 手機模式下減少 padding (p-3 md:p-8) -->
+        <div class="p-3 md:p-8 pb-2">
+            <h2 class="text-xl md:text-2xl font-bold tracking-tight mb-3 md:mb-4">媒體庫</h2>
             <div class="flex gap-2">
                 <button onclick="shuffleAndPlay()" id="shuffle-btn" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-semibold">
                     <i class="fa-solid fa-shuffle text-xs"></i> 隨機排序並播放
@@ -193,7 +196,7 @@
             </div>
         </div>
         
-        <div id="playlist" class="flex-1 overflow-y-auto px-3 md:px-4 space-y-1 pb-10 mt-2">
+        <div id="playlist" class="flex-1 overflow-y-auto px-3 md:px-4 space-y-1 pb-10 mt-1 md:mt-2">
             <!-- 動態生成 -->
         </div>
     </aside>
@@ -243,13 +246,13 @@
 
             try {
                 const response = await fetch(SHEET_URL);
-                if (!response.ok) throw new Error("存取 Google Sheets 失敗，請確認表格已設為「知道連結的人即可檢視」");
+                if (!response.ok) throw new Error("存取 Google Sheets 失敗");
                 const text = await response.text();
                 const rows = parseCSV(text);
 
                 playlistData = rows.slice(1)
                     .filter(row => row.length >= 2 && row[1])
-                    .map((row, index) => {
+                    .map((row) => {
                         const videoId = extractVideoId(row[1]);
                         return videoId ? {
                             id: Date.now() + Math.random(),
@@ -260,7 +263,7 @@
                     })
                     .filter(item => item !== null);
 
-                if (playlistData.length === 0) throw new Error("清單中沒有有效的 YouTube 連結");
+                if (playlistData.length === 0) throw new Error("清單無效");
 
                 renderPlaylist();
                 initSortable();
@@ -318,16 +321,9 @@
                     'playsinline': 1 
                 },
                 events: {
-                    'onReady': () => {
-                        fetchSheetData();
-                    },
-                    'onStateChange': (e) => { 
-                        if (e.data === YT.PlayerState.ENDED) nextSong(); 
-                    },
-                    'onError': (e) => {
-                        console.error("YT Player Error:", e.data);
-                        nextSong();
-                    }
+                    'onReady': () => { fetchSheetData(); },
+                    'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) nextSong(); },
+                    'onError': () => { nextSong(); }
                 }
             });
         }
@@ -360,7 +356,8 @@
 
                 const item = container.querySelector('.playlist-item');
                 item.onclick = (e) => {
-                    if (item.style.transform === 'translateX(-80px)') {
+                    // 如果目前是滑開狀態，點擊則收回
+                    if (item.style.transform && item.style.transform !== 'translateX(0px)') {
                         closeAllSwipes();
                     } else {
                         loadSong(index);
@@ -371,9 +368,11 @@
             });
         }
 
+        // 滑動刪除優化
         function handleTouchStart(e) {
             touchStartX = e.touches[0].clientX;
             const item = e.currentTarget;
+            item.style.transition = 'none'; // 開始滑動時取消動畫以獲取即時感
             if (currentSwipedItem && currentSwipedItem !== item) closeAllSwipes();
         }
 
@@ -381,9 +380,17 @@
             const item = e.currentTarget;
             const touchX = e.touches[0].clientX;
             const diffX = touchX - touchStartX;
-            if (diffX < 0 && diffX > -100) {
-                item.style.transition = 'none';
-                item.style.transform = `translateX(${diffX}px)`;
+            
+            // 僅在向左滑動時處理
+            if (diffX < 0) {
+                // 限制最大滑動距離為 80px
+                const moveX = Math.max(diffX, -80);
+                item.style.transform = `translateX(${moveX}px)`;
+            } else if (diffX > 0 && item.style.transform.includes('-')) {
+                // 如果已經滑開了，往右滑則收回
+                const currentX = parseInt(item.style.transform.replace('translateX(', '').replace('px)', ''));
+                const moveX = Math.min(currentX + diffX, 0);
+                item.style.transform = `translateX(${moveX}px)`;
             }
         }
 
@@ -391,7 +398,10 @@
             const item = e.currentTarget;
             const touchEndX = e.changedTouches[0].clientX;
             const diffX = touchEndX - touchStartX;
-            item.style.transition = 'transform 0.3s ease';
+            
+            item.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            
+            // 滑動超過 40px 則固定在 80px 位置，否則回彈
             if (diffX < -40) {
                 item.style.transform = 'translateX(-80px)';
                 currentSwipedItem = item;
@@ -403,6 +413,7 @@
 
         function closeAllSwipes() {
             document.querySelectorAll('.playlist-item').forEach(item => {
+                item.style.transition = 'transform 0.3s ease';
                 item.style.transform = 'translateX(0)';
             });
             currentSwipedItem = null;
