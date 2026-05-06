@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body {
-            background-color: #f2f2f7;
+            background-color: #ffffff;
             color: #000;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             overflow: hidden;
@@ -20,7 +20,7 @@
         }
 
         @media (min-width: 768px) {
-            body { flex-direction: row; }
+            body { flex-direction: row; background-color: #f2f2f7; }
         }
 
         aside {
@@ -29,6 +29,7 @@
             display: flex;
             flex-direction: column;
             order: 2;
+            transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @media (min-width: 768px) {
             aside { width: 320px; order: 1; }
@@ -44,9 +45,20 @@
             flex-direction: column;
             order: 1;
             z-index: 30;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @media (min-width: 768px) {
             main { order: 2; }
+        }
+
+        /* 播放器縮小狀態 (手機版專用) */
+        .player-minimized .video-wrapper {
+            transform: scale(0.85);
+            opacity: 0.6;
+            margin-top: -10px;
+        }
+        .player-minimized main {
+            flex: 0 0 auto;
         }
 
         .playlist-item-container {
@@ -66,6 +78,7 @@
             background: white;
             transition: background 0.2s ease;
             cursor: pointer;
+            min-height: 56px; /* 加大觸控高度 */
         }
         
         .playlist-item.active {
@@ -73,21 +86,18 @@
         }
         .playlist-item.active .song-title {
             color: #007aff;
+            font-weight: 800;
         }
 
         .delete-btn {
-            opacity: 0.3;
-            transition: opacity 0.2s ease, color 0.2s ease;
-            padding: 8px;
-        }
-        .delete-btn:hover {
-            opacity: 1;
-            color: #ff3b30;
-        }
-
-        .sortable-ghost {
             opacity: 0.4;
-            background: #e5e5ea !important;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            padding: 12px; /* 加大點擊區域 */
+        }
+        .delete-btn:active {
+            transform: scale(1.2);
+            color: #ff3b30;
+            opacity: 1;
         }
 
         .video-wrapper {
@@ -96,6 +106,8 @@
             aspect-ratio: 16 / 9;
             background: #000;
             overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top center;
         }
         @media (min-width: 768px) {
             .video-wrapper {
@@ -115,10 +127,10 @@
             scroll-behavior: smooth;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch; 
+            flex-grow: 1;
         }
 
-        #playlist::-webkit-scrollbar { width: 5px; }
-        #playlist::-webkit-scrollbar-track { background: transparent; }
+        #playlist::-webkit-scrollbar { width: 4px; }
         #playlist::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 10px; }
 
         #loading-overlay {
@@ -132,52 +144,47 @@
             flex-direction: column;
             gap: 1rem;
         }
-
-        .shuffle-active {
-            background-color: #007aff !important;
-            color: white !important;
-        }
     </style>
 </head>
-<body>
+<body id="app-body">
 
     <div id="loading-overlay">
         <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500"></div>
         <p id="loading-text" class="text-gray-400 text-sm">載入中...</p>
     </div>
 
-    <main>
+    <main id="main-container">
         <div class="w-full">
             <div class="video-wrapper">
                 <div id="youtube-player"></div>
             </div>
         </div>
 
-        <div class="p-3 md:p-8 flex justify-between items-center border-b border-gray-100 md:border-none">
+        <div class="p-4 md:p-8 flex justify-between items-center border-b border-gray-100 md:border-none">
             <div class="min-w-0 flex-1">
-                <h1 id="current-title" class="text-lg md:text-xl font-bold truncate">載入中...</h1>
-                <p id="current-artist" class="text-gray-400 text-xs md:text-sm">請選擇歌曲</p>
+                <h1 id="current-title" class="text-lg md:text-xl font-extrabold truncate">載入中...</h1>
+                <p id="current-artist" class="text-gray-400 text-xs md:text-sm font-medium">請選擇歌曲</p>
             </div>
             <div class="hidden sm:flex items-center gap-3 ml-4">
-                <div class="text-[9px] font-bold text-gray-300 bg-gray-50 px-2 py-1 rounded uppercase tracking-widest border border-gray-100">Auto Play</div>
+                <div class="text-[9px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full uppercase tracking-widest border border-blue-100">Now Playing</div>
             </div>
         </div>
     </main>
 
     <aside class="flex-1 overflow-hidden">
-        <div class="p-3 md:p-8 pb-2">
-            <h2 class="text-xl md:text-2xl font-bold tracking-tight mb-2 md:mb-4">媒體庫</h2>
+        <div class="p-4 md:p-8 pb-3">
+            <h2 class="text-2xl font-black tracking-tighter mb-3">媒體庫</h2>
             <div class="flex gap-2">
-                <button onclick="shuffleAndPlay()" id="shuffle-btn" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-semibold">
+                <button onclick="shuffleAndPlay()" id="shuffle-btn" class="flex-1 bg-black text-white py-3 rounded-2xl transition-all flex items-center justify-center gap-2 text-sm font-bold active:scale-95">
                     <i class="fa-solid fa-shuffle text-xs"></i> 隨機播放
                 </button>
-                <button onclick="fetchSheetData()" class="w-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl flex items-center justify-center">
+                <button onclick="fetchSheetData()" class="w-12 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl flex items-center justify-center active:scale-95">
                     <i class="fa-solid fa-rotate text-xs"></i>
                 </button>
             </div>
         </div>
         
-        <div id="playlist" class="flex-1 overflow-y-auto px-0 md:px-4 space-y-0 md:space-y-1 pb-10">
+        <div id="playlist" class="flex-1 overflow-y-auto px-0 md:px-4 space-y-0 md:space-y-1 pb-20">
             <!-- 動態生成 -->
         </div>
     </aside>
@@ -197,6 +204,18 @@
         const playlistEl = document.getElementById('playlist');
         const titleEl = document.getElementById('current-title');
         const artistEl = document.getElementById('current-artist');
+        const bodyEl = document.getElementById('app-body');
+
+        // 監聽捲動以最小化播放器
+        playlistEl.addEventListener('scroll', () => {
+            if (window.innerWidth < 768) {
+                if (playlistEl.scrollTop > 20) {
+                    bodyEl.classList.add('player-minimized');
+                } else {
+                    bodyEl.classList.remove('player-minimized');
+                }
+            }
+        });
 
         function parseCSV(text) {
             const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
@@ -289,20 +308,16 @@
                 container.className = 'playlist-item-container';
                 
                 container.innerHTML = `
-                    <div class="playlist-item flex items-center p-3 md:p-3 ${index === currentIndex ? 'active' : ''}" data-index="${index}">
-                        <!-- 電腦版顯示縮圖 -->
-                        <div class="hidden md:block relative w-12 h-12 mr-3 flex-shrink-0 pointer-events-none">
-                            <img src="https://img.youtube.com/vi/${song.videoId}/default.jpg" class="w-full h-full rounded-lg object-cover">
-                            ${index === currentIndex ? '<div class="absolute inset-0 bg-white/40 flex items-center justify-center rounded-lg"><i class="fa-solid fa-play text-blue-500 text-[10px]"></i></div>' : ''}
+                    <div class="playlist-item flex items-center p-4 md:p-4 ${index === currentIndex ? 'active' : ''}" data-index="${index}">
+                        <div class="hidden md:block relative w-12 h-12 mr-4 flex-shrink-0 pointer-events-none">
+                            <img src="https://img.youtube.com/vi/${song.videoId}/default.jpg" class="w-full h-full rounded-xl object-cover">
                         </div>
-                        <!-- 手機/電腦共通文字內容 -->
-                        <div class="flex-1 flex flex-row items-center justify-between min-w-0 mr-2" onclick="loadSong(${index})">
+                        <div class="flex-1 flex flex-row items-center justify-between min-w-0 mr-1" onclick="loadSong(${index})">
                             <div class="font-bold truncate text-sm song-title pr-4">${song.title}</div>
-                            <div class="text-[10px] text-gray-400 truncate font-semibold uppercase tracking-tight flex-shrink-0">${song.artist}</div>
+                            <div class="text-[10px] text-gray-400 truncate font-bold uppercase tracking-widest flex-shrink-0">${song.artist}</div>
                         </div>
-                        <!-- 極簡叉叉按鈕 -->
                         <button class="delete-btn flex-shrink-0" onclick="event.stopPropagation(); removeSong(${index})">
-                            <i class="fa-solid fa-xmark text-sm"></i>
+                            <i class="fa-solid fa-xmark text-lg"></i>
                         </button>
                     </div>
                 `;
@@ -336,7 +351,9 @@
             updateMeta(index);
             renderPlaylist();
             const activeItem = document.querySelector('.playlist-item.active');
-            if(activeItem) activeItem.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if(activeItem) {
+                activeItem.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         function nextSong() {
@@ -351,9 +368,6 @@
             }
             currentIndex = 0;
             loadSong(0);
-            const btn = document.getElementById('shuffle-btn');
-            btn.classList.add('shuffle-active');
-            setTimeout(() => btn.classList.remove('shuffle-active'), 500);
         }
     </script>
 </body>
