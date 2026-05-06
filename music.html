@@ -115,7 +115,27 @@
             height: 100%;
         }
 
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* 改進的滾動條設計 */
+        #playlist {
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch; /* iOS 慣性滾動 */
+        }
+
+        /* 自定義滾動條樣式 (針對電腦版) */
+        #playlist::-webkit-scrollbar {
+            width: 5px;
+        }
+        #playlist::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #playlist::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        #playlist::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
 
         #loading-overlay {
             position: fixed;
@@ -173,7 +193,7 @@
             </div>
         </div>
         
-        <div id="playlist" class="flex-1 overflow-y-auto no-scrollbar px-3 md:px-4 space-y-1 pb-10 mt-2">
+        <div id="playlist" class="flex-1 overflow-y-auto px-3 md:px-4 space-y-1 pb-10 mt-2">
             <!-- 動態生成 -->
         </div>
     </aside>
@@ -183,7 +203,6 @@
     <script>
         const SHEET_ID = '1QIwkfmUZPRWMLrDVHYe-bUtUMSmkU2Ad6PlZnYIij_M';
         const SHEET_NAME = 'MUSIC PLAYER';
-        // 修正 URL 格式，確保能直接獲取 CSV 且不受快取影響
         const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
 
         let playlistData = [];
@@ -228,7 +247,6 @@
                 const text = await response.text();
                 const rows = parseCSV(text);
 
-                // 移除標題列並過濾有效內容 (假設 URL 在第二欄 Index 1)
                 playlistData = rows.slice(1)
                     .filter(row => row.length >= 2 && row[1])
                     .map((row, index) => {
@@ -247,7 +265,6 @@
                 renderPlaylist();
                 initSortable();
                 
-                // 如果播放器已準備好，自動載入第一首
                 if (player && typeof player.loadVideoById === 'function') {
                     currentIndex = 0;
                     loadSong(0);
@@ -257,7 +274,6 @@
             } catch (error) {
                 console.error("Fetch Error:", error);
                 loadingText.innerHTML = `<span class="text-red-500 font-bold">載入失敗</span><br><span class="text-xs">${error.message}</span>`;
-                // 留著畫面給用戶看錯誤訊息，不再自動隱藏
             }
         }
 
@@ -283,7 +299,6 @@
 
         function extractVideoId(url) {
             if (!url) return null;
-            // 處理雙引號（CSV 可能帶入）
             const cleanUrl = url.replace(/"/g, '');
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = cleanUrl.match(regExp);
@@ -291,11 +306,10 @@
         }
 
         function onYouTubeIframeAPIReady() {
-            // 先確保 API Ready 之後再載入資料，避免 race condition
             player = new YT.Player('youtube-player', {
                 height: '100%',
                 width: '100%',
-                videoId: '', // 初始留空
+                videoId: '',
                 playerVars: { 
                     'autoplay': 0, 
                     'controls': 1, 
@@ -312,7 +326,7 @@
                     },
                     'onError': (e) => {
                         console.error("YT Player Error:", e.data);
-                        nextSong(); // 遇到無法播放的影片跳下一首
+                        nextSong();
                     }
                 }
             });
