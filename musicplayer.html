@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>iOS Music Player</title>
-    <!-- 引入 SortableJS 用於拖拉排序 -->
+    <!-- SortableJS for drag and drop sorting -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
             --ios-bg: #f2f2f7;
-            /* 增加不透明度，提升文字背景對比 */
             --ios-card: rgba(255, 255, 255, 0.6); 
             --ios-blue: #007aff;
             --ios-red: #ff3b30;
@@ -30,7 +29,7 @@
             position: relative;
         }
 
-        /* 全局動態背景層 - 保持清晰度 */
+        /* Dynamic Background Layer */
         #dynamic-bg {
             position: fixed;
             top: 0;
@@ -39,66 +38,29 @@
             height: 100vh;
             background-size: cover;
             background-position: center;
-            filter: blur(10px) brightness(0.9);
+            filter: blur(15px) brightness(0.85);
             transform: scale(1.05);
             z-index: -1;
             transition: background-image 1.2s ease-in-out;
-            opacity: 0.75;
+            opacity: 0.8;
         }
 
         .app-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 500px; 
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             padding-bottom: 40px;
             z-index: 1;
-            transition: all 0.3s ease;
         }
 
-        /* 響應式佈局：平板與電腦端改為左右分欄 */
-        @media (min-width: 768px) {
-            .app-container {
-                max-width: 1000px;
-                flex-direction: row-reverse; /* 播放器在右，清單在左 */
-                align-items: flex-start;
-                padding: 40px 20px;
-                gap: 30px;
-            }
-
-            .player-header {
-                position: sticky;
-                top: 40px;
-                width: 450px;
-                border-radius: 24px;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-                border-bottom: none !important;
-            }
-
-            .playlist-section {
-                flex: 1;
-                padding: 0 !important;
-                max-height: calc(100vh - 80px); /* 電腦版高度跟隨視窗 */
-            }
-
-            .list-card {
-                max-height: none !important; /* 電腦版不限縮清單高度 */
-            }
-            
-            /* 電腦版隱藏滾動箭頭 */
-            .scroll-indicator {
-                display: none !important;
-            }
-        }
-
-        /* 頂部播放器區域 - 增加磨砂強度提升可讀性 */
         .player-header {
             position: sticky;
             top: 0;
-            background: rgba(255, 255, 255, 0.5); 
-            backdrop-filter: blur(25px); /* 增強磨砂感 (6px -> 25px) */
-            -webkit-backdrop-filter: blur(25px);
+            background: rgba(255, 255, 255, 0.4); 
+            backdrop-filter: blur(30px); 
+            -webkit-backdrop-filter: blur(30px);
             z-index: 100;
             padding: 24px 20px 20px 20px;
             border-bottom: 0.5px solid var(--ios-separator);
@@ -108,7 +70,7 @@
             width: 100%;
             aspect-ratio: 16 / 9;
             background: #000;
-            border-radius: 18px;
+            border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 15px 35px rgba(0,0,0,0.3);
         }
@@ -132,7 +94,7 @@
         }
 
         .current-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.5px;
             white-space: nowrap;
@@ -143,11 +105,13 @@
         }
 
         .current-artist {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--ios-red);
             font-weight: 600;
             margin-top: 4px;
             display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .action-btns {
@@ -175,35 +139,36 @@
             transform: scale(0.9);
         }
 
-        /* 歌曲清單區域 */
         .playlist-section {
             padding: 20px;
             position: relative;
         }
 
         .section-title {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 800;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+            letter-spacing: -0.2px;
         }
 
         .drag-hint {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--ios-gray);
+            text-transform: uppercase;
+            opacity: 0.8;
         }
 
-        /* 滾動導引箭頭樣式 */
         .scroll-indicator {
             position: absolute;
             right: 30px;
             width: 24px;
             height: 24px;
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.08);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -214,13 +179,8 @@
             animation: bounce 2s infinite;
         }
 
-        .scroll-up {
-            top: 55px;
-        }
-
-        .scroll-down {
-            bottom: 30px;
-        }
+        .scroll-up { top: 52px; }
+        .scroll-down { bottom: 30px; }
 
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
@@ -228,106 +188,91 @@
             60% {transform: translateY(-3px);}
         }
 
-        /* 列表卡片 - 增加磨砂強度並優化手機端滾動引導 */
+        /* Fixed list size - approximately 5 items space */
         .list-card {
             background: var(--ios-card);
-            backdrop-filter: blur(20px); /* 增強磨砂感 (4px -> 20px) */
+            backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
-            overflow-y: auto; /* 允許垂直滾動 */
-            max-height: 60vh; /* 手機端限制高度，誘發滾動 */
+            overflow-y: auto; 
+            height: 250px; /* Fixed height for ~5 items */
             border: 1px solid rgba(255, 255, 255, 0.6); 
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            /* iOS 滾動條樣式優化 */
             -webkit-overflow-scrolling: touch;
         }
 
-        /* 隱藏原生滾動條，改用箭頭引導 */
-        .list-card::-webkit-scrollbar {
-            display: none;
-        }
+        .list-card::-webkit-scrollbar { display: none; }
 
         .song-item {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
+            padding: 12px 14px; 
             border-bottom: 0.5px solid var(--ios-separator);
             cursor: grab;
             transition: background 0.2s;
             background: transparent;
         }
 
-        .song-item:active {
-            cursor: grabbing;
-        }
-
-        .song-item:last-child {
-            border-bottom: none;
-        }
-
-        .song-item.playing {
-            background-color: rgba(0, 122, 255, 0.25); 
-        }
-
-        .sortable-ghost {
-            opacity: 0.4;
-            background: rgba(0, 122, 255, 0.1);
-        }
+        .song-item:active { cursor: grabbing; }
+        .song-item:last-child { border-bottom: none; }
+        .song-item.playing { background-color: rgba(0, 122, 255, 0.15); }
 
         .song-index {
-            font-size: 14px;
-            color: #000;
-            width: 28px;
-            margin-right: 8px;
-            font-weight: 700;
+            font-size: 11px;
+            color: var(--ios-gray);
+            width: 20px;
+            margin-right: 4px;
+            font-weight: 600;
         }
 
         .song-details {
             flex: 1;
             overflow: hidden;
             pointer-events: none;
+            display: flex; 
+            align-items: baseline; 
+            gap: 6px; 
         }
 
+        /* Smaller font sizes */
         .song-name {
-            font-size: 17px;
+            font-size: 14px;
             font-weight: 600;
-            display: block;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 60%; 
         }
 
         .song-artist {
-            font-size: 14px;
+            font-size: 12px;
             color: var(--ios-gray);
-            margin-top: 2px;
-            display: block;
-            font-weight: 600;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.7;
         }
 
         .delete-action {
-            padding: 10px;
+            padding: 8px;
             color: var(--ios-red);
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0.7;
-            transition: opacity 0.2s;
+            opacity: 0.5;
             cursor: pointer;
-        }
-
-        .delete-action:hover {
-            opacity: 1;
         }
 
         .loading-state {
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            padding: 60px;
+            align-items: center;
+            height: 100%;
             color: var(--ios-gray);
-            font-weight: 700;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -342,11 +287,11 @@
         </div>
         <div class="now-playing-info">
             <div class="text-group">
-                <span id="display-title" class="current-title">選擇曲目</span>
-                <span id="display-artist" class="current-artist"></span>
+                <span id="display-title" class="current-title">Select Track</span>
+                <span id="display-artist" class="current-artist">Ready to play</span>
             </div>
             <div class="action-btns">
-                <button class="icon-btn" onclick="shuffleQueue()" title="隨機播放">
+                <button class="icon-btn" onclick="shuffleQueue()" title="Shuffle">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
                 </button>
             </div>
@@ -355,24 +300,20 @@
 
     <div class="playlist-section">
         <div class="section-title">
-            待播清單
-            <span class="drag-hint">可拖曳排序</span>
+            Up Next
+            <span class="drag-hint">Drag to reorder</span>
         </div>
         
-        <!-- 上滑箭頭引導 -->
         <div class="scroll-indicator scroll-up">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
         </div>
 
         <div id="list-container" class="list-card">
-            <div class="loading-state">
-                <span>同步中...</span>
-            </div>
+            <div class="loading-state">SYNCING...</div>
         </div>
 
-        <!-- 下滑箭頭引導 -->
         <div class="scroll-indicator scroll-down">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
     </div>
 </div>
@@ -435,7 +376,6 @@
             onEnd: function (evt) {
                 const item = musicList.splice(evt.oldIndex, 1)[0];
                 musicList.splice(evt.newIndex, 0, item);
-                
                 if (currentIndex === evt.oldIndex) {
                     currentIndex = evt.newIndex;
                 } else if (evt.oldIndex < currentIndex && evt.newIndex >= currentIndex) {
@@ -457,27 +397,21 @@
             const data = rows.slice(1).map((row) => {
                 const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 if (cols.length < 3) return null;
-                
                 const rawUrl = cols[1]?.replace(/"/g, '').trim();
                 const videoId = extractId(rawUrl);
-                
                 if (!videoId) return null;
 
                 return {
                     id: videoId,
-                    title: (cols[2] || "未知曲目").replace(/"/g, '').trim(),
-                    artist: (cols[3] || "未知歌手").replace(/"/g, '').trim()
+                    title: (cols[2] || "Unknown Track").replace(/"/g, '').trim(),
+                    artist: (cols[3] || "Unknown Artist").replace(/"/g, '').trim()
                 };
             }).filter(item => item !== null);
 
             musicList = data;
             renderUI();
-            
-            if (musicList.length === 0) {
-                 document.getElementById('list-container').innerHTML = '<div class="loading-state">清單目前是空的。</div>';
-            }
         } catch (e) {
-            document.getElementById('list-container').innerHTML = '<div class="loading-state">載入發生錯誤。</div>';
+            document.getElementById('list-container').innerHTML = '<div class="loading-state">LOAD ERROR</div>';
         }
     }
 
@@ -492,30 +426,28 @@
         if (!videoId) return;
         const bg = document.getElementById('dynamic-bg');
         const thumbUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-        
         const tempImg = new Image();
-        tempImg.onload = () => {
-            bg.style.backgroundImage = `url(${thumbUrl})`;
-        };
-        tempImg.onerror = () => {
-            bg.style.backgroundImage = `url(https://img.youtube.com/vi/${videoId}/0.jpg)`;
-        };
+        tempImg.onload = () => bg.style.backgroundImage = `url(${thumbUrl})`;
+        tempImg.onerror = () => bg.style.backgroundImage = `url(https://img.youtube.com/vi/${videoId}/0.jpg)`;
         tempImg.src = thumbUrl;
     }
 
     function renderUI() {
         const container = document.getElementById('list-container');
-        if (musicList.length === 0) return;
+        if (musicList.length === 0) {
+            container.innerHTML = '<div class="loading-state">EMPTY LIST</div>';
+            return;
+        }
 
         container.innerHTML = musicList.map((song, index) => `
-            <div class="song-item ${index === currentIndex ? 'playing' : ''}" data-index="${index}" onclick="selectSong(${index})">
+            <div class="song-item ${index === currentIndex ? 'playing' : ''}" onclick="selectSong(${index})">
                 <div class="song-index">${index + 1}</div>
                 <div class="song-details">
                     <span class="song-name">${song.title}</span>
-                    <span class="song-artist">${song.artist}</span>
+                    <span class="song-artist">· ${song.artist}</span>
                 </div>
                 <div class="delete-action" onclick="deleteFromList(event, ${index})">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                 </div>
             </div>
         `).join('');
@@ -523,26 +455,18 @@
 
     function selectSong(index) {
         if (index < 0 || index >= musicList.length) return;
-        
         currentIndex = index;
         const song = musicList[currentIndex];
-        
         document.getElementById('display-title').innerText = song.title;
         document.getElementById('display-artist').innerText = song.artist;
-        
         updateBackground(song.id);
         renderUI();
-
-        if (player && typeof player.loadVideoById === 'function') {
-            player.loadVideoById(song.id);
-        }
+        if (player && player.loadVideoById) player.loadVideoById(song.id);
     }
 
     function playNext() {
         if (musicList.length === 0) return;
-        let next = currentIndex + 1;
-        if (next >= musicList.length) next = 0;
-        selectSong(next);
+        selectSong((currentIndex + 1) % musicList.length);
     }
 
     function shuffleQueue() {
@@ -560,17 +484,13 @@
         event.stopPropagation();
         const removedIsCurrent = (index === currentIndex);
         musicList.splice(index, 1);
-        
         if (removedIsCurrent) {
             if (musicList.length > 0) {
-                currentIndex = -1; 
-                selectSong(index % musicList.length);
+                currentIndex = -1; selectSong(index % musicList.length);
             } else {
-                currentIndex = -1;
-                player.stopVideo();
-                document.getElementById('display-title').innerText = "已清空";
+                currentIndex = -1; player.stopVideo();
+                document.getElementById('display-title').innerText = "Empty";
                 document.getElementById('display-artist').innerText = "";
-                document.getElementById('dynamic-bg').style.backgroundImage = "none";
             }
         } else if (index < currentIndex) {
             currentIndex--;
