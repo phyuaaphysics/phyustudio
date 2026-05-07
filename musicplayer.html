@@ -341,7 +341,8 @@
                 'autoplay': 1,
                 'modestbranding': 1,
                 'rel': 0,
-                'playsinline': 1
+                'playsinline': 1,
+                'enablejsapi': 1
             },
             events: {
                 'onReady': onPlayerReady,
@@ -363,8 +364,9 @@
     }
 
     function onPlayerError(event) {
-        if (currentIndex !== -1) {
-            setTimeout(playNext, 1000); 
+        console.error("Player Error:", event.data);
+        if (musicList.length > 0) {
+            setTimeout(playNext, 1500); 
         }
     }
 
@@ -461,7 +463,13 @@
         document.getElementById('display-artist').innerText = song.artist;
         updateBackground(song.id);
         renderUI();
-        if (player && player.loadVideoById) player.loadVideoById(song.id);
+        
+        if (player && player.loadVideoById) {
+            player.loadVideoById({
+                videoId: song.id,
+                suggestedQuality: 'default'
+            });
+        }
     }
 
     function playNext() {
@@ -471,10 +479,14 @@
 
     function shuffleQueue() {
         if (musicList.length < 2) return;
+        
+        // Fisher-Yates Shuffle
         for (let i = musicList.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [musicList[i], musicList[j]] = [musicList[j], musicList[i]];
         }
+        
+        // Reset and play the new first track
         currentIndex = -1; 
         renderUI();
         selectSong(0);
