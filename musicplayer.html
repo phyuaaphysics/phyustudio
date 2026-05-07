@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>iOS Music Player</title>
-    <!-- SortableJS for drag and drop sorting -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -116,15 +115,15 @@
 
         .action-btns {
             display: flex;
-            gap: 12px;
+            gap: 8px;
         }
 
         .icon-btn {
             background: rgba(255, 255, 255, 0.6); 
             color: #000;
             border: none;
-            width: 44px;
-            height: 44px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -195,7 +194,7 @@
             -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
             overflow-y: auto; 
-            height: 250px; /* Fixed height for ~5 items */
+            height: 250px; 
             border: 1px solid rgba(255, 255, 255, 0.6); 
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
             -webkit-overflow-scrolling: touch;
@@ -234,7 +233,6 @@
             gap: 6px; 
         }
 
-        /* Smaller font sizes */
         .song-name {
             font-size: 14px;
             font-weight: 600;
@@ -291,8 +289,34 @@
                 <span id="display-artist" class="current-artist">Ready to play</span>
             </div>
             <div class="action-btns">
+                <button class="icon-btn" onclick="playPrevious()" title="Previous">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                        <line x1="5" y1="19" x2="5" y2="5"></line>
+                    </svg>
+                </button>
+                
+                <button class="icon-btn" onclick="togglePlayPause()" title="Play / Stop">
+                    <svg id="play-stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </button>
+
+                <button class="icon-btn" onclick="playNext()" title="Next">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                        <line x1="19" y1="5" x2="19" y2="19"></line>
+                    </svg>
+                </button>
+
                 <button class="icon-btn" onclick="shuffleQueue()" title="Shuffle">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="21 16 21 21 16 21"></polyline>
+                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -469,12 +493,50 @@
                 videoId: song.id,
                 suggestedQuality: 'default'
             });
+            updatePlayStopIcon(true); // 載入新歌自動設為播放狀態
+        }
+    }
+
+    function togglePlayPause() {
+        if (!player || typeof player.getPlayerState !== 'function') return;
+        
+        const state = player.getPlayerState();
+        
+        if (state === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+            updatePlayStopIcon(false);
+        } else {
+            // 如果從未選擇任何歌曲，則自動選擇第一首
+            if (currentIndex === -1 && musicList.length > 0) {
+                selectSong(0);
+            } else {
+                player.playVideo();
+                updatePlayStopIcon(true);
+            }
+        }
+    }
+
+    function updatePlayStopIcon(isPlaying) {
+        const iconContainer = document.getElementById('play-stop-icon');
+        if (isPlaying) {
+            // 替換為 Stop 圖示
+            iconContainer.innerHTML = `<rect x="6" y="6" width="12" height="12" stroke-width="2.5"></rect>`;
+        } else {
+            // 替換為 Play 圖示
+            iconContainer.innerHTML = `<polygon points="5 3 19 12 5 21 5 3" stroke-width="2.5"></polygon>`;
         }
     }
 
     function playNext() {
         if (musicList.length === 0) return;
         selectSong((currentIndex + 1) % musicList.length);
+    }
+
+    function playPrevious() {
+        if (musicList.length === 0) return;
+        let prev = currentIndex - 1;
+        if (prev < 0) prev = musicList.length - 1;
+        selectSong(prev);
     }
 
     function shuffleQueue() {
@@ -486,7 +548,6 @@
             [musicList[i], musicList[j]] = [musicList[j], musicList[i]];
         }
         
-        // Reset and play the new first track
         currentIndex = -1; 
         renderUI();
         selectSong(0);
@@ -503,6 +564,7 @@
                 currentIndex = -1; player.stopVideo();
                 document.getElementById('display-title').innerText = "Empty";
                 document.getElementById('display-artist').innerText = "";
+                updatePlayStopIcon(false);
             }
         } else if (index < currentIndex) {
             currentIndex--;
