@@ -79,6 +79,16 @@
             .playlist-section {
                 flex: 1;
                 padding: 0 !important;
+                max-height: calc(100vh - 80px); /* 電腦版高度跟隨視窗 */
+            }
+
+            .list-card {
+                max-height: none !important; /* 電腦版不限縮清單高度 */
+            }
+            
+            /* 電腦版隱藏滾動箭頭 */
+            .scroll-indicator {
+                display: none !important;
             }
         }
 
@@ -168,6 +178,7 @@
         /* 歌曲清單區域 */
         .playlist-section {
             padding: 20px;
+            position: relative;
         }
 
         .section-title {
@@ -186,15 +197,54 @@
             color: var(--ios-gray);
         }
 
-        /* 列表卡片 - 增加磨砂強度 */
+        /* 滾動導引箭頭樣式 */
+        .scroll-indicator {
+            position: absolute;
+            right: 30px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 5;
+            color: var(--ios-gray);
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-up {
+            top: 55px;
+        }
+
+        .scroll-down {
+            bottom: 30px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-5px);}
+            60% {transform: translateY(-3px);}
+        }
+
+        /* 列表卡片 - 增加磨砂強度並優化手機端滾動引導 */
         .list-card {
             background: var(--ios-card);
             backdrop-filter: blur(20px); /* 增強磨砂感 (4px -> 20px) */
             -webkit-backdrop-filter: blur(20px);
             border-radius: 16px;
-            overflow: hidden;
+            overflow-y: auto; /* 允許垂直滾動 */
+            max-height: 60vh; /* 手機端限制高度，誘發滾動 */
             border: 1px solid rgba(255, 255, 255, 0.6); 
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            /* iOS 滾動條樣式優化 */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 隱藏原生滾動條，改用箭頭引導 */
+        .list-card::-webkit-scrollbar {
+            display: none;
         }
 
         .song-item {
@@ -279,10 +329,6 @@
             color: var(--ios-gray);
             font-weight: 700;
         }
-
-        ::-webkit-scrollbar {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -312,10 +358,21 @@
             待播清單
             <span class="drag-hint">可拖曳排序</span>
         </div>
+        
+        <!-- 上滑箭頭引導 -->
+        <div class="scroll-indicator scroll-up">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+        </div>
+
         <div id="list-container" class="list-card">
             <div class="loading-state">
                 <span>同步中...</span>
             </div>
+        </div>
+
+        <!-- 下滑箭頭引導 -->
+        <div class="scroll-indicator scroll-down">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
     </div>
 </div>
