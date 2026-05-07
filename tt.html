@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physica Pro | University Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+        
+        :root {
+            --macos-bg: #f5f5f7;
+            --macos-sidebar: rgba(232, 232, 235, 0.7);
+            --macos-accent: #0071e3;
+            --macos-card: rgba(255, 255, 255, 0.9);
+            --macos-border: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--macos-bg);
+            color: #1d1d1f;
+            -webkit-font-smoothing: antialiased;
+            font-size: 13px; /* 典型的 macOS 字體大小 */
+        }
+
+        .sidebar-blur {
+            background: var(--macos-sidebar);
+            backdrop-filter: blur(50px) saturate(200%);
+            border-right: 0.5px solid var(--macos-border);
+        }
+
+        .main-blur {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+        }
+
+        .apple-card {
+            background: var(--macos-card);
+            border: 0.5px solid var(--macos-border);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+
+        .apple-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-link {
+            transition: all 0.15s ease;
+            color: #424245;
+            border-radius: 6px;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+
+        .nav-link:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-link.active {
+            background: var(--macos-accent);
+            color: white;
+        }
+
+        .macos-btn-primary {
+            background: var(--macos-accent);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        /* 視窗控制按鈕尺寸微調 */
+        .window-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+        }
+
+        /* 隱藏捲軸但保持功能 */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        
+        /* 仿真視訊播放器 */
+        .video-viewport {
+            border-radius: 10px;
+            overflow: hidden;
+            background: #1a1a1a;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 4px;
+            background: #d1d1d6;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border: 0.5px solid #d1d1d6;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- macOS Sidebar (更纖細) -->
+    <aside class="w-56 h-full sidebar-blur flex flex-col flex-shrink-0">
+        <!-- Traffic Lights -->
+        <div class="p-3 flex gap-[7px]">
+            <div class="window-dot bg-[#ff5f57] border-[0.5px] border-[#e0443e]"></div>
+            <div class="window-dot bg-[#febc2e] border-[0.5px] border-[#d8a123]"></div>
+            <div class="window-dot bg-[#28c840] border-[0.5px] border-[#1aab29]"></div>
+        </div>
+
+        <div class="px-3 py-1">
+            <div class="flex items-center gap-2 px-2 mb-6">
+                <div class="w-6 h-6 rounded-md bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center shadow-md">
+                    <i class="fas fa-atom text-white text-[10px]"></i>
+                </div>
+                <h1 class="text-sm font-bold tracking-tight">Physica Pro</h1>
+            </div>
+
+            <nav class="space-y-[2px]">
+                <p class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 mt-4">學習清單</p>
+                <button onclick="switchTab('curriculum')" id="btn-curriculum" class="nav-link active w-full flex items-center gap-2 text-left">
+                    <i class="fas fa-play-circle opacity-80"></i> 課程播放器
+                </button>
+                <button onclick="switchTab('lab')" id="btn-lab" class="nav-link w-full flex items-center gap-2 text-left">
+                    <i class="fas fa-flask opacity-80"></i> 物理實驗室
+                </button>
+                <button onclick="switchTab('resources')" id="btn-resources" class="nav-link w-full flex items-center gap-2 text-left">
+                    <i class="fas fa-book-open opacity-80"></i> 學術資源庫
+                </button>
+                
+                <p class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6">研究工具</p>
+                <button class="nav-link w-full flex items-center gap-2 text-left">
+                    <i class="fas fa-calculator opacity-80"></i> 符號運算
+                </button>
+                <button class="nav-link w-full flex items-center gap-2 text-left">
+                    <i class="fas fa-code opacity-80"></i> Python 核心
+                </button>
+            </nav>
+        </div>
+
+        <!-- 使用者資訊 (更收緊) -->
+        <div class="mt-auto p-3">
+            <div class="apple-card p-2 flex items-center gap-2 bg-white/50 border-none shadow-none">
+                <img src="https://ui-avatars.com/api/?name=User&background=0071e3&color=fff" class="w-7 h-7 rounded-full shadow-sm" alt="User">
+                <div class="overflow-hidden">
+                    <p class="text-[11px] font-bold truncate">林小明 同學</p>
+                    <p class="text-[9px] text-gray-500">蘇黎世聯邦理工</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Viewport -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden main-blur">
+        
+        <!-- macOS ToolBar (更窄、更精緻) -->
+        <header class="h-10 flex items-center justify-between px-6 border-b border-gray-200/40 bg-white/30">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-chevron-left text-gray-400 text-[10px] cursor-pointer hover:text-gray-600"></i>
+                <i class="fas fa-chevron-right text-gray-400 text-[10px] cursor-pointer hover:text-gray-600"></i>
+                <span class="text-[11px] font-medium text-gray-500 ml-2" id="nav-breadcrumb">
+                    力學 / <span class="text-black font-semibold">向量運動學</span>
+                </span>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="flex bg-gray-200/60 p-[2px] rounded-md">
+                    <button class="px-3 py-0.5 text-[10px] font-medium bg-white shadow-sm rounded-[4px]">筆記</button>
+                    <button class="px-3 py-0.5 text-[10px] font-medium text-gray-500">逐字稿</button>
+                </div>
+                <div class="h-3 w-[0.5px] bg-gray-300"></div>
+                <button class="macos-btn-primary flex items-center gap-1.5 shadow-sm">
+                    <i class="fas fa-bolt-lightning text-[10px]"></i> AI 摘要
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto" id="scroll-container">
+            
+            <!-- Curriculum View -->
+            <div id="curriculum-view" class="p-6 max-w-6xl mx-auto w-full">
+                <div class="grid grid-cols-12 gap-6">
+                    
+                    <!-- Left Column -->
+                    <div class="col-span-8 space-y-6">
+                        <div class="video-viewport">
+                            <div class="aspect-video w-full flex flex-col items-center justify-center bg-zinc-900 group relative">
+                                <div class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-all">
+                                    <i class="fas fa-play text-white text-sm ml-1"></i>
+                                </div>
+                                <!-- 底部控制條仿真 -->
+                                <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent flex items-center gap-3">
+                                    <div class="h-1 bg-blue-500 flex-1 rounded-full overflow-hidden">
+                                        <div class="h-full bg-white/30 w-1/3"></div>
+                                    </div>
+                                    <span class="text-[10px] text-white/80 font-mono">12:45 / 45:00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start justify-between px-1">
+                            <div>
+                                <h2 class="text-lg font-bold tracking-tight">第二章：二維運動與向量微積分</h2>
+                                <p class="text-[11px] text-gray-500 mt-0.5">物理系 101 • 2024 秋季課程</p>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-200 text-gray-500"><i class="fas fa-share text-[11px]"></i></button>
+                                <button class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-200 text-gray-500"><i class="fas fa-plus text-[11px]"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="apple-card p-4">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">核心概念</h4>
+                                <ul class="space-y-2 text-[12px] text-gray-600">
+                                    <li class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div> 拋體運動力學分析</li>
+                                    <li class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div> 向量內積與外積應用</li>
+                                    <li class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div> 相對運動參考系</li>
+                                </ul>
+                            </div>
+                            <div class="apple-card p-4">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-widest">附錄檔案</h4>
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer border-[0.5px] border-gray-100">
+                                        <span class="text-[11px]"><i class="far fa-file-pdf text-red-500 mr-2"></i> 講義_L04.pdf</span>
+                                        <i class="fas fa-arrow-down text-[9px] text-gray-400"></i>
+                                    </div>
+                                    <div class="flex items-center justify-between p-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer border-[0.5px] border-gray-100">
+                                        <span class="text-[11px]"><i class="far fa-file-excel text-green-600 mr-2"></i> 數據集.csv</span>
+                                        <i class="fas fa-arrow-down text-[9px] text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-span-4 space-y-5">
+                        <div class="apple-card overflow-hidden">
+                            <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <h3 class="font-bold text-[11px]">章節清單</h3>
+                                <span class="text-[9px] text-gray-400 font-bold">40% 已完成</span>
+                            </div>
+                            <div class="max-h-[300px] overflow-y-auto">
+                                <div class="p-2.5 flex gap-3 bg-blue-50/40 border-l-[3px] border-blue-500">
+                                    <div class="w-14 h-9 rounded bg-zinc-800 flex-shrink-0 flex items-center justify-center">
+                                        <i class="fas fa-play text-white text-[10px]"></i>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <p class="text-[11px] font-bold text-blue-600 truncate">L04: 向量分析</p>
+                                        <p class="text-[9px] text-gray-500">正在觀看 • 42min</p>
+                                    </div>
+                                </div>
+                                <div class="p-2.5 flex gap-3 hover:bg-gray-50 cursor-pointer">
+                                    <div class="w-14 h-9 rounded bg-gray-200 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-gray-700">L05: 平面力學</p>
+                                        <p class="text-[9px] text-gray-500">下一個內容 • 35min</p>
+                                    </div>
+                                </div>
+                                <div class="p-2.5 flex gap-3 hover:bg-gray-50 cursor-pointer opacity-60">
+                                    <div class="w-14 h-9 rounded bg-gray-200 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="text-[11px] font-bold text-gray-700">習題回顧 02</p>
+                                        <p class="text-[9px] text-gray-500">截止日: 3天後</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 筆記區更緊湊 -->
+                        <div class="apple-card p-3 bg-zinc-900 text-white">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fas fa-feather text-gray-500 text-[10px]"></i>
+                                <span class="text-[9px] font-bold uppercase tracking-widest text-gray-500">快速筆記 (LaTeX)</span>
+                            </div>
+                            <textarea class="w-full bg-zinc-800/50 rounded-md p-2 text-[12px] focus:ring-1 focus:ring-blue-500 outline-none border-none min-h-[120px] font-mono text-zinc-300" placeholder="$\sum F = ma$"></textarea>
+                            <div class="mt-2 flex justify-between items-center px-1">
+                                <span class="text-[9px] text-zinc-500 italic">雲端同步中...</span>
+                                <i class="fas fa-check-circle text-emerald-500 text-[10px]"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lab View (Hidden) -->
+            <div id="lab-view" class="hidden p-6 max-w-6xl mx-auto w-full">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold">單擺運動模擬系統</h2>
+                        <p class="text-[11px] text-gray-500">High-fidelity kinematic workstation</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded-md text-[11px] font-bold transition-all">導出數據</button>
+                        <button class="px-4 py-1.5 bg-black text-white rounded-md text-[11px] font-bold shadow-lg shadow-black/20">啟動模擬</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-6">
+                    <!-- Simulation Window -->
+                    <div class="col-span-3 apple-card bg-zinc-900 h-[450px] relative flex flex-col items-center justify-center overflow-hidden border-none">
+                        <div class="absolute top-4 right-4 flex gap-4 text-white/40 text-[9px] font-mono">
+                            <div class="bg-black/40 px-2 py-1 rounded">速度: <span class="text-blue-400" id="val-v">0.00 m/s</span></div>
+                            <div class="bg-black/40 px-2 py-1 rounded">能量: <span class="text-emerald-400" id="val-e">1.24 J</span></div>
+                        </div>
+                        
+                        <div id="physics-sim-v2" class="w-full max-w-sm h-72 relative border-t-[0.5px] border-zinc-800/50">
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-700 rounded-full border border-zinc-500"></div>
+                            <div id="sim-rod" class="absolute top-2 left-1/2 -translate-x-1/2 w-[1.5px] h-48 bg-zinc-500 origin-top rotate-[45deg]"></div>
+                            <div id="sim-bob" class="absolute top-[188px] left-[calc(50%+135px)] -translate-x-1/2 w-8 h-8 bg-white rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] border border-zinc-200"></div>
+                        </div>
+
+                        <!-- 底部數據圖表仿真 -->
+                        <div class="absolute bottom-4 w-full px-8 grid grid-cols-3 gap-4 opacity-50">
+                            <div class="h-10 bg-white/5 rounded border border-white/5"></div>
+                            <div class="h-10 bg-white/5 rounded border border-white/5"></div>
+                            <div class="h-10 bg-white/5 rounded border border-white/5"></div>
+                        </div>
+                    </div>
+
+                    <!-- Lab Settings (Compact) -->
+                    <div class="space-y-4">
+                        <div class="apple-card p-4">
+                            <h3 class="text-[10px] font-bold text-gray-400 uppercase mb-5 tracking-widest">環境參數</h3>
+                            <div class="space-y-5">
+                                <div>
+                                    <div class="flex justify-between text-[10px] mb-1.5 font-bold">
+                                        <span>繩長 ($L$)</span>
+                                        <span class="text-blue-600">2.4m</span>
+                                    </div>
+                                    <input type="range" class="w-full accent-blue-600">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[10px] mb-1.5 font-bold">
+                                        <span>初始擺角 ($\theta$)</span>
+                                        <span class="text-blue-600">45°</span>
+                                    </div>
+                                    <input type="range" class="w-full accent-blue-600">
+                                </div>
+                                <div class="pt-2 border-t border-gray-100">
+                                    <label class="text-[10px] font-bold text-gray-400 block mb-2">重力環境</label>
+                                    <select class="w-full text-[11px] bg-gray-50 border-[0.5px] border-gray-200 p-1.5 rounded outline-none">
+                                        <option>地球 (9.81 m/s²)</option>
+                                        <option>月球 (1.62 m/s²)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="apple-card p-3 bg-blue-50/50 border-blue-100/50">
+                            <p class="text-[10px] leading-relaxed text-blue-800 font-medium italic">
+                                "小角度近似下，擺動週期與繩長平方根成正比。"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function switchTab(tabId) {
+            const views = ['curriculum', 'lab'];
+            views.forEach(v => {
+                document.getElementById(`${v}-view`).classList.add('hidden');
+                document.getElementById(`btn-${v}`).classList.remove('active');
+            });
+
+            document.getElementById(`${tabId}-view`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+
+            const breadcrumb = document.getElementById('nav-breadcrumb');
+            if(tabId === 'lab') {
+                breadcrumb.innerHTML = '實驗研究 / <span class="text-black font-semibold">單擺模擬</span>';
+                startSim();
+            } else {
+                breadcrumb.innerHTML = '力學 / <span class="text-black font-semibold">向量運動學</span>';
+            }
+        }
+
+        let simActive = false;
+        function startSim() {
+            if (simActive) return;
+            simActive = true;
+            
+            const rod = document.getElementById('sim-rod');
+            const bob = document.getElementById('sim-bob');
+            const velEl = document.getElementById('val-v');
+            let time = 0;
+
+            function animate() {
+                time += 0.035;
+                const amplitude = 45;
+                const angle = Math.sin(time * 1.8) * amplitude;
+                
+                if(rod && bob) {
+                    rod.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+                    
+                    // 計算擺球位置 (繩長設為 192px)
+                    const rad = angle * Math.PI / 180;
+                    const x = Math.sin(rad) * 192;
+                    const y = Math.cos(rad) * 192;
+                    
+                    bob.style.left = `calc(50% + ${x}px)`;
+                    bob.style.top = `${y + 4}px`;
+                    
+                    // 模擬速度數據
+                    const velocity = Math.abs(Math.cos(time * 1.8) * 1.5).toFixed(2);
+                    velEl.innerText = `${velocity} m/s`;
+                }
+
+                if(!document.getElementById('lab-view').classList.contains('hidden')) {
+                    requestAnimationFrame(animate);
+                } else {
+                    simActive = false;
+                }
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
+
+
