@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>iOS Music Player</title>
+    <!-- SortableJS for drag and drop sorting -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -141,9 +142,13 @@
         .playlist-section {
             padding: 20px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .section-title {
+            width: 100%;
             font-size: 18px;
             font-weight: 800;
             margin-bottom: 12px;
@@ -162,9 +167,8 @@
             opacity: 0.8;
         }
 
+        /* 修正後的捲動指示器：位於容器外部 */
         .scroll-indicator {
-            position: absolute;
-            right: 30px;
             width: 24px;
             height: 24px;
             background: rgba(0, 0, 0, 0.08);
@@ -173,13 +177,11 @@
             align-items: center;
             justify-content: center;
             pointer-events: none;
-            z-index: 5;
             color: var(--ios-gray);
+            z-index: 5;
+            margin: 8px 0;
             animation: bounce 2s infinite;
         }
-
-        .scroll-up { top: 52px; }
-        .scroll-down { bottom: 30px; }
 
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
@@ -189,6 +191,7 @@
 
         /* Fixed list size - approximately 5 items space */
         .list-card {
+            width: 100%;
             background: var(--ios-card);
             backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
@@ -289,6 +292,7 @@
                 <span id="display-artist" class="current-artist">Ready to play</span>
             </div>
             <div class="action-btns">
+                <!-- PREVIOUS -->
                 <button class="icon-btn" onclick="playPrevious()" title="Previous">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="19 20 9 12 19 4 19 20"></polygon>
@@ -296,12 +300,14 @@
                     </svg>
                 </button>
                 
+                <!-- PLAY / STOP -->
                 <button class="icon-btn" onclick="togglePlayPause()" title="Play / Stop">
                     <svg id="play-stop-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="5 3 19 12 5 21 5 3"></polygon>
                     </svg>
                 </button>
 
+                <!-- NEXT -->
                 <button class="icon-btn" onclick="playNext()" title="Next">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="5 4 15 12 5 20 5 4"></polygon>
@@ -309,6 +315,7 @@
                     </svg>
                 </button>
 
+                <!-- SHUFFLE -->
                 <button class="icon-btn" onclick="shuffleQueue()" title="Shuffle">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="16 3 21 3 21 8"></polyline>
@@ -328,7 +335,8 @@
             <span class="drag-hint">Drag to reorder</span>
         </div>
         
-        <div class="scroll-indicator scroll-up">
+        <!-- 上箭頭在容器外 -->
+        <div class="scroll-indicator">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
         </div>
 
@@ -336,7 +344,8 @@
             <div class="loading-state">SYNCING...</div>
         </div>
 
-        <div class="scroll-indicator scroll-down">
+        <!-- 下箭頭在容器外 -->
+        <div class="scroll-indicator">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
     </div>
@@ -493,7 +502,7 @@
                 videoId: song.id,
                 suggestedQuality: 'default'
             });
-            updatePlayStopIcon(true); // 載入新歌自動設為播放狀態
+            updatePlayStopIcon(true); 
         }
     }
 
@@ -506,7 +515,6 @@
             player.pauseVideo();
             updatePlayStopIcon(false);
         } else {
-            // 如果從未選擇任何歌曲，則自動選擇第一首
             if (currentIndex === -1 && musicList.length > 0) {
                 selectSong(0);
             } else {
@@ -519,10 +527,8 @@
     function updatePlayStopIcon(isPlaying) {
         const iconContainer = document.getElementById('play-stop-icon');
         if (isPlaying) {
-            // 替換為 Stop 圖示
             iconContainer.innerHTML = `<rect x="6" y="6" width="12" height="12" stroke-width="2.5"></rect>`;
         } else {
-            // 替換為 Play 圖示
             iconContainer.innerHTML = `<polygon points="5 3 19 12 5 21 5 3" stroke-width="2.5"></polygon>`;
         }
     }
@@ -541,13 +547,10 @@
 
     function shuffleQueue() {
         if (musicList.length < 2) return;
-        
-        // Fisher-Yates Shuffle
         for (let i = musicList.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [musicList[i], musicList[j]] = [musicList[j], musicList[i]];
         }
-        
         currentIndex = -1; 
         renderUI();
         selectSong(0);
