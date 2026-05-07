@@ -1,233 +1,390 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iOS Music Video Player</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hybrid Music Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* iOS 玻璃擬態 */
-        .glass {
-            background: rgba(28, 28, 30, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        @media (min-width: 768px) {
+            body { flex-direction: row; }
+        }
 
-        .video-container {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            background: #000;
-        }
+        aside {
+            background: #ffffff;
+            border-right: 1px solid #e5e5ea;
+            display: flex;
+            flex-direction: column;
+            order: 2;
+            transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
+            z-index: 40; /* 確保選單在前方 */
+            position: relative;
+        }
+        @media (min-width: 768px) {
+            aside { width: 320px; order: 1; }
+        }
+        @media (min-width: 1024px) {
+            aside { width: 384px; }
+        }
 
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        main {
+            flex: 1;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            order: 1;
+            z-index: 30;
+            transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        @media (min-width: 768px) {
+            main { order: 2; }
+        }
 
-        /* 隱藏捲動條 */
-        ::-webkit-scrollbar {
-            display: none;
-        }
+        /* 擴展模式 */
+        .mode-expanded main {
+            width: 0;
+            flex: 0;
+            opacity: 0;
+            transform: scale(0.92);
+            pointer-events: none;
+        }
+        .mode-expanded aside {
+            flex: 1;
+            width: 100% !important;
+        }
 
-        .playlist-item.active {
-            background: rgba(255, 255, 255, 0.15);
-        }
+        /* 播放器容器區域 */
+        .player-region {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-        .ios-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            outline: none;
-        }
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            transition: all 1.2s cubic-bezier(0.25, 1, 0.25, 1);
+        }
 
-        .ios-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-        }
+        #youtube-player {
+            width: 100%;
+            height: 100%;
+        }
 
-        /* 外部網站容器 (處理 X 關閉與漸層) */
-        #external-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 100;
-            display: none;
-            background: #000;
-        }
-    </style>
+        .playlist-item-container {
+            position: relative;
+            border-bottom: 1px solid #f2f2f7;
+        }
+
+        .playlist-item {
+            position: relative;
+            background: white;
+            transition: background 0.2s ease;
+            cursor: pointer;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            z-index: 10;
+        }
+        
+        .playlist-item.active {
+            background: #f2f2f7;
+        }
+        .playlist-item.active .song-title {
+            color: #007aff;
+            font-weight: 700;
+        }
+
+        .delete-btn {
+            opacity: 0.3;
+            transition: all 0.2s ease;
+            padding: 10px;
+            position: relative;
+            z-index: 20; /* 確保按鈕在點擊層上方 */
+        }
+        .delete-btn:hover {
+            opacity: 1;
+            color: #ff3b30;
+        }
+        .delete-btn:active {
+            transform: scale(1.1);
+        }
+
+        #playlist {
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch; 
+            flex: 1;
+        }
+
+        #playlist::-webkit-scrollbar { width: 0px; }
+
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        #expand-btn, #done-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 100%;
+            transition: all 0.4s ease;
+        }
+
+        #done-btn { display: none; }
+        .mode-expanded #done-btn { display: flex; }
+        .mode-expanded #expand-btn { display: none; }
+    </style>
 </head>
-<body>
+<body id="app-body">
 
-    <!-- 頂部導覽列 (處理 X 與漸層背景) -->
-    <div class="fixed top-0 w-full z-50 flex justify-between items-center p-4" style="background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);">
-        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md" onclick="window.close()">
-            <i class="fa-solid fa-xmark text-white"></i>
-        </button>
-        <div class="text-sm font-medium">正在播放</div>
-        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md">
-            <i class="fa-solid fa-ellipsis text-white"></i>
-        </button>
-    </div>
+    <div id="loading-overlay">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500"></div>
+        <p id="loading-text" class="text-gray-400 text-sm">載入中...</p>
+    </div>
 
-    <!-- 主要播放區域 -->
-    <div class="flex flex-col h-screen pt-12">
-        <!-- 影片播放器 (iFrame) -->
-        <div class="video-container" id="player-section">
-            <iframe id="main-player" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
+    <main id="main-container">
+        <div class="player-region">
+            <div class="video-wrapper">
+                <div id="youtube-player"></div>
+            </div>
+        </div>
+    </main>
 
-        <!-- 歌曲資訊 -->
-        <div class="px-6 py-4">
-            <h1 id="current-title" class="text-2xl font-bold truncate">載入中...</h1>
-            <p id="current-artist" class="text-white/60 text-lg">載入中...</p>
-        </div>
+    <aside class="flex-1 overflow-hidden">
+        <div class="p-4 md:p-6 pb-3">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-black tracking-tighter">媒體庫</h2>
+                <div class="flex gap-2">
+                    <button id="expand-btn" onclick="toggleExpand(true)" class="bg-gray-50 text-gray-400 border border-gray-100 active:scale-90">
+                        <i class="fa-solid fa-expand text-xs"></i>
+                    </button>
+                    <button id="done-btn" onclick="toggleExpand(false)" class="bg-blue-50 text-blue-600 px-4 rounded-full border border-blue-100 active:scale-90 text-[10px] font-bold">
+                        <i class="fa-solid fa-check mr-1"></i>完成
+                    </button>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="shuffleAndPlay()" class="flex-1 bg-black text-white py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold active:scale-95">
+                    <i class="fa-solid fa-shuffle text-[10px]"></i> 隨機播放
+                </button>
+                <button onclick="fetchSheetData()" class="w-10 bg-gray-100 text-gray-700 rounded-xl flex items-center justify-center active:scale-95">
+                    <i class="fa-solid fa-rotate text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="playlist" class="flex-1 overflow-y-auto px-0 md:px-4 pb-20">
+            <!-- 動態生成 -->
+        </div>
+    </aside>
 
-        <!-- 進度條 -->
-        <div class="px-6 mb-6">
-            <input type="range" class="ios-slider" value="30">
-            <div class="flex justify-between text-[10px] text-white/40 mt-1">
-                <span>1:24</span>
-                <span>-2:45</span>
-            </div>
-        </div>
+    <script src="https://www.youtube.com/iframe_api"></script>
 
-        <!-- 控制按鈕 -->
-        <div class="flex justify-around items-center px-10 mb-8">
-            <button onclick="prevSong()"><i class="fa-solid fa-backward-step text-2xl"></i></button>
-            <button onclick="togglePlay()" class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                <i id="play-icon" class="fa-solid fa-pause text-black text-2xl"></i>
-            </button>
-            <button onclick="nextSong()"><i class="fa-solid fa-forward-step text-2xl"></i></button>
-        </div>
+    <script>
+        const SHEET_ID = '1QIwkfmUZPRWMLrDVHYe-bUtUMSmkU2Ad6PlZnYIij_M';
+        const SHEET_NAME = 'MUSIC PLAYER';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
 
-        <!-- 播放清單 -->
-        <div class="flex-1 glass rounded-t-[30px] p-6 overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">待播清單</h3>
-                <span class="text-xs text-white/40">來自您的 Google 試算表</span>
-            </div>
-            <div id="playlist" class="space-y-3 pb-10">
-                <!-- 清單內容由 JS 動態生成 -->
-            </div>
-        </div>
-    </div>
+        let playlistData = [];
+        let player;
+        let currentIndex = 0;
+        let sortable;
 
-    <script>
-        // 從您的試算表讀取的資料
-        const playlistData = [
-            { id: 1, url: "https://www.youtube.com/embed/EVlEAOrFBN4", title: "Hard To Say I'm Sorry", artist: "Chicago", original: "https://www.youtube.com/watch?v=EVlEAOrFBN4" },
-            { id: 2, url: "https://www.youtube.com/embed/iqEr3P78fz8", title: "Suiheisen", artist: "back number", original: "https://www.youtube.com/watch?v=iqEr3P78fz8" },
-            { id: 3, url: "https://www.youtube.com/embed/z1Z-KzTw1u8", title: "Hard To Say I'm Sorry", artist: "Chicago", original: "https://www.youtube.com/watch?v=z1Z-KzTw1u8" },
-            { id: 4, url: "https://www.youtube.com/embed/H57bXnWR3nM", title: "Hard To Say I'm Sorry", artist: "Chicago", original: "https://www.youtube.com/watch?v=H57bXnWR3nM" },
-            { id: 5, url: "https://www.youtube.com/embed/51CH3dPaWXc", title: "Hard To Say I'm Sorry", artist: "Chicago", original: "https://www.youtube.com/watch?v=51CH3dPaWXc" },
-            { id: 6, url: "https://www.youtube.com/embed/9la0ehq1B6c", title: "Hard To Say I'm Sorry", artist: "Chicago", original: "https://www.youtube.com/watch?v=9la0ehq1B6c" }
-        ];
+        const playlistEl = document.getElementById('playlist');
+        const bodyEl = document.getElementById('app-body');
 
-        let currentIndex = 0;
-        let isPlaying = true;
+        function toggleExpand(expand) {
+            if (expand) {
+                bodyEl.classList.add('mode-expanded');
+            } else {
+                bodyEl.classList.remove('mode-expanded');
+            }
+        }
 
-        const player = document.getElementById('main-player');
-        const titleEl = document.getElementById('current-title');
-        const artistEl = document.getElementById('current-artist');
-        const playlistEl = document.getElementById('playlist');
-        const playIcon = document.getElementById('play-icon');
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+            return lines.map(line => {
+                const result = [];
+                let cell = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') inQuotes = !inQuotes;
+                    else if (char === ',' && !inQuotes) {
+                        result.push(cell.trim());
+                        cell = '';
+                    } else cell += char;
+                }
+                result.push(cell.trim());
+                return result;
+            });
+        }
 
-        // 初始化播放器
-        function initPlayer() {
-            renderPlaylist();
-            loadSong(0);
-        }
+        async function fetchSheetData() {
+            const loader = document.getElementById('loading-overlay');
+            loader.style.display = 'flex';
+            try {
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                const rows = parseCSV(text);
+                playlistData = rows.slice(1)
+                    .filter(row => row.length >= 2 && row[1])
+                    .map((row) => {
+                        const videoId = extractVideoId(row[1]);
+                        return videoId ? {
+                            id: Math.random().toString(36).substr(2, 9),
+                            videoId: videoId,
+                            title: row[2] || '無標題',
+                            artist: row[3] || '未知'
+                        } : null;
+                    })
+                    .filter(item => item !== null);
 
-        // 渲染清單
-        function renderPlaylist() {
-            playlistEl.innerHTML = '';
-            playlistData.forEach((song, index) => {
-                const videoId = extractVideoId(song.original);
-                const thumb = `https://img.youtube.com/vi/${videoId}/default.jpg`;
-                
-                const item = document.createElement('div');
-                item.className = `playlist-item flex items-center p-2 rounded-xl transition-all ${index === currentIndex ? 'active' : ''}`;
-                item.onclick = () => loadSong(index);
-                
-                item.innerHTML = `
-                    <img src="${thumb}" class="w-12 h-12 rounded-lg object-cover mr-4" onerror="this.src='https://via.placeholder.com/150x150?text=Music'">
-                    <div class="flex-1 overflow-hidden">
-                        <div class="font-medium truncate text-sm">${song.title}</div>
-                        <div class="text-xs text-white/50 truncate">${song.artist}</div>
-                    </div>
-                    <i class="fa-solid fa-bars text-white/20 text-xs ml-2"></i>
-                `;
-                playlistEl.appendChild(item);
-            });
-        }
+                renderPlaylist();
+                initSortable();
+                if (player && typeof player.loadVideoById === 'function' && playlistData.length > 0) loadSong(0);
+                loader.style.display = 'none';
+            } catch (error) {
+                document.getElementById('loading-text').innerText = "載入失敗";
+            }
+        }
 
-        // 載入歌曲
-        function loadSong(index) {
-            currentIndex = index;
-            const song = playlistData[index];
-            
-            player.src = song.url + "?autoplay=1&rel=0";
-            titleEl.innerText = song.title;
-            artistEl.innerText = song.artist;
-            
-            // 更新清單選取狀態
-            document.querySelectorAll('.playlist-item').forEach((el, i) => {
-                el.classList.toggle('active', i === index);
-            });
+        function initSortable() {
+            if (sortable) sortable.destroy();
+            sortable = new Sortable(playlistEl, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: '.playlist-item', 
+                onEnd: function (evt) {
+                    const item = playlistData.splice(evt.oldIndex, 1)[0];
+                    playlistData.splice(evt.newIndex, 0, item);
+                    if (evt.oldIndex === currentIndex) currentIndex = evt.newIndex;
+                    else if (evt.oldIndex < currentIndex && evt.newIndex >= currentIndex) currentIndex--;
+                    else if (evt.oldIndex > currentIndex && evt.newIndex <= currentIndex) currentIndex++;
+                    renderPlaylist();
+                }
+            });
+        }
 
-            isPlaying = true;
-            playIcon.className = "fa-solid fa-pause text-black text-2xl";
-        }
+        function extractVideoId(url) {
+            const cleanUrl = url.replace(/"/g, '');
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = cleanUrl.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
 
-        // 切換播放/暫停 (UI 模擬)
-        function togglePlay() {
-            isPlaying = !isPlaying;
-            playIcon.className = isPlaying ? "fa-solid fa-pause text-black text-2xl" : "fa-solid fa-play text-black text-2xl";
-            // 註：iframe 無法直接透過 JS 控制播放/暫停，需透過 YouTube API 或重新載入
-        }
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                height: '100%', width: '100%', videoId: '',
+                playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'modestbranding': 1, 'playsinline': 1 },
+                events: {
+                    'onReady': () => { fetchSheetData(); },
+                    'onStateChange': (e) => { if (e.data === YT.PlayerState.ENDED) nextSong(); },
+                    'onError': () => { nextSong(); }
+                }
+            });
+        }
 
-        function nextSong() {
-            let next = (currentIndex + 1) % playlistData.length;
-            loadSong(next);
-        }
+        function renderPlaylist() {
+            playlistEl.innerHTML = '';
+            playlistData.forEach((song, index) => {
+                const container = document.createElement('div');
+                container.className = 'playlist-item-container';
+                
+                const item = document.createElement('div');
+                item.className = `playlist-item ${index === currentIndex ? 'active' : ''}`;
+                item.onclick = () => loadSong(index);
+                
+                item.innerHTML = `
+                    <div class="flex-1 flex flex-row items-center justify-between min-w-0 mr-1">
+                        <div class="font-bold truncate text-xs song-title pr-4">${song.title}</div>
+                        <div class="text-[9px] text-gray-400 truncate font-bold uppercase tracking-wider flex-shrink-0">${song.artist}</div>
+                    </div>
+                `;
 
-        function prevSong() {
-            let prev = (currentIndex - 1 + playlistData.length) % playlistData.length;
-            loadSong(prev);
-        }
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn flex-shrink-0';
+                delBtn.innerHTML = '<i class="fa-solid fa-xmark text-base"></i>';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeSong(index);
+                };
 
-        // 提取 YouTube ID 以獲取縮圖
-        function extractVideoId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length == 11) ? match[2] : null;
-        }
+                item.appendChild(delBtn);
+                container.appendChild(item);
+                playlistEl.appendChild(container);
+            });
+        }
 
-        window.onload = initPlayer;
-    </script>
+        function removeSong(index) {
+            if (playlistData.length <= 1) return;
+            const wasCurrent = (index === currentIndex);
+            playlistData.splice(index, 1);
+            if (wasCurrent) {
+                if (currentIndex >= playlistData.length) currentIndex = 0;
+                loadSong(currentIndex);
+            } else if (index < currentIndex) {
+                currentIndex--;
+            }
+            renderPlaylist();
+        }
+
+        function loadSong(index) {
+            if (!playlistData[index]) return;
+            currentIndex = index;
+            player.loadVideoById(playlistData[index].videoId);
+            renderPlaylist();
+            const activeItem = document.querySelector('.playlist-item.active');
+            if(activeItem) {
+                activeItem.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function nextSong() {
+            loadSong((currentIndex + 1) % playlistData.length);
+        }
+
+        function shuffleAndPlay() {
+            if (playlistData.length <= 1) return;
+            for (let i = playlistData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [playlistData[i], playlistData[j]] = [playlistData[j], playlistData[i]];
+            }
+            currentIndex = 0;
+            loadSong(0);
+        }
+    </script>
 </body>
 </html>
+
+
