@@ -9,7 +9,7 @@
     <style>
         /* 保持原有的 UI 視覺設計與動畫 */
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
+
         :root {
             --mint-deep: #064e3b;
             --mint-primary: #10b981;
@@ -20,7 +20,8 @@
         }
 
         html, body {
-            height: 100dvh; width: 100%; margin: 0; overflow: hidden; position: fixed;
+            height: 100dvh;
+            width: 100%; margin: 0; overflow: hidden; position: fixed;
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
             background-color: #f8fafc;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -37,27 +38,30 @@
         .auth-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; outline: none; font-size: 14px; transition: 0.3s; color: #1e293b; }
         .auth-input:focus { background: rgba(255, 255, 255, 0.6); border-color: #10b981; }
         .error-msg { color: #ef4444; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: none; }
+        
+        /* Auth Loading Indicator */
+        #auth-loading { display: none; align-items: center; gap: 8px; margin-top: 15px; color: #10b981; font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
 
         /* Window & LMS Layouts */
-        .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px); transform: translateY(110vh); z-index: 310; display: none; opacity: 0; overflow: hidden; transition: opacity var(--anim-os), transform var(--anim-os); }
+        .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #fff; transform: translateY(110vh); z-index: 310; display: none; opacity: 0; overflow: hidden; transition: opacity var(--anim-os), transform var(--anim-os); }
         .modal-window.open { display: flex; flex-direction: column; opacity: 1; transform: translateY(0); }
-        .window-header { padding: 0 12px; display: flex; align-items: center; background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid rgba(0, 0, 0, 0.05); height: 54px; gap: 8px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box; }
+        .window-header { padding: 0 12px; display: flex; align-items: center; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; height: 54px; gap: 8px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box; }
         .tab-strip { display: flex; align-items: flex-end; gap: 4px; flex: 1; overflow-x: auto; height: 100%; scrollbar-width: none; }
-        .browser-tab { height: 38px; min-width: 100px; max-width: 180px; background: rgba(0, 0, 0, 0.05); border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; transition: all var(--tab-anim); position: relative; margin-bottom: -1px; border: 1px solid transparent; border-bottom: none; }
-        .browser-tab.active { background: rgba(255, 255, 255, 0.7); border-color: rgba(0, 0, 0, 0.05); z-index: 2; transform: scale(1.02); }
-        .tab-title { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #4b5563; }
+        .browser-tab { height: 38px; min-width: 100px; max-width: 180px; background: #e2e8f0; border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; transition: all var(--tab-anim); position: relative; margin-bottom: -1px; border: 1px solid transparent; }
+        .browser-tab.active { background: #fff; z-index: 2; transform: scale(1.02); box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
+        .tab-title { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #475569; }
         .tab-close { font-size: 10px; opacity: 0.4; padding: 4px; transition: 0.2s; }
-        .window-body { flex: 1; width: 100%; background: transparent; position: relative; overflow: hidden; padding-bottom: env(safe-area-inset-bottom); }
+        .window-body { flex: 1; width: 100%; background: #f8fafc; position: relative; overflow: hidden; padding-bottom: env(safe-area-inset-bottom); }
         .win-content-page { display: none; width: 100%; height: 100%; opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease; }
         .win-content-page.active { display: block; opacity: 1; transform: translateY(0); }
-        .toolbar-item { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4b5563; font-size: 14px; transition: 0.3s; cursor: pointer; background: rgba(0,0,0,0.03); }
+        .toolbar-item { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 14px; transition: 0.3s; cursor: pointer; }
 
         /* LMS Elements */
-        .lms-classic-layout { display: flex; height: 100%; width: 100%; overflow: hidden; background: #fdfdfd; }
-        .lms-sidebar { width: 320px; flex-shrink: 0; border-right: 1px solid rgba(0,0,0,0.05); background: #fff; overflow-y: auto; display: flex; flex-direction: column; }
-        .lms-sidebar-header { padding: 24px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .lms-section-title { padding: 12px 24px; background: #f8fafc; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; border-bottom: 1px solid rgba(0,0,0,0.03); }
-        .lms-item-link { padding: 16px 24px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid rgba(0,0,0,0.02); position: relative; }
+        .lms-classic-layout { display: flex; height: 100%; width: 100%; overflow: hidden; background: #fff; }
+        .lms-sidebar { width: 320px; flex-shrink: 0; border-right: 1px solid #eee; background: #fff; overflow-y: auto; display: flex; flex-direction: column; }
+        .lms-sidebar-header { padding: 24px; border-bottom: 1px solid #f1f5f9; }
+        .lms-section-title { padding: 12px 24px; background: #f8fafc; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; border-bottom: 1px solid #f1f5f9; }
+        .lms-item-link { padding: 16px 24px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f8fafc; position: relative; }
         .lms-item-link.active { background: #ecfdf5; color: #059669; }
         .lms-item-link.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #10b981; }
         .lms-item-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; background: #f1f5f9; }
@@ -68,10 +72,14 @@
         .lms-stage-title { font-size: 28px; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
 
         /* Grid & Cards */
-        .lms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; }
-        .lms-card { position: relative; height: 200px; border-radius: 25px; overflow: hidden; cursor: pointer; transition: 0.4s; border: 1px solid rgba(255,255,255,0.3); background: #eee; }
-        .lms-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .catalog-container { position: relative; width: 100%; height: 100%; overflow-y: auto; }
+        /* 背景圖片刷淡處理 */
+        .page-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.15; pointer-events: none; z-index: 0; }
+        .lms-grid { position: relative; z-index: 10; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; background: transparent; }
+        .lms-card { position: relative; height: 200px; border-radius: 25px; overflow: hidden; cursor: pointer; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.05); background: #fff; }
+        .lms-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px rgba(0,0,0,0.1); }
         .lms-card-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
+        .lms-card:hover .lms-card-bg { transform: scale(1.05); }
         .lms-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; color: white; }
 
         /* Loader */
@@ -80,9 +88,9 @@
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* Version Selector */
-        .version-selector-container { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: rgba(255,255,255,0.4); }
-        .version-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 30px; padding: 40px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid rgba(255, 255, 255, 0.8); }
-        .version-btn { width: 100%; padding: 18px; margin-top: 12px; border-radius: 16px; background: #fff; border: 1px solid rgba(0,0,0,0.05); font-weight: 700; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; cursor: pointer; }
+        .version-selector-container { position: relative; height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: transparent; }
+        .version-card { position: relative; z-index: 10; background: #fff; border-radius: 30px; padding: 40px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+        .version-btn { width: 100%; padding: 18px; margin-top: 12px; border-radius: 16px; background: #f8fafc; border: 1px solid #f1f5f9; font-weight: 700; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; cursor: pointer; color: #1e293b; }
         .version-btn:hover { background: #10b981; color: #fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16,185,129,0.2); }
         .version-btn .badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; background: rgba(0,0,0,0.05); }
 
@@ -123,16 +131,18 @@
                 <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-14 w-14 mb-6">
                 <h1 id="hero-title" class="text-3xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;">Lumina</h1>
                 <p id="hero-subtitle" class="text-xl font-bold tracking-[1em] mb-8 uppercase opacity-80"></p>
-                
                 <div class="w-full mb-2">
                     <input type="text" id="auth-username" class="auth-input" placeholder="USERNAME">
                     <input type="password" id="auth-password" class="auth-input" placeholder="PASSWORD">
                     <div id="auth-error" class="error-msg text-center">Unauthorized Access</div>
                 </div>
-
                 <button id="btn-start" onclick="handleAuth()" class="px-12 py-4 rounded-full text-[10px] tracking-[0.5em] font-black uppercase bg-white/20 backdrop-blur-md border border-white/40 shadow-xl active:scale-95 transition-all">
                     START LEARNING
                 </button>
+                <div id="auth-loading">
+                    <i class="fas fa-spinner sync-spinning"></i>
+                    <span>Verifying Identity...</span>
+                </div>
                 <button onclick="manualRefresh()" class="mt-8 text-emerald-600/60 hover:text-emerald-600 transition-colors">
                     <i id="hero-cloud-icon" class="fas fa-cloud"></i>
                 </button>
@@ -141,26 +151,22 @@
     </section>
 
     <script>
-        // --- 整合部署 URL ---
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbw7tpjyEH-gwzBdBjbitfxN4chAF-hm7JAk79ySE_kiywi2uR5m4KQQ9r7oxN0nt8A/exec';
-        
         let openTabs = [];
         let activeTabId = null;
         let courseList = [];
+        let catalogBgUrl = ""; 
 
-        // 1. 同步與資料加載 (透過 GAS)
         async function loadSheetData(isManual = false) {
             const heroCloudIcon = document.getElementById('hero-cloud-icon');
             const windowCloudIcon = document.getElementById('window-cloud-icon');
             const spinClasses = 'fas fa-spinner sync-spinning';
-            
             if (isManual) {
                 if(heroCloudIcon) heroCloudIcon.className = spinClasses;
                 if(windowCloudIcon) windowCloudIcon.className = spinClasses;
             }
             
             try {
-                // 呼叫 GAS 的 getLand 動作
                 const response = await fetch(`${GAS_URL}?action=getLand`);
                 const result = await response.json();
                 
@@ -174,11 +180,13 @@
                             if (row[1] === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = row[4];
                             if (row[1] === 'PHOTO') document.getElementById('hero-bg').src = row[4];
                         }
+                        if (row[0] === 'CATALOG_BG') {
+                            catalogBgUrl = row[4];
+                        }
                         if (row[0] && row[0].toString().startsWith('TOPIC')) {
                             courseList.push({ id: row[0], title: row[1], image: row[4] });
                         }
                     });
-
                     localStorage.setItem('LUMINA_DATA', JSON.stringify(courseList));
                     if (isManual) refreshCurrentView();
                     setStatusIcon(true);
@@ -194,24 +202,26 @@
             }
         }
 
-        // 2. 身份驗證 (透過 GAS)
         async function handleAuth() {
             const user = document.getElementById('auth-username').value.trim();
             const pass = document.getElementById('auth-password').value.trim();
             const errorEl = document.getElementById('auth-error');
             const startBtn = document.getElementById('btn-start');
+            const loadingEl = document.getElementById('auth-loading');
 
             if (!user || !pass) return;
-            startBtn.innerText = "AUTHENTICATING...";
+            
+            // UI Feedback: Start Loading
+            startBtn.innerText = "WAITING...";
             startBtn.disabled = true;
+            errorEl.style.display = 'none';
+            loadingEl.style.display = 'flex';
 
             try {
-                // 呼叫 GAS 的 login 動作
                 const loginRes = await fetch(`${GAS_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
                 const loginData = await loginRes.json();
 
                 if (loginData.result === 'success') {
-                    errorEl.style.display = 'none';
                     openHomeFolder();
                 } else {
                     throw new Error("Invalid");
@@ -225,10 +235,10 @@
             } finally {
                 startBtn.innerText = "START LEARNING";
                 startBtn.disabled = false;
+                loadingEl.style.display = 'none';
             }
         }
 
-        // 3. UI 控制與分頁管理 (與原設計一致，僅資料來源改為 API)
         function openHomeFolder() { openTab("Course Catalog", "FOLDER"); }
 
         function openTab(title, type, topicId = null) {
@@ -242,7 +252,6 @@
             page.className = 'win-content-page';
             page.innerHTML = `<div id="canvas-${id}" class="h-full w-full"></div>`;
             document.getElementById('browser-window-body').appendChild(page);
-
             if (type === 'FOLDER') renderGrid(`canvas-${id}`);
             else renderVersionSelector(topicId, title, `canvas-${id}`);
 
@@ -270,7 +279,8 @@
         }
 
         function renderGrid(cid) {
-            let html = `<div class="lms-grid">`;
+            let bgHtml = catalogBgUrl ? `<img src="${catalogBgUrl}" class="page-bg-img">` : '';
+            let html = `<div class="catalog-container">${bgHtml}<div class="lms-grid">`;
             courseList.forEach(c => {
                 html += `<div class="lms-card" onclick="openTab('${c.title}', 'SELECTOR', '${c.id}')">
                     <img src="${c.image}" class="lms-card-bg">
@@ -280,18 +290,22 @@
                     </div>
                 </div>`;
             });
-            document.getElementById(cid).innerHTML = html + `</div>`;
+            document.getElementById(cid).innerHTML = html + `</div></div>`;
         }
 
         async function renderVersionSelector(tid, title, cid) {
             const container = document.getElementById(cid);
             container.innerHTML = `<div class="flex items-center justify-center h-full opacity-30 animate-pulse text-xs uppercase tracking-widest">Identifying Options...</div>`;
+            
+            // 獲取該課題的圖片作為背景
+            const course = courseList.find(c => c.id === tid);
+            const bgImgUrl = course ? course.image : '';
+            const bgHtml = bgImgUrl ? `<img src="${bgImgUrl}" class="page-bg-img">` : '';
+
             try {
-                // 呼叫 GAS 獲取特定模組資料
                 const res = await fetch(`${GAS_URL}?action=getTopic&topicId=${tid}`);
                 const result = await res.json();
                 const rows = result.data;
-                
                 const versions = [...new Set(rows.slice(1).map(r => r[0]).filter(v => v && v !== 'VERSION'))].sort();
                 let versionBtns = '';
                 versions.forEach(v => {
@@ -300,6 +314,7 @@
                     </div>`;
                 });
                 container.innerHTML = `<div class="version-selector-container">
+                    ${bgHtml}
                     <div class="version-card">
                         <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-layer-group"></i></div>
                         <h2 class="text-xl font-black text-slate-800 mb-2">${title}</h2>
@@ -319,7 +334,6 @@
                 const result = await res.json();
                 const rows = result.data;
                 const sections = {};
-                
                 rows.forEach((r, i) => {
                     if (i === 0 || !r[1] || r[0] === 'VERSION' || (vFilter && r[0] !== vFilter)) return;
                     if (!sections[r[1]]) sections[r[1]] = [];
@@ -362,7 +376,6 @@
             } catch (e) { container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">ERROR LOADING COURSE: ${tid}</div>`; }
         }
 
-        // 基本工具函數
         function setStatusIcon(success) {
             const h = document.getElementById('hero-cloud-icon');
             const w = document.getElementById('window-cloud-icon');
@@ -413,7 +426,8 @@
         }
 
         function closeAllTabs() {
-            openTabs = []; activeTabId = null;
+            openTabs = [];
+            activeTabId = null;
             document.getElementById('main-browser-window').classList.remove('open');
             document.getElementById('hero-main-content').classList.remove('fade-exit-up');
             setTimeout(() => {
@@ -427,7 +441,6 @@
             document.querySelectorAll(`.lms-item-link`).forEach(b => b.classList.remove('active'));
             const activeBtn = document.getElementById(`btn-${itemId}`);
             if (activeBtn) activeBtn.classList.add('active');
-            
             if (window.innerWidth <= 768 && !isInitialLoad) {
                 const sidebar = document.getElementById(`sidebar-${tid}`);
                 if (sidebar) sidebar.classList.add('collapsed-mobile');
@@ -459,7 +472,10 @@
             stage.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function extractYoutubeId(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/); return (match && match[2].length === 11) ? match[2] : null; }
+        function extractYoutubeId(url) { 
+            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/); 
+            return (match && match[2].length === 11) ? match[2] : null; 
+        }
         function manualRefresh() { loadSheetData(true); }
         function refreshCurrentView() { openTabs.forEach(tab => { if (tab.type === 'FOLDER') renderGrid(`canvas-${tab.id}`); }); }
         
