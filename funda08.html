@@ -242,7 +242,7 @@
             btn.innerHTML = '<i class="fas fa-spinner sync-spinning"></i> VERIFYING...';
 
             try {
-                // 先向 GAS 請求目前的版本與課程資料
+                // 向 GAS 請求
                 const res = await fetch(`${GAS_URL}?action=loginAndFetch&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}`);
                 const result = await res.json();
 
@@ -255,8 +255,8 @@
 
                 currentUser = result.user; 
                 
-                // 版本校驗邏輯 (針對課程資料)
-                const cloudVer = result.version || ""; // 假設 GAS 回傳包含 version
+                // 版本校驗邏輯 (課程資料)
+                const cloudVer = result.version || "";
                 const localVer = localStorage.getItem('LUMINA_DATA_VER');
 
                 if (localVer && localVer === cloudVer) {
@@ -268,7 +268,6 @@
                     localStorage.setItem('LUMINA_COURSE_DATA', JSON.stringify(courseData));
                 }
                 
-                // 標記展示邏輯
                 const rawRole = (currentUser.role || 'STUDENT').toUpperCase();
                 let displayRole = rawRole;
                 if (rawRole.startsWith('S') && rawRole.length >= 2 && !isNaN(rawRole.substring(1))) {
@@ -473,7 +472,8 @@
             const screen = document.getElementById('shutdown-screen');
             screen.classList.add('active');
             setTimeout(() => {
-                window.location.href = "https://phyuaaphysics.github.io/phyustudio/";
+                // 更新跳轉路徑為 home.html
+                window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
             }, 1800);
         }
 
