@@ -5,14 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Fundamental Exercise - Lumina Studio</title>
     
+    <!-- iOS Web App Meta -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Lumina">
     
+    <!-- External Resources -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
         :root {
             --mint-deep: #064e3b;
             --mint-primary: #10b981; 
@@ -28,9 +32,19 @@
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
-        .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
-        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow); }
-        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5; }
+        /* Hero Login Page Styles */
+        .hero-full {
+            position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s;
+        }
+        #hero-bg {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow);
+        }
+        .hero-overlay {
+            position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
+            z-index: 5;
+        }
         .hero-glass-panel { 
             background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
             border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem;
@@ -40,13 +54,15 @@
         .hero-content-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; }
         .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden; }
 
+        /* OS Modal Browser Window */
         .modal-window { 
             position: fixed; inset: 0; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px);
             transform: translateY(110vh); z-index: 310; display: none; opacity: 0; transition: all var(--anim-os); 
         }
         .modal-window.open { display: flex; flex-direction: column; opacity: 1; transform: translateY(0); }
         .window-header { height: 54px; display: flex; align-items: center; padding: 0 12px; background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
-        .tab-strip { flex: 1; display: flex; gap: 4px; overflow-x: auto; align-items: flex-end; height: 100%; }
+        .tab-strip { flex: 1; display: flex; gap: 4px; overflow-x: auto; align-items: flex-end; height: 100%; scrollbar-width: none; }
+        .tab-strip::-webkit-scrollbar { display: none; }
         .browser-tab { 
             height: 38px; min-width: 130px; background: rgba(0, 0, 0, 0.05); border-radius: 12px 12px 0 0;
             display: flex; align-items: center; padding: 0 12px; gap: 8px; cursor: pointer; font-size: 11px; font-weight: 700; color: #4b5563; position: relative;
@@ -58,12 +74,11 @@
         }
         .tab-close-btn:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
+        /* Content List Styles */
         .uniform-list-container { max-width: 1024px; margin: 0 auto; width: 100%; }
         .list-item-row { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid rgba(0, 0, 0, 0.05); cursor: pointer; transition: 0.2s; }
         .list-item-row:active { background: rgba(16, 185, 129, 0.08); }
-        
         .list-item-row.locked { opacity: 0.6; background: rgba(0,0,0,0.02); cursor: not-allowed; }
-        .list-item-row.locked:active { background: rgba(0,0,0,0.02); }
 
         .resource-drawer { max-height: 0; overflow: hidden; background: #f1f5f9; transition: max-height var(--anim-luxury); position: relative; }
         .resource-drawer.expanded { max-height: 3000px; }
@@ -74,20 +89,15 @@
             width: 100%; padding: 14px; background: rgba(16, 185, 129, 0.05); display: flex; flex-direction: column; align-items: center; gap: 4px;
             cursor: pointer; transition: background 0.3s; border-top: 1px solid rgba(16, 185, 129, 0.1);
         }
-        .resource-collapse-bar:hover { background: rgba(16, 185, 129, 0.15); }
         .resource-collapse-bar span { font-size: 9px; font-weight: 800; color: #10b981; letter-spacing: 0.2em; }
         .resource-collapse-bar i { font-size: 12px; color: #10b981; animation: bounceSlow 2s infinite; }
 
-        @keyframes bounceSlow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-        }
-
-        .login-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 15px; padding: 12px; margin-bottom: 12px; text-align: center; font-size: 13px; }
-        #page-loader { position: fixed; inset: 0; background: #fff; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
-        .sync-spinning { animation: spin 1s linear infinite; }
+        @keyframes bounceSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        /* General UI components */
+        .login-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 15px; padding: 12px; margin-bottom: 12px; text-align: center; font-size: 13px; }
+        #page-loader { position: fixed; inset: 0; background: #fff; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         #custom-alert {
             position: fixed; top: 40px; left: 50%; transform: translateX(-50%) translateY(-100px);
             background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); padding: 12px 24px;
@@ -102,86 +112,80 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         #shutdown-screen.active { opacity: 1; pointer-events: auto; }
-        .ios-spinner {
-            width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
-        }
-        .shutdown-text { color: white; margin-top: 20px; font-size: 14px; font-weight: 300; letter-spacing: 0.2em; opacity: 0.8; }
-        
-        body.shutting-down #main-browser-window, body.shutting-down .hero-full {
-            transform: scale(0.95); opacity: 0; transition: all 1s ease;
-        }
+        .ios-spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
     </style>
 </head>
 <body>
 
+    <!-- Shutdown Overlay -->
     <div id="shutdown-screen">
         <div class="ios-spinner"></div>
-        <p class="shutdown-text">正在關機</p>
+        <p class="shutdown-text text-white mt-5 text-sm tracking-[0.2em] opacity-80 uppercase">正在關機</p>
     </div>
 
+    <!-- Page Loader -->
     <div id="page-loader">
         <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
         <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">系統初始化中...</p>
     </div>
 
+    <!-- Custom Floating Alert -->
     <div id="custom-alert">
         <i class="fas fa-exclamation-circle text-emerald-500"></i>
         <span id="alert-text" class="text-xs font-bold text-gray-600 uppercase tracking-widest"></span>
     </div>
 
+    <!-- OS Window -->
     <div id="main-browser-window" class="modal-window">
         <div class="window-header">
             <div id="browser-tab-strip" class="tab-strip"></div>
             <div class="flex items-center gap-3 px-4">
                 <div id="user-role-display" class="bg-emerald-500 text-white text-[9px] px-3 py-1 rounded-full font-black tracking-tighter uppercase"></div>
-                <button onclick="handleLogout()" class="w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors" title="Logout">
+                <button onclick="handleLogout()" class="w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
-                <button onclick="handleShutdown()" class="w-8 h-8 rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors" title="Shutdown System">
+                <button onclick="handleShutdown()" class="w-8 h-8 rounded-full hover:bg-gray-100 text-gray-400 hover:text-black transition-colors">
                     <i class="fas fa-power-off"></i>
                 </button>
             </div>
         </div>
-        <div id="browser-window-body" class="window-body bg-white/30 overflow-y-auto"></div>
+        <div id="browser-window-body" class="window-body bg-white/30 overflow-y-auto flex-1"></div>
     </div>
 
+    <!-- Hero Section / Login -->
     <section class="hero-full">
         <img id="hero-bg" src="">
         <div class="hero-overlay"></div>
         <div class="hero-content-wrapper text-center">
             <div id="hero-main-content" class="hero-glass-panel">
                 <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-14 w-14 mb-6">
-                <h1 id="hero-title" class="text-3xl md:text-4xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;"></h1>
-                <p id="hero-subtitle" class="text-xl font-bold tracking-[0.8em] mb-10 opacity-80 uppercase pl-[0.8em]"></p>
+                <h1 id="hero-title" class="text-3xl md:text-4xl tracking-[0.3em] uppercase mb-2 text-gray-800" style="font-family: 'Cinzel', serif;">LUMINA</h1>
+                <p id="hero-subtitle" class="text-xl font-bold tracking-[0.8em] mb-10 opacity-80 uppercase pl-[0.8em] text-gray-600"></p>
                 
                 <div class="w-full max-w-[300px] mb-6">
-                    <input type="text" id="login-username" class="login-input" placeholder="USERNAME" autocomplete="off">
+                    <input type="text" id="login-username" class="login-input" placeholder="USERNAME" autocomplete="off" spellcheck="false">
                     <input type="password" id="login-password" class="login-input" placeholder="PASSWORD">
                 </div>
 
                 <button id="login-btn" onclick="handleLoginAndBrowse()" class="px-16 py-4 font-black rounded-full text-[10px] tracking-[0.5em] uppercase shadow-sm transition-all transform active:scale-95 bg-white/20 backdrop-blur-md border border-white/40">
                     Verify & Browse
                 </button>
+                
+                <p id="client-ver" class="mt-8 text-[8px] font-black tracking-[0.5em] uppercase opacity-20">V.CLIENT.01</p>
             </div>
         </div>
     </section>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwyDzW6omWjmt0ip8oJqZ1wmhiJs_ElOAUUtrj07KqERZpzPBYOURsbsHmDVbDxuN0/exec';
+        // 已更新為最新的 GAS 部署 ID
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzzaitM-ZhyDG6OLNUiCZ_wNeDmrurm1iM-win8hfW-Gu9RMhtkhmOmctJiPmQusoI/exec';
+        // 修改這裡的 sheet=VOL8 即可，代碼會自動提取參數傳給 GAS
         const HERO_CSV_URL = 'https://docs.google.com/spreadsheets/d/1IgDOw4tg-PqlqtzugwbtuPj3NrrLOJY9h428ntLDCxg/gviz/tq?tqx=out:csv&sheet=VOL8';
 
         let courseData = [];
         let openTabs = [];
         let activeTabId = null;
         let currentUser = null; 
-
-        // 更新 Hero 顯示
-        function updateHeroUI(data) {
-            if(data.title) document.getElementById('hero-title').innerText = data.title;
-            if(data.subtitle) document.getElementById('hero-subtitle').innerText = data.subtitle;
-            if(data.bg) document.getElementById('hero-bg').src = data.bg;
-        }
 
         async function initHero() {
             try {
@@ -190,14 +194,12 @@
                 const rows = parseCSV(text);
                 
                 let cloudVer = "";
-                let heroInfo = { title: "", subtitle: "", bg: "" };
+                let heroInfo = { title: "Lumina", subtitle: "Studio", bg: "" };
 
                 rows.forEach(row => {
                     const colA = String(row[0]).trim();
                     const colB = String(row[1]).trim();
-                    // 讀取 A 欄為 VER 或 VERSION
                     if (colA === 'VER' || colA === 'VERSION') cloudVer = String(row[1]).trim();
-                    
                     if (colA === 'HEROSECTION') {
                         if (colB === 'CONTENT_1') heroInfo.title = row[4];
                         if (colB === 'CONTENT_2') heroInfo.subtitle = row[4];
@@ -205,18 +207,10 @@
                     }
                 });
 
-                const localVer = localStorage.getItem('LUMINA_VER');
-                
-                if (localVer && localVer === cloudVer) {
-                    // 版本相同，從 Local Memory 讀取
-                    const cachedHero = JSON.parse(localStorage.getItem('LUMINA_HERO') || '{}');
-                    updateHeroUI(cachedHero);
-                } else {
-                    // 版本不同，更新 Local Memory 並同步
-                    localStorage.setItem('LUMINA_VER', cloudVer);
-                    localStorage.setItem('LUMINA_HERO', JSON.stringify(heroInfo));
-                    updateHeroUI(heroInfo);
-                }
+                document.getElementById('hero-title').innerText = heroInfo.title;
+                document.getElementById('hero-subtitle').innerText = heroInfo.subtitle;
+                document.getElementById('hero-bg').src = heroInfo.bg;
+                document.getElementById('client-ver').innerText = `C.01 | S.${cloudVer || '?'}`;
                 
                 setTimeout(() => {
                     document.getElementById('page-loader').style.opacity = '0';
@@ -224,10 +218,7 @@
                 }, 800);
             } catch (e) {
                 console.error("Hero Init Error:", e);
-                // 發生錯誤時嘗試從快取讀取
-                const cachedHero = JSON.parse(localStorage.getItem('LUMINA_HERO') || '{}');
-                if(cachedHero.title) updateHeroUI(cachedHero);
-                showAlert("首頁數據同步失敗，已加載離線快取");
+                document.getElementById('page-loader').style.display = 'none';
             }
         }
 
@@ -238,12 +229,17 @@
 
             if (!u || !p) { showAlert("請輸入完整憑據"); return; }
 
+            // 自動提取當前 HERO_CSV_URL 中的分頁名稱 (例如 VOL8 或 VOL7)
+            const urlParams = new URLSearchParams(HERO_CSV_URL.split('?')[1]);
+            const currentSheet = urlParams.get('sheet') || 'VOL8';
+
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner sync-spinning"></i> VERIFYING...';
+            btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> VERIFYING...';
 
             try {
-                // 向 GAS 請求
-                const res = await fetch(`${GAS_URL}?action=loginAndFetch&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}`);
+                // 向 GAS 發送請求時帶上動態提取的 sheet 參數，無需改動提取邏輯
+                const apiUrl = `${GAS_URL}?action=loginAndFetch&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}&sheet=${encodeURIComponent(currentSheet)}`;
+                const res = await fetch(apiUrl);
                 const result = await res.json();
 
                 if (result.error) {
@@ -254,33 +250,14 @@
                 }
 
                 currentUser = result.user; 
-                
-                // 版本校驗邏輯 (課程資料)
-                const cloudVer = result.version || "";
-                const localVer = localStorage.getItem('LUMINA_DATA_VER');
-
-                if (localVer && localVer === cloudVer) {
-                    const cachedData = localStorage.getItem('LUMINA_COURSE_DATA');
-                    courseData = cachedData ? JSON.parse(cachedData) : result.courseData;
-                } else {
-                    courseData = result.courseData;
-                    localStorage.setItem('LUMINA_DATA_VER', cloudVer);
-                    localStorage.setItem('LUMINA_COURSE_DATA', JSON.stringify(courseData));
-                }
+                courseData = result.courseData;
                 
                 const rawRole = (currentUser.role || 'STUDENT').toUpperCase();
-                let displayRole = rawRole;
-                if (rawRole.startsWith('S') && rawRole.length >= 2 && !isNaN(rawRole.substring(1))) {
-                    displayRole = `${rawRole} STUDENT`;
-                } else if (rawRole === 'TEACHER') {
-                    displayRole = 'TEACHER';
-                }
-                document.getElementById('user-role-display').innerText = displayRole;
+                document.getElementById('user-role-display').innerText = rawRole.startsWith('S') ? `${rawRole} STUDENT` : rawRole;
                 
                 openTab("Browse ALL", "FOLDER");
                 
             } catch (e) {
-                console.error("Login Error:", e);
                 showAlert("無法連接安全中繼站");
                 btn.disabled = false;
                 btn.innerText = 'Verify & Browse';
@@ -316,24 +293,14 @@
             renderTabStrip();
         }
 
-        function closeTab(id, event) {
-            if (event) event.stopPropagation();
-            if (id === 'ROOT') return;
-
-            const tabIndex = openTabs.findIndex(t => t.id === id);
-            if (tabIndex === -1) return;
-
-            const pageEl = document.getElementById(`page-${id}`);
-            if (pageEl) pageEl.remove();
-
-            openTabs.splice(tabIndex, 1);
-
-            if (activeTabId === id) {
-                const nextTab = openTabs[openTabs.length - 1];
-                if (nextTab) switchTab(nextTab.id);
-            } else {
-                renderTabStrip();
-            }
+        function closeTab(id, e) {
+            if (e) e.stopPropagation();
+            const idx = openTabs.findIndex(t => t.id === id);
+            if (idx === -1) return;
+            openTabs.splice(idx, 1);
+            document.getElementById(`page-${id}`).remove();
+            if (activeTabId === id) switchTab(openTabs[openTabs.length-1].id);
+            else renderTabStrip();
         }
 
         function renderTabStrip() {
@@ -342,146 +309,76 @@
             openTabs.forEach(t => {
                 const el = document.createElement('div');
                 el.className = `browser-tab ${activeTabId === t.id ? 'active' : ''}`;
-                
-                let html = `
+                el.innerHTML = `
                     <div class="flex items-center gap-2 flex-1 overflow-hidden" onclick="switchTab('${t.id}')">
                         <i class="fas ${t.type==='FOLDER'?'fa-th-list':'fa-file-alt'} text-[10px] text-emerald-500"></i>
-                        <span class="truncate">${t.title}</span>
+                        <span class="truncate uppercase tracking-widest">${t.title}</span>
                     </div>
+                    ${t.id !== 'ROOT' ? `<button class="tab-close-btn" onclick="closeTab('${t.id}', event)"><i class="fas fa-times"></i></button>` : ''}
                 `;
-
-                if (t.id !== 'ROOT') {
-                    html += `
-                        <button class="tab-close-btn" onclick="closeTab('${t.id}', event)">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                }
-
-                el.innerHTML = html;
                 strip.appendChild(el);
             });
         }
 
         function renderFolderView(pid) {
             const container = document.getElementById(pid);
-            const allHwRows = courseData.filter(r => String(r[0]).startsWith('HW'));
-            const hwIDs = [...new Set(allHwRows.map(r => r[0]))];
-            
+            const hwIDs = [...new Set(courseData.filter(r => String(r[0]).startsWith('HW')).map(r => r[0]))].sort();
             let html = '<div class="uniform-list-container py-6">';
-            if (hwIDs.length === 0) {
-                html += '<div class="p-10 text-center text-gray-400 text-xs tracking-widest uppercase">No resources in database</div>';
-            } else {
-                hwIDs.sort().forEach(id => {
-                    html += `
-                    <div class="list-item-row" onclick="openTab('${id}', 'HW')">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                <i class="fas fa-folder-open"></i>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-black tracking-widest text-gray-800 uppercase">${id}</span>
-                                <span class="text-[9px] font-bold text-gray-400 tracking-widest uppercase">Exercise Series</span>
-                            </div>
+            hwIDs.forEach(id => {
+                html += `
+                <div class="list-item-row" onclick="openTab('${id}', 'HW')">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fas fa-folder-open"></i></div>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-black tracking-widest text-gray-800 uppercase">${id}</span>
+                            <span class="text-[9px] font-bold text-gray-400 tracking-widest uppercase">Exercise Series</span>
                         </div>
-                        <i class="fas fa-chevron-right text-xs text-emerald-400"></i>
-                    </div>`;
-                });
-            }
-            html += '</div>';
-            container.innerHTML = html;
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-emerald-400"></i>
+                </div>`;
+            });
+            container.innerHTML = html + '</div>';
         }
 
         function renderHWView(hwName, pid) {
             const container = document.getElementById(pid);
             const records = courseData.filter(r => r[0] === hwName);
-            const userRole = currentUser.role;
-            
+            const userRole = currentUser.role.toLowerCase();
             let html = '<div class="uniform-list-container py-4">';
             records.forEach((row, idx) => {
-                if (row[1] === 'QUESTION' || row[1] === 'VIDEOS' || row[1] === 'PIC') {
-                    const originalType = row[1];
-                    const displayTypeLabel = (originalType === 'PIC' || originalType === 'QUESTION') ? '題目' : '影片';
-                    const functionalGroup = (originalType === 'PIC' || originalType === 'QUESTION') ? 'DOC' : 'VIDEO';
-                    
-                    const label = row[2];
-                    const accessTag = String(row[3]); 
-                    const url = row[4];
-                    const safeId = hwName.replace(/\W/g,'') + idx;
-
-                    let isLocked = true;
-                    if (userRole === 'teacher') isLocked = false;
-                    else if (accessTag === 'ACTIVE') isLocked = false;
-                    else {
-                        const allowedRoles = accessTag.split(',').map(s => s.trim());
-                        if (allowedRoles.includes(userRole)) isLocked = false;
-                    }
-                    
-                    html += `
-                    <div class="border-b border-gray-50">
-                        <div class="list-item-row ${isLocked ? 'locked' : ''}" onclick="toggleDrawer('${safeId}', ${isLocked}, '${functionalGroup}')">
-                            <div class="flex items-center gap-4">
-                                <i class="fas ${isLocked ? 'fa-lock text-gray-300' : (functionalGroup==='DOC'?'fa-file-pdf text-orange-400':'fa-play-circle text-emerald-500')} text-lg"></i>
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-bold tracking-widest ${isLocked ? 'text-gray-400' : 'text-gray-700'} uppercase">${label}</span>
-                                    <span class="text-[8px] font-black tracking-widest opacity-40 uppercase">${displayTypeLabel}</span>
-                                </div>
+                const type = row[1], label = row[2], access = String(row[3]), url = row[4];
+                const isLocked = !(userRole === 'teacher' || access === 'ACTIVE' || access.toLowerCase().split(',').includes(userRole));
+                const safeId = hwName.replace(/\W/g,'') + idx;
+                html += `
+                <div class="border-b border-gray-50">
+                    <div class="list-item-row ${isLocked ? 'locked' : ''}" onclick="toggleDrawer('${safeId}', ${isLocked})">
+                        <div class="flex items-center gap-4">
+                            <i class="fas ${isLocked ? 'fa-lock text-gray-300' : (type==='VIDEOS'?'fa-play-circle text-emerald-500':'fa-file-pdf text-orange-400')} text-lg"></i>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold tracking-widest ${isLocked ? 'text-gray-400' : 'text-gray-700'} uppercase">${label}</span>
+                                <span class="text-[8px] font-black tracking-widest opacity-40 uppercase">${type === 'VIDEOS' ? '影片' : '題目'}</span>
                             </div>
-                            <i class="fas ${isLocked ? 'fa-shield-alt text-gray-200' : 'fa-chevron-down text-gray-300'} text-[10px]"></i>
                         </div>
-                        ${!isLocked ? `
-                        <div id="d-${safeId}" class="resource-drawer" data-group="${functionalGroup}">
-                            ${originalType === 'PIC' ? `<img src="${url}" class="resource-img">` : 
-                              originalType === 'QUESTION' ? `<iframe src="${url}" class="resource-iframe"></iframe>` :
-                              `<div class="aspect-video bg-black"><iframe class="w-full h-full" src="${url.replace('watch?v=','embed/')}?playsinline=1" allowfullscreen></iframe></div>`
-                            }
-                            <div class="resource-collapse-bar" onclick="closeDrawer('${safeId}')">
-                                <i class="fas fa-chevron-up"></i>
-                                <span>COLLAPSE 收回${displayTypeLabel}</span>
-                            </div>
-                        </div>` : ''}
-                    </div>`;
-                }
+                    </div>
+                    ${!isLocked ? `<div id="d-${safeId}" class="resource-drawer">
+                        ${type === 'PIC' ? `<img src="${url}" class="resource-img" loading="lazy">` : 
+                          type === 'QUESTION' ? `<iframe src="${url}" class="resource-iframe"></iframe>` :
+                          `<div class="aspect-video bg-black"><iframe class="w-full h-full" src="${url.replace('watch?v=','embed/')}"></iframe></div>`}
+                        <div class="resource-collapse-bar" onclick="closeDrawer('${safeId}')"><i class="fas fa-chevron-up"></i><span>COLLAPSE 收回</span></div>
+                    </div>` : ''}
+                </div>`;
             });
-            html += '</div>';
-            container.innerHTML = html;
+            container.innerHTML = html + '</div>';
         }
 
-        function toggleDrawer(id, isLocked, group) {
-            if (isLocked) {
-                showAlert("權限不足：您的身份無法訪問此資源");
-                return;
-            }
-            const target = document.getElementById(`d-${id}`);
-            const isAlreadyExpanded = target.classList.contains('expanded');
-            const currentPage = target.closest('.win-content-page');
-            currentPage.querySelectorAll(`.resource-drawer.expanded[data-group="${group}"]`).forEach(el => {
-                if(el.id !== `d-${id}`) el.classList.remove('expanded');
-            });
-            if (!isAlreadyExpanded) target.classList.add('expanded');
-            else target.classList.remove('expanded');
+        function toggleDrawer(id, isLocked) {
+            if (isLocked) { showAlert("權限不足"); return; }
+            document.getElementById(`d-${id}`).classList.toggle('expanded');
         }
-
-        function closeDrawer(id) {
-            const d = document.getElementById(`d-${id}`);
-            if(d) d.classList.remove('expanded');
-        }
-
-        function handleShutdown() {
-            document.body.classList.add('shutting-down');
-            const screen = document.getElementById('shutdown-screen');
-            screen.classList.add('active');
-            setTimeout(() => {
-                // 更新跳轉路徑為 home.html
-                window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
-            }, 1800);
-        }
+        function closeDrawer(id) { document.getElementById(`d-${id}`).classList.remove('expanded'); }
 
         function parseCSV(text) {
-            const rows = [];
-            let currentRow = [];
-            let field = '';
-            let inQuotes = false;
+            const rows = []; let currentRow = [], field = '', inQuotes = false;
             for (let i = 0; i < text.length; i++) {
                 const c = text[i];
                 if (inQuotes) {
@@ -492,11 +389,7 @@
                     if (c === '"') inQuotes = true;
                     else if (c === ',') { currentRow.push(field); field = ''; }
                     else if (c === '\n' || c === '\r') {
-                        if (field || currentRow.length > 0) {
-                            currentRow.push(field);
-                            rows.push(currentRow);
-                            currentRow = []; field = '';
-                        }
+                        if (field || currentRow.length > 0) { currentRow.push(field); rows.push(currentRow); currentRow = []; field = ''; }
                         if (c === '\r' && text[i+1] === '\n') i++;
                     } else field += c;
                 }
@@ -512,8 +405,12 @@
             setTimeout(() => el.classList.remove('show'), 3000);
         }
 
-        function handleLogout() { location.reload(); }
+        function handleShutdown() {
+            document.getElementById('shutdown-screen').classList.add('active');
+            setTimeout(() => { window.location.href = "https://phyuaaphysics.github.io/phyustudio/"; }, 1500);
+        }
 
+        function handleLogout() { location.reload(); }
         window.onload = initHero;
     </script>
 </body>
