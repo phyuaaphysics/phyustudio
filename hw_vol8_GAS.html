@@ -4,137 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Fundamental Exercise - Lumina Studio</title>
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Lumina">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         :root {
-            --mint-deep: #064e3b;
-            --mint-primary: #10b981; 
-            --mint-bg: #f0fdf4;
-            --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1); 
-            --anim-slow: 1.6s cubic-bezier(0.4, 0, 0.2, 1);
-            --anim-item: 1s cubic-bezier(0.16, 1, 0.3, 1);
+            --mint-deep: #064e3b; --mint-primary: #10b981; --mint-bg: #f0fdf4;
+            --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1);
         }
-
-        html, body { 
-            height: 100dvh; width: 100%; margin: 0; overflow: hidden; position: fixed; 
-            font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f8fafc;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        }
-
-        /* UI Styles Remain Strictly Unchanged */
+        html, body { height: 100dvh; width: 100%; margin: 0; overflow: hidden; position: fixed; font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f8fafc; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
         .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
-        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow), filter 0.8s; }
+        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.6s, filter 0.8s; }
         .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5; }
-        .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center; transition: opacity var(--anim-os), transform var(--anim-os), visibility var(--anim-os); z-index: 20; }
-        .hero-content-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; padding-top: env(safe-area-inset-top); }
+        .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center; z-index: 20; }
         .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden; }
-        .uniform-list-container { display: flex; flex-direction: column; max-width: 1024px; margin: 0 auto; width: 100%; padding-bottom: 80px; }
-        .list-item-row { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: rgba(255, 255, 255, 0.5); border-bottom: 1px solid rgba(0, 0, 0, 0.05); cursor: pointer; transition: 0.2s; }
-        .list-item-row:active { background: rgba(16, 185, 129, 0.08); }
-        .resource-drawer { max-height: 0; overflow: hidden; background: #f1f5f9; transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; opacity: 0; position: relative; }
-        .resource-drawer.expanded { max-height: 2000px; opacity: 1; }
-        .resource-content-container { width: 100%; background: #fff; display: flex; flex-direction: column; align-items: center; }
-        .resource-iframe { width: 100%; height: 70vh; border: none; }
-        .resource-img { width: 100%; max-height: 85vh; object-fit: contain; }
-        .resource-collapse-bar { width: 100%; height: 48px; background: #1e293b; display: flex; align-items: center; justify-content: center; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.05); }
-        .resource-collapse-bar span { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; }
-        #page-loader { position: fixed; inset: 0; background-color: #ffffff; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease; }
-        .sync-spinning { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px); transform: translateY(110vh); z-index: 310; display: none; opacity: 0; transition: opacity var(--anim-os), transform var(--anim-os); }
-        .modal-window.open { display: flex; flex-direction: column; opacity: 1; transform: translateY(0); }
-        .window-header { padding: 0 12px; display: flex; align-items: center; background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid rgba(0, 0, 0, 0.05); height: 54px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box; }
-        .tab-strip { display: flex; align-items: flex-end; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
-        
-        /* Tab Styles with Close Button */
-        .browser-tab { height: 38px; min-width: 120px; background: rgba(0, 0, 0, 0.05); border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; cursor: pointer; transition: background 0.2s; position: relative; }
-        .browser-tab.active { background: rgba(255, 255, 255, 0.7); }
-        .tab-close-btn { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8; transition: all 0.2s; }
-        .tab-close-btn:hover { background: rgba(0,0,0,0.1); color: #ef4444; }
-
-        .grade-badge { background: #10b981; color: white; font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; display: none; }
-        .login-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 15px; padding: 12px 20px; font-size: 13px; color: #374151; outline: none; margin-bottom: 12px; text-align: center; }
-        #custom-alert { position: fixed; top: calc(100px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-200px); background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px); padding: 14px 28px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.5); z-index: 2000; transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px); transform: translateY(110vh); z-index: 310; display: none; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-window.open { display: flex; flex-direction: column; transform: translateY(0); }
+        .window-header { padding: 0 16px; display: flex; align-items: center; height: 64px; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .tab-strip { display: flex; gap: 8px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+        .browser-tab { height: 40px; padding: 0 16px; background: rgba(0,0,0,0.05); border-radius: 12px; display: flex; align-items: center; cursor: pointer; white-space: nowrap; transition: 0.2s; position: relative; }
+        .browser-tab.active { background: #10b981; color: white; }
+        .uniform-list-container { display: flex; flex-direction: column; max-width: 900px; margin: 0 auto; width: 100%; padding: 20px; }
+        .list-item-row { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: white; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .list-item-row:active { transform: scale(0.98); background: #f0fdf4; border-color: #10b981; }
+        .resource-drawer { max-height: 0; overflow: hidden; transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; opacity: 0; }
+        .resource-drawer.expanded { max-height: 1200px; opacity: 1; padding-bottom: 20px; }
+        .resource-iframe { width: 100%; height: 75vh; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); }
+        #custom-alert { position: fixed; top: 120px; left: 50%; transform: translateX(-50%) translateY(-200px); background: white; padding: 12px 24px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 2000; transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         #custom-alert.show { transform: translateX(-50%) translateY(0); }
-
-        /* 🔹 iOS Style Loading Zone */
-        #auth-loading-zone { display: none; flex-direction: column; align-items: center; width: 100%; margin-top: 2rem; animation: iosFadeIn 0.5s ease forwards; }
-        @keyframes iosFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .grade-badge { background: #064e3b; color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
+        .login-input { width: 100%; background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.6); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-align: center; outline: none; }
         
-        .ios-spinner { width: 24px; height: 24px; color: #10b981; animation: spin 1s steps(12, end) infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .ios-loading-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 24px;
-            width: 100%;
-            max-width: 280px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 0.5px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
-        /* 🔹 iOS Shutdown Overlay */
-        .ios-shutdown-overlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 3000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.8s ease-in-out, visibility 0.8s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .ios-shutdown-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .ios-shutdown-spinner {
-            color: #fff;
-            font-size: 24px;
-            animation: spin 1s steps(12, end) infinite;
-        }
+        /* 修訂3相關樣式：收回導引 */
+        .collapse-guide { width: 100%; display: flex; justify-content: center; align-items: center; padding: 12px; margin-top: 10px; background: rgba(0,0,0,0.03); border-radius: 12px; color: #666; font-size: 11px; font-weight: 800; letter-spacing: 2px; cursor: pointer; transition: 0.2s; }
+        .collapse-guide:hover { background: rgba(0,0,0,0.08); color: #10b981; }
     </style>
 </head>
 <body>
 
-    <div id="page-loader">
-        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
-        <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在同步安全協議...</p>
-    </div>
-
-    <!-- 🔹 iOS Shutdown Overlay -->
-    <div id="shutdown-overlay" class="ios-shutdown-overlay">
-        <div class="ios-shutdown-spinner"><i class="fas fa-spinner"></i></div>
+    <div id="page-loader" class="fixed inset-0 bg-white z-[1000] flex flex-col items-center justify-center transition-opacity duration-1000">
+        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 animate-bounce">
     </div>
 
     <div id="custom-alert" class="flex items-center gap-3">
-        <i class="fas fa-shield-alt text-emerald-500"></i>
-        <span id="alert-text" class="text-xs font-bold text-gray-600 uppercase tracking-widest"></span>
+        <i class="fas fa-exclamation-circle text-amber-500"></i>
+        <span id="alert-text" class="text-sm font-bold text-gray-700"></span>
     </div>
 
     <div id="main-browser-window" class="modal-window">
         <div class="window-header">
             <div id="browser-tab-strip" class="tab-strip"></div>
-            <div class="flex items-center gap-4 px-4">
+            <div class="flex items-center gap-3">
                 <div id="user-grade-display" class="grade-badge"></div>
-                <!-- 改為登出圖標 -->
-                <button onclick="handleLogout()" class="text-gray-400"><i class="fas fa-sign-out-alt"></i></button>
-                <button onclick="handleLogout()" class="text-red-400"><i class="fas fa-power-off"></i></button>
+                <button onclick="location.reload()" class="w-10 h-10 flex items-center justify-center text-red-500 bg-red-50 rounded-full"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </div>
         <div id="browser-window-body" class="flex-1 overflow-y-auto"></div>
@@ -143,32 +65,21 @@
     <section class="hero-full" id="hero-section">
         <img id="hero-bg" src="">
         <div class="hero-overlay"></div>
-        <div class="hero-content-wrapper text-center">
-            <div id="hero-main-content" class="hero-glass-panel">
-                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-14 w-14 mb-8">
-                <h1 id="hero-title" class="text-3xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;"></h1>
-                <p id="hero-subtitle" class="text-xl font-bold tracking-[1em] mb-10 pl-[1em] opacity-80 uppercase"></p>
+        <div class="hero-content-wrapper flex items-center justify-center h-full">
+            <div id="hero-main-content" class="hero-glass-panel text-center">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-12 w-12 mb-6 mx-auto">
+                <h1 id="hero-title" class="text-2xl tracking-[0.2em] mb-2 uppercase" style="font-family: 'Cinzel', serif;">Lumina Studio</h1>
+                <p id="hero-subtitle" class="text-sm font-medium tracking-[0.5em] mb-10 opacity-60 uppercase">Fundamental Exercise</p>
                 
-                <!-- Login Fields Container -->
-                <div id="login-fields" class="w-full flex flex-col items-center">
-                    <div class="w-full max-w-[300px] mb-8">
-                        <input type="text" id="login-username" class="login-input" placeholder="USERNAME" autocomplete="off">
-                        <input type="password" id="login-password" class="login-input" placeholder="PASSWORD">
-                    </div>
-
-                    <button onclick="handleLoginAndBrowse()" class="px-16 py-4 font-black rounded-full text-[10px] tracking-[0.5em] uppercase bg-white/20 backdrop-blur-md border border-white/40 shadow-sm active:scale-95 transition-all">
-                        Login & Access
+                <div id="login-form" class="w-full max-w-[280px] mx-auto">
+                    <input type="text" id="login-username" class="login-input" placeholder="USERNAME">
+                    <input type="password" id="login-password" class="login-input" placeholder="PASSWORD">
+                    <button id="login-btn" onclick="handleAuth()" class="w-full py-3 mt-4 bg-emerald-500 text-white rounded-xl font-bold tracking-widest text-xs uppercase shadow-lg active:scale-95 transition-all">
+                        進入系統 Access
                     </button>
-                </div>
-
-                <!-- 🔹 iOS Style Auth Loading Zone -->
-                <div id="auth-loading-zone">
-                    <div class="ios-loading-card">
-                        <div class="ios-spinner mb-4 flex items-center justify-center">
-                            <i class="fas fa-spinner"></i>
-                        </div>
-                        <div class="text-[11px] font-semibold text-gray-700 tracking-wider mb-1" id="loading-main-text">Loading Environment</div>
-                        <div class="text-[9px] font-medium text-gray-400 tracking-wide" id="loading-sub-text">Connecting to Studio...</div>
+                    <div id="login-loader" class="hidden mt-6 flex flex-col items-center">
+                        <div class="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                        <p id="loader-msg" class="text-[10px] font-bold text-emerald-600 tracking-[0.3em] uppercase">Checking Credentials...</p>
                     </div>
                 </div>
             </div>
@@ -176,25 +87,18 @@
     </section>
 
     <script>
-        // 🔹 部署作業 ID 整合
         const DEPLOY_ID = 'AKfycbx0DtGAIxQL9RXKCNWHBf5dYn8Qp7MA8NTx6a0RlF2PVpuY5cuNnKZ8dEvPvNYCrm8';
         const GAS_API = `https://script.google.com/macros/s/${DEPLOY_ID}/exec`;
-
-        const HERO_DATA_URL = `https://docs.google.com/spreadsheets/d/1-JB2srNidbjg3Kf15rzaGmSwRp5O6SnR_xoWmuYY0Mg/gviz/tq?tqx=out:csv&sheet=VOL8`;
+        const CONFIG_SHEET = `https://docs.google.com/spreadsheets/d/1-JB2srNidbjg3Kf15rzaGmSwRp5O6SnR_xoWmuYY0Mg/gviz/tq?tqx=out:csv&sheet=VOL8`;
 
         let rawDataRows = [];
-        let hwList = [];
         let session = { token: null, grade: null };
         let openTabs = [];
         let activeTabId = null;
 
-        function checkAppleDevice() {
-            if (/iPad|iPhone|iPod/.test(navigator.userAgent)) document.body.classList.add('is-ios');
-        }
-
-        async function loadHeroConfig() {
+        async function loadConfig() {
             try {
-                const res = await fetch(HERO_DATA_URL);
+                const res = await fetch(CONFIG_SHEET);
                 const text = await res.text();
                 const rows = text.split('\n').map(r => r.split(',').map(c => c.replace(/"/g,'')));
                 rows.forEach(row => {
@@ -210,65 +114,55 @@
             }
         }
 
-        async function handleLoginAndBrowse() {
+        // 修訂1：登錄與動畫邏輯
+        async function handleAuth() {
             const u = document.getElementById('login-username').value.trim();
             const p = document.getElementById('login-password').value;
-            if(!u || !p) { showAlert("請輸入憑據"); return; }
+            if(!u || !p) return showAlert("請完整填寫資訊");
 
-            document.getElementById('login-fields').style.display = 'none';
-            document.getElementById('auth-loading-zone').style.display = 'flex';
+            // 切換 UI 狀態
+            document.getElementById('login-btn').classList.add('hidden');
+            document.getElementById('login-loader').classList.remove('hidden');
             
-            const mainTexts = ["Loading Environment", "Initializing Studio", "Syncing Database"];
-            const subTexts = ["Authenticating...", "Checking Permissions...", "Handshaking with API..."];
-            let textIdx = 0;
-            const textTimer = setInterval(() => {
-                textIdx = (textIdx + 1) % 3;
-                document.getElementById('loading-main-text').innerText = mainTexts[textIdx];
-                document.getElementById('loading-sub-text').innerText = subTexts[textIdx];
-            }, 1800);
+            const msgs = ["Loading Environment...", "Checking Safety Keys...", "Verifying Protocol...", "Syncing Database..."];
+            let msgIdx = 0;
+            const msgInterval = setInterval(() => {
+                document.getElementById('loader-msg').innerText = msgs[msgIdx % msgs.length];
+                msgIdx++;
+            }, 800);
 
             try {
-                const secureRes = await fetch(GAS_API, {
+                const res = await fetch(GAS_API, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'login', username: u, password: p })
                 });
-                const result = await secureRes.json();
-
+                const result = await res.json();
+                
                 if(result.success) {
                     session.token = result.token;
-                    session.grade = result.grade;
+                    session.grade = result.grade.toUpperCase();
                     document.getElementById('user-grade-display').innerText = session.grade;
-                    document.getElementById('user-grade-display').style.display = 'block';
-                    await fetchSecureDatabase();
-                    clearInterval(textTimer);
+                    
+                    const dataRes = await fetch(GAS_API, { method: 'POST', body: JSON.stringify({ action: 'fetchData', token: session.token }) });
+                    const dataResult = await dataRes.json();
+                    rawDataRows = dataResult.data;
+
+                    clearInterval(msgInterval);
                     enterPortal();
                 } else {
-                    clearInterval(textTimer);
-                    document.getElementById('login-fields').style.display = 'flex';
-                    document.getElementById('auth-loading-zone').style.display = 'none';
-                    showAlert("帳號或密碼錯誤");
+                    clearInterval(msgInterval);
+                    resetLoginUI("驗證失敗：帳密不符");
                 }
             } catch (e) {
-                clearInterval(textTimer);
-                document.getElementById('login-fields').style.display = 'flex';
-                document.getElementById('auth-loading-zone').style.display = 'none';
-                showAlert("服務暫時不可用");
+                clearInterval(msgInterval);
+                resetLoginUI("連線逾時，請檢查網路");
             }
         }
 
-        async function fetchSecureDatabase() {
-            const res = await fetch(GAS_API, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'fetchData', token: session.token, grade: session.grade })
-            });
-            const result = await res.json();
-            if(result.success) {
-                rawDataRows = result.data;
-                const seen = new Set();
-                hwList = rawDataRows.filter(r => r[0]?.toString().startsWith('HW'))
-                                   .map(r => r[0])
-                                   .filter(id => { if(seen.has(id)) return false; seen.add(id); return true; });
-            }
+        function resetLoginUI(msg) {
+            document.getElementById('login-btn').classList.remove('hidden');
+            document.getElementById('login-loader').classList.add('hidden');
+            showAlert(msg);
         }
 
         function enterPortal() {
@@ -276,47 +170,47 @@
             const win = document.getElementById('main-browser-window');
             win.style.display = 'flex';
             setTimeout(() => win.classList.add('open'), 100);
-            openHomeFolder();
+            openTab("課程目錄", "HOME");
         }
 
-        function openHomeFolder() { openTab("Browse All", "FOLDER"); }
-
         function openTab(title, type) {
-            const id = type === 'FOLDER' ? 'HOME' : type + "_" + title.replace(/\s+/g,'');
+            const id = type === 'HOME' ? 'HOME' : `CAT_${btoa(encodeURIComponent(title)).slice(0,8)}`;
             if(openTabs.find(t => t.id === id)) { switchTab(id); return; }
-            
+
             openTabs.push({id, title, type});
             const page = document.createElement('div');
             page.id = `page-${id}`;
-            page.className = 'win-content-page hidden w-full h-full';
+            page.className = 'win-content-page hidden w-full';
             page.innerHTML = `<div id="content-${id}" class="uniform-list-container"></div>`;
             document.getElementById('browser-window-body').appendChild(page);
-            
-            if(type === 'FOLDER') renderHome(id);
-            else renderHW(title, id);
-            
-            renderTabStrip();
+
+            if(type === 'HOME') renderHome(id);
+            else renderCategoryItems(title, id);
             switchTab(id);
         }
 
-        function closeTab(e, id) {
+        // 修訂2：分頁關閉功能
+        function closeTab(id, e) {
             e.stopPropagation();
-            const tabIdx = openTabs.findIndex(t => t.id === id);
-            if(tabIdx === -1) return;
-            openTabs.splice(tabIdx, 1);
+            if(id === 'HOME') return; // 首頁不允許關閉
+            
+            openTabs = openTabs.filter(t => t.id !== id);
             const page = document.getElementById(`page-${id}`);
             if(page) page.remove();
+            
             if(activeTabId === id) {
-                if(openTabs.length > 0) {
-                    const nextId = openTabs[Math.max(0, tabIdx - 1)].id;
-                    switchTab(nextId);
-                } else {
-                    activeTabId = null;
-                    openHomeFolder();
-                }
+                switchTab('HOME');
             } else {
                 renderTabStrip();
             }
+        }
+
+        function switchTab(id) {
+            activeTabId = id;
+            document.querySelectorAll('.win-content-page').forEach(p => p.classList.add('hidden'));
+            const targetPage = document.getElementById(`page-${id}`);
+            if(targetPage) targetPage.classList.remove('hidden');
+            renderTabStrip();
         }
 
         function renderTabStrip() {
@@ -326,102 +220,86 @@
                 const tab = document.createElement('div');
                 tab.className = `browser-tab ${activeTabId === t.id ? 'active' : ''}`;
                 tab.onclick = () => switchTab(t.id);
-                tab.innerHTML = `
-                    <span class="text-[11px] font-bold text-gray-500 truncate mr-2">${t.title}</span>
-                    <div class="tab-close-btn" onclick="closeTab(event, '${t.id}')">
-                        <i class="fas fa-times"></i>
-                    </div>
-                `;
+                
+                // 標題 + 關閉按鈕 (首頁不顯示關閉)
+                const closeBtn = t.id !== 'HOME' ? `<i class="fas fa-times ml-3 opacity-50 hover:opacity-100" onclick="closeTab('${t.id}', event)"></i>` : '';
+                tab.innerHTML = `<span class="text-[11px] font-bold tracking-wider">${t.title}</span> ${closeBtn}`;
                 strip.appendChild(tab);
             });
         }
 
-        function switchTab(id) {
-            activeTabId = id;
-            document.querySelectorAll('.win-content-page').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`page-${id}`)?.classList.remove('hidden');
-            renderTabStrip();
-        }
-
         function renderHome(cid) {
             const container = document.getElementById(`content-${cid}`);
-            hwList.forEach(hw => {
+            container.innerHTML = '<h2 class="text-lg font-black mb-6 text-gray-800 tracking-[0.2em] uppercase">Database Categories</h2>';
+            const categories = new Set();
+            rawDataRows.forEach(row => {
+                const val = row[0] ? row[0].toString().trim() : '';
+                if(val && val.toUpperCase() !== 'VERSION' && val.toUpperCase() !== 'HEROSECTION') categories.add(val);
+            });
+            Array.from(categories).sort().forEach(cat => {
                 const row = document.createElement('div');
                 row.className = 'list-item-row';
-                row.onclick = () => openTab(hw, 'HW');
-                row.innerHTML = `
-                    <div class="flex items-center gap-5">
-                        <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fas fa-folder"></i></div>
-                        <span class="text-[13px] font-black uppercase tracking-widest text-gray-800">${hw}</span>
-                    </div>
-                    <i class="fas fa-chevron-right text-emerald-500"></i>
-                `;
+                row.onclick = () => openTab(cat, 'CAT');
+                row.innerHTML = `<div class="flex items-center gap-4"><div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fas fa-folder"></i></div><span class="font-bold text-gray-600 text-sm">${cat}</span></div><i class="fas fa-chevron-right text-gray-300"></i>`;
                 container.appendChild(row);
             });
         }
 
-        function renderHW(hwName, cid) {
+        function renderCategoryItems(catName, cid) {
             const container = document.getElementById(`content-${cid}`);
-            const items = rawDataRows.filter(r => r[0] === hwName);
+            const items = rawDataRows.filter(r => r[0] && r[0].toString().trim() === catName);
+
             items.forEach(item => {
+                const req = (item[3] || 'ACTIVE').toString().toUpperCase();
+                const isPermitted = (session.grade === 'TEACHER' || session.grade === 'ADMIN' || req === 'ACTIVE' || req.split(',').includes(session.grade));
+
+                const wrap = document.createElement('div');
+                wrap.className = 'flex flex-col';
+
                 const row = document.createElement('div');
-                row.className = 'list-item-row bg-emerald-50/20';
-                const label = item[2] || '資源';
-                row.innerHTML = `
-                    <div class="flex items-center gap-5">
-                        <i class="fas ${item[1]==='VIDEOS'?'fa-play-circle text-red-400':'fa-file-alt text-emerald-500'}"></i>
-                        <span class="text-[12px] font-bold text-gray-700">${label}</span>
-                    </div>
-                    <i class="fas fa-chevron-down text-gray-300"></i>
-                `;
-                
+                row.className = `list-item-row ${!isPermitted ? 'opacity-40 grayscale' : ''}`;
+                row.innerHTML = `<div class="flex items-center gap-4"><i class="fas ${item[1] === 'VIDEOS' ? 'fa-play-circle text-rose-400' : 'fa-file-pdf text-emerald-500'}"></i><span class="text-sm font-bold text-gray-600">${item[2] || 'Resource'}</span></div><i class="fas ${isPermitted ? 'fa-plus text-gray-300' : 'fa-lock text-gray-400'}"></i>`;
+
                 const drawer = document.createElement('div');
                 drawer.className = 'resource-drawer';
+
                 row.onclick = () => {
+                    if(!isPermitted) return showAlert(`限 ${req} 訪問`);
                     if(drawer.classList.contains('expanded')) {
                         drawer.classList.remove('expanded');
                         setTimeout(() => drawer.innerHTML = '', 600);
                     } else {
                         const url = item[4];
                         const content = item[1] === 'VIDEOS' 
-                            ? `<iframe class="w-full aspect-video" src="${url.replace('watch?v=','embed/')}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+                            ? `<iframe class="w-full aspect-video rounded-xl shadow-lg" src="${url.replace('watch?v=','embed/')}?autoplay=1" allowfullscreen></iframe>`
                             : `<iframe src="${url}" class="resource-iframe"></iframe>`;
-                        drawer.innerHTML = `<div class="resource-content-container">${content}<div class="resource-collapse-bar" onclick="this.parentElement.parentElement.classList.remove('expanded')"><span>收回 COLLAPSE</span></div></div>`;
+                        
+                        // 修訂3：資源載入後加入收回導引按鈕
+                        drawer.innerHTML = `
+                            <div class="mt-2">
+                                ${content}
+                                <div class="collapse-guide" onclick="this.parentElement.parentElement.classList.remove('expanded')">
+                                    <i class="fas fa-chevron-up mr-2"></i> 收回影片 COLLAPSE
+                                </div>
+                            </div>`;
                         drawer.classList.add('expanded');
                     }
                 };
-                container.appendChild(row);
-                container.appendChild(drawer);
+
+                wrap.appendChild(row);
+                wrap.appendChild(drawer);
+                container.appendChild(wrap);
             });
         }
 
-        // 🔹 iOS Style Shutdown & Logout
-        function handleLogout() { 
-            const overlay = document.getElementById('shutdown-overlay');
-            const win = document.getElementById('main-browser-window');
-            const hero = document.getElementById('hero-section');
-
-            // Start blackout transition
-            overlay.classList.add('active');
-            win.style.transform = 'scale(0.9)';
-            win.style.opacity = '0';
-            hero.style.transform = 'scale(1.1)';
-            hero.style.opacity = '0';
-
-            // Redirect after animation completes
-            setTimeout(() => {
-                window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
-            }, 800);
-        }
-
-        function showAlert(t) { 
+        function showAlert(msg) {
             const a = document.getElementById('custom-alert');
-            document.getElementById('alert-text').innerText = t;
+            document.getElementById('alert-text').innerText = msg;
             a.classList.add('show');
             setTimeout(() => a.classList.remove('show'), 3000);
         }
 
-        window.onload = () => { checkAppleDevice(); loadHeroConfig(); };
+        window.onload = loadConfig;
     </script>
 </body>
 </html>
