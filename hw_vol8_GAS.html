@@ -52,12 +52,39 @@
         .modal-window.open { display: flex; flex-direction: column; opacity: 1; transform: translateY(0); }
         .window-header { padding: 0 12px; display: flex; align-items: center; background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid rgba(0, 0, 0, 0.05); height: 54px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box; }
         .tab-strip { display: flex; align-items: flex-end; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
-        .browser-tab { height: 38px; min-width: 100px; background: rgba(0, 0, 0, 0.05); border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; }
+        
+        /* Tab Styles with Close Button */
+        .browser-tab { height: 38px; min-width: 120px; background: rgba(0, 0, 0, 0.05); border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; cursor: pointer; transition: background 0.2s; position: relative; }
         .browser-tab.active { background: rgba(255, 255, 255, 0.7); }
+        .tab-close-btn { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8; transition: all 0.2s; }
+        .tab-close-btn:hover { background: rgba(0,0,0,0.1); color: #ef4444; }
+
         .grade-badge { background: #10b981; color: white; font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; display: none; }
         .login-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 15px; padding: 12px 20px; font-size: 13px; color: #374151; outline: none; margin-bottom: 12px; text-align: center; }
         #custom-alert { position: fixed; top: calc(100px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-200px); background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px); padding: 14px 28px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.5); z-index: 2000; transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         #custom-alert.show { transform: translateX(-50%) translateY(0); }
+
+        /* 🔹 iOS Style Loading Zone */
+        #auth-loading-zone { display: none; flex-direction: column; align-items: center; width: 100%; margin-top: 2rem; animation: iosFadeIn 0.5s ease forwards; }
+        @keyframes iosFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .ios-spinner { width: 24px; height: 24px; color: #10b981; animation: spin 1s steps(12, end) infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .ios-loading-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 24px;
+            width: 100%;
+            max-width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 0.5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
@@ -92,15 +119,29 @@
                 <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-14 w-14 mb-8">
                 <h1 id="hero-title" class="text-3xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;"></h1>
                 <p id="hero-subtitle" class="text-xl font-bold tracking-[1em] mb-10 pl-[1em] opacity-80 uppercase"></p>
-               
-                <div class="w-full max-w-[300px] mb-8">
-                    <input type="text" id="login-username" class="login-input" placeholder="USERNAME" autocomplete="off">
-                    <input type="password" id="login-password" class="login-input" placeholder="PASSWORD">
+                
+                <!-- Login Fields Container -->
+                <div id="login-fields" class="w-full flex flex-col items-center">
+                    <div class="w-full max-w-[300px] mb-8">
+                        <input type="text" id="login-username" class="login-input" placeholder="USERNAME" autocomplete="off">
+                        <input type="password" id="login-password" class="login-input" placeholder="PASSWORD">
+                    </div>
+
+                    <button onclick="handleLoginAndBrowse()" class="px-16 py-4 font-black rounded-full text-[10px] tracking-[0.5em] uppercase bg-white/20 backdrop-blur-md border border-white/40 shadow-sm active:scale-95 transition-all">
+                        Login & Access
+                    </button>
                 </div>
 
-                <button onclick="handleLoginAndBrowse()" class="px-16 py-4 font-black rounded-full text-[10px] tracking-[0.5em] uppercase bg-white/20 backdrop-blur-md border border-white/40 shadow-sm active:scale-95 transition-all">
-                    Login & Access
-                </button>
+                <!-- 🔹 iOS Style Auth Loading Zone -->
+                <div id="auth-loading-zone">
+                    <div class="ios-loading-card">
+                        <div class="ios-spinner mb-4 flex items-center justify-center">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                        <div class="text-[11px] font-semibold text-gray-700 tracking-wider mb-1" id="loading-main-text">Loading Environment</div>
+                        <div class="text-[9px] font-medium text-gray-400 tracking-wide" id="loading-sub-text">Connecting to Studio...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -110,7 +151,6 @@
         const DEPLOY_ID = 'AKfycbz45Mfi3tIgRC4nd56smXC8mLQDRZN_H7u8SQgSWW4ZtZqYTU0Ym64AtLdi0HgOTMc';
         const GAS_API = `https://script.google.com/macros/s/${DEPLOY_ID}/exec`;
 
-        // 封面視覺數據連結仍保持 CSV (非敏感資料)
         const HERO_DATA_URL = `https://docs.google.com/spreadsheets/d/1-JB2srNidbjg3Kf15rzaGmSwRp5O6SnR_xoWmuYY0Mg/gviz/tq?tqx=out:csv&sheet=VOL8`;
 
         let rawDataRows = [];
@@ -123,7 +163,6 @@
             if (/iPad|iPhone|iPod/.test(navigator.userAgent)) document.body.classList.add('is-ios');
         }
 
-        // 讀取封面配置 (CSV)
         async function loadHeroConfig() {
             try {
                 const res = await fetch(HERO_DATA_URL);
@@ -142,22 +181,24 @@
             }
         }
 
-        // 🔹 安全登入與數據獲取
         async function handleLoginAndBrowse() {
             const u = document.getElementById('login-username').value.trim();
             const p = document.getElementById('login-password').value;
             if(!u || !p) { showAlert("請輸入憑據"); return; }
 
-            showAlert("正在安全驗證...");
+            document.getElementById('login-fields').style.display = 'none';
+            document.getElementById('auth-loading-zone').style.display = 'flex';
+            
+            const mainTexts = ["Loading Environment", "Initializing Studio", "Syncing Database"];
+            const subTexts = ["Authenticating...", "Checking Permissions...", "Handshaking with API..."];
+            let textIdx = 0;
+            const textTimer = setInterval(() => {
+                textIdx = (textIdx + 1) % 3;
+                document.getElementById('loading-main-text').innerText = mainTexts[textIdx];
+                document.getElementById('loading-sub-text').innerText = subTexts[textIdx];
+            }, 1800);
+
             try {
-                const res = await fetch(GAS_API, {
-                    method: 'POST',
-                    mode: 'no-cors', // 💡 注意：GAS 跨域 POST 有時需處理，若報錯請確保 GAS 已正確發布
-                    body: JSON.stringify({ action: 'login', username: u, password: p })
-                });
-                
-                // 由於 no-cors 無法獲取 body，建議 GAS 回傳需配合 CORS，或在此使用常規 fetch
-                // 修正：使用常規 fetch 並確保 GAS 已處理 OPTIONS 請求或回傳正確 Header
                 const secureRes = await fetch(GAS_API, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'login', username: u, password: p })
@@ -170,11 +211,18 @@
                     document.getElementById('user-grade-display').innerText = session.grade;
                     document.getElementById('user-grade-display').style.display = 'block';
                     await fetchSecureDatabase();
+                    clearInterval(textTimer);
                     enterPortal();
                 } else {
+                    clearInterval(textTimer);
+                    document.getElementById('login-fields').style.display = 'flex';
+                    document.getElementById('auth-loading-zone').style.display = 'none';
                     showAlert("帳號或密碼錯誤");
                 }
             } catch (e) {
+                clearInterval(textTimer);
+                document.getElementById('login-fields').style.display = 'flex';
+                document.getElementById('auth-loading-zone').style.display = 'none';
                 showAlert("服務暫時不可用");
             }
         }
@@ -222,6 +270,35 @@
             switchTab(id);
         }
 
+        // Close Tab Logic
+        function closeTab(e, id) {
+            e.stopPropagation(); // Prevent switching to tab being closed
+            
+            // Remove from data
+            const tabIdx = openTabs.findIndex(t => t.id === id);
+            if(tabIdx === -1) return;
+            
+            openTabs.splice(tabIdx, 1);
+            
+            // Remove from DOM
+            const page = document.getElementById(`page-${id}`);
+            if(page) page.remove();
+            
+            // Handle active tab state
+            if(activeTabId === id) {
+                if(openTabs.length > 0) {
+                    // Switch to the nearest tab
+                    const nextId = openTabs[Math.max(0, tabIdx - 1)].id;
+                    switchTab(nextId);
+                } else {
+                    activeTabId = null;
+                    openHomeFolder(); // Auto fallback to home
+                }
+            } else {
+                renderTabStrip();
+            }
+        }
+
         function renderTabStrip() {
             const strip = document.getElementById('browser-tab-strip');
             strip.innerHTML = '';
@@ -229,7 +306,14 @@
                 const tab = document.createElement('div');
                 tab.className = `browser-tab ${activeTabId === t.id ? 'active' : ''}`;
                 tab.onclick = () => switchTab(t.id);
-                tab.innerHTML = `<span class="text-[11px] font-bold text-gray-500">${t.title}</span>`;
+                
+                // Content: Title + Close button
+                tab.innerHTML = `
+                    <span class="text-[11px] font-bold text-gray-500 truncate mr-2">${t.title}</span>
+                    <div class="tab-close-btn" onclick="closeTab(event, '${t.id}')">
+                        <i class="fas fa-times"></i>
+                    </div>
+                `;
                 strip.appendChild(tab);
             });
         }
@@ -282,7 +366,7 @@
                     } else {
                         const url = item[4];
                         const content = item[1] === 'VIDEOS' 
-                            ? `<iframe class="w-full aspect-video" src="${url.replace('watch?v=','embed/')}?autoplay=1"></iframe>`
+                            ? `<iframe class="w-full aspect-video" src="${url.replace('watch?v=','embed/')}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
                             : `<iframe src="${url}" class="resource-iframe"></iframe>`;
                         drawer.innerHTML = `<div class="resource-content-container">${content}<div class="resource-collapse-bar" onclick="this.parentElement.parentElement.classList.remove('expanded')"><span>收回 COLLAPSE</span></div></div>`;
                         drawer.classList.add('expanded');
@@ -293,7 +377,10 @@
             });
         }
 
-        function handleLogout() { location.reload(); }
+        function handleLogout() { 
+            window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
+        }
+
         function showAlert(t) { 
             const a = document.getElementById('custom-alert');
             document.getElementById('alert-text').innerText = t;
