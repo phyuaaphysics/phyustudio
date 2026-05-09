@@ -23,41 +23,86 @@
         }
 
         html, body { 
-            height: 100dvh; width: 100%; margin: 0; overflow: hidden; position: fixed; 
+            height: 100dvh;
+            width: 100%; margin: 0; overflow: hidden; position: fixed; 
             font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f8fafc;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         /* UI Styles Remain Strictly Unchanged */
-        .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; }
-        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow), filter 0.8s; }
-        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5; }
-        .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center; transition: opacity var(--anim-os), transform var(--anim-os), visibility var(--anim-os); z-index: 20; }
-        .hero-content-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; padding-top: env(safe-area-inset-top); }
-        .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden; }
-        .uniform-list-container { display: flex; flex-direction: column; max-width: 1024px; margin: 0 auto; width: 100%; padding-bottom: 80px; }
-        .list-item-row { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: rgba(255, 255, 255, 0.5); border-bottom: 1px solid rgba(0, 0, 0, 0.05); cursor: pointer; transition: 0.2s; }
-        .list-item-row:active { background: rgba(16, 185, 129, 0.08); }
-        .resource-drawer { max-height: 0; overflow: hidden; background: #f1f5f9; transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; opacity: 0; position: relative; }
-        .resource-drawer.expanded { max-height: 2000px; opacity: 1; }
-        .resource-content-container { width: 100%; background: #fff; display: flex; flex-direction: column; align-items: center; }
-        .resource-iframe { width: 100%; height: 70vh; border: none; }
-        .resource-img { width: 100%; max-height: 85vh; object-fit: contain; }
-        .resource-collapse-bar { width: 100%; height: 48px; background: #1e293b; display: flex; align-items: center; justify-content: center; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.05); }
-        .resource-collapse-bar span { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; }
-        #page-loader { position: fixed; inset: 0; background-color: #ffffff; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease; }
-        .sync-spinning { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px); transform: translateY(110vh); z-index: 310; display: none; opacity: 0; transition: opacity var(--anim-os), transform var(--anim-os); }
-        .modal-window.open { display: flex; flex-direction: column; opacity: 1; transform: translateY(0); }
-        .window-header { padding: 0 12px; display: flex; align-items: center; background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid rgba(0, 0, 0, 0.05); height: 54px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box; }
-        .tab-strip { display: flex; align-items: flex-end; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
-        .browser-tab { height: 38px; min-width: 100px; background: rgba(0, 0, 0, 0.05); border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; }
-        .browser-tab.active { background: rgba(255, 255, 255, 0.7); }
-        .grade-badge { background: #10b981; color: white; font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; display: none; }
-        .login-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 15px; padding: 12px 20px; font-size: 13px; color: #374151; outline: none; margin-bottom: 12px; text-align: center; }
-        #custom-alert { position: fixed; top: calc(100px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-200px); background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px); padding: 14px 28px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.5); z-index: 2000; transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        #custom-alert.show { transform: translateX(-50%) translateY(0); }
+        .hero-full { position: absolute;
+            inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100;
+        }
+        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow), filter 0.8s; }
+        .hero-overlay { position: absolute;
+            inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5;
+        }
+        .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center;
+            transition: opacity var(--anim-os), transform var(--anim-os), visibility var(--anim-os); z-index: 20; }
+        .hero-content-wrapper { position: absolute;
+            inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; padding-top: env(safe-area-inset-top);
+        }
+        .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden;
+        }
+        .uniform-list-container { display: flex; flex-direction: column; max-width: 1024px; margin: 0 auto;
+            width: 100%; padding-bottom: 80px; }
+        .list-item-row { display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px; background: rgba(255, 255, 255, 0.5); border-bottom: 1px solid rgba(0, 0, 0, 0.05); cursor: pointer; transition: 0.2s;
+        }
+        .list-item-row:active { background: rgba(16, 185, 129, 0.08);
+        }
+        .resource-drawer { max-height: 0; overflow: hidden; background: #f1f5f9;
+            transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; opacity: 0; position: relative;
+        }
+        .resource-drawer.expanded { max-height: 2000px; opacity: 1;
+        }
+        .resource-content-container { width: 100%; background: #fff; display: flex; flex-direction: column; align-items: center;
+        }
+        .resource-iframe { width: 100%; height: 70vh; border: none;
+        }
+        .resource-img { width: 100%; max-height: 85vh; object-fit: contain;
+        }
+        .resource-collapse-bar { width: 100%; height: 48px; background: #1e293b; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.05); }
+        .resource-collapse-bar span { font-size: 10px;
+            font-weight: 800; letter-spacing: 2px; color: rgba(255, 255, 255, 0.8); text-transform: uppercase;
+        }
+        #page-loader { position: fixed; inset: 0; background-color: #ffffff; z-index: 1000; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease;
+        }
+        .sync-spinning { animation: spin 1s linear infinite;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);
+        } }
+        .modal-window { position: fixed; top: 0; left: 0; width: 100vw;
+            height: 100dvh; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px); transform: translateY(110vh); z-index: 310; display: none; opacity: 0;
+            transition: opacity var(--anim-os), transform var(--anim-os); }
+        .modal-window.open { display: flex; flex-direction: column;
+            opacity: 1; transform: translateY(0); }
+        .window-header { padding: 0 12px; display: flex;
+            align-items: center; background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid rgba(0, 0, 0, 0.05); height: 54px; flex-shrink: 0; padding-top: env(safe-area-inset-top);
+            box-sizing: content-box; }
+        .tab-strip { display: flex; align-items: flex-end; gap: 4px; flex: 1;
+            overflow-x: auto; scrollbar-width: none; }
+        .browser-tab { height: 38px; min-width: 100px;
+            background: rgba(0, 0, 0, 0.05); border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px;
+            cursor: pointer; }
+        .browser-tab.active { background: rgba(255, 255, 255, 0.7);
+        }
+        .grade-badge { background: #10b981; color: white; font-size: 10px; font-weight: 900;
+            padding: 4px 10px; border-radius: 20px; letter-spacing: 1px; display: none; }
+        .login-input { width: 100%;
+            background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 15px; padding: 12px 20px;
+            font-size: 13px; color: #374151; outline: none; margin-bottom: 12px; text-align: center;
+        }
+        #custom-alert { position: fixed; top: calc(100px + env(safe-area-inset-top)); left: 50%;
+            transform: translateX(-50%) translateY(-200px); background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px); padding: 14px 28px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.5);
+            z-index: 2000; transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        #custom-alert.show { transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -106,13 +151,13 @@
     </section>
 
     <script>
-        // 🔹 部署作業 ID 整合
-        const DEPLOY_ID = 'AKfycbx0T2mYmCFjsrMicOCHOtUEq6X9SO3CEsDT9l25NUjgDSQqyjOYCHq_IvQpia8Mv_C2';
+        // 🔹 更新部署作業 ID
+        const DEPLOY_ID = 'AKfycbUvUr4RwWJpWBwUIMzQvB7zqPZzzefIiGAnRn1w-Qh022wjmgSSArnRAbWl5lQDMg';
         const GAS_API = `https://script.google.com/macros/s/${DEPLOY_ID}/exec`;
 
-        // 封面視覺數據連結仍保持 CSV (非敏感資料)
+        // 封面視覺數據連結 (CSV) - 保持不變以維持 Landing Page 讀取效率
         const HERO_DATA_URL = `https://docs.google.com/spreadsheets/d/1-JB2srNidbjg3Kf15rzaGmSwRp5O6SnR_xoWmuYY0Mg/gviz/tq?tqx=out:csv&sheet=VOL8`;
-
+        
         let rawDataRows = [];
         let hwList = [];
         let session = { token: null, grade: null };
@@ -142,7 +187,7 @@
             }
         }
 
-        // 🔹 安全登入與數據獲取
+        // 🔹 透過 GAS 進行登入與獲取數據
         async function handleLoginAndBrowse() {
             const u = document.getElementById('login-username').value.trim();
             const p = document.getElementById('login-password').value;
@@ -150,47 +195,55 @@
 
             showAlert("正在安全驗證...");
             try {
-                const res = await fetch(GAS_API, {
-                    method: 'POST',
-                    mode: 'no-cors', // 💡 注意：GAS 跨域 POST 有時需處理，若報錯請確保 GAS 已正確發布
-                    body: JSON.stringify({ action: 'login', username: u, password: p })
-                });
-                
-                // 由於 no-cors 無法獲取 body，建議 GAS 回傳需配合 CORS，或在此使用常規 fetch
-                // 修正：使用常規 fetch 並確保 GAS 已處理 OPTIONS 請求或回傳正確 Header
-                const secureRes = await fetch(GAS_API, {
+                // 發送 POST 請求到 GAS 進行登入
+                const response = await fetch(GAS_API, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'login', username: u, password: p })
                 });
-                const result = await secureRes.json();
+                const result = await response.json();
 
                 if(result.success) {
                     session.token = result.token;
                     session.grade = result.grade;
+                    
+                    // 更新 UI 顯示權限等級
                     document.getElementById('user-grade-display').innerText = session.grade;
                     document.getElementById('user-grade-display').style.display = 'block';
+                    
+                    // 登入成功後獲取資料庫內容
                     await fetchSecureDatabase();
                     enterPortal();
                 } else {
-                    showAlert("帳號或密碼錯誤");
+                    showAlert(result.message || "帳號或密碼錯誤");
                 }
             } catch (e) {
-                showAlert("服務暫時不可用");
+                console.error(e);
+                showAlert("服務暫時不可用，請檢查部署設定");
             }
         }
 
+        // 🔹 透過 GAS 獲取加密資料庫內容
         async function fetchSecureDatabase() {
-            const res = await fetch(GAS_API, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'fetchData', token: session.token, grade: session.grade })
-            });
-            const result = await res.json();
-            if(result.success) {
-                rawDataRows = result.data;
-                const seen = new Set();
-                hwList = rawDataRows.filter(r => r[0]?.toString().startsWith('HW'))
-                                   .map(r => r[0])
-                                   .filter(id => { if(seen.has(id)) return false; seen.add(id); return true; });
+            try {
+                const response = await fetch(GAS_API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchData', token: session.token, grade: session.grade })
+                });
+                const result = await response.json();
+                
+                if(result.success) {
+                    rawDataRows = result.data;
+                    const seen = new Set();
+                    // 篩選出所有 HW ID
+                    hwList = rawDataRows.filter(r => r[0] && r[0].toString().startsWith('HW'))
+                                       .map(r => r[0])
+                                       .filter(id => { if(seen.has(id)) return false; seen.add(id); return true; });
+                } else {
+                    showAlert("數據讀取失敗");
+                }
+            } catch (e) {
+                console.error(e);
+                showAlert("無法連接至受保護的資料庫");
             }
         }
 
@@ -282,9 +335,15 @@
                     } else {
                         const url = item[4];
                         const content = item[1] === 'VIDEOS' 
-                            ? `<iframe class="w-full aspect-video" src="${url.replace('watch?v=','embed/')}?autoplay=1"></iframe>`
+                            ? `<iframe class="w-full aspect-video" src="${url.replace('watch?v=','embed/')}?autoplay=1" allowfullscreen></iframe>`
                             : `<iframe src="${url}" class="resource-iframe"></iframe>`;
-                        drawer.innerHTML = `<div class="resource-content-container">${content}<div class="resource-collapse-bar" onclick="this.parentElement.parentElement.classList.remove('expanded')"><span>收回 COLLAPSE</span></div></div>`;
+                        drawer.innerHTML = `
+                            <div class="resource-content-container">
+                                ${content}
+                                <div class="resource-collapse-bar" onclick="event.stopPropagation(); this.parentElement.parentElement.classList.remove('expanded')">
+                                    <span>收回 COLLAPSE</span>
+                                </div>
+                            </div>`;
                         drawer.classList.add('expanded');
                     }
                 };
@@ -294,9 +353,11 @@
         }
 
         function handleLogout() { location.reload(); }
+        
         function showAlert(t) { 
             const a = document.getElementById('custom-alert');
-            document.getElementById('alert-text').innerText = t;
+            const txt = document.getElementById('alert-text');
+            txt.innerText = t;
             a.classList.add('show');
             setTimeout(() => a.classList.remove('show'), 3000);
         }
