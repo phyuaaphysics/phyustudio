@@ -10,34 +10,178 @@
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         :root {
             --mint-deep: #064e3b; --mint-primary: #10b981; --mint-bg: #f0fdf4;
-            --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1);
+            /* iOS 經典阻尼曲線 */
+            --ios-ease: cubic-bezier(0.32, 0.72, 0, 1);
         }
-        html, body { height: 100dvh; width: 100%; margin: 0; overflow: hidden; position: fixed; font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f8fafc; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
-        .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
-        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.6s, filter 0.8s; }
+        html, body { 
+            height: 100dvh; 
+            width: 100%; 
+            margin: 0; 
+            overflow: hidden; 
+            position: fixed; 
+            font-family: 'Inter', 'Noto Sans TC', sans-serif; 
+            background-color: #f8fafc;
+            /* 關鍵：使用環境變數留出安全區域，避免重疊靈動島 */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        /* Hero 容器起動態 */
+        .hero-full { 
+            position: absolute; 
+            inset: 0; 
+            width: 100%; 
+            height: 100dvh; 
+            overflow: hidden; 
+            z-index: 100; 
+            transition: transform 1.8s var(--ios-ease), opacity 1.6s var(--ios-ease), filter 1.6s var(--ios-ease);
+        }
+        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 2.5s var(--ios-ease); }
         .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5; }
-        .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center; z-index: 20; }
-        .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden; }
-        .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px); transform: translateY(110vh); z-index: 310; display: none; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        .modal-window.open { display: flex; flex-direction: column; transform: translateY(0); }
-        .window-header { padding: 0 16px; display: flex; align-items: center; height: 64px; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        
+        .hero-glass-panel { 
+            background: rgba(255, 255, 255, 0.25); 
+            backdrop-filter: blur(40px); 
+            -webkit-backdrop-filter: blur(40px); 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            border-radius: 40px; 
+            padding: 3.5rem 2.5rem; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); 
+            max-width: 90%; 
+            width: 540px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            z-index: 20;
+            transition: all 1.8s var(--ios-ease);
+        }
+
+        /* 成功驗證後的 Hero 狀態 */
+        .hero-exit-active {
+            pointer-events: none;
+        }
+        .hero-exit-active #hero-main-content {
+            transform: translateY(-120px) scale(1.05);
+            opacity: 0;
+            filter: blur(20px);
+        }
+        .hero-exit-active #hero-title {
+            letter-spacing: 1.5em;
+            opacity: 0;
+            filter: blur(10px);
+            transition: all 1.8s var(--ios-ease);
+        }
+        .hero-exit-active #hero-subtitle {
+            letter-spacing: 2em;
+            opacity: 0;
+            transition: all 1.5s var(--ios-ease);
+        }
+        
+        /* 分頁系統：極致透明磨砂背景 */
+        .modal-window { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100dvh; 
+            background: rgba(255, 255, 255, 0.02); 
+            backdrop-filter: blur(45px) saturate(210%) brightness(105%); 
+            -webkit-backdrop-filter: blur(45px) saturate(210%) brightness(105%); 
+            transform: translateY(80px); 
+            opacity: 0;
+            z-index: 310; 
+            display: none; 
+            transition: transform 2.2s var(--ios-ease), opacity 2.2s var(--ios-ease), filter 1.5s var(--ios-ease);
+            /* 內部也使用 padding 確保內容不被靈動島切掉 */
+            padding-top: env(safe-area-inset-top);
+        }
+        .modal-window.open { 
+            display: flex; 
+            flex-direction: column; 
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* iOS 關機動畫效果 */
+        .ios-shutdown {
+            transform: scale(0.92) !important;
+            opacity: 0 !important;
+            filter: blur(40px) !important;
+            pointer-events: none;
+        }
+
+        .shutdown-overlay {
+            position: fixed;
+            inset: 0;
+            background: black;
+            opacity: 0;
+            z-index: 2000;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+        }
+        .shutdown-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .window-header { 
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            height: 64px; 
+            flex-shrink: 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
         .tab-strip { display: flex; gap: 8px; flex: 1; overflow-x: auto; scrollbar-width: none; }
-        .browser-tab { height: 40px; padding: 0 16px; background: rgba(0,0,0,0.05); border-radius: 12px; display: flex; align-items: center; cursor: pointer; white-space: nowrap; transition: 0.2s; position: relative; }
+        .browser-tab { height: 40px; padding: 0 16px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; cursor: pointer; white-space: nowrap; transition: 0.2s; position: relative; color: #0f172a; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .browser-tab.active { background: #10b981; color: white; }
-        .uniform-list-container { display: flex; flex-direction: column; max-width: 900px; margin: 0 auto; width: 100%; padding: 20px; }
-        .list-item-row { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: white; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .list-item-row:active { transform: scale(0.98); background: #f0fdf4; border-color: #10b981; }
-        .resource-drawer { max-height: 0; overflow: hidden; transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; opacity: 0; }
-        .resource-drawer.expanded { max-height: 1200px; opacity: 1; padding-bottom: 20px; }
-        .resource-iframe { width: 100%; height: 75vh; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); }
-        #custom-alert { position: fixed; top: 120px; left: 50%; transform: translateX(-50%) translateY(-200px); background: white; padding: 12px 24px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 2000; transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        .uniform-list-container { display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; width: 100%; padding: 16px; }
+        
+        /* HW Capsule：緊湊版 iOS 磨砂質感 */
+        .list-item-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 12px 20px; 
+            background: rgba(255, 255, 255, 0.2); 
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 14px; 
+            margin-bottom: 8px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255,255,255,0.3); 
+            cursor: pointer; 
+            transition: all 0.4s var(--ios-ease); 
+            border: none;
+        }
+        .list-item-row:hover { background: rgba(255, 255, 255, 0.4); transform: translateY(-1px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
+        .list-item-row:active { transform: scale(0.97); background: rgba(16, 185, 129, 0.15); }
+        
+        .resource-drawer { max-height: 0; overflow: hidden; transition: max-height 0.8s var(--ios-ease), opacity 0.4s; opacity: 0; }
+        .resource-drawer.expanded { max-height: 1200px; opacity: 1; padding-bottom: 16px; }
+        .resource-iframe { width: 100%; height: 70vh; border-radius: 18px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.85); backdrop-filter: blur(15px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        
+        #custom-alert { position: fixed; top: calc(120px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-200px); background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); padding: 12px 24px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 2000; transition: 0.5s var(--ios-ease); border: 1px solid rgba(255,255,255,0.5); }
         #custom-alert.show { transform: translateX(-50%) translateY(0); }
         .grade-badge { background: #064e3b; color: white; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
-        .login-input { width: 100%; background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.6); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-align: center; outline: none; }
         
-        /* 修訂3相關樣式：收回導引 */
-        .collapse-guide { width: 100%; display: flex; justify-content: center; align-items: center; padding: 12px; margin-top: 10px; background: rgba(0,0,0,0.03); border-radius: 12px; color: #666; font-size: 11px; font-weight: 800; letter-spacing: 2px; cursor: pointer; transition: 0.2s; }
-        .collapse-guide:hover { background: rgba(0,0,0,0.08); color: #10b981; }
+        /* 登入框：Username / Password 使用 Cinzel 字體 */
+        .login-input { 
+            width: 100%; 
+            background: rgba(255,255,255,0.3); 
+            border: 1px solid rgba(255,255,255,0.5); 
+            border-radius: 12px; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            text-align: center; 
+            outline: none; 
+            transition: 0.3s;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.1em;
+        }
+        .login-input:focus { background: rgba(255,255,255,0.6); border-color: #10b981; }
+        
+        .collapse-guide { width: 100%; display: flex; justify-content: center; align-items: center; padding: 10px; margin-top: 8px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 10px; color: #334155; font-size: 10px; font-weight: 800; letter-spacing: 2px; cursor: pointer; transition: 0.2s; border: 1px solid rgba(255,255,255,0.2); }
+        .collapse-guide:hover { background: rgba(16, 185, 129, 0.1); color: #10b981; }
     </style>
 </head>
 <body>
@@ -46,22 +190,34 @@
         <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 animate-bounce">
     </div>
 
+    <!-- 關機遮罩 -->
+    <div id="shutdown-mask" class="shutdown-overlay"></div>
+
     <div id="custom-alert" class="flex items-center gap-3">
         <i class="fas fa-exclamation-circle text-amber-500"></i>
         <span id="alert-text" class="text-sm font-bold text-gray-700"></span>
     </div>
 
+    <!-- 分頁系統主視窗 -->
     <div id="main-browser-window" class="modal-window">
         <div class="window-header">
             <div id="browser-tab-strip" class="tab-strip"></div>
             <div class="flex items-center gap-3">
                 <div id="user-grade-display" class="grade-badge"></div>
-                <button onclick="location.reload()" class="w-10 h-10 flex items-center justify-center text-red-500 bg-red-50 rounded-full"><i class="fas fa-sign-out-alt"></i></button>
+                <!-- 登出按鈕：執行即時重新整理返回登入頁 -->
+                <button onclick="location.reload()" class="w-10 h-10 flex items-center justify-center text-slate-500 bg-white/10 hover:bg-slate-500/20 rounded-full transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <!-- 關機按鈕：執行 iOS 關機動畫後導向外部連結 -->
+                <button onclick="handleShutdown()" class="w-10 h-10 flex items-center justify-center text-red-500 bg-white/10 hover:bg-red-500/20 rounded-full transition-colors">
+                    <i class="fas fa-power-off"></i>
+                </button>
             </div>
         </div>
         <div id="browser-window-body" class="flex-1 overflow-y-auto"></div>
     </div>
 
+    <!-- Landing Page Hero -->
     <section class="hero-full" id="hero-section">
         <img id="hero-bg" src="">
         <div class="hero-overlay"></div>
@@ -114,13 +270,11 @@
             }
         }
 
-        // 修訂1：登錄與動畫邏輯
         async function handleAuth() {
             const u = document.getElementById('login-username').value.trim();
             const p = document.getElementById('login-password').value;
             if(!u || !p) return showAlert("請完整填寫資訊");
 
-            // 切換 UI 狀態
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('login-loader').classList.remove('hidden');
             
@@ -166,11 +320,36 @@
         }
 
         function enterPortal() {
-            document.getElementById('hero-main-content').classList.add('fade-exit-up');
+            const heroSection = document.getElementById('hero-section');
+            heroSection.classList.add('hero-exit-active');
+            
             const win = document.getElementById('main-browser-window');
             win.style.display = 'flex';
-            setTimeout(() => win.classList.add('open'), 100);
+            
+            setTimeout(() => {
+                win.classList.add('open');
+            }, 300);
+
             openTab("課程目錄", "HOME");
+        }
+
+        // iOS 關機動畫邏輯
+        function handleShutdown() {
+            const win = document.getElementById('main-browser-window');
+            const mask = document.getElementById('shutdown-mask');
+            
+            // 觸發視窗縮小與模糊
+            win.classList.add('ios-shutdown');
+            
+            // 觸發黑色遮罩漸入
+            setTimeout(() => {
+                mask.classList.add('active');
+            }, 200);
+
+            // 轉場至目標頁面
+            setTimeout(() => {
+                window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
+            }, 1800);
         }
 
         function openTab(title, type) {
@@ -189,10 +368,9 @@
             switchTab(id);
         }
 
-        // 修訂2：分頁關閉功能
         function closeTab(id, e) {
             e.stopPropagation();
-            if(id === 'HOME') return; // 首頁不允許關閉
+            if(id === 'HOME') return;
             
             openTabs = openTabs.filter(t => t.id !== id);
             const page = document.getElementById(`page-${id}`);
@@ -221,7 +399,6 @@
                 tab.className = `browser-tab ${activeTabId === t.id ? 'active' : ''}`;
                 tab.onclick = () => switchTab(t.id);
                 
-                // 標題 + 關閉按鈕 (首頁不顯示關閉)
                 const closeBtn = t.id !== 'HOME' ? `<i class="fas fa-times ml-3 opacity-50 hover:opacity-100" onclick="closeTab('${t.id}', event)"></i>` : '';
                 tab.innerHTML = `<span class="text-[11px] font-bold tracking-wider">${t.title}</span> ${closeBtn}`;
                 strip.appendChild(tab);
@@ -230,7 +407,7 @@
 
         function renderHome(cid) {
             const container = document.getElementById(`content-${cid}`);
-            container.innerHTML = '<h2 class="text-lg font-black mb-6 text-gray-800 tracking-[0.2em] uppercase">Database Categories</h2>';
+            container.innerHTML = '<h2 class="text-sm font-black mb-4 text-slate-800 tracking-[0.2em] uppercase opacity-80">Database Categories</h2>';
             const categories = new Set();
             rawDataRows.forEach(row => {
                 const val = row[0] ? row[0].toString().trim() : '';
@@ -240,7 +417,7 @@
                 const row = document.createElement('div');
                 row.className = 'list-item-row';
                 row.onclick = () => openTab(cat, 'CAT');
-                row.innerHTML = `<div class="flex items-center gap-4"><div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fas fa-folder"></i></div><span class="font-bold text-gray-600 text-sm">${cat}</span></div><i class="fas fa-chevron-right text-gray-300"></i>`;
+                row.innerHTML = `<div class="flex items-center gap-4"><div class="w-8 h-8 bg-emerald-500/20 text-emerald-700 rounded-lg flex items-center justify-center text-xs"><i class="fas fa-folder"></i></div><span class="font-bold text-slate-800 text-xs tracking-wide">${cat}</span></div><i class="fas fa-chevron-right text-slate-400 text-[10px]"></i>`;
                 container.appendChild(row);
             });
         }
@@ -258,7 +435,7 @@
 
                 const row = document.createElement('div');
                 row.className = `list-item-row ${!isPermitted ? 'opacity-40 grayscale' : ''}`;
-                row.innerHTML = `<div class="flex items-center gap-4"><i class="fas ${item[1] === 'VIDEOS' ? 'fa-play-circle text-rose-400' : 'fa-file-pdf text-emerald-500'}"></i><span class="text-sm font-bold text-gray-600">${item[2] || 'Resource'}</span></div><i class="fas ${isPermitted ? 'fa-plus text-gray-300' : 'fa-lock text-gray-400'}"></i>`;
+                row.innerHTML = `<div class="flex items-center gap-4"><div class="w-8 h-8 flex items-center justify-center text-sm"><i class="fas ${item[1] === 'VIDEOS' ? 'fa-play-circle text-rose-500' : 'fa-file-pdf text-emerald-600'}"></i></div><span class="text-xs font-bold text-slate-800 tracking-wide">${item[2] || 'Resource'}</span></div><i class="fas ${isPermitted ? 'fa-plus text-slate-400 text-[10px]' : 'fa-lock text-slate-400 text-[10px]'}"></i>`;
 
                 const drawer = document.createElement('div');
                 drawer.className = 'resource-drawer';
@@ -274,12 +451,11 @@
                             ? `<iframe class="w-full aspect-video rounded-xl shadow-lg" src="${url.replace('watch?v=','embed/')}?autoplay=1" allowfullscreen></iframe>`
                             : `<iframe src="${url}" class="resource-iframe"></iframe>`;
                         
-                        // 修訂3：資源載入後加入收回導引按鈕
                         drawer.innerHTML = `
                             <div class="mt-2">
                                 ${content}
                                 <div class="collapse-guide" onclick="this.parentElement.parentElement.classList.remove('expanded')">
-                                    <i class="fas fa-chevron-up mr-2"></i> 收回影片 COLLAPSE
+                                    <i class="fas fa-chevron-up mr-2"></i> 收回資源 COLLAPSE
                                 </div>
                             </div>`;
                         drawer.classList.add('expanded');
@@ -294,9 +470,12 @@
 
         function showAlert(msg) {
             const a = document.getElementById('custom-alert');
-            document.getElementById('alert-text').innerText = msg;
-            a.classList.add('show');
-            setTimeout(() => a.classList.remove('show'), 3000);
+            const t = document.getElementById('alert-text');
+            if (t) t.innerText = msg;
+            if (a) {
+                a.classList.add('show');
+                setTimeout(() => a.classList.remove('show'), 3000);
+            }
         }
 
         window.onload = loadConfig;
