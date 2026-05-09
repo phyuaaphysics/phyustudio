@@ -29,7 +29,7 @@
         }
 
         /* UI Styles Remain Strictly Unchanged */
-        .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; }
+        .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
         #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow), filter 0.8s; }
         .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5; }
         .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center; transition: opacity var(--anim-os), transform var(--anim-os), visibility var(--anim-os); z-index: 20; }
@@ -85,6 +85,29 @@
             border: 0.5px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
+
+        /* 🔹 iOS Shutdown Overlay */
+        .ios-shutdown-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ios-shutdown-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .ios-shutdown-spinner {
+            color: #fff;
+            font-size: 24px;
+            animation: spin 1s steps(12, end) infinite;
+        }
     </style>
 </head>
 <body>
@@ -92,6 +115,11 @@
     <div id="page-loader">
         <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
         <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在同步安全協議...</p>
+    </div>
+
+    <!-- 🔹 iOS Shutdown Overlay -->
+    <div id="shutdown-overlay" class="ios-shutdown-overlay">
+        <div class="ios-shutdown-spinner"><i class="fas fa-spinner"></i></div>
     </div>
 
     <div id="custom-alert" class="flex items-center gap-3">
@@ -104,14 +132,15 @@
             <div id="browser-tab-strip" class="tab-strip"></div>
             <div class="flex items-center gap-4 px-4">
                 <div id="user-grade-display" class="grade-badge"></div>
-                <button onclick="openHomeFolder()" class="text-gray-400"><i class="fas fa-home"></i></button>
+                <!-- 改為登出圖標 -->
+                <button onclick="handleLogout()" class="text-gray-400"><i class="fas fa-sign-out-alt"></i></button>
                 <button onclick="handleLogout()" class="text-red-400"><i class="fas fa-power-off"></i></button>
             </div>
         </div>
         <div id="browser-window-body" class="flex-1 overflow-y-auto"></div>
     </div>
 
-    <section class="hero-full">
+    <section class="hero-full" id="hero-section">
         <img id="hero-bg" src="">
         <div class="hero-overlay"></div>
         <div class="hero-content-wrapper text-center">
@@ -270,29 +299,20 @@
             switchTab(id);
         }
 
-        // Close Tab Logic
         function closeTab(e, id) {
-            e.stopPropagation(); // Prevent switching to tab being closed
-            
-            // Remove from data
+            e.stopPropagation();
             const tabIdx = openTabs.findIndex(t => t.id === id);
             if(tabIdx === -1) return;
-            
             openTabs.splice(tabIdx, 1);
-            
-            // Remove from DOM
             const page = document.getElementById(`page-${id}`);
             if(page) page.remove();
-            
-            // Handle active tab state
             if(activeTabId === id) {
                 if(openTabs.length > 0) {
-                    // Switch to the nearest tab
                     const nextId = openTabs[Math.max(0, tabIdx - 1)].id;
                     switchTab(nextId);
                 } else {
                     activeTabId = null;
-                    openHomeFolder(); // Auto fallback to home
+                    openHomeFolder();
                 }
             } else {
                 renderTabStrip();
@@ -306,8 +326,6 @@
                 const tab = document.createElement('div');
                 tab.className = `browser-tab ${activeTabId === t.id ? 'active' : ''}`;
                 tab.onclick = () => switchTab(t.id);
-                
-                // Content: Title + Close button
                 tab.innerHTML = `
                     <span class="text-[11px] font-bold text-gray-500 truncate mr-2">${t.title}</span>
                     <div class="tab-close-btn" onclick="closeTab(event, '${t.id}')">
@@ -377,8 +395,23 @@
             });
         }
 
+        // 🔹 iOS Style Shutdown & Logout
         function handleLogout() { 
-            window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
+            const overlay = document.getElementById('shutdown-overlay');
+            const win = document.getElementById('main-browser-window');
+            const hero = document.getElementById('hero-section');
+
+            // Start blackout transition
+            overlay.classList.add('active');
+            win.style.transform = 'scale(0.9)';
+            win.style.opacity = '0';
+            hero.style.transform = 'scale(1.1)';
+            hero.style.opacity = '0';
+
+            // Redirect after animation completes
+            setTimeout(() => {
+                window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
+            }, 800);
         }
 
         function showAlert(t) { 
