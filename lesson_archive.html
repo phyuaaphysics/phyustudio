@@ -12,534 +12,377 @@
         :root {
             --ios-bg: #F2F2F7;
             --ios-blue: #007AFF;
-            --ios-card: #FFFFFF;
-            --radius-main: 12px; 
+            --radius-main: 12px;
         }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Helvetica Neue', sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif; 
             background-color: var(--ios-bg);
             -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
         }
-        .ios-glass {
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .ios-card {
-            background: var(--ios-card);
-            border-radius: var(--radius-main);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 0.5px solid rgba(0, 0, 0, 0.08);
-        }
-        .segmented-control {
-            background: rgba(118, 118, 128, 0.08);
-            border-radius: 999px; /* Capsule Shape */
-            padding: 3px;
+
+        .capsule-container {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 999px;
+            padding: 4px;
             display: flex;
-            width: 100%;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 0.5px solid rgba(0, 0, 0, 0.05);
+            gap: 2px;
+            border: 0.5px solid rgba(0,0,0,0.05);
         }
-        .segmented-item {
+        .capsule-item {
             flex: 1;
-            text-align: center;
             padding: 8px 12px;
             font-size: 13px;
             font-weight: 500;
-            border-radius: 999px; /* Capsule Shape */
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 999px;
             color: #3A3A3C;
-            white-space: nowrap;
-        }
-        .segmented-item.active {
-            background: white;
-            color: #000;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04);
-            transform: scale(1.02);
-        }
-        .segmented-item {
-            flex: 1;
-            text-align: center;
-            padding: 6px 2px;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 6px;
             transition: all 0.2s;
+            text-align: center;
+            white-space: nowrap;
+            cursor: pointer;
         }
-        .segmented-item.active {
+        .capsule-item.active {
             background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            color: black;
+            font-weight: 700;
         }
+
         .calendar-day {
             aspect-ratio: 1/1;
+            border-radius: 50%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            border-radius: 8px;
             position: relative;
+            cursor: pointer;
+            transition: transform 0.1s;
+            z-index: 10;
         }
+        .calendar-day:active { transform: scale(0.9); }
         .calendar-day.active { background-color: var(--ios-blue); color: white; }
-        .calendar-day.today { color: var(--ios-blue); font-weight: 700; border: 1px solid rgba(0,122,255,0.3); }
-        .dot { width: 4px; height: 4px; background-color: transparent; border-radius: 50%; margin-top: 2px; }
-        .has-recording .dot { background-color: #BEC2C8; }
-        .active .dot { background-color: white !important; }
-        .has-recording.active .dot { background-color: white; }
+        .calendar-day.today { color: var(--ios-blue); font-weight: 800; border: 1px solid rgba(0,122,255,0.2); }
         
-        /* iOS 3-Wheel Picker Styles */
-        .picker-container {
+        .dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; background: transparent; }
+        .has-recording .dot { background: #C7C7CC; }
+        .active .dot { background: white !important; }
+
+        .ios-card {
+            background: white;
+            border-radius: var(--radius-main);
+            border: 0.5px solid rgba(0,0,0,0.1);
             position: relative;
-            height: 160px;
-            display: flex;
-            background: rgba(118, 118, 128, 0.05);
-            border-radius: 14px;
-            overflow: hidden;
-            mask-image: linear-gradient(to bottom, transparent, black 40%, black 60%, transparent);
-            -webkit-mask-image: linear-gradient(to bottom, transparent, black 40%, black 60%, transparent);
+            z-index: 5;
         }
-        .wheel {
-            flex: 1;
-            height: 100%;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-top: 64px;
-            padding-bottom: 64px;
-            z-index: 1;
-        }
-        .wheel::-webkit-scrollbar { display: none; }
-        .wheel-item {
-            height: 32px;
+
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: #F2F2F7;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
-            color: #8E8E93;
-            scroll-snap-align: center;
-            transition: color 0.2s, transform 0.2s;
+            transition: opacity 0.4s ease, visibility 0.4s;
         }
-        .wheel-item.selected {
-            color: #000;
-            font-weight: 600;
-            transform: scale(1.1);
-        }
-        .picker-highlight {
-            position: absolute;
-            top: 50%;
-            left: 8px;
-            right: 8px;
-            height: 32px;
-            margin-top: -16px;
-            background: rgba(118, 118, 128, 0.12);
-            border-radius: 8px;
+        
+        /* 修正點擊問題的核心：當隱藏時不允許攔截點擊事件 */
+        #loadingOverlay.hidden {
+            opacity: 0;
+            visibility: hidden;
             pointer-events: none;
-            z-index: 0;
-        }
-        .picker-label {
-            position: absolute;
-            bottom: -20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: #8E8E93;
-            font-weight: bold;
-            text-transform: uppercase;
         }
 
-        /* Jump Input Style removed as we use Picker now */
-                <button onclick="filterByClass('S4')" class="segmented-item px-6">S4</button>
-                <button onclick="filterByClass('S5')" class="segmented-item px-6">S5</button>
-                <button onclick="filterByClass('S6')" class="segmented-item px-6">S6</button>
-            </div>
-        </section>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
 
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
-            <!-- 日曆區塊 -->
-            <div class="md:col-span-2 space-y-3">
-                <div class="ios-card p-4">
-                    <!-- iOS 3-Wheel Picker -->
-                    <div class="relative mb-6 px-2">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">快速跳轉日期</span>
-                            <button onclick="applyPickerDate()" class="text-[13px] font-semibold text-blue-500 bg-blue-50 px-3 py-1 rounded-full active:scale-95 transition-all">套用</button>
-                        </div>
-                        <div class="picker-container" id="datePicker">
-                            <div class="picker-highlight"></div>
-                            <!-- Year Wheel -->
-                            <div class="wheel" id="yearWheel" onscroll="handleWheelScroll('year')"></div>
-                            <!-- Month Wheel -->
-                            <div class="wheel" id="monthWheel" onscroll="handleWheelScroll('month')"></div>
-                            <!-- Day Wheel -->
-                            <div class="wheel" id="dayWheel" onscroll="handleWheelScroll('day')"></div>
-                        </div>
-                    </div>
+<div id="loadingOverlay">
+    <div class="text-center space-y-4">
+        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mx-auto">
+        <div id="loadingStatus" class="flex items-center gap-2 text-gray-400">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+            <span>正在連線至雲端...</span>
+        </div>
+    </div>
+</div>
 
-                    <div class="flex items-center justify-between mb-3 px-1">
-                        <h2 id="currentMonthDisplay" class="font-bold text-[16px]">2026年 5月</h2>
+<div id="mainContent" class="hidden pb-10">
+    <nav class="sticky top-0 z-40 px-4 h-14 flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-black/5">
+        <div class="flex items-center gap-2">
+            <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-8 h-8">
+            <h1 class="font-bold text-[17px]">LESSON ARCHIVE</h1>
+        </div>
+        <div id="statusBadge" class="flex items-center gap-1 text-blue-500 font-semibold text-xs bg-blue-50 px-2 py-1 rounded-full">
+            <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
+            <i data-lucide="check" class="w-3 h-3 -ml-1"></i>
+            <span>已同步</span>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-4 space-y-6">
+        <div class="capsule-container overflow-x-auto no-scrollbar">
+            <button onclick="filterByClass('全部')" class="capsule-item active">全部</button>
+            <button onclick="filterByClass('S3A')" class="capsule-item">S3A</button>
+            <button onclick="filterByClass('S3B')" class="capsule-item">S3B</button>
+            <button onclick="filterByClass('S3C')" class="capsule-item">S3C</button>
+            <button onclick="filterByClass('S3D')" class="capsule-item">S3D</button>
+            <button onclick="filterByClass('S4')" class="capsule-item">S4</button>
+            <button onclick="filterByClass('S5')" class="capsule-item">S5</button>
+            <button onclick="filterByClass('S6')" class="capsule-item">S6</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div class="md:col-span-2 space-y-4">
+                <div class="ios-card p-5">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 id="monthLabel" class="font-bold text-lg text-gray-900"></h2>
                         <div class="flex gap-1">
-                            <button onclick="changeMonth(-1)" class="p-1 text-blue-500"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                            <button onclick="changeMonth(1)" class="p-1 text-blue-500"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                            <button onclick="changeMonth(-1)" class="p-2 text-blue-500 active:bg-gray-100 rounded-full cursor-pointer"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                            <button onclick="changeMonth(1)" class="p-2 text-blue-500 active:bg-gray-100 rounded-full cursor-pointer"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-7 text-center text-[11px] font-bold text-gray-400 mb-2">
+                    <div class="grid grid-cols-7 text-center text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-tighter">
                         <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
                     </div>
-                    <div id="calendarGrid" class="grid grid-cols-7 gap-y-1 text-center"></div>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-y-2"></div>
+                    <button onclick="jumpToToday()" class="w-full mt-6 py-2 text-blue-500 font-semibold text-sm border border-blue-100 rounded-lg active:bg-blue-50 cursor-pointer">回到今日</button>
                 </div>
             </div>
 
-            <!-- 影片清單 -->
-            <div class="md:col-span-3 space-y-3">
+            <div class="md:col-span-3 space-y-4">
                 <div class="flex items-end justify-between px-1">
-                    <h2 id="selectedDateDisplay" class="text-[20px] font-bold tracking-tight">今日錄影</h2>
-                    <span id="recordCount" class="text-xs text-gray-400 font-medium">0 項目</span>
+                    <h2 id="listTitle" class="text-xl font-bold tracking-tight text-gray-900">選擇日期</h2>
+                    <span id="recordCount" class="text-xs font-medium text-gray-400">0 個項目</span>
                 </div>
-                <div id="videoList" class="space-y-2"></div>
-                <div id="noDataMessage" class="hidden ios-card py-12 flex flex-col items-center justify-center text-gray-400">
-                    <i data-lucide="video-off" class="w-8 h-8 mb-2 opacity-20"></i>
-                    <p class="text-xs font-medium">當天沒有符合條件的錄影</p>
+                <div id="videoList" class="space-y-3"></div>
+                <div id="noData" class="hidden ios-card p-12 text-center text-gray-400 text-sm">
+                    <i data-lucide="video-off" class="w-10 h-10 mx-auto mb-2 opacity-20"></i>
+                    當天沒有符合班級的錄影
                 </div>
             </div>
         </div>
     </main>
 </div>
 
+<div id="videoModal" class="fixed inset-0 z-[100] hidden flex items-end md:items-center justify-center">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeVideo()"></div>
+    <div class="relative w-full max-w-4xl bg-white rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+        <div class="h-12 flex items-center justify-between px-4 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+                <span id="mClass" class="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded"></span>
+                <span id="mDate" class="text-[11px] text-gray-400"></span>
+            </div>
+            <button onclick="closeVideo()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 active:scale-90 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="aspect-video bg-black" id="videoPlayer"></div>
+        <div class="p-5 space-y-4">
+            <h3 id="mTitle" class="font-bold text-lg text-gray-900"></h3>
+            <button id="openAppBtn" class="flex items-center justify-center gap-2 w-full py-4 bg-[#F2F2F7] text-[#007AFF] font-bold rounded-xl active:scale-[0.98] transition-transform cursor-pointer">
+                <i data-lucide="youtube" class="w-5 h-5"></i>
+                在 YOUTUBE 應用程式中開啟
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     const SHEET_ID = '1EwnY9DEZbZ2oUzzC7YTU_ndCYRua8pyu3VWK1IaVhaI';
-    const PASSCODE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=PASSCODE`;
-    const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-    
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+
     let recordingsData = {};
-    let passcodes = [];
-    let isInitialized = false;
+    let currentDate = new Date();
+    let selectedDate = new Date();
     let selectedClass = "全部";
-    let currentDate = new Date(2026, 4, 1); 
-    let selectedDate = new Date(2026, 4, 5);
 
-    // Picker State
-    const pickerState = {
-        year: 2026,
-        month: 5,
-        day: 5
-    };
-
-    window.onload = () => {
+    async function init() {
         lucide.createIcons();
-        initPasscodes();
-        initDatePicker();
-    };
-
-    function initDatePicker() {
-        const yearWheel = document.getElementById('yearWheel');
-        const monthWheel = document.getElementById('monthWheel');
-        
-        // Populate Years (Current Year +/- 5 years)
-        const currentYear = new Date().getFullYear();
-        for(let y = 2024; y <= 2030; y++) {
-            const item = createWheelItem(y);
-            yearWheel.appendChild(item);
-        }
-
-        // Populate Months
-        for(let m = 1; m <= 12; m++) {
-            const item = createWheelItem(m);
-            monthWheel.appendChild(item);
-        }
-
-        // Set initial scroll positions
-        setTimeout(() => {
-            scrollToValue(yearWheel, 2026);
-            scrollToValue(monthWheel, 5);
-            updateDayWheel(); // Initial population of days
-            setTimeout(() => scrollToValue(document.getElementById('dayWheel'), 5), 50);
-        }, 100);
-    }
-
-    function createWheelItem(val) {
-        const div = document.createElement('div');
-        div.className = 'wheel-item';
-        div.innerText = val < 10 ? `0${val}` : val;
-        div.dataset.value = val;
-        return div;
-    }
-
-    function updateDayWheel() {
-        const dayWheel = document.getElementById('dayWheel');
-        const daysInMonth = new Date(pickerState.year, pickerState.month, 0).getDate();
-        
-        // Save current selection to restore if possible
-        const prevDay = pickerState.day;
-        
-        dayWheel.innerHTML = '';
-        for(let d = 1; d <= daysInMonth; d++) {
-            dayWheel.appendChild(createWheelItem(d));
-        }
-
-        // Adjust if previously selected day is now out of bounds (e.g. 31st to 28th)
-        if (prevDay > daysInMonth) {
-            pickerState.day = daysInMonth;
-        }
-        scrollToValue(dayWheel, pickerState.day);
-    }
-
-    function scrollToValue(wheel, value) {
-        const items = wheel.querySelectorAll('.wheel-item');
-        items.forEach((item, index) => {
-            if (parseInt(item.dataset.value) === value) {
-                wheel.scrollTo({ top: index * 32, behavior: 'smooth' });
-            }
-        });
-    }
-
-    let scrollTimeout;
-    function handleWheelScroll(type) {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            const wheel = document.getElementById(`${type}Wheel`);
-            const index = Math.round(wheel.scrollTop / 32);
-            const items = wheel.querySelectorAll('.wheel-item');
-            
-            if (items[index]) {
-                const newVal = parseInt(items[index].dataset.value);
-                
-                // Update styling
-                items.forEach(i => i.classList.remove('selected'));
-                items[index].classList.add('selected');
-
-                if (pickerState[type] !== newVal) {
-                    pickerState[type] = newVal;
-                    // If year or month changed, update days
-                    if (type === 'year' || type === 'month') {
-                        updateDayWheel();
-                    }
-                }
-            }
-        }, 100);
-    }
-
-    function applyPickerDate() {
-        const targetDate = new Date(pickerState.year, pickerState.month - 1, pickerState.day);
-        if (!isNaN(targetDate)) {
-            currentDate = new Date(pickerState.year, pickerState.month - 1, 1);
-            selectedDate = targetDate;
-            selectDate(targetDate);
-            
-            // Add a little feedback animation to the calendar
-            const grid = document.getElementById('calendarGrid');
-            grid.style.opacity = '0';
+        try {
+            const response = await fetch(CSV_URL);
+            if (!response.ok) throw new Error('連線失敗');
+            const csv = await response.text();
+            parseCSV(csv);
+        } catch (e) { 
+            console.error('Fetch Error:', e);
+            document.getElementById('loadingStatus').innerHTML = '<span class="text-red-400">連線異常，請檢查網路</span>';
+        } finally {
             setTimeout(() => {
-                grid.style.transition = 'opacity 0.3s ease';
-                grid.style.opacity = '1';
-            }, 50);
+                const overlay = document.getElementById('loadingOverlay');
+                overlay.classList.add('hidden'); // 加入 hidden 類別來關閉 pointer-events
+                document.getElementById('mainContent').classList.remove('hidden');
+                jumpToLatest();
+            }, 800);
         }
     }
 
-    async function initPasscodes() {
-        const debugEl = document.getElementById('debugInfo');
-        try {
-            const response = await fetch(PASSCODE_URL);
-            const csvText = await response.text();
-            const rows = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
+    function parseCSV(csv) {
+        if (!csv) return;
+        const rows = csv.split(/\r?\n/);
+        rows.forEach((line, index) => {
+            if (index === 0 || !line.trim()) return; 
+            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
             
-            // 偵測是否有標題列並解析
-            let startRow = 0;
-            if (rows[0].includes("用戶") || rows[0].toLowerCase().includes("user")) startRow = 1;
-
-            passcodes = rows.slice(startRow).map(row => {
-                const cells = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
-                return { user: cells[0], pass: cells[1] };
-            }).filter(u => u.user && u.pass);
-
-            isInitialized = true;
-            debugEl.innerText = `System Ready (${passcodes.length} users)`;
-        } catch (e) {
-            debugEl.innerText = "Error loading passcodes";
-        }
-    }
-
-    async function handleLogin() {
-        const user = document.getElementById('username').value.trim();
-        const pass = document.getElementById('password').value.trim();
-        const errorEl = document.getElementById('loginError');
-
-        if (!isInitialized) return;
-
-        const isValid = passcodes.some(p => String(p.user).toLowerCase() === user.toLowerCase() && String(p.pass) === pass);
-
-        if (isValid) {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('appContent').classList.remove('hidden');
-            await loadRecordingsData();
-        } else {
-            errorEl.classList.remove('hidden');
-        }
-    }
-
-    async function loadRecordingsData() {
-        try {
-            const response = await fetch(DATA_URL);
-            const csvText = await response.text();
-            parseRecordingsCSV(csvText);
-            
-            // 更新狀態圖標為「雲朵+勾選」
-            const statusIcon = document.getElementById('statusIcon');
-            statusIcon.setAttribute('data-lucide', 'cloud');
-            statusIcon.classList.remove('animate-pulse');
-            document.getElementById('statusText').innerText = "Synced";
-            document.getElementById('statusBadge').innerHTML = '<i data-lucide="cloud" class="w-4 h-4"></i><i data-lucide="check" class="w-3 h-3 -ml-2 mb-1"></i><span class="text-[10px] font-bold uppercase tracking-wider ml-1">Synced</span>';
-            lucide.createIcons();
-            
-            renderCalendar();
-            selectDate(selectedDate);
-        } catch (e) { console.error(e); }
-    }
-
-    function parseRecordingsCSV(csvText) {
-        const rows = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
-        rows.forEach(row => {
-            const cells = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
-            const rawDate = cells[0];
-            const videoLink = cells[1];
-            const className = cells[2];
-
-            if (!videoLink || !videoLink.includes('http')) return;
-
-            // 解析 "2026年5月5日"
-            const dateMatch = rawDate.match(/(\d+)年(\d+)月(\d+)日/);
-            let dateKey;
-            if (dateMatch) {
-                dateKey = `${dateMatch[1]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[3].padStart(2, '0')}`;
-            } else {
-                const d = new Date(rawDate);
-                if (!isNaN(d)) dateKey = d.toISOString().split('T')[0];
-            }
-
-            if (dateKey) {
-                if (!recordingsData[dateKey]) recordingsData[dateKey] = [];
-                recordingsData[dateKey].push({ title: `課堂錄影 - ${className}`, link: videoLink, class: className, id: getYoutubeId(videoLink) });
+            if (cols.length >= 2) {
+                const dateKey = parseDateKey(cols[0]);
+                if (dateKey) {
+                    if (!recordingsData[dateKey]) recordingsData[dateKey] = [];
+                    recordingsData[dateKey].push({ 
+                        link: cols[1], 
+                        class: cols[2] || '其他', 
+                        raw: cols[0] 
+                    });
+                }
             }
         });
     }
 
-    function getYoutubeId(url) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
+    function parseDateKey(str) {
+        if (!str) return null;
+        const m = str.match(/(\d+)年(\d+)月(\d+)日/);
+        if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? null : formatDate(d);
     }
 
-    function renderCalendar() {
+    function render() {
         const grid = document.getElementById('calendarGrid');
+        if (!grid) return;
         grid.innerHTML = '';
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        document.getElementById('currentMonthDisplay').innerText = `${year}年 ${month + 1}月`;
+        const y = currentDate.getFullYear();
+        const m = currentDate.getMonth();
+        document.getElementById('monthLabel').innerText = `${y}年 ${m + 1}月`;
 
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-        for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
-
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dateObj = new Date(year, month, d);
-            const dateKey = dateObj.toISOString().split('T')[0];
-            const hasData = (recordingsData[dateKey] || []).some(r => selectedClass === "全部" || r.class === selectedClass);
-            
-            const dayEl = document.createElement('div');
-            dayEl.className = `calendar-day cursor-pointer transition-all duration-200 ${dateKey === selectedDate.toISOString().split('T')[0] ? 'active scale-110 shadow-sm z-10' : ''}`;
-            if (new Date().toDateString() === dateObj.toDateString()) dayEl.classList.add('today');
-            if (hasData) dayEl.classList.add('has-recording');
-            
-            dayEl.innerHTML = `<span>${d}</span><div class="dot"></div>`;
-            dayEl.onclick = () => selectDate(dateObj);
-            grid.appendChild(dayEl);
+        const start = new Date(y, m, 1).getDay();
+        const days = new Date(y, m + 1, 0).getDate();
+        for (let i = 0; i < start; i++) {
+            const empty = document.createElement('div');
+            grid.appendChild(empty);
         }
-    }
 
-    // handleJump removed as it is replaced by the 3-wheel picker
-        const input = document.getElementById('jumpInput').value.trim();
-        if (!input) return;
-
-        // 格式化輸入 (替換 / . 為 -)
-        const cleanInput = input.replace(/[\/\.\s]/g, '-');
-        const parts = cleanInput.split('-');
-
-        if (parts.length >= 2) {
-            const y = parseInt(parts[0]);
-            const m = parseInt(parts[1]) - 1;
-            const d = parts[2] ? parseInt(parts[2]) : 1;
-
-            const targetDate = new Date(y, m, d);
-            if (!isNaN(targetDate)) {
-                currentDate = new Date(y, m, 1);
-                if (parts[2]) {
-                    selectedDate = targetDate;
-                    selectDate(targetDate);
-                } else {
-                    renderCalendar();
-                }
-            }
+        for (let d = 1; d <= days; d++) {
+            const dateObj = new Date(y, m, d);
+            const dStr = formatDate(dateObj);
+            const recs = recordingsData[dStr] || [];
+            const hasRec = selectedClass === "全部" ? recs.length > 0 : recs.some(r => r.class.includes(selectedClass));
+            
+            const el = document.createElement('div');
+            el.className = `calendar-day ${formatDate(selectedDate) === dStr ? 'active' : ''} ${hasRec ? 'has-recording' : ''}`;
+            if (dStr === formatDate(new Date())) el.classList.add('today');
+            el.innerHTML = `<span>${d}</span><div class="dot"></div>`;
+            el.onclick = (e) => {
+                e.stopPropagation();
+                selectedDate = new Date(y, m, d); 
+                render();
+            };
+            grid.appendChild(el);
         }
+        renderList();
     }
 
-    function selectDate(date) {
-        selectedDate = date;
-        const dateKey = date.toISOString().split('T')[0];
-        document.getElementById('selectedDateDisplay').innerText = `${date.getMonth() + 1}月${date.getDate()}日 錄影`;
-        renderVideoList(dateKey);
-        renderCalendar();
-    }
+    function renderList() {
+        const dStr = formatDate(selectedDate);
+        let vids = recordingsData[dStr] || [];
+        if (selectedClass !== "全部") vids = vids.filter(v => v.class.includes(selectedClass));
 
-    function renderVideoList(dateKey) {
         const list = document.getElementById('videoList');
-        const empty = document.getElementById('noDataMessage');
-        const count = document.getElementById('recordCount');
         list.innerHTML = '';
-        
-        const videos = (recordingsData[dateKey] || []).filter(r => selectedClass === "全部" || r.class === selectedClass);
-        count.innerText = `${videos.length} 項目`;
+        document.getElementById('recordCount').innerText = `${vids.length} 個項目`;
+        document.getElementById('listTitle').innerText = selectedDate.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', weekday: 'short' });
 
-        if (videos.length === 0) {
-            empty.classList.remove('hidden');
-        } else {
-            empty.classList.add('hidden');
-            videos.forEach(v => {
-                const card = document.createElement('div');
-                card.className = "ios-card p-3 flex gap-3 active:scale-[0.98] transition-transform";
-                card.innerHTML = `
-                    <div class="w-24 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
-                        <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/10"><i data-lucide="play" class="w-5 h-5 text-white fill-white"></i></div>
-                    </div>
-                    <div class="flex-1 flex flex-col justify-center min-w-0">
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded w-fit mb-1">${v.class}</span>
-                        <h3 class="font-bold text-sm truncate">${v.title}</h3>
-                    </div>
-                    <button onclick="window.open('${v.link}', '_blank')" class="bg-gray-50 text-blue-500 px-3 py-1 rounded-lg text-[10px] font-bold self-center border border-gray-100 flex items-center gap-1">
-                        <i data-lucide="external-link" class="w-3 h-3"></i>
-                        OPEN IN APP
-                    </button>
-                `;
-                list.appendChild(card);
-            });
-            lucide.createIcons();
+        if (!vids.length) {
+            document.getElementById('noData').classList.remove('hidden');
+            return;
         }
+        document.getElementById('noData').classList.add('hidden');
+
+        vids.forEach(v => {
+            const yId = getYouTubeId(v.link);
+            const card = document.createElement('div');
+            card.className = "ios-card p-3 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform";
+            card.onclick = () => openVideo(v);
+            card.innerHTML = `
+                <div class="w-24 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative pointer-events-none">
+                    <img src="https://img.youtube.com/vi/${yId}/mqdefault.jpg" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/10"><i data-lucide="play" class="w-5 h-5 text-white fill-current"></i></div>
+                </div>
+                <div class="flex-1 min-w-0 pointer-events-none">
+                    <div class="flex items-center gap-1.5 mb-0.5">
+                        <span class="text-[9px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase">${v.class}</span>
+                    </div>
+                    <h4 class="font-bold text-sm truncate text-gray-900">${v.class} 課程錄影</h4>
+                    <p class="text-[10px] text-gray-400">點擊播放</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
+            `;
+            list.appendChild(card);
+        });
+        lucide.createIcons();
+    }
+
+    function openVideo(v) {
+        const yId = getYouTubeId(v.link);
+        document.getElementById('videoPlayer').innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${yId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        document.getElementById('mTitle').innerText = `${v.class} 課程錄影`;
+        document.getElementById('mClass').innerText = v.class;
+        document.getElementById('mDate').innerText = v.raw;
+        document.getElementById('openAppBtn').onclick = () => window.open(v.link, '_blank');
+        document.getElementById('videoModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        lucide.createIcons();
+    }
+
+    function closeVideo() {
+        document.getElementById('videoPlayer').innerHTML = '';
+        document.getElementById('videoModal').classList.add('hidden');
+        document.body.style.overflow = '';
     }
 
     function filterByClass(cls) {
         selectedClass = cls;
-        document.querySelectorAll('.segmented-item').forEach(btn => btn.classList.toggle('active', btn.innerText === cls));
-        renderCalendar();
-        selectDate(selectedDate);
+        document.querySelectorAll('.capsule-item').forEach(btn => btn.classList.toggle('active', btn.innerText === cls));
+        render();
     }
 
-    function changeMonth(delta) {
-        currentDate.setMonth(currentDate.getMonth() + delta);
-        renderCalendar();
+    function changeMonth(n) { 
+        currentDate.setMonth(currentDate.getMonth() + n); 
+        render(); 
     }
+
+    function jumpToToday() {
+        selectedDate = new Date();
+        currentDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+        render();
+    }
+
+    function jumpToLatest() {
+        const dates = Object.keys(recordingsData).sort();
+        if (dates.length) {
+            const parts = dates[dates.length - 1].split('-');
+            selectedDate = new Date(parts[0], parts[1]-1, parts[2]);
+            currentDate = new Date(parts[0], parts[1]-1, 1);
+        } else {
+            selectedDate = new Date();
+            currentDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+        }
+        render();
+    }
+
+    function formatDate(d) { 
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; 
+    }
+
+    function getYouTubeId(url) {
+        if (!url) return '';
+        const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]{11})/);
+        return m ? m[1] : '';
+    }
+
+    window.onload = init;
 </script>
 </body>
 </html>
