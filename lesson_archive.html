@@ -13,6 +13,7 @@
             --ios-bg: #F2F2F7;
             --ios-blue: #007AFF;
             --radius-main: 12px;
+            --nav-height: 56px;
         }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif; 
@@ -90,11 +91,31 @@
             transition: opacity 0.4s ease, visibility 0.4s;
         }
         
-        /* 修正點擊問題的核心：當隱藏時不允許攔截點擊事件 */
         #loadingOverlay.hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
+        }
+
+        /* iOS-style Video Modal Animation */
+        #videoModal {
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+            opacity: 0;
+            visibility: hidden;
+            top: var(--nav-height); 
+        }
+        #videoModal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #videoModal .modal-container {
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(100%);
+            max-height: calc(100vh - var(--nav-height));
+            width: 100%;
+        }
+        #videoModal.show .modal-container {
+            transform: translateY(0);
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -170,23 +191,29 @@
     </main>
 </div>
 
-<div id="videoModal" class="fixed inset-0 z-[100] hidden flex items-end md:items-center justify-center">
+<!-- Updated Video Modal with fixed button logic and icons -->
+<div id="videoModal" class="fixed right-0 left-0 bottom-0 z-[100] flex items-start justify-center">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeVideo()"></div>
-    <div class="relative w-full max-w-4xl bg-white rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+    <div class="modal-container relative max-w-4xl bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         <div class="h-12 flex items-center justify-between px-4 border-b border-gray-100">
             <div class="flex items-center gap-2">
                 <span id="mClass" class="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded"></span>
                 <span id="mDate" class="text-[11px] text-gray-400"></span>
             </div>
-            <button onclick="closeVideo()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 active:scale-90 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <div class="flex items-center gap-2">
+                <!-- Red YouTube Icon Button -->
+                <button id="openAppBtn" class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center active:scale-90 cursor-pointer transition-transform shadow-sm">
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                </button>
+                <button onclick="closeVideo()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 active:scale-90 cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
         </div>
         <div class="aspect-video bg-black" id="videoPlayer"></div>
-        <div class="p-5 space-y-4">
+        <div class="p-5">
             <h3 id="mTitle" class="font-bold text-lg text-gray-900"></h3>
-            <button id="openAppBtn" class="flex items-center justify-center gap-2 w-full py-4 bg-[#F2F2F7] text-[#007AFF] font-bold rounded-xl active:scale-[0.98] transition-transform cursor-pointer">
-                <i data-lucide="youtube" class="w-5 h-5"></i>
-                在 YOUTUBE 應用程式中開啟
-            </button>
+            <p class="text-xs text-gray-400 mt-1">正在播放課堂錄影存檔</p>
         </div>
     </div>
 </div>
@@ -213,7 +240,7 @@
         } finally {
             setTimeout(() => {
                 const overlay = document.getElementById('loadingOverlay');
-                overlay.classList.add('hidden'); // 加入 hidden 類別來關閉 pointer-events
+                overlay.classList.add('hidden'); 
                 document.getElementById('mainContent').classList.remove('hidden');
                 jumpToLatest();
             }, 800);
@@ -330,16 +357,28 @@
         document.getElementById('mTitle').innerText = `${v.class} 課程錄影`;
         document.getElementById('mClass').innerText = v.class;
         document.getElementById('mDate').innerText = v.raw;
-        document.getElementById('openAppBtn').onclick = () => window.open(v.link, '_blank');
-        document.getElementById('videoModal').classList.remove('hidden');
+        
+        // Fix for open app button - explicitly re-assign listener
+        const openBtn = document.getElementById('openAppBtn');
+        openBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(v.link, '_blank');
+        };
+        
+        const modal = document.getElementById('videoModal');
+        modal.classList.add('show');
         document.body.style.overflow = 'hidden';
         lucide.createIcons();
     }
 
     function closeVideo() {
-        document.getElementById('videoPlayer').innerHTML = '';
-        document.getElementById('videoModal').classList.add('hidden');
+        const modal = document.getElementById('videoModal');
+        modal.classList.remove('show');
         document.body.style.overflow = '';
+        setTimeout(() => {
+            document.getElementById('videoPlayer').innerHTML = '';
+        }, 500);
     }
 
     function filterByClass(cls) {
