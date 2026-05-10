@@ -118,10 +118,108 @@
             transform: translateY(0);
         }
 
+        /* Casino Roller Custom Picker */
+        #rollerOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #rollerOverlay.show { display: flex; }
+        
+        .roller-container {
+            background: white;
+            width: 90%;
+            max-width: 320px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .roller-wheels {
+            display: flex;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            padding: 0 20px;
+        }
+        
+        .wheel-mask {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(to bottom, white 0%, transparent 40%, transparent 60%, white 100%);
+            z-index: 10;
+        }
+
+        .wheel-selection-bar {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            right: 10px;
+            height: 40px;
+            transform: translateY(-50%);
+            background: rgba(0,122,255,0.05);
+            border-top: 0.5px solid rgba(0,122,255,0.1);
+            border-bottom: 0.5px solid rgba(0,122,255,0.1);
+            border-radius: 8px;
+            z-index: 5;
+        }
+
+        .wheel {
+            flex: 1;
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            z-index: 2;
+        }
+        .wheel::-webkit-scrollbar { display: none; }
+        
+        .wheel-item {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            scroll-snap-align: center;
+            font-size: 16px;
+            color: #8E8E93;
+            transition: all 0.2s;
+        }
+        .wheel-item.selected {
+            color: var(--ios-blue);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
+
+<!-- Casino Roller Overlay -->
+<div id="rollerOverlay" onclick="closeRoller()">
+    <div class="roller-container" onclick="event.stopPropagation()">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <button onclick="closeRoller()" class="text-gray-400 text-sm font-medium">取消</button>
+            <span class="font-bold text-gray-900">跳轉日期</span>
+            <button onclick="confirmRoller()" class="text-blue-500 text-sm font-bold">確認</button>
+        </div>
+        <div class="roller-wheels">
+            <div class="wheel-mask"></div>
+            <div class="wheel-selection-bar"></div>
+            <!-- Year Wheel -->
+            <div id="yearWheel" class="wheel" onscroll="handleWheelScroll('year')"></div>
+            <!-- Month Wheel -->
+            <div id="monthWheel" class="wheel" onscroll="handleWheelScroll('month')"></div>
+        </div>
+    </div>
+</div>
 
 <div id="loadingOverlay">
     <div class="text-center space-y-4">
@@ -162,7 +260,12 @@
             <div class="md:col-span-2 space-y-4">
                 <div class="ios-card p-5">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 id="monthLabel" class="font-bold text-lg text-gray-900"></h2>
+                        <div class="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform" onclick="openRoller()">
+                            <h2 id="monthLabel" class="font-bold text-lg text-gray-900"></h2>
+                            <div class="bg-blue-50 p-1 rounded-full text-blue-500">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </div>
+                        </div>
                         <div class="flex gap-1">
                             <button onclick="changeMonth(-1)" class="p-2 text-blue-500 active:bg-gray-100 rounded-full cursor-pointer"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
                             <button onclick="changeMonth(1)" class="p-2 text-blue-500 active:bg-gray-100 rounded-full cursor-pointer"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
@@ -191,7 +294,7 @@
     </main>
 </div>
 
-<!-- Updated Video Modal with fixed button logic and icons -->
+<!-- Video Modal -->
 <div id="videoModal" class="fixed right-0 left-0 bottom-0 z-[100] flex items-start justify-center">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeVideo()"></div>
     <div class="modal-container relative max-w-4xl bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
@@ -201,7 +304,6 @@
                 <span id="mDate" class="text-[11px] text-gray-400"></span>
             </div>
             <div class="flex items-center gap-2">
-                <!-- Red YouTube Icon Button -->
                 <button id="openAppBtn" class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center active:scale-90 cursor-pointer transition-transform shadow-sm">
                     <i data-lucide="external-link" class="w-4 h-4"></i>
                 </button>
@@ -229,6 +331,7 @@
 
     async function init() {
         lucide.createIcons();
+        initRollerWheels();
         try {
             const response = await fetch(CSV_URL);
             if (!response.ok) throw new Error('連線失敗');
@@ -247,22 +350,90 @@
         }
     }
 
+    // Casino Roller Logic
+    function initRollerWheels() {
+        const yearWheel = document.getElementById('yearWheel');
+        const monthWheel = document.getElementById('monthWheel');
+        
+        // Add padding items for smooth snapping
+        const years = [];
+        const currentY = new Date().getFullYear();
+        for(let y = currentY - 5; y <= currentY + 2; y++) years.push(y);
+
+        function populateWheel(el, data, suffix = "") {
+            el.innerHTML = '<div class="wheel-item"></div><div class="wheel-item"></div>'; // Top padding
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'wheel-item';
+                div.dataset.value = item;
+                div.innerText = item + suffix;
+                el.appendChild(div);
+            });
+            el.innerHTML += '<div class="wheel-item"></div><div class="wheel-item"></div>'; // Bottom padding
+        }
+
+        populateWheel(yearWheel, years, "年");
+        populateWheel(monthWheel, [1,2,3,4,5,6,7,8,9,10,11,12], "月");
+    }
+
+    function openRoller() {
+        document.getElementById('rollerOverlay').classList.add('show');
+        const y = currentDate.getFullYear();
+        const m = currentDate.getMonth();
+        
+        scrollToValue('yearWheel', y);
+        scrollToValue('monthWheel', m + 1);
+    }
+
+    function closeRoller() {
+        document.getElementById('rollerOverlay').classList.remove('show');
+    }
+
+    function scrollToValue(wheelId, val) {
+        const wheel = document.getElementById(wheelId);
+        const items = wheel.querySelectorAll('.wheel-item[data-value]');
+        let targetIndex = 0;
+        items.forEach((item, idx) => {
+            if(parseInt(item.dataset.value) === val) targetIndex = idx;
+        });
+        wheel.scrollTop = targetIndex * 40;
+        updateWheelHighlight(wheel);
+    }
+
+    function handleWheelScroll(type) {
+        const wheel = document.getElementById(type + 'Wheel');
+        clearTimeout(wheel.scrollTimer);
+        wheel.scrollTimer = setTimeout(() => updateWheelHighlight(wheel), 50);
+    }
+
+    function updateWheelHighlight(wheel) {
+        const index = Math.round(wheel.scrollTop / 40);
+        const items = wheel.querySelectorAll('.wheel-item[data-value]');
+        items.forEach((item, idx) => {
+            item.classList.toggle('selected', idx === index);
+        });
+    }
+
+    function confirmRoller() {
+        const year = parseInt(document.getElementById('yearWheel').querySelector('.wheel-item.selected').dataset.value);
+        const month = parseInt(document.getElementById('monthWheel').querySelector('.wheel-item.selected').dataset.value);
+        currentDate = new Date(year, month - 1, 1);
+        selectedDate = new Date(year, month - 1, 1);
+        render();
+        closeRoller();
+    }
+
     function parseCSV(csv) {
         if (!csv) return;
         const rows = csv.split(/\r?\n/);
         rows.forEach((line, index) => {
             if (index === 0 || !line.trim()) return; 
             const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
-            
             if (cols.length >= 2) {
                 const dateKey = parseDateKey(cols[0]);
                 if (dateKey) {
                     if (!recordingsData[dateKey]) recordingsData[dateKey] = [];
-                    recordingsData[dateKey].push({ 
-                        link: cols[1], 
-                        class: cols[2] || '其他', 
-                        raw: cols[0] 
-                    });
+                    recordingsData[dateKey].push({ link: cols[1], class: cols[2] || '其他', raw: cols[0] });
                 }
             }
         });
@@ -286,10 +457,7 @@
 
         const start = new Date(y, m, 1).getDay();
         const days = new Date(y, m + 1, 0).getDate();
-        for (let i = 0; i < start; i++) {
-            const empty = document.createElement('div');
-            grid.appendChild(empty);
-        }
+        for (let i = 0; i < start; i++) grid.appendChild(document.createElement('div'));
 
         for (let d = 1; d <= days; d++) {
             const dateObj = new Date(y, m, d);
@@ -301,11 +469,7 @@
             el.className = `calendar-day ${formatDate(selectedDate) === dStr ? 'active' : ''} ${hasRec ? 'has-recording' : ''}`;
             if (dStr === formatDate(new Date())) el.classList.add('today');
             el.innerHTML = `<span>${d}</span><div class="dot"></div>`;
-            el.onclick = (e) => {
-                e.stopPropagation();
-                selectedDate = new Date(y, m, d); 
-                render();
-            };
+            el.onclick = () => { selectedDate = new Date(y, m, d); render(); };
             grid.appendChild(el);
         }
         renderList();
@@ -321,10 +485,7 @@
         document.getElementById('recordCount').innerText = `${vids.length} 個項目`;
         document.getElementById('listTitle').innerText = selectedDate.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', weekday: 'short' });
 
-        if (!vids.length) {
-            document.getElementById('noData').classList.remove('hidden');
-            return;
-        }
+        if (!vids.length) { document.getElementById('noData').classList.remove('hidden'); return; }
         document.getElementById('noData').classList.add('hidden');
 
         vids.forEach(v => {
@@ -344,8 +505,7 @@
                     <h4 class="font-bold text-sm truncate text-gray-900">${v.class} 課程錄影</h4>
                     <p class="text-[10px] text-gray-400">點擊播放</p>
                 </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
-            `;
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>`;
             list.appendChild(card);
         });
         lucide.createIcons();
@@ -357,28 +517,16 @@
         document.getElementById('mTitle').innerText = `${v.class} 課程錄影`;
         document.getElementById('mClass').innerText = v.class;
         document.getElementById('mDate').innerText = v.raw;
-        
-        // Fix for open app button - explicitly re-assign listener
-        const openBtn = document.getElementById('openAppBtn');
-        openBtn.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(v.link, '_blank');
-        };
-        
-        const modal = document.getElementById('videoModal');
-        modal.classList.add('show');
+        document.getElementById('openAppBtn').onclick = () => window.open(v.link, '_blank');
+        document.getElementById('videoModal').classList.add('show');
         document.body.style.overflow = 'hidden';
         lucide.createIcons();
     }
 
     function closeVideo() {
-        const modal = document.getElementById('videoModal');
-        modal.classList.remove('show');
+        document.getElementById('videoModal').classList.remove('show');
         document.body.style.overflow = '';
-        setTimeout(() => {
-            document.getElementById('videoPlayer').innerHTML = '';
-        }, 500);
+        setTimeout(() => document.getElementById('videoPlayer').innerHTML = '', 500);
     }
 
     function filterByClass(cls) {
@@ -387,17 +535,9 @@
         render();
     }
 
-    function changeMonth(n) { 
-        currentDate.setMonth(currentDate.getMonth() + n); 
-        render(); 
-    }
-
-    function jumpToToday() {
-        selectedDate = new Date();
-        currentDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-        render();
-    }
-
+    function changeMonth(n) { currentDate.setMonth(currentDate.getMonth() + n); render(); }
+    function jumpToToday() { selectedDate = new Date(); currentDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1); render(); }
+    
     function jumpToLatest() {
         const dates = Object.keys(recordingsData).sort();
         if (dates.length) {
@@ -411,10 +551,7 @@
         render();
     }
 
-    function formatDate(d) { 
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; 
-    }
-
+    function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     function getYouTubeId(url) {
         if (!url) return '';
         const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]{11})/);
