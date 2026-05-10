@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Fundamental Exercise - Lumina Studio</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Lumina">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        :root {
+            --mint-deep: #064e3b;
+            --mint-primary: #10b981; 
+            --mint-bg: #f0fdf4;
+            --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1); 
+            --anim-slow: 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+            --anim-item: 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        html, body { 
+            height: 100dvh;
+            width: 100%;
+            margin: 0;
+            overflow: hidden; 
+            position: fixed; 
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .hero-full {
+            position: absolute;
+            inset: 0; 
+            width: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        #hero-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: saturate(1.2) brightness(1.05);
+            transition: transform var(--anim-slow), filter 0.8s;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
+            z-index: 5;
+        }
+
+        .hero-glass-panel {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 40px;
+            padding: 3.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+            max-width: 90%;
+            width: 540px;
+            display: flex; flex-direction: column; align-items: center;
+            transition: opacity var(--anim-os), transform var(--anim-os), visibility var(--anim-os);
+            z-index: 20;
+        }
+
+        .hero-content-wrapper {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .fade-exit-up { 
+            opacity: 0;
+            transform: translateY(-150px) scale(0.9);
+            visibility: hidden; 
+        }
+
+        .uniform-list-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1024px;
+            margin: 0 auto;
+            width: 100%;
+            padding-bottom: 80px;
+        }
+
+        .list-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.5);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .list-item-row:active {
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .list-item-row.is-locked {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+            background: rgba(241, 245, 249, 0.5);
+        }
+
+        .resource-drawer {
+            max-height: 0;
+            overflow: hidden;
+            background: #f1f5f9;
+            transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+            opacity: 0;
+            position: relative;
+        }
+        .resource-drawer.expanded {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        .resource-content-container {
+            width: 100%;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .resource-iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+        }
+        .resource-img {
+            width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+        }
+        .resource-collapse-bar {
+            width: 100%;
+            height: 48px;
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+        .resource-collapse-bar:hover { background: #0f172a;
+        }
+        .resource-collapse-bar span {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+        }
+        .resource-collapse-bar i {
+            font-size: 10px;
+            color: #10b981;
+            margin-right: 8px;
+            animation: bounceUp 1.5s infinite;
+        }
+
+        @keyframes bounceUp {
+            0%, 100% { transform: translateY(0);
+            }
+            50% { transform: translateY(-3px);
+            }
+        }
+
+        #page-loader {
+            position: fixed;
+            inset: 0; background-color: #ffffff; z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 1s ease;
+        }
+
+        #shutdown-overlay {
+            position: fixed;
+            inset: 0; background-color: #000; z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.8s ease;
+        }
+
+        .sync-spinning { animation: spin 1s linear infinite;
+        }
+        .sync-success { color: #10b981 !important; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);
+        } }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5);
+            opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1;
+            }
+            100% { transform: scale(1); opacity: 1;
+            }
+        }
+
+        .modal-window {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100dvh;
+            background: rgba(255, 255, 255, 0.65); 
+            backdrop-filter: blur(60px); 
+            -webkit-backdrop-filter: blur(60px);
+            transform: translateY(110vh);
+            z-index: 310;
+            display: none; opacity: 0; overflow: hidden;
+            transition: opacity var(--anim-os), transform var(--anim-os);
+        }
+
+        .modal-window.open { 
+            display: flex;
+            flex-direction: column; 
+            opacity: 1; 
+            transform: translateY(0);
+        }
+
+        .window-header {
+            padding: 0 12px;
+            display: flex; 
+            align-items: center;
+            background: rgba(255, 255, 255, 0.4); 
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            height: 54px;
+            gap: 8px;
+            flex-shrink: 0;
+            padding-top: env(safe-area-inset-top);
+            box-sizing: content-box;
+        }
+
+        .tab-strip {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            flex: 1;
+            overflow-x: auto;
+            height: 100%;
+            scrollbar-width: none;
+        }
+        .tab-strip::-webkit-scrollbar { display: none;
+        }
+
+        .browser-tab {
+            height: 38px;
+            min-width: 100px;
+            max-width: 180px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            margin-bottom: -1px;
+            border: 1px solid transparent;
+            border-bottom: none;
+        }
+
+        @media (max-width: 640px) {
+            .browser-tab {
+                min-width: 45px;
+                padding: 0 12px;
+                justify-content: center;
+            }
+            .tab-title {
+                display: none;
+            }
+        }
+
+        .browser-tab.active {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.02);
+            z-index: 2;
+        }
+
+        .tab-title {
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #4b5563;
+        }
+
+        .tab-close {
+            font-size: 10px;
+            opacity: 0.4;
+            transition: 0.2s;
+            padding: 4px;
+        }
+        .tab-close:hover { opacity: 1; color: #ef4444;
+        }
+        
+        .window-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 8px;
+        }
+
+        .toolbar-item {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #4b5563;
+            font-size: 14px;
+            transition: 0.3s;
+            cursor: pointer;
+            background: rgba(0,0,0,0.03);
+        }
+        .toolbar-item:hover { background: rgba(0,0,0,0.08); transform: scale(1.1);
+        }
+        .toolbar-item.btn-shutdown:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444;
+        }
+        .toolbar-item.btn-logout:hover { background: rgba(59, 130, 246, 0.1); color: #3b82f6;
+        }
+
+        .grade-badge {
+            background: #10b981;
+            color: white;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+            display: none;
+        }
+
+        .window-body { 
+            flex: 1;
+            width: 100%; 
+            background: transparent; 
+            position: relative; 
+            overflow-y: auto;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .win-content-page {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+        .win-content-page.active { display: block;
+        }
+
+        #custom-alert {
+            position: fixed;
+            top: calc(100px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-200px);
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px);
+            padding: 14px 28px;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); z-index: 2000;
+            display: flex; align-items: center; gap: 12px;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #custom-alert.show { transform: translateX(-50%) translateY(0);
+        }
+
+        /* 增強後的成功與驗證視窗 (iOS 風格) */
+        #auth-overlay {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
+            padding: 40px 50px;
+            border-radius: 35px;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.15);
+            z-index: 2100;
+            display: none; flex-direction: column; align-items: center;
+            gap: 24px;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            min-width: 280px;
+        }
+        #auth-overlay.show { opacity: 1; transform: translate(-50%, -50%) scale(1); display: flex; }
+        
+        #auth-icon-container {
+            width: 72px; height: 72px; /* 固定寬高確保正圓 */
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            transition: 0.4s;
+            flex-shrink: 0; /* 防止被擠壓 */
+        }
+        .auth-loading-icon { color: #10b981; animation: spin 1.2s linear infinite; }
+        .auth-success-icon { background: #10b981; color: white; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .login-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #374151;
+            outline: none;
+            transition: 0.3s;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .login-input::placeholder { color: #9ca3af; font-weight: 400; text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .login-input:focus { background: rgba(255, 255, 255, 0.5); border-color: #10b981;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="shutdown-overlay">
+        <i class="fas fa-spinner sync-spinning text-white text-4xl mb-6"></i>
+        <p class="text-white text-xs tracking-[0.4em] font-medium uppercase animate-pulse">系統正在關機中...</p>
+    </div>
+
+    <div id="page-loader">
+        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
+        <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在與雲端同步數據...</p>
+    </div>
+
+    <!-- 驗證/成功視窗 (iOS Window) -->
+    <div id="auth-overlay">
+        <div id="auth-icon-container">
+            <i id="auth-main-icon" class="fas fa-spinner auth-loading-icon"></i>
+        </div>
+        <div class="text-center">
+            <h2 id="auth-title" class="text-lg font-bold text-gray-800 tracking-widest uppercase mb-1">正在驗證</h2>
+            <p id="auth-subtitle" class="text-[10px] font-medium text-gray-400 uppercase tracking-[0.3em]">請稍候片刻</p>
+        </div>
+    </div>
+
+    <div id="custom-alert">
+        <i class="fas fa-info-circle text-emerald-500"></i>
+        <span id="alert-text" class="text-xs font-bold text-gray-600 uppercase tracking-widest"></span>
+    </div>
+
+    <div id="main-browser-window" class="modal-window">
+        <div class="window-header">
+            <div id="browser-tab-strip" class="tab-strip"></div>
+            <div class="window-toolbar">
+                <div id="user-grade-display" class="grade-badge">GRADUATED</div>
+                <div class="toolbar-item" onclick="openHomeFolder()"><i class="fas fa-th-list"></i></div>
+                <div class="toolbar-item" onclick="manualRefresh()"><i id="win-cloud-icon" class="fas fa-cloud"></i></div>
+                <div class="w-[1px] h-4 bg-gray-300 mx-1"></div>
+                <div class="toolbar-item btn-logout" onclick="handleLogout()" title="登出"><i class="fas fa-sign-out-alt"></i></div>
+                <div class="toolbar-item btn-shutdown" onclick="handleSystemShutdown()" title="關機"><i class="fas fa-power-off"></i></div>
+            </div>
+        </div>
+        <div id="browser-window-body" class="window-body"></div>
+    </div>
+
+    <section class="hero-full">
+        <img id="hero-bg" src="">
+        <div class="hero-overlay"></div>
+        <div class="hero-content-wrapper text-center">
+            <div id="hero-main-content" class="hero-glass-panel">
+                <div class="mb-8 flex flex-col items-center gap-4">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-14 w-14 drop-shadow-sm">
+                    <div class="h-[1px] w-10 bg-emerald-500/20"></div>
+                </div>
+                <h1 id="hero-title" class="text-3xl md:text-4xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;"></h1>
+                <p id="hero-subtitle" class="text-xl md:text-xl font-bold tracking-[1em] mb-6 uppercase pl-[1em] opacity-80"></p>
+                
+                <div class="w-full max-w-[320px] mb-6">
+                    <input type="text" id="login-username" class="login-input" placeholder="Username" autocomplete="off">
+                    <input type="password" id="login-password" class="login-input" placeholder="Password" autocomplete="new-password">
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <button onclick="handleLoginAndBrowse()" class="px-16 py-4 font-black rounded-full text-[10px] tracking-[0.5em] uppercase shadow-sm transition-all transform active:scale-95 bg-white/20 backdrop-blur-md border border-white/40">
+                        Login & Browse
+                    </button>
+                    <div class="flex items-center justify-center gap-2 mt-2">
+                        <button onclick="manualRefresh()" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-lg border border-white/30 text-emerald-600/80 hover:bg-white/20 transition-all active:scale-90">
+                            <i id="hero-cloud-icon" class="fas fa-cloud"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyD-OWFI0YLPKm9XSrujlJHurzmyU6clU_hdGqKsEfhAhTKBOnfE0XtExeHXmE9rdY/exec';
+        const SPREADSHEET_ID_HERO = '1-JB2srNidbjg3Kf15rzaGmSwRp5O6SnR_xoWmuYY0Mg';
+        const HERO_DATA_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID_HERO}/gviz/tq?tqx=out:csv&sheet=VOL1A`;
+
+        let rawDataRows = [];
+        let hwList = [];
+        let isSyncing = false;
+        let openTabs = [];
+        let activeTabId = null;
+        let currentUserGrade = null;
+
+        function parseCSV(text) {
+            const rows = [];
+            let currentRow = [];
+            let currentField = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i+1];
+                if (inQuotes) {
+                    if (char === '"' && nextChar === '"') { currentField += '"'; i++; }
+                    else if (char === '"') { inQuotes = false; }
+                    else { currentField += char; }
+                } else {
+                    if (char === '"') { inQuotes = true; }
+                    else if (char === ',') { currentRow.push(currentField); currentField = ''; }
+                    else if (char === '\r' || char === '\n') {
+                        currentRow.push(currentField);
+                        if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) rows.push(currentRow);
+                        currentRow = []; currentField = '';
+                        if (char === '\r' && nextChar === '\n') i++;
+                    } else { currentField += char; }
+                }
+            }
+            if (currentField || currentRow.length > 0) { currentRow.push(currentField); rows.push(currentRow); }
+            return rows;
+        }
+
+        function checkAppleDevice() {
+            const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || /Macintosh/.test(navigator.userAgent);
+            if (isApple) document.body.classList.add('is-ios');
+        }
+
+        async function loadSheetData(isManual = false) {
+            if (isSyncing) return;
+            isSyncing = true;
+            const cloudIcons = [document.getElementById('hero-cloud-icon'), document.getElementById('win-cloud-icon')];
+            if (isManual) cloudIcons.forEach(i => { if(i) i.className = 'fas fa-spinner sync-spinning'; });
+            try {
+                const heroRes = await fetch(HERO_DATA_URL);
+                const heroText = await heroRes.text();
+                const heroRows = parseCSV(heroText);
+                applyHeroData(heroRows);
+                if (currentUserGrade) { await fetchHwData(); }
+
+                if (isManual) {
+                    cloudIcons.forEach(i => { if(i) i.className = 'fas fa-check sync-success'; });
+                    setTimeout(() => { cloudIcons.forEach(i => { if(i) i.className = 'fas fa-cloud'; }); isSyncing = false; }, 2000);
+                } else {
+                    setTimeout(() => {
+                        document.getElementById('page-loader').style.opacity = '0';
+                        setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; isSyncing = false; }, 1000);
+                    }, 800);
+                }
+            } catch (error) { 
+                console.error(error);
+                isSyncing = false;
+                showAlert("同步失敗，請檢查網路連線");
+            }
+        }
+
+        async function fetchHwData() {
+            try {
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=getTopic&topicId=VOL1A`);
+                const result = await response.json();
+                if (result.result === 'success') {
+                    rawDataRows = result.data;
+                    updateHwList();
+                }
+            } catch (e) {
+                console.error("Fetch HW Error:", e);
+            }
+        }
+
+        function applyHeroData(heroRows) {
+            heroRows.forEach(row => {
+                if (row[0] === 'HEROSECTION') {
+                    if (row[1] === 'CONTENT_1') document.getElementById('hero-title').innerText = row[4];
+                    if (row[1] === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = row[4];
+                    if (row[1] === 'PHOTO') document.getElementById('hero-bg').src = row[4];
+                }
+            });
+        }
+
+        function updateHwList() {
+            const tempHW = [];
+            const seen = new Set();
+            rawDataRows.forEach(row => {
+                if (row[0] && row[0].toString().startsWith('HW') && !seen.has(row[0])) {
+                    seen.add(row[0]);
+                    const permission = (row[3] || '').toString().trim().toUpperCase();
+                    tempHW.push({ id: row[0], permission: permission });
+                }
+            });
+            hwList = tempHW.sort((a, b) => a.id.localeCompare(b.id));
+        }
+
+        function hasHwPermission(permission) {
+            if (!currentUserGrade) return false;
+            const p = (permission || '').trim().toUpperCase();
+            const u = currentUserGrade.toUpperCase();
+            if (u === 'TEACHER') return true;
+            if (p === 'ACTIVE' || p === '' || p === 'GUEST') return true;
+            if (p === 'NIL') return false;
+            const allowedGrades = p.split(',').map(g => g.trim().toUpperCase());
+            return allowedGrades.includes(u);
+        }
+
+        async function handleLoginAndBrowse() {
+            const userIn = document.getElementById('login-username').value.trim();
+            const passIn = document.getElementById('login-password').value; 
+            if (!userIn || !passIn) { showAlert("請輸入帳號與密碼"); return; }
+            
+            const authOverlay = document.getElementById('auth-overlay');
+            const authIcon = document.getElementById('auth-main-icon');
+            const authIconContainer = document.getElementById('auth-icon-container');
+            const authTitle = document.getElementById('auth-title');
+            const authSubtitle = document.getElementById('auth-subtitle');
+
+            authIcon.className = "fas fa-spinner auth-loading-icon";
+            authIconContainer.className = "w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500";
+            authTitle.innerText = "正在驗證";
+            authSubtitle.innerText = "請稍候片刻";
+            authOverlay.style.display = 'flex';
+            setTimeout(() => authOverlay.classList.add('show'), 10);
+
+            try {
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=login&user=${encodeURIComponent(userIn)}&pass=${encodeURIComponent(passIn)}`);
+                const result = await response.json();
+                
+                if (result.result === 'success') {
+                    currentUserGrade = result.role;
+                    await fetchHwData();
+
+                    authIcon.className = "fas fa-check";
+                    authIconContainer.classList.add('auth-success-icon', 'shadow-xl');
+                    authTitle.innerText = "驗證成功";
+                    authSubtitle.innerText = `歡迎進入 (${currentUserGrade})`;
+
+                    const badge = document.getElementById('user-grade-display');
+                    badge.innerText = currentUserGrade;
+                    badge.style.display = 'block';
+
+                    setTimeout(() => {
+                        authOverlay.classList.remove('show');
+                        setTimeout(() => { 
+                            authOverlay.style.display = 'none';
+                            openHomeFolder(); 
+                        }, 600);
+                    }, 1500);
+
+                } else {
+                    authOverlay.classList.remove('show');
+                    setTimeout(() => { 
+                        authOverlay.style.display = 'none';
+                        showAlert("帳號或密碼錯誤");
+                    }, 600);
+                }
+            } catch (e) {
+                authOverlay.classList.remove('show');
+                setTimeout(() => { 
+                    authOverlay.style.display = 'none';
+                    showAlert("登入連線失敗");
+                }, 600);
+            }
+        }
+
+        function handleLogout() {
+            currentUserGrade = null;
+            document.getElementById('login-username').value = "";
+            document.getElementById('login-password').value = "";
+            document.getElementById('user-grade-display').style.display = 'none';
+            closeAllTabs();
+        }
+
+        function handleSystemShutdown() {
+            const overlay = document.getElementById('shutdown-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+            setTimeout(() => { window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html"; }, 2500);
+        }
+
+        function manualRefresh() { loadSheetData(true); }
+        function openHomeFolder() { openTab("Browse ALL", "FOLDER"); }
+
+        function renderHomeFolder(containerId) {
+            const body = document.getElementById(containerId);
+            body.innerHTML = '';
+            const listWrapper = document.createElement('div');
+            listWrapper.className = 'uniform-list-container';
+            hwList.forEach(hw => {
+                const isAllowed = hasHwPermission(hw.permission);
+                const row = document.createElement('div');
+                row.className = `list-item-row ${!isAllowed ? 'is-locked' : ''}`;
+                row.onclick = () => {
+                    if (isAllowed) openTab(hw.id, 'HW');
+                    else showAlert(`權限不足 (需要: ${hw.permission})`);
+                };
+                row.innerHTML = `
+                    <div class="flex items-center gap-5">
+                        <div class="w-10 h-10 rounded-2xl ${isAllowed ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'} flex items-center justify-center">
+                            <i class="fas ${isAllowed ? 'fa-layer-group' : 'fa-lock'} text-sm"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[13px] font-black ${isAllowed ? 'text-gray-800' : 'text-gray-400'} tracking-widest uppercase">${hw.id}</span>
+                            <span class="text-[9px] font-medium text-gray-400 tracking-wider uppercase">${isAllowed ? '練習系列' : '受限內容'}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 ${isAllowed ? 'text-emerald-500' : 'text-gray-300'}">
+                        <span class="text-[10px] font-bold tracking-widest uppercase">${isAllowed ? 'ENTER' : 'LOCKED'}</span>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
+                    </div>
+                `;
+                listWrapper.appendChild(row);
+            });
+            body.appendChild(listWrapper);
+        }
+
+        function openTab(title, type, contentUrl = null) {
+            const id = type === 'FOLDER' ? 'HOME_FOLDER' : type + "_" + title.replace(/\s+/g, '_');
+            const existing = openTabs.find(t => t.id === id);
+            if (existing) { switchTab(id); return; }
+            const newTab = { id, title, type, contentUrl };
+            openTabs.push(newTab);
+            const body = document.getElementById('browser-window-body');
+            const page = document.createElement('div');
+            page.id = `page-${id}`;
+            page.className = 'win-content-page';
+            page.innerHTML = `<div id="content-${id}" class="w-full h-full flex flex-col p-0 overflow-y-auto"></div>`;
+            
+            body.appendChild(page);
+            if (type === 'HW') renderHWContent(title, `content-${id}`);
+            if (type === 'FOLDER') renderHomeFolder(`content-${id}`);
+            renderTabs();
+            switchTab(id);
+            const win = document.getElementById('main-browser-window');
+            win.style.display = 'flex';
+            document.getElementById('hero-main-content').classList.add('fade-exit-up');
+            setTimeout(() => { win.classList.add('open'); }, 80);
+        }
+
+        function renderTabs() {
+            const strip = document.getElementById('browser-tab-strip');
+            strip.innerHTML = '';
+            openTabs.forEach(tab => {
+                const el = document.createElement('div');
+                el.className = `browser-tab ${activeTabId === tab.id ? 'active' : ''}`;
+                el.onclick = () => switchTab(tab.id);
+                let iconClass = 'fa-file-alt text-emerald-500';
+                if (tab.type === 'FOLDER') iconClass = 'fa-th-list text-emerald-500';
+                if (tab.type === 'PIC') iconClass = 'fa-image text-blue-500';
+                if (tab.type === 'PDF') iconClass = 'fa-file-pdf text-orange-500';
+                el.innerHTML = `<i class="fas ${iconClass} text-[10px]"></i><span class="tab-title">${tab.title}</span><i class="fas fa-times tab-close" onclick="event.stopPropagation(); closeTab('${tab.id}')"></i>`;
+                strip.appendChild(el);
+            });
+        }
+
+        function switchTab(id) {
+            activeTabId = id;
+            document.querySelectorAll('.win-content-page').forEach(p => p.classList.remove('active'));
+            const activePage = document.getElementById(`page-${id}`);
+            if (activePage) activePage.classList.add('active');
+            renderTabs();
+        }
+
+        function closeTab(id) {
+            const index = openTabs.findIndex(t => t.id === id);
+            if (index === -1) return;
+            openTabs.splice(index, 1);
+            const pageEl = document.getElementById(`page-${id}`);
+            if (pageEl) pageEl.remove();
+            if (openTabs.length === 0) closeAllTabs();
+            else {
+                if (activeTabId === id) switchTab(openTabs[Math.max(0, index - 1)].id);
+                else renderTabs();
+            }
+        }
+
+        function closeAllTabs() {
+            openTabs = [];
+            activeTabId = null;
+            const win = document.getElementById('main-browser-window');
+            win.classList.remove('open');
+            document.getElementById('hero-main-content').classList.remove('fade-exit-up');
+            setTimeout(() => { 
+                win.style.display = 'none'; 
+                document.getElementById('browser-window-body').innerHTML = '';
+            }, 1200);
+        }
+
+        function renderHWContent(hwName, containerId) {
+            const body = document.getElementById(containerId);
+            body.innerHTML = ''; 
+            const hwData = rawDataRows.filter(row => row[0] === hwName);
+            const hwDefaultPermission = hwData[0] ? hwData[0][3] : '';
+            if (!hwData.length) { body.innerHTML = `<div class="p-10 text-center opacity-50 uppercase tracking-widest text-xs">Waiting for Content Update</div>`; return; }
+            const list = document.createElement('div');
+            list.className = 'uniform-list-container';
+            hwData.filter(row => row[1] === 'QUESTION').forEach((row, idx) => {
+                const subType = row[2];
+                const itemPermission = row[3] || hwDefaultPermission;
+                const isAllowed = hasHwPermission(itemPermission);
+                const fileUrl = row[4] || '';
+                const safeId = (hwName + subType + idx).replace(/\s+/g, '');
+                const title = subType === 'PIC' ? '查看圖片題目' : '查看 PDF 題目';
+                const icon = subType === 'PIC' ? 'fa-image' : 'fa-file-pdf';
+                const iconColor = isAllowed ? (subType === 'PIC' ? 'text-blue-500' : 'text-orange-500') : 'text-gray-300';
+                
+                const rowContainer = document.createElement('div');
+                rowContainer.className = 'flex flex-col';
+                const rowEl = document.createElement('div');
+                rowEl.className = `list-item-row ${!isAllowed ? 'is-locked' : 'bg-emerald-50/10'}`;
+            
+                rowEl.innerHTML = `
+                    <div class="flex items-center gap-5">
+                        <i class="fas ${isAllowed ? icon : 'fa-lock'} ${iconColor} text-lg"></i>
+                        <span class="text-[13px] font-extrabold ${isAllowed ? 'text-gray-800' : 'text-gray-400'} uppercase tracking-widest">${title}</span>
+                    </div>
+                    <div class="flex items-center gap-2 ${isAllowed ? 'text-emerald-600' : 'text-gray-300'}">
+                        <span class="text-[9px] font-bold uppercase tracking-widest">${isAllowed ? 'EXPAND' : 'LOCKED'}</span>
+                        <i class="fas ${isAllowed ? 'fa-chevron-down' : 'fa-lock'} text-[10px]"></i>
+                    </div>
+                `;
+                const drawer = document.createElement('div');
+                drawer.id = `drawer-${safeId}`;
+                drawer.className = 'resource-drawer resource-drawer-question';
+
+                const toggleResource = (e) => {
+                    if (e) e.stopPropagation();
+                    if (!isAllowed) { showAlert(`權限不足 (需要: ${itemPermission})`); return; }
+                    if (!fileUrl) { showAlert('尚未配置檔案連結'); return; }
+                    if (drawer.classList.contains('expanded')) {
+                        drawer.classList.remove('expanded');
+                        setTimeout(() => { drawer.innerHTML = ''; }, 600);
+                    } else {
+                        document.querySelectorAll('.resource-drawer-question.expanded').forEach(d => {
+                            if (d !== drawer) { d.classList.remove('expanded'); setTimeout(() => { d.innerHTML = ''; }, 600); }
+                        });
+                        const contentHtml = subType === 'PIC' ? `<img src="${fileUrl}" class="resource-img">` : `<iframe src="${fileUrl}" class="resource-iframe"></iframe>`;
+                        drawer.innerHTML = `
+                            <div class="resource-content-container">
+                                ${contentHtml}
+                                <div class="resource-collapse-bar" onclick="event.stopPropagation(); document.getElementById('drawer-${safeId}').classList.remove('expanded'); setTimeout(()=>document.getElementById('drawer-${safeId}').innerHTML='',600)">
+                                    <i class="fas fa-chevron-up"></i>
+                                    <span>收回資源 COLLAPSE</span>
+                                </div>
+                            </div>
+                        `;
+                        drawer.classList.add('expanded');
+                    }
+                };
+                rowEl.onclick = toggleResource;
+                rowContainer.appendChild(rowEl);
+                rowContainer.appendChild(drawer);
+                list.appendChild(rowContainer);
+            });
+            
+            hwData.filter(row => row[1] === 'VIDEOS').forEach((row, idx) => {
+                const tag = row[2] || 'UNIT';
+                const itemPermission = row[3] || hwDefaultPermission;
+                const isAllowed = hasHwPermission(itemPermission);
+                const videoUrl = row[4] || '';
+                const safeId = (hwName + 'VID' + idx).replace(/\s+/g, '');
+                
+                const rowContainer = document.createElement('div');
+                rowContainer.className = 'flex flex-col';
+                const rowEl = document.createElement('div');
+                rowEl.className = `list-item-row ${!isAllowed ? 'is-locked' : ''}`;
+                rowEl.innerHTML = `
+                    <div class="flex items-center gap-5">
+                        <i class="fas ${isAllowed ? 'fa-play-circle' : 'fa-lock'} ${isAllowed ? 'text-emerald-500/70' : 'text-gray-300'} text-lg"></i>
+                        <span class="text-[13px] font-bold ${isAllowed ? 'text-gray-700' : 'text-gray-400'} uppercase tracking-widest">${tag}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isAllowed ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 active:scale-90' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}" id="btn-play-${safeId}">
+                            <i class="fas ${isAllowed ? 'fa-play' : 'fa-lock'} ${isAllowed ? 'ml-0.5' : ''} text-[11px]"></i>
+                        </button>
+                    </div>
+                `;
+
+                const drawer = document.createElement('div');
+                drawer.id = `drawer-${safeId}`;
+                drawer.className = 'resource-drawer resource-drawer-video'; 
+                
+                const toggleVideo = (e) => {
+                    if (e) e.stopPropagation();
+                    if (!isAllowed) { showAlert(`權限不足 (需要: ${itemPermission})`); return; }
+                    if (!videoUrl) { showAlert('尚未配置連結'); return; }
+                    if (drawer.classList.contains('expanded')) {
+                        drawer.classList.remove('expanded');
+                        setTimeout(() => { drawer.innerHTML = ''; }, 600);
+                    } else {
+                        document.querySelectorAll('.resource-drawer-video.expanded').forEach(d => {
+                            if (d !== drawer) { d.classList.remove('expanded'); setTimeout(() => { d.innerHTML = ''; }, 600); }
+                        });
+                        let embed = videoUrl.includes('watch?v=') ? videoUrl.replace('watch?v=', 'embed/') : videoUrl.replace('youtu.be/', 'youtube.com/embed/');
+                        drawer.innerHTML = `
+                            <div class="resource-content-container" style="background:#000;">
+                                <div style="width:100%; aspect-ratio:16/9;">
+                                    <iframe class="w-full h-full" src="${embed}${embed.includes('?') ? '&' : '?'}playsinline=1&autoplay=1" frameborder="0" allow="autoplay; fullscreen"></iframe>
+                                </div>
+                                <div class="resource-collapse-bar" onclick="event.stopPropagation(); document.getElementById('drawer-${safeId}').classList.remove('expanded'); setTimeout(()=>document.getElementById('drawer-${safeId}').innerHTML='',600)">
+                                    <i class="fas fa-chevron-up"></i>
+                                    <span>收回影片 COLLAPSE</span>
+                                </div>
+                            </div>
+                        `;
+                        drawer.classList.add('expanded');
+                    }
+                };
+                rowEl.onclick = toggleVideo;
+                rowContainer.appendChild(rowEl);
+                rowContainer.appendChild(drawer);
+                list.appendChild(rowContainer);
+
+                setTimeout(() => {
+                    const playBtn = document.getElementById(`btn-play-${safeId}`);
+                    if (playBtn) playBtn.onclick = toggleVideo;
+                }, 0);
+            });
+            body.appendChild(list);
+        }
+
+        function showAlert(text) { 
+            const alert = document.getElementById('custom-alert');
+            document.getElementById('alert-text').innerText = text; alert.classList.add('show'); 
+            setTimeout(() => alert.classList.remove('show'), 3000); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAppleDevice();
+            loadSheetData(false);
+        });
+    </script>
+</body>
+</html>
