@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-width=1.0, user-scalable=no">
     <title>LESSON ARCHIVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,6 +21,55 @@
             overflow-x: hidden;
         }
 
+        /* 登入介面樣式 */
+        #loginOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: #F2F2F7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .login-card {
+            background: white;
+            padding: 32px;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        .ios-input {
+            width: 100%;
+            background: #F2F2F7;
+            border: none;
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+        .ios-btn {
+            width: 100%;
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .ios-btn:active { transform: scale(0.96); opacity: 0.9; }
+
+        /* 導航與膠囊按鈕 */
         .capsule-container {
             background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(10px);
@@ -33,16 +81,15 @@
             border: 0.5px solid rgba(0,0,0,0.05);
         }
         .capsule-item {
-            flex: 1;
-            padding: 8px 12px;
+            flex: none;
+            padding: 8px 16px;
             font-size: 13px;
             font-weight: 500;
             border-radius: 999px;
             color: #3A3A3C;
-            transition: all 0.2s;
-            text-align: center;
             white-space: nowrap;
             cursor: pointer;
+            transition: all 0.2s;
         }
         .capsule-item.active {
             background: white;
@@ -50,7 +97,9 @@
             color: black;
             font-weight: 700;
         }
+        .capsule-item.back-btn { color: var(--ios-blue); background: rgba(0, 122, 255, 0.08); }
 
+        /* 日曆樣式 */
         .calendar-day {
             aspect-ratio: 1/1;
             border-radius: 50%;
@@ -61,13 +110,9 @@
             font-size: 14px;
             position: relative;
             cursor: pointer;
-            transition: transform 0.1s;
-            z-index: 10;
         }
-        .calendar-day:active { transform: scale(0.9); }
         .calendar-day.active { background-color: var(--ios-blue); color: white; }
         .calendar-day.today { color: var(--ios-blue); font-weight: 800; border: 1px solid rgba(0,122,255,0.2); }
-        
         .dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; background: transparent; }
         .has-recording .dot { background: #C7C7CC; }
         .active .dot { background: white !important; }
@@ -77,160 +122,97 @@
             border-radius: var(--radius-main);
             border: 0.5px solid rgba(0,0,0,0.1);
             position: relative;
-            z-index: 5;
         }
 
-        #loadingOverlay {
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: #F2F2F7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.4s ease, visibility 0.4s;
-        }
-        
-        #loadingOverlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        /* iOS-style Video Modal Animation */
+        /* 影片彈窗 */
         #videoModal {
-            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+            transition: opacity 0.5s;
             opacity: 0;
             visibility: hidden;
             top: var(--nav-height); 
+            z-index: 100;
         }
-        #videoModal.show {
-            opacity: 1;
-            visibility: visible;
-        }
+        #videoModal.show { opacity: 1; visibility: visible; }
         #videoModal .modal-container {
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             transform: translateY(100%);
-            max-height: calc(100vh - var(--nav-height));
             width: 100%;
         }
-        #videoModal.show .modal-container {
-            transform: translateY(0);
-        }
+        #videoModal.show .modal-container { transform: translateY(0); }
 
-        /* Casino Roller Custom Picker */
+        /* 滾輪樣式 */
         #rollerOverlay {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.4);
             backdrop-filter: blur(4px);
-            z-index: 200;
+            z-index: 2100;
             display: none;
             align-items: center;
             justify-content: center;
         }
         #rollerOverlay.show { display: flex; }
-        
-        .roller-container {
-            background: white;
-            width: 90%;
-            max-width: 320px;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        
-        .roller-wheels {
-            display: flex;
-            height: 200px;
-            position: relative;
-            overflow: hidden;
-            padding: 0 20px;
-        }
-        
-        .wheel-mask {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background: linear-gradient(to bottom, white 0%, transparent 40%, transparent 60%, white 100%);
-            z-index: 10;
-        }
-
-        .wheel-selection-bar {
-            position: absolute;
-            top: 50%;
-            left: 10px;
-            right: 10px;
-            height: 40px;
-            transform: translateY(-50%);
-            background: rgba(0,122,255,0.05);
-            border-top: 0.5px solid rgba(0,122,255,0.1);
-            border-bottom: 0.5px solid rgba(0,122,255,0.1);
-            border-radius: 8px;
-            z-index: 5;
-        }
-
-        .wheel {
-            flex: 1;
-            height: 100%;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            z-index: 2;
-        }
+        .roller-container { background: white; width: 90%; max-width: 320px; border-radius: 20px; overflow: hidden; }
+        .roller-wheels { display: flex; height: 200px; position: relative; overflow: hidden; padding: 0 20px; }
+        .wheel { flex: 1; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
         .wheel::-webkit-scrollbar { display: none; }
-        
-        .wheel-item {
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            scroll-snap-align: center;
-            font-size: 16px;
-            color: #8E8E93;
-            transition: all 0.2s;
-        }
-        .wheel-item.selected {
-            color: var(--ios-blue);
-            font-weight: 700;
-            font-size: 18px;
-        }
+        .wheel-item { height: 40px; display: flex; align-items: center; justify-content: center; scroll-snap-align: center; color: #8E8E93; }
+        .wheel-item.selected { color: var(--ios-blue); font-weight: 700; font-size: 18px; }
 
+        /* 篩選器動畫 */
+        .year-filter-expand {
+            max-height: 0; opacity: 0; overflow: hidden; transition: all 0.5s;
+        }
+        .year-filter-expand.show { max-height: 48px; opacity: 1; margin-top: 4px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .filter-slide-out { transform: translateX(-20px); opacity: 0; pointer-events: none; }
+        .filter-slide-in { transform: translateX(20px); opacity: 0; }
     </style>
 </head>
 <body>
 
-<!-- Casino Roller Overlay -->
+<!-- 登入頁面 -->
+<div id="loginOverlay">
+    <div class="login-card" id="loginCard">
+        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-20 h-20 mx-auto mb-6">
+        <h2 class="text-2xl font-bold mb-1">Lesson Archive</h2>
+        <p class="text-xs text-gray-400 mb-8">請登入以存取雲端課堂錄影資料庫</p>
+        
+        <div id="loginForm">
+            <input type="text" id="username" class="ios-input" placeholder="帳號">
+            <input type="password" id="password" class="ios-input" placeholder="密碼">
+            <p id="loginError" class="text-red-500 text-[11px] mb-4 hidden"></p>
+            <button onclick="handleLogin()" id="loginBtn" class="ios-btn">
+                <span>登入存取</span>
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <div id="syncStatus" class="hidden py-4 space-y-4">
+            <div class="flex flex-col items-center gap-3">
+                <div class="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                <span id="syncText" class="text-sm font-medium text-gray-500">正在驗證身份...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 滾輪選擇器 -->
 <div id="rollerOverlay" onclick="closeRoller()">
     <div class="roller-container" onclick="event.stopPropagation()">
-        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <button onclick="closeRoller()" class="text-gray-400 text-sm font-medium">取消</button>
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
+            <button onclick="closeRoller()" class="text-gray-400 text-sm">取消</button>
             <span class="font-bold text-gray-900">跳轉日期</span>
             <button onclick="confirmRoller()" class="text-blue-500 text-sm font-bold">確認</button>
         </div>
         <div class="roller-wheels">
-            <div class="wheel-mask"></div>
-            <div class="wheel-selection-bar"></div>
-            <!-- Year Wheel -->
             <div id="yearWheel" class="wheel" onscroll="handleWheelScroll('year')"></div>
-            <!-- Month Wheel -->
             <div id="monthWheel" class="wheel" onscroll="handleWheelScroll('month')"></div>
         </div>
     </div>
 </div>
 
-<div id="loadingOverlay">
-    <div class="text-center space-y-4">
-        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mx-auto">
-        <div id="loadingStatus" class="flex items-center gap-2 text-gray-400">
-            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-            <span>正在連線至雲端...</span>
-        </div>
-    </div>
-</div>
-
+<!-- 主要內容 -->
 <div id="mainContent" class="hidden pb-10">
     <nav class="sticky top-0 z-40 px-4 h-14 flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-black/5">
         <div class="flex items-center gap-2">
@@ -239,271 +221,269 @@
         </div>
         <div id="statusBadge" class="flex items-center gap-1 text-blue-500 font-semibold text-xs bg-blue-50 px-2 py-1 rounded-full">
             <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
-            <i data-lucide="check" class="w-3 h-3 -ml-1"></i>
             <span>已同步</span>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 space-y-6">
-        <div class="capsule-container overflow-x-auto no-scrollbar">
-            <button onclick="filterByClass('全部')" class="capsule-item active">全部</button>
+    <main class="max-w-4xl mx-auto p-4 space-y-4">
+        <div id="classFilter" class="capsule-container overflow-x-auto no-scrollbar">
+            <button onclick="filterByClass('全部')" class="capsule-item active">全部年級</button>
             <button onclick="filterByClass('S3A')" class="capsule-item">S3A</button>
             <button onclick="filterByClass('S3B')" class="capsule-item">S3B</button>
             <button onclick="filterByClass('S3C')" class="capsule-item">S3C</button>
-            <button onclick="filterByClass('S3D')" class="capsule-item">S3D</button>
             <button onclick="filterByClass('S4')" class="capsule-item">S4</button>
             <button onclick="filterByClass('S5')" class="capsule-item">S5</button>
             <button onclick="filterByClass('S6')" class="capsule-item">S6</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <div class="md:col-span-2 space-y-4">
+        <div id="topicFilterWrapper" class="relative overflow-hidden h-12">
+            <div id="topicFilter" class="capsule-container overflow-x-auto no-scrollbar absolute inset-0"></div>
+        </div>
+
+        <div id="yearFilterWrapper" class="year-filter-expand relative h-12">
+            <div id="yearFilter" class="capsule-container overflow-x-auto no-scrollbar absolute inset-0"></div>
+        </div>
+
+        <div id="contentGrid" class="grid grid-cols-1 md:grid-cols-5 gap-6 pt-2">
+            <div id="calendarSection" class="md:col-span-2 space-y-4">
                 <div class="ios-card p-5">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform" onclick="openRoller()">
                             <h2 id="monthLabel" class="font-bold text-lg text-gray-900"></h2>
-                            <div class="bg-blue-50 p-1 rounded-full text-blue-500">
-                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
-                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-blue-500"></i>
                         </div>
                         <div class="flex gap-1">
-                            <button onclick="changeMonth(-1)" class="p-2 text-blue-500 active:bg-gray-100 rounded-full cursor-pointer"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                            <button onclick="changeMonth(1)" class="p-2 text-blue-500 active:bg-gray-100 rounded-full cursor-pointer"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                            <button onclick="changeMonth(-1)" class="p-2 text-blue-500"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                            <button onclick="changeMonth(1)" class="p-2 text-blue-500"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-7 text-center text-[11px] font-bold text-gray-400 mb-3 uppercase tracking-tighter">
-                        <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
-                    </div>
-                    <div id="calendarGrid" class="grid grid-cols-7 gap-y-2"></div>
-                    <button onclick="jumpToToday()" class="w-full mt-6 py-2 text-blue-500 font-semibold text-sm border border-blue-100 rounded-lg active:bg-blue-50 cursor-pointer">回到今日</button>
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-y-2 text-center text-sm"></div>
                 </div>
             </div>
 
-            <div class="md:col-span-3 space-y-4">
+            <div id="listSection" class="md:col-span-3 space-y-4">
                 <div class="flex items-end justify-between px-1">
-                    <h2 id="listTitle" class="text-xl font-bold tracking-tight text-gray-900">選擇日期</h2>
+                    <h2 id="listTitle" class="text-xl font-bold text-gray-900">選擇日期</h2>
                     <span id="recordCount" class="text-xs font-medium text-gray-400">0 個項目</span>
                 </div>
                 <div id="videoList" class="space-y-3"></div>
-                <div id="noData" class="hidden ios-card p-12 text-center text-gray-400 text-sm">
-                    <i data-lucide="video-off" class="w-10 h-10 mx-auto mb-2 opacity-20"></i>
-                    當天沒有符合班級的錄影
-                </div>
+                <div id="noData" class="hidden ios-card p-12 text-center text-gray-400 text-sm">沒有錄影項目</div>
             </div>
         </div>
     </main>
 </div>
 
-<!-- Video Modal -->
-<div id="videoModal" class="fixed right-0 left-0 bottom-0 z-[100] flex items-start justify-center">
+<!-- 影片彈窗 -->
+<div id="videoModal" class="fixed inset-0 flex items-start justify-center">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeVideo()"></div>
-    <div class="modal-container relative max-w-4xl bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-        <div class="h-12 flex items-center justify-between px-4 border-b border-gray-100">
+    <div class="modal-container relative max-w-4xl bg-white rounded-t-2xl overflow-hidden shadow-2xl mt-14">
+        <div class="h-12 flex items-center justify-between px-4 border-b">
             <div class="flex items-center gap-2">
                 <span id="mClass" class="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded"></span>
-                <span id="mDate" class="text-[11px] text-gray-400"></span>
+                <span id="mDate" class="text-xs text-gray-400"></span>
             </div>
-            <div class="flex items-center gap-2">
-                <button id="openAppBtn" class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center active:scale-90 cursor-pointer transition-transform shadow-sm">
-                    <i data-lucide="external-link" class="w-4 h-4"></i>
-                </button>
-                <button onclick="closeVideo()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 active:scale-90 cursor-pointer">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
+            <button onclick="closeVideo()" class="p-2 text-gray-500"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <div class="aspect-video bg-black" id="videoPlayer"></div>
         <div class="p-5">
             <h3 id="mTitle" class="font-bold text-lg text-gray-900"></h3>
-            <p class="text-xs text-gray-400 mt-1">正在播放課堂錄影存檔</p>
+            <p id="mTopic" class="text-xs text-blue-500 font-medium mt-1"></p>
         </div>
     </div>
 </div>
 
 <script>
-    const SHEET_ID = '1EwnY9DEZbZ2oUzzC7YTU_ndCYRua8pyu3VWK1IaVhaI';
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+    const API_URL = 'https://script.google.com/macros/s/AKfycbympD3SFqe2qhxNXtq05r5XfIQONLK7mcrPMeHo0NXos6M1WnEdbCuMdyWBFx5R0J13/exec';
 
     let recordingsData = {};
     let currentDate = new Date();
     let selectedDate = new Date();
     let selectedClass = "全部";
+    let selectedMainTopic = "全部";
+    let selectedSubTopic = "全部";
+    let selectedYear = "全部"; 
+    let currentFilterLevel = 'main';
 
-    async function init() {
-        lucide.createIcons();
-        initRollerWheels();
+    async function handleLogin() {
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value.trim();
+        const loginForm = document.getElementById('loginForm');
+        const syncStatus = document.getElementById('syncStatus');
+        const syncText = document.getElementById('syncText');
+        const overlay = document.getElementById('loginOverlay');
+        
+        if (!user || !pass) return;
+
+        loginForm.classList.add('hidden');
+        syncStatus.classList.remove('hidden');
+        syncText.innerText = "正在驗證身份...";
+
         try {
-            const response = await fetch(CSV_URL);
-            if (!response.ok) throw new Error('連線失敗');
-            const csv = await response.text();
-            parseCSV(csv);
-        } catch (e) { 
-            console.error('Fetch Error:', e);
-            document.getElementById('loadingStatus').innerHTML = '<span class="text-red-400">連線異常，請檢查網路</span>';
-        } finally {
-            setTimeout(() => {
-                const overlay = document.getElementById('loadingOverlay');
-                overlay.classList.add('hidden'); 
+            const res = await fetch(`${API_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+            const result = await res.json();
+
+            if (result.result === 'success') {
+                syncText.innerText = "正在同步資料庫...";
+                sessionStorage.setItem('is_auth', 'true');
+                await loadDatabase();
+                
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none'; // 確保不會阻擋點擊
+                setTimeout(() => overlay.classList.add('hidden'), 600);
+            } else {
+                throw new Error("帳號或密碼錯誤");
+            }
+        } catch (e) {
+            document.getElementById('loginError').innerText = e.message;
+            document.getElementById('loginError').classList.remove('hidden');
+            loginForm.classList.remove('hidden');
+            syncStatus.classList.add('hidden');
+        }
+    }
+
+    async function loadDatabase() {
+        try {
+            const res = await fetch(`${API_URL}?action=getAllData`);
+            const json = await res.json();
+            if (json.result === 'success') {
+                processData(json.data);
                 document.getElementById('mainContent').classList.remove('hidden');
-                jumpToLatest();
-            }, 800);
-        }
+                initRollerWheels();
+                updateTopicFilter();
+                render();
+            }
+        } catch (e) { console.error('Load error:', e); }
     }
 
-    // Casino Roller Logic
-    function initRollerWheels() {
-        const yearWheel = document.getElementById('yearWheel');
-        const monthWheel = document.getElementById('monthWheel');
-        
-        // Add padding items for smooth snapping
-        const years = [];
-        const currentY = new Date().getFullYear();
-        for(let y = currentY - 5; y <= currentY + 2; y++) years.push(y);
-
-        function populateWheel(el, data, suffix = "") {
-            el.innerHTML = '<div class="wheel-item"></div><div class="wheel-item"></div>'; // Top padding
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'wheel-item';
-                div.dataset.value = item;
-                div.innerText = item + suffix;
-                el.appendChild(div);
-            });
-            el.innerHTML += '<div class="wheel-item"></div><div class="wheel-item"></div>'; // Bottom padding
-        }
-
-        populateWheel(yearWheel, years, "年");
-        populateWheel(monthWheel, [1,2,3,4,5,6,7,8,9,10,11,12], "月");
-    }
-
-    function openRoller() {
-        document.getElementById('rollerOverlay').classList.add('show');
-        const y = currentDate.getFullYear();
-        const m = currentDate.getMonth();
-        
-        scrollToValue('yearWheel', y);
-        scrollToValue('monthWheel', m + 1);
-    }
-
-    function closeRoller() {
-        document.getElementById('rollerOverlay').classList.remove('show');
-    }
-
-    function scrollToValue(wheelId, val) {
-        const wheel = document.getElementById(wheelId);
-        const items = wheel.querySelectorAll('.wheel-item[data-value]');
-        let targetIndex = 0;
-        items.forEach((item, idx) => {
-            if(parseInt(item.dataset.value) === val) targetIndex = idx;
-        });
-        wheel.scrollTop = targetIndex * 40;
-        updateWheelHighlight(wheel);
-    }
-
-    function handleWheelScroll(type) {
-        const wheel = document.getElementById(type + 'Wheel');
-        clearTimeout(wheel.scrollTimer);
-        wheel.scrollTimer = setTimeout(() => updateWheelHighlight(wheel), 50);
-    }
-
-    function updateWheelHighlight(wheel) {
-        const index = Math.round(wheel.scrollTop / 40);
-        const items = wheel.querySelectorAll('.wheel-item[data-value]');
-        items.forEach((item, idx) => {
-            item.classList.toggle('selected', idx === index);
-        });
-    }
-
-    function confirmRoller() {
-        const year = parseInt(document.getElementById('yearWheel').querySelector('.wheel-item.selected').dataset.value);
-        const month = parseInt(document.getElementById('monthWheel').querySelector('.wheel-item.selected').dataset.value);
-        currentDate = new Date(year, month - 1, 1);
-        selectedDate = new Date(year, month - 1, 1);
-        render();
-        closeRoller();
-    }
-
-    function parseCSV(csv) {
-        if (!csv) return;
-        const rows = csv.split(/\r?\n/);
-        rows.forEach((line, index) => {
-            if (index === 0 || !line.trim()) return; 
-            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
-            if (cols.length >= 2) {
-                const dateKey = parseDateKey(cols[0]);
-                if (dateKey) {
-                    if (!recordingsData[dateKey]) recordingsData[dateKey] = [];
-                    recordingsData[dateKey].push({ link: cols[1], class: cols[2] || '其他', raw: cols[0] });
-                }
+    function processData(rows) {
+        recordingsData = {};
+        rows.forEach((cols, index) => {
+            if (index === 0 || !cols[0]) return;
+            const dateKey = parseDateKey(cols[0].toString());
+            if (dateKey) {
+                if (!recordingsData[dateKey]) recordingsData[dateKey] = [];
+                const dObj = new Date(dateKey);
+                recordingsData[dateKey].push({
+                    link: cols[1],
+                    class: cols[2] || '其他',
+                    mainTopic: cols[3] || '未分類',
+                    subTopic: cols[4] || '',
+                    title: cols[5] || '課堂錄影',
+                    raw: cols[0],
+                    dateObj: dObj,
+                    year: dObj.getFullYear().toString()
+                });
             }
         });
     }
 
     function parseDateKey(str) {
-        if (!str) return null;
         const m = str.match(/(\d+)年(\d+)月(\d+)日/);
-        if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+        if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
         const d = new Date(str);
-        return isNaN(d.getTime()) ? null : formatDate(d);
+        return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+    }
+
+    // 介面渲染與過濾邏輯
+    function updateTopicFilter() {
+        const topicBar = document.getElementById('topicFilter');
+        if (currentFilterLevel === 'main') {
+            const topics = new Set();
+            Object.values(recordingsData).flat().forEach(v => { if (v.mainTopic) topics.add(v.mainTopic); });
+            topicBar.innerHTML = `<button onclick="filterByTopic('全部')" class="capsule-item ${selectedMainTopic === '全部' ? 'active' : ''}">全部課題</button>`;
+            Array.from(topics).sort().forEach(t => {
+                topicBar.innerHTML += `<button onclick="filterByTopic('${t}')" class="capsule-item ${selectedMainTopic === t ? 'active' : ''}">${t}</button>`;
+            });
+        } else {
+            const subs = new Set();
+            Object.values(recordingsData).flat().forEach(v => { if (v.mainTopic === selectedMainTopic && v.subTopic) subs.add(v.subTopic); });
+            topicBar.innerHTML = `<button onclick="goBackToMain()" class="capsule-item back-btn"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>返回</button>`;
+            topicBar.innerHTML += `<button onclick="filterBySubTopic('全部')" class="capsule-item ${selectedSubTopic === '全部' ? 'active' : ''}">全部${selectedMainTopic}</button>`;
+            Array.from(subs).sort().forEach(st => {
+                topicBar.innerHTML += `<button onclick="filterBySubTopic('${st}')" class="capsule-item ${selectedSubTopic === st ? 'active' : ''}">${st}</button>`;
+            });
+        }
+        updateYearFilter();
+        lucide.createIcons();
+    }
+
+    function updateYearFilter() {
+        const wrapper = document.getElementById('yearFilterWrapper');
+        const bar = document.getElementById('yearFilter');
+        if (selectedMainTopic === "全部") { wrapper.classList.remove('show'); return; }
+        
+        const years = new Set();
+        Object.values(recordingsData).flat().forEach(v => { if (v.mainTopic === selectedMainTopic) years.add(v.year); });
+        const sorted = Array.from(years).sort((a,b) => b-a);
+        
+        bar.innerHTML = `<button onclick="filterByYear('全部')" class="capsule-item ${selectedYear === '全部' ? 'active' : ''}">全部年份</button>`;
+        sorted.forEach(y => { bar.innerHTML += `<button onclick="filterByYear('${y}')" class="capsule-item ${selectedYear === y ? 'active' : ''}">${y}年版本</button>`; });
+        wrapper.classList.add('show');
     }
 
     function render() {
-        const grid = document.getElementById('calendarGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
-        const y = currentDate.getFullYear();
-        const m = currentDate.getMonth();
-        document.getElementById('monthLabel').innerText = `${y}年 ${m + 1}月`;
+        const isTopicMode = selectedMainTopic !== "全部";
+        document.getElementById('calendarSection').classList.toggle('hidden', isTopicMode);
+        document.getElementById('listSection').className = isTopicMode ? 'md:col-span-5 space-y-4' : 'md:col-span-3 space-y-4';
 
-        const start = new Date(y, m, 1).getDay();
-        const days = new Date(y, m + 1, 0).getDate();
-        for (let i = 0; i < start; i++) grid.appendChild(document.createElement('div'));
-
-        for (let d = 1; d <= days; d++) {
-            const dateObj = new Date(y, m, d);
-            const dStr = formatDate(dateObj);
-            const recs = recordingsData[dStr] || [];
-            const hasRec = selectedClass === "全部" ? recs.length > 0 : recs.some(r => r.class.includes(selectedClass));
-            
-            const el = document.createElement('div');
-            el.className = `calendar-day ${formatDate(selectedDate) === dStr ? 'active' : ''} ${hasRec ? 'has-recording' : ''}`;
-            if (dStr === formatDate(new Date())) el.classList.add('today');
-            el.innerHTML = `<span>${d}</span><div class="dot"></div>`;
-            el.onclick = () => { selectedDate = new Date(y, m, d); render(); };
-            grid.appendChild(el);
+        if (!isTopicMode) {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth();
+            document.getElementById('monthLabel').innerText = `${y}年 ${m + 1}月`;
+            const start = new Date(y, m, 1).getDay();
+            const days = new Date(y, m + 1, 0).getDate();
+            for (let i = 0; i < start; i++) grid.appendChild(document.createElement('div'));
+            for (let d = 1; d <= days; d++) {
+                const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const recs = recordingsData[dStr] || [];
+                const hasRec = recs.some(r => selectedClass === "全部" || r.class.includes(selectedClass));
+                const el = document.createElement('div');
+                el.className = `calendar-day ${hasRec ? 'has-recording' : ''} ${selectedDate.toISOString().split('T')[0] === dStr ? 'active' : ''}`;
+                if (dStr === new Date().toISOString().split('T')[0]) el.classList.add('today');
+                el.innerHTML = `<span>${d}</span><div class="dot"></div>`;
+                el.onclick = () => { selectedDate = new Date(y, m, d); render(); };
+                grid.appendChild(el);
+            }
         }
-        renderList();
+        renderList(isTopicMode);
     }
 
-    function renderList() {
-        const dStr = formatDate(selectedDate);
-        let vids = recordingsData[dStr] || [];
-        if (selectedClass !== "全部") vids = vids.filter(v => v.class.includes(selectedClass));
-
+    function renderList(isTopicMode) {
         const list = document.getElementById('videoList');
         list.innerHTML = '';
-        document.getElementById('recordCount').innerText = `${vids.length} 個項目`;
-        document.getElementById('listTitle').innerText = selectedDate.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', weekday: 'short' });
+        let vids = [];
 
-        if (!vids.length) { document.getElementById('noData').classList.remove('hidden'); return; }
-        document.getElementById('noData').classList.add('hidden');
+        if (isTopicMode) {
+            vids = Object.values(recordingsData).flat().filter(v => v.mainTopic === selectedMainTopic);
+            if (selectedSubTopic !== "全部") vids = vids.filter(v => v.subTopic === selectedSubTopic);
+            if (selectedYear !== "全部") vids = vids.filter(v => v.year === selectedYear);
+            if (selectedClass !== "全部") vids = vids.filter(v => v.class.includes(selectedClass));
+            vids.sort((a,b) => b.dateObj - a.dateObj);
+            document.getElementById('listTitle').innerText = selectedMainTopic;
+        } else {
+            const dStr = selectedDate.toISOString().split('T')[0];
+            vids = (recordingsData[dStr] || []).filter(v => selectedClass === "全部" || v.class.includes(selectedClass));
+            document.getElementById('listTitle').innerText = selectedDate.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', weekday: 'short' });
+        }
+
+        document.getElementById('recordCount').innerText = `${vids.length} 個項目`;
+        document.getElementById('noData').classList.toggle('hidden', vids.length > 0);
 
         vids.forEach(v => {
-            const yId = getYouTubeId(v.link);
+            const yId = v.link.match(/v=([^&]+)/)?.[1] || v.link.split('/').pop();
             const card = document.createElement('div');
             card.className = "ios-card p-3 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-transform";
             card.onclick = () => openVideo(v);
             card.innerHTML = `
-                <div class="w-24 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative pointer-events-none">
+                <div class="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative pointer-events-none">
                     <img src="https://img.youtube.com/vi/${yId}/mqdefault.jpg" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 flex items-center justify-center bg-black/10"><i data-lucide="play" class="w-5 h-5 text-white fill-current"></i></div>
                 </div>
                 <div class="flex-1 min-w-0 pointer-events-none">
-                    <div class="flex items-center gap-1.5 mb-0.5">
-                        <span class="text-[9px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase">${v.class}</span>
-                    </div>
-                    <h4 class="font-bold text-sm truncate text-gray-900">${v.class} 課程錄影</h4>
-                    <p class="text-[10px] text-gray-400">點擊播放</p>
+                    <span class="text-[9px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase">${v.class}</span>
+                    <h4 class="font-bold text-sm truncate mt-1 text-gray-900">${v.title}</h4>
+                    <p class="text-[10px] text-gray-400 truncate">${v.mainTopic} ${v.subTopic ? '• ' + v.subTopic : ''}</p>
                 </div>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>`;
             list.appendChild(card);
@@ -512,55 +492,80 @@
     }
 
     function openVideo(v) {
-        const yId = getYouTubeId(v.link);
-        document.getElementById('videoPlayer').innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${yId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-        document.getElementById('mTitle').innerText = `${v.class} 課程錄影`;
+        const yId = v.link.match(/v=([^&]+)/)?.[1] || v.link.split('/').pop();
+        document.getElementById('videoPlayer').innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${yId}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+        document.getElementById('mTitle').innerText = v.title;
+        document.getElementById('mTopic').innerText = `${v.mainTopic} ${v.subTopic ? '› ' + v.subTopic : ''}`;
         document.getElementById('mClass').innerText = v.class;
         document.getElementById('mDate').innerText = v.raw;
-        document.getElementById('openAppBtn').onclick = () => window.open(v.link, '_blank');
         document.getElementById('videoModal').classList.add('show');
-        document.body.style.overflow = 'hidden';
-        lucide.createIcons();
     }
 
     function closeVideo() {
         document.getElementById('videoModal').classList.remove('show');
-        document.body.style.overflow = '';
-        setTimeout(() => document.getElementById('videoPlayer').innerHTML = '', 500);
+        document.getElementById('videoPlayer').innerHTML = '';
+    }
+
+    // 滾輪與輔助功能
+    function initRollerWheels() {
+        const yw = document.getElementById('yearWheel');
+        const mw = document.getElementById('monthWheel');
+        const curY = new Date().getFullYear();
+        let yHtml = '<div class="h-[80px]"></div>';
+        for(let y=curY-3; y<=curY+1; y++) yHtml += `<div class="wheel-item" data-value="${y}">${y}年</div>`;
+        yw.innerHTML = yHtml + '<div class="h-[80px]"></div>';
+        
+        let mHtml = '<div class="h-[80px]"></div>';
+        for(let m=1; m<=12; m++) mHtml += `<div class="wheel-item" data-value="${m}">${m}月</div>`;
+        mw.innerHTML = mHtml + '<div class="h-[80px]"></div>';
+    }
+
+    function openRoller() { document.getElementById('rollerOverlay').classList.add('show'); }
+    function closeRoller() { document.getElementById('rollerOverlay').classList.remove('show'); }
+    function handleWheelScroll(type) {
+        const wheel = document.getElementById(type + 'Wheel');
+        clearTimeout(wheel.timer);
+        wheel.timer = setTimeout(() => {
+            const idx = Math.round(wheel.scrollTop / 40);
+            const items = wheel.querySelectorAll('.wheel-item');
+            items.forEach((item, i) => item.classList.toggle('selected', i === idx));
+        }, 50);
+    }
+    function confirmRoller() {
+        const y = document.querySelector('#yearWheel .selected')?.dataset.value || currentDate.getFullYear();
+        const m = document.querySelector('#monthWheel .selected')?.dataset.value || currentDate.getMonth() + 1;
+        currentDate = new Date(y, m-1, 1);
+        render();
+        closeRoller();
     }
 
     function filterByClass(cls) {
         selectedClass = cls;
-        document.querySelectorAll('.capsule-item').forEach(btn => btn.classList.toggle('active', btn.innerText === cls));
+        document.querySelectorAll('#classFilter .capsule-item').forEach(btn => btn.classList.toggle('active', btn.innerText === (cls === '全部' ? '全部年級' : cls)));
         render();
     }
 
+    function filterByTopic(t) {
+        if (t === '全部') { selectedMainTopic = '全部'; currentFilterLevel = 'main'; } 
+        else { selectedMainTopic = t; currentFilterLevel = 'sub'; }
+        selectedSubTopic = '全部';
+        updateTopicFilter();
+        render();
+    }
+
+    function filterBySubTopic(st) { selectedSubTopic = st; updateTopicFilter(); render(); }
+    function goBackToMain() { selectedMainTopic = '全部'; currentFilterLevel = 'main'; updateTopicFilter(); render(); }
     function changeMonth(n) { currentDate.setMonth(currentDate.getMonth() + n); render(); }
-    function jumpToToday() { selectedDate = new Date(); currentDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1); render(); }
-    
-    function jumpToLatest() {
-        const dates = Object.keys(recordingsData).sort();
-        if (dates.length) {
-            const parts = dates[dates.length - 1].split('-');
-            selectedDate = new Date(parts[0], parts[1]-1, parts[2]);
-            currentDate = new Date(parts[0], parts[1]-1, 1);
-        } else {
-            selectedDate = new Date();
-            currentDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    function filterByYear(y) { selectedYear = y; updateYearFilter(); render(); }
+
+    window.onload = () => {
+        lucide.createIcons();
+        if (sessionStorage.getItem('is_auth') === 'true') {
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('loginOverlay').style.pointerEvents = 'none';
+            loadDatabase();
         }
-        render();
-    }
-
-    function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-    function getYouTubeId(url) {
-        if (!url) return '';
-        const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]{11})/);
-        return m ? m[1] : '';
-    }
-
-    window.onload = init;
+    };
 </script>
 </body>
 </html>
-
-
