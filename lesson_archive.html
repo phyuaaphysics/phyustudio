@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -256,6 +255,7 @@
             <button onclick="filterByClass('S3A')" class="capsule-item">S3A</button>
             <button onclick="filterByClass('S3B')" class="capsule-item">S3B</button>
             <button onclick="filterByClass('S3C')" class="capsule-item">S3C</button>
+            <button onclick="filterByClass('S3D')" class="capsule-item">S3D</button>
             <button onclick="filterByClass('S4')" class="capsule-item">S4</button>
             <button onclick="filterByClass('S5')" class="capsule-item">S5</button>
             <button onclick="filterByClass('S6')" class="capsule-item">S6</button>
@@ -494,7 +494,7 @@
                 if (dayKey === todayKey) cell.classList.add('is-today');
                 if (dayKey === selectedKey) cell.classList.add('is-selected');
                 
-                // Check for data
+                // Check for data - Combined filters for calendar indicators
                 const records = recordingsData[dayKey] || [];
                 const hasData = records.some(r => selectedClass === "全部" || r.class.includes(selectedClass));
                 if (hasData) cell.classList.add('has-rec');
@@ -519,6 +519,7 @@
         let vids = [];
 
         if (isTopicMode) {
+            // Topic Mode: Main Topic + Optional Sub Topic + Optional Year + Optional Class
             vids = Object.values(recordingsData).flat().filter(v => v.mainTopic === selectedMainTopic);
             if (selectedSubTopic !== "全部") vids = vids.filter(v => v.subTopic === selectedSubTopic);
             if (selectedYear !== "全部") vids = vids.filter(v => v.year === selectedYear);
@@ -526,6 +527,7 @@
             vids.sort((a,b) => b.dateObj - a.dateObj);
             document.getElementById('listTitle').innerText = selectedMainTopic;
         } else {
+            // Calendar Mode: Specific Date + Optional Class
             const dStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
             vids = (recordingsData[dStr] || []).filter(v => selectedClass === "全部" || v.class.includes(selectedClass));
             document.getElementById('listTitle').innerText = selectedDate.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', weekday: 'short' });
@@ -597,8 +599,12 @@
 
     function filterByClass(cls) {
         selectedClass = cls;
-        document.querySelectorAll('#classFilter .capsule-item').forEach(btn => btn.classList.toggle('active', btn.innerText === (cls === '全部' ? '全部年級' : cls)));
-        render();
+        document.querySelectorAll('#classFilter .capsule-item').forEach(btn => {
+            const btnText = btn.innerText;
+            const targetText = (cls === '全部' ? '全部年級' : cls);
+            btn.classList.toggle('active', btnText === targetText);
+        });
+        render(); // Now independent filter, just re-render list and calendar indicators
     }
 
     function filterByTopic(t) {
@@ -631,5 +637,3 @@
 </script>
 </body>
 </html>
-
-
