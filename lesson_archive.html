@@ -100,26 +100,50 @@
         }
         .capsule-item.back-btn { color: var(--ios-blue); background: rgba(0, 122, 255, 0.08); }
 
-        /* 日曆樣式 */
-        .calendar-day {
+        /* REBUILT CALENDAR SYSTEM STYLES */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .weekday-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #AEAEB2;
+            padding-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .day-cell {
             aspect-ratio: 1/1;
-            border-radius: 50%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            position: relative;
+            border-radius: 50%;
             cursor: pointer;
-            border: 2px solid transparent;
+            position: relative;
+            user-select: none;
+            transition: all 0.2s ease;
         }
-        .calendar-day.active { background-color: var(--ios-blue); color: white; border-color: var(--ios-blue); }
-        .calendar-day.today { border: 2px solid rgba(0,122,255,0.4); color: var(--ios-blue); font-weight: 800; }
-        .calendar-day.active.today { border-color: var(--ios-blue); color: white; }
+        .day-cell span { font-size: 15px; font-weight: 500; z-index: 2; }
+        .day-cell .indicator-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: transparent;
+            margin-top: 2px;
+            z-index: 2;
+        }
         
-        .dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; background: transparent; }
-        .has-recording .dot { background: #C7C7CC; }
-        .active .dot { background: white !important; }
+        /* 1. Selection State (Primary) */
+        .day-cell.is-selected { background-color: var(--ios-blue) !important; color: #FFFFFF !important; }
+        .day-cell.is-selected .indicator-dot { background: #FFFFFF !important; }
+
+        /* 2. Today State (Secondary) */
+        .day-cell.is-today { color: var(--ios-blue); font-weight: 800; }
+        
+        /* 3. Has Recording State */
+        .day-cell.has-rec .indicator-dot { background: #C7C7CC; }
 
         .ios-card {
             background: white;
@@ -258,7 +282,14 @@
                             <button onclick="changeMonth(1)" class="p-2 text-blue-500"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                         </div>
                     </div>
-                    <div id="calendarGrid" class="grid grid-cols-7 gap-y-2 text-center text-sm"></div>
+                    <!-- REBUILT GRID -->
+                    <div class="calendar-grid">
+                        <div class="weekday-label">SUN</div><div class="weekday-label">MON</div>
+                        <div class="weekday-label">TUE</div><div class="weekday-label">WED</div>
+                        <div class="weekday-label">THU</div><div class="weekday-label">FRI</div>
+                        <div class="weekday-label">SAT</div>
+                    </div>
+                    <div id="calendarGrid" class="calendar-grid"></div>
                 </div>
             </div>
 
@@ -297,8 +328,8 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbympD3SFqe2qhxNXtq05r5XfIQONLK7mcrPMeHo0NXos6M1WnEdbCuMdyWBFx5R0J13/exec';
 
     let recordingsData = {};
-    let currentDate = new Date(); // 導航用日期
-    let selectedDate = new Date(); // 選中的日期 (預設今天)
+    let viewDate = new Date(); 
+    let selectedDate = new Date(); 
     let selectedClass = "全部";
     let selectedMainTopic = "全部";
     let selectedSubTopic = "全部";
@@ -348,9 +379,11 @@
                 initRollerWheels();
                 updateTopicFilter();
                 
-                // 確保初始日期正確
-                selectedDate = new Date();
-                currentDate = new Date();
+                // Use strict Today's date with no time component
+                const now = new Date();
+                selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                viewDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                
                 render();
             }
         } catch (e) { console.error('Load error:', e); }
@@ -363,7 +396,8 @@
             const dateKey = parseDateKey(cols[0].toString());
             if (dateKey) {
                 if (!recordingsData[dateKey]) recordingsData[dateKey] = [];
-                const dObj = new Date(dateKey);
+                // Create object but rely on dateKey for mapping
+                const dObj = new Date(dateKey + 'T00:00:00'); 
                 recordingsData[dateKey].push({
                     link: cols[1],
                     class: cols[2] || '其他',
@@ -379,10 +413,13 @@
     }
 
     function parseDateKey(str) {
+        // Handle "2026年5月11日" format
         const m = str.match(/(\d+)年(\d+)月(\d+)日/);
         if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+        // Fallback for standard date strings
         const d = new Date(str);
-        return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+        if (isNaN(d.getTime())) return null;
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
     function updateTopicFilter() {
@@ -419,6 +456,7 @@
         wrapper.classList.add('show');
     }
 
+    /* REBUILT CALENDAR ENGINE */
     function render() {
         const isTopicMode = selectedMainTopic !== "全部";
         document.getElementById('calendarSection').classList.toggle('hidden', isTopicMode);
@@ -427,35 +465,49 @@
         if (!isTopicMode) {
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
-            const y = currentDate.getFullYear();
-            const m = currentDate.getMonth();
-            document.getElementById('monthLabel').innerText = `${y}年 ${m + 1}月`;
-            const start = new Date(y, m, 1).getDay();
-            const days = new Date(y, m + 1, 0).getDate();
             
-            for (let i = 0; i < start; i++) grid.appendChild(document.createElement('div'));
-            
-            const selectedDateStr = selectedDate.toISOString().split('T')[0];
-            const todayStr = new Date().toISOString().split('T')[0];
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
+            document.getElementById('monthLabel').innerText = `${year}年 ${month + 1}月`;
 
-            for (let d = 1; d <= days; d++) {
-                const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const recs = recordingsData[dStr] || [];
-                // 判斷是否有影片（需符合目前選中的年級篩選）
-                const hasRec = recs.some(r => selectedClass === "全部" || r.class.includes(selectedClass));
+            const firstDay = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            
+            const now = new Date();
+            const todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const selectedKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+
+            // Pad previous month
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'day-cell pointer-events-none opacity-0';
+                grid.appendChild(empty);
+            }
+
+            // Create days
+            for (let day = 1; day <= totalDays; day++) {
+                const dayKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
                 
-                const el = document.createElement('div');
-                el.className = `calendar-day`;
-                if (hasRec) el.classList.add('has-recording');
-                if (dStr === todayStr) el.classList.add('today');
-                if (dStr === selectedDateStr) el.classList.add('active');
+                // Add states
+                if (dayKey === todayKey) cell.classList.add('is-today');
+                if (dayKey === selectedKey) cell.classList.add('is-selected');
+                
+                // Check for data
+                const records = recordingsData[dayKey] || [];
+                const hasData = records.some(r => selectedClass === "全部" || r.class.includes(selectedClass));
+                if (hasData) cell.classList.add('has-rec');
 
-                el.innerHTML = `<span>${d}</span><div class="dot"></div>`;
-                el.onclick = () => { 
-                    selectedDate = new Date(y, m, d); 
-                    render(); 
+                cell.innerHTML = `<span>${day}</span><div class="indicator-dot"></div>`;
+                
+                // Interaction
+                cell.onclick = () => {
+                    selectedDate = new Date(year, month, day);
+                    render();
                 };
-                grid.appendChild(el);
+                
+                grid.appendChild(cell);
             }
         }
         renderList(isTopicMode);
@@ -474,7 +526,7 @@
             vids.sort((a,b) => b.dateObj - a.dateObj);
             document.getElementById('listTitle').innerText = selectedMainTopic;
         } else {
-            const dStr = selectedDate.toISOString().split('T')[0];
+            const dStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
             vids = (recordingsData[dStr] || []).filter(v => selectedClass === "全部" || v.class.includes(selectedClass));
             document.getElementById('listTitle').innerText = selectedDate.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', weekday: 'short' });
         }
@@ -536,9 +588,9 @@
         }, 50);
     }
     function confirmRoller() {
-        const y = document.querySelector('#yearWheel .selected')?.dataset.value || currentDate.getFullYear();
-        const m = document.querySelector('#monthWheel .selected')?.dataset.value || currentDate.getMonth() + 1;
-        currentDate = new Date(y, m-1, 1);
+        const y = parseInt(document.querySelector('#yearWheel .selected')?.dataset.value) || viewDate.getFullYear();
+        const m = parseInt(document.querySelector('#monthWheel .selected')?.dataset.value) || viewDate.getMonth() + 1;
+        viewDate = new Date(y, m-1, 1);
         render();
         closeRoller();
     }
@@ -565,7 +617,7 @@
 
     function filterBySubTopic(st) { selectedSubTopic = st; updateTopicFilter(); render(); }
     function goBackToMain() { selectedMainTopic = '全部'; currentFilterLevel = 'main'; updateTopicFilter(); render(); }
-    function changeMonth(n) { currentDate.setMonth(currentDate.getMonth() + n); render(); }
+    function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); render(); }
     function filterByYear(y) { selectedYear = y; updateYearFilter(); render(); }
 
     window.onload = () => {
