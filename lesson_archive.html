@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -110,9 +111,12 @@
             font-size: 14px;
             position: relative;
             cursor: pointer;
+            border: 2px solid transparent;
         }
-        .calendar-day.active { background-color: var(--ios-blue); color: white; }
-        .calendar-day.today { color: var(--ios-blue); font-weight: 800; border: 1px solid rgba(0,122,255,0.2); }
+        .calendar-day.active { background-color: var(--ios-blue); color: white; border-color: var(--ios-blue); }
+        .calendar-day.today { border: 2px solid rgba(0,122,255,0.4); color: var(--ios-blue); font-weight: 800; }
+        .calendar-day.active.today { border-color: var(--ios-blue); color: white; }
+        
         .dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; background: transparent; }
         .has-recording .dot { background: #C7C7CC; }
         .active .dot { background: white !important; }
@@ -159,14 +163,11 @@
         .wheel-item { height: 40px; display: flex; align-items: center; justify-content: center; scroll-snap-align: center; color: #8E8E93; }
         .wheel-item.selected { color: var(--ios-blue); font-weight: 700; font-size: 18px; }
 
-        /* 篩選器動畫 */
         .year-filter-expand {
             max-height: 0; opacity: 0; overflow: hidden; transition: all 0.5s;
         }
         .year-filter-expand.show { max-height: 48px; opacity: 1; margin-top: 4px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .filter-slide-out { transform: translateX(-20px); opacity: 0; pointer-events: none; }
-        .filter-slide-in { transform: translateX(20px); opacity: 0; }
     </style>
 </head>
 <body>
@@ -296,8 +297,8 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbympD3SFqe2qhxNXtq05r5XfIQONLK7mcrPMeHo0NXos6M1WnEdbCuMdyWBFx5R0J13/exec';
 
     let recordingsData = {};
-    let currentDate = new Date();
-    let selectedDate = new Date();
+    let currentDate = new Date(); // 導航用日期
+    let selectedDate = new Date(); // 選中的日期 (預設今天)
     let selectedClass = "全部";
     let selectedMainTopic = "全部";
     let selectedSubTopic = "全部";
@@ -313,7 +314,6 @@
         const overlay = document.getElementById('loginOverlay');
         
         if (!user || !pass) return;
-
         loginForm.classList.add('hidden');
         syncStatus.classList.remove('hidden');
         syncText.innerText = "正在驗證身份...";
@@ -326,13 +326,10 @@
                 syncText.innerText = "正在同步資料庫...";
                 sessionStorage.setItem('is_auth', 'true');
                 await loadDatabase();
-                
                 overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none'; // 確保不會阻擋點擊
+                overlay.style.pointerEvents = 'none';
                 setTimeout(() => overlay.classList.add('hidden'), 600);
-            } else {
-                throw new Error("帳號或密碼錯誤");
-            }
+            } else { throw new Error("帳號或密碼錯誤"); }
         } catch (e) {
             document.getElementById('loginError').innerText = e.message;
             document.getElementById('loginError').classList.remove('hidden');
@@ -350,6 +347,10 @@
                 document.getElementById('mainContent').classList.remove('hidden');
                 initRollerWheels();
                 updateTopicFilter();
+                
+                // 確保初始日期正確
+                selectedDate = new Date();
+                currentDate = new Date();
                 render();
             }
         } catch (e) { console.error('Load error:', e); }
@@ -384,7 +385,6 @@
         return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
     }
 
-    // 介面渲染與過濾邏輯
     function updateTopicFilter() {
         const topicBar = document.getElementById('topicFilter');
         if (currentFilterLevel === 'main') {
@@ -411,11 +411,9 @@
         const wrapper = document.getElementById('yearFilterWrapper');
         const bar = document.getElementById('yearFilter');
         if (selectedMainTopic === "全部") { wrapper.classList.remove('show'); return; }
-        
         const years = new Set();
         Object.values(recordingsData).flat().forEach(v => { if (v.mainTopic === selectedMainTopic) years.add(v.year); });
         const sorted = Array.from(years).sort((a,b) => b-a);
-        
         bar.innerHTML = `<button onclick="filterByYear('全部')" class="capsule-item ${selectedYear === '全部' ? 'active' : ''}">全部年份</button>`;
         sorted.forEach(y => { bar.innerHTML += `<button onclick="filterByYear('${y}')" class="capsule-item ${selectedYear === y ? 'active' : ''}">${y}年版本</button>`; });
         wrapper.classList.add('show');
@@ -434,16 +432,29 @@
             document.getElementById('monthLabel').innerText = `${y}年 ${m + 1}月`;
             const start = new Date(y, m, 1).getDay();
             const days = new Date(y, m + 1, 0).getDate();
+            
             for (let i = 0; i < start; i++) grid.appendChild(document.createElement('div'));
+            
+            const selectedDateStr = selectedDate.toISOString().split('T')[0];
+            const todayStr = new Date().toISOString().split('T')[0];
+
             for (let d = 1; d <= days; d++) {
                 const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const recs = recordingsData[dStr] || [];
+                // 判斷是否有影片（需符合目前選中的年級篩選）
                 const hasRec = recs.some(r => selectedClass === "全部" || r.class.includes(selectedClass));
+                
                 const el = document.createElement('div');
-                el.className = `calendar-day ${hasRec ? 'has-recording' : ''} ${selectedDate.toISOString().split('T')[0] === dStr ? 'active' : ''}`;
-                if (dStr === new Date().toISOString().split('T')[0]) el.classList.add('today');
+                el.className = `calendar-day`;
+                if (hasRec) el.classList.add('has-recording');
+                if (dStr === todayStr) el.classList.add('today');
+                if (dStr === selectedDateStr) el.classList.add('active');
+
                 el.innerHTML = `<span>${d}</span><div class="dot"></div>`;
-                el.onclick = () => { selectedDate = new Date(y, m, d); render(); };
+                el.onclick = () => { 
+                    selectedDate = new Date(y, m, d); 
+                    render(); 
+                };
                 grid.appendChild(el);
             }
         }
@@ -467,7 +478,6 @@
             vids = (recordingsData[dStr] || []).filter(v => selectedClass === "全部" || v.class.includes(selectedClass));
             document.getElementById('listTitle').innerText = selectedDate.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', weekday: 'short' });
         }
-
         document.getElementById('recordCount').innerText = `${vids.length} 個項目`;
         document.getElementById('noData').classList.toggle('hidden', vids.length > 0);
 
@@ -500,13 +510,8 @@
         document.getElementById('mDate').innerText = v.raw;
         document.getElementById('videoModal').classList.add('show');
     }
+    function closeVideo() { document.getElementById('videoModal').classList.remove('show'); document.getElementById('videoPlayer').innerHTML = ''; }
 
-    function closeVideo() {
-        document.getElementById('videoModal').classList.remove('show');
-        document.getElementById('videoPlayer').innerHTML = '';
-    }
-
-    // 滾輪與輔助功能
     function initRollerWheels() {
         const yw = document.getElementById('yearWheel');
         const mw = document.getElementById('monthWheel');
@@ -514,7 +519,6 @@
         let yHtml = '<div class="h-[80px]"></div>';
         for(let y=curY-3; y<=curY+1; y++) yHtml += `<div class="wheel-item" data-value="${y}">${y}年</div>`;
         yw.innerHTML = yHtml + '<div class="h-[80px]"></div>';
-        
         let mHtml = '<div class="h-[80px]"></div>';
         for(let m=1; m<=12; m++) mHtml += `<div class="wheel-item" data-value="${m}">${m}月</div>`;
         mw.innerHTML = mHtml + '<div class="h-[80px]"></div>';
@@ -546,9 +550,15 @@
     }
 
     function filterByTopic(t) {
-        if (t === '全部') { selectedMainTopic = '全部'; currentFilterLevel = 'main'; } 
-        else { selectedMainTopic = t; currentFilterLevel = 'sub'; }
+        if (t === '全部') { 
+            selectedMainTopic = '全部'; 
+            currentFilterLevel = 'main'; 
+        } else { 
+            selectedMainTopic = t; 
+            currentFilterLevel = 'sub'; 
+        }
         selectedSubTopic = '全部';
+        selectedYear = '全部';
         updateTopicFilter();
         render();
     }
@@ -569,3 +579,5 @@
 </script>
 </body>
 </html>
+
+
