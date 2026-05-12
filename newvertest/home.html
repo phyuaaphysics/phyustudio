@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Lumina Studio</title>
+    
+    <!-- iOS PWA 狀態列修正 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        
+        :root {
+            --glacier-deep: #0f172a;
+            --glacier-primary: #0284c7; 
+            --glacier-ice: #38bdf8;
+            --glacier-bg: #eef2f6;
+            --glacier-glass: rgba(224, 242, 254, 0.85); 
+            --glacier-nav-glass: rgba(255, 255, 255, 0.75);
+            --text-main: #334155;
+            --card-bg: #fff;
+            --hero-overlay: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 40%, rgba(238,242,246,0.9) 95%);
+        }
+
+        /* Dark Mode variables */
+        body.dark-mode {
+            --glacier-deep: #f8fafc;
+            --glacier-primary: #38bdf8;
+            --glacier-bg: #020617;
+            --glacier-glass: rgba(15, 23, 42, 0.9);
+            --glacier-nav-glass: rgba(30, 41, 59, 0.8);
+            --text-main: #cbd5e1;
+            --card-bg: #1e293b;
+            --hero-overlay: linear-gradient(to bottom, rgba(2, 6, 23, 0) 0%, rgba(2, 6, 23, 0.4) 40%, rgba(2, 6, 23, 0.95) 95%);
+        }
+
+        html { 
+            scroll-behavior: smooth;
+            height: 100%;
+            overflow: hidden; 
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--glacier-bg);
+            color: var(--text-main);
+            -webkit-tap-highlight-color: transparent;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 0;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .logo-bar {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 120;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.1);
+            padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+            padding-bottom: 12px;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #main-logo {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: left center;
+            will-change: transform;
+        }
+
+        .scrolled #main-logo { transform: scale(0.75); }
+
+        .filter-bar {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 68px);
+            left: 0;
+            width: 100%;
+            z-index: 110;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.05);
+        }
+
+        .filter-bar.collapsed {
+            transform: translateY(-56px);
+            opacity: 0.9;
+        }
+
+        .filter-capsule {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            color: var(--glacier-deep);
+        }
+
+        .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+
+        .filter-toggle-trigger {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            background: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            border-radius: 0 0 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(14, 165, 233, 0.05);
+            border-top: none;
+            color: var(--glacier-primary);
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .filter-bar.collapsed .filter-toggle-trigger i {
+            transform: rotate(180deg);
+        }
+
+        /* 頁面內容容器 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
+
+        .slider-wrapper { position: relative; width: 100%; }
+
+        .slider-container { 
+            display: flex;
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory; 
+            gap: 2px; 
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: var(--glacier-nav-glass);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.2s;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .slider-wrapper:hover .nav-btn { opacity: 1; }
+        .nav-btn.prev { left: -12px; }
+        .nav-btn.next { right: -12px; }
+
+        .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
+
+        .poster-card { 
+            aspect-ratio: 2/3;
+            border-radius: 4px; overflow: hidden; background: #cbd5e1; 
+            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
+            border: none; /* 已按前次要求移除白框 */
+            will-change: transform;
+        }
+
+        .poster-card:active {
+            transform: scale(0.94);
+            filter: brightness(0.9);
+        }
+
+        .hero-container-framed {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
+            overflow: hidden; position: relative; background-color: var(--card-bg);
+            transition: all 0.4s ease;
+        }
+
+        .hero-gradient-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--hero-overlay);
+            pointer-events: none;
+        }
+
+        .section-hidden { display: none !important; }
+
+        /* 修改：移除 env(safe-area-inset-bottom) 使底部不留白 */
+        .dock-wrapper {
+            position: fixed;
+            bottom: 20px; /* 固定距離底部 20px，不再隨 iOS 安全區自動增加間距 */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+            width: auto;
+            min-width: 340px;
+        }
+
+        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
+
+        .dock-nav {
+            background-color: var(--glacier-nav-glass);
+            backdrop-filter: blur(28px) saturate(210%);
+            -webkit-backdrop-filter: blur(28px) saturate(210%);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 14px;
+            border-radius: 42px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+            display: flex; align-items: center; justify-content: center; gap: 14px;
+        }
+
+        .dock-toggle-btn {
+            width: 32px;
+            height: 32px; display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
+        }
+
+        .dock-content { display: flex; align-items: center; gap: 14px; }
+
+        .dock-item {
+            display: flex;
+            flex-direction: column; align-items: center; gap: 5px;
+            color: #94a3b8; transition: all 0.3s; min-width: 58px;
+        }
+
+        .dock-item i { font-size: 1.6rem; }
+        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
+        .dock-item.active { color: var(--glacier-primary); }
+
+        /* 修改：手把區域也移除安全區自動填充 */
+        .dock-trigger-bar {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px; height: 5px;
+            background: rgba(15, 23, 42, 0.2);
+            border-radius: 10px;
+            z-index: 199; cursor: pointer; display: none;
+        }
+        .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
+
+        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px; }
+
+        /* Sync Button */
+        .sync-btn {
+            position: absolute;
+            right: 24px;
+            bottom: 24px;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .sync-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .sync-btn:active { transform: scale(0.95); }
+        .sync-btn.loading i { animation: spin 1s linear infinite; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Custom Theme Toggle Switch */
+        .theme-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            width: 58px;
+            height: 30px;
+            background: #f15a24;
+            border-radius: 30px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            margin-right: 8px;
+        }
+
+        .theme-toggle-wrapper .toggle-thumb {
+            position: absolute;
+            left: 30px;
+            top: 3px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle-wrapper .icon {
+            font-size: 12px;
+            transition: all 0.4s;
+        }
+
+        .theme-toggle-wrapper .sun { color: #fff; position: absolute; left: 8px; }
+        .theme-toggle-wrapper .moon { color: #fff; position: absolute; right: 8px; opacity: 0; }
+
+        body.dark-mode .theme-toggle-wrapper {
+            background: #1e1b2e;
+        }
+
+        body.dark-mode .theme-toggle-wrapper .toggle-thumb {
+            left: 4px;
+        }
+
+        body.dark-mode .theme-toggle-wrapper .sun { opacity: 0; }
+        body.dark-mode .theme-toggle-wrapper .moon { opacity: 1; }
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 12px;
+            color: var(--glacier-primary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .hero-container-framed { border-radius: 0; }
+            .dock-wrapper { width: 92%; max-width: 400px; bottom: 15px; } /* 手機端稍微貼近底部 */
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
+            .nav-btn { display: none !important; }
+            .sync-btn { right: 16px; bottom: 16px; padding: 8px 14px; }
+        }
+    </style>
+</head>
+<body class="pb-40 hide-scrollbar">
+
+    <header id="header-root">
+        <div class="logo-bar px-6" id="logo-nav-bar"> 
+            <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
+                <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-10 md:h-12 w-auto">
+                </div>
+                <div class="flex items-center gap-4 md:gap-6">
+                    <!-- Theme Toggle -->
+                    <div class="theme-toggle-wrapper" onclick="toggleDarkMode()">
+                        <i class="fas fa-sun icon sun"></i>
+                        <i class="fas fa-moon icon moon"></i>
+                        <div class="toggle-thumb"></div>
+                    </div>
+                    
+                    <div class="flex items-center gap-6 text-sky-800 dark:text-sky-400 opacity-60">
+                        <i class="fas fa-search text-xl cursor-pointer"></i>
+                        <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-900 dark:text-white text-[10px] font-bold">U</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="filter-bar px-6" id="filter-bar">
+            <div id="filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
+                <button class="filter-capsule active" onclick="setFilter('all')">載入中...</button>
+            </div>
+            <div class="filter-toggle-trigger" onclick="toggleFilter()">
+                <i class="fas fa-chevron-up text-[10px]" id="filter-chevron"></i>
+            </div>
+        </div>
+    </header>
+
+    <div id="page-content">
+        <!-- 錄影庫首頁 -->
+        <div id="view-home">
+            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
+                <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
+                    <div class="hero-gradient-overlay"></div>
+                    
+                    <!-- 手動同步按鈕 -->
+                    <button id="sync-button" onclick="manualSync()" class="sync-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>與雲端同步</span>
+                    </button>
+
+                    <div class="absolute inset-0 flex flex-col items-center justify-end pb-16 px-6 text-center">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-12 relative z-10">
+                        <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')" 
+                                class="bg-slate-900 dark:bg-sky-500 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
+                            馬上開始
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
+                <div class="loader">正在從數據庫獲取內容...</div>
+            </main>
+
+            <section id="sec-archive" class="mt-20 pb-16 px-6">
+                <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
+                    
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                        <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
+                            Pastpaper Archive
+                        </h2>
+                        <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+                        <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
+                            Detailed Examination Resource Collections
+                        </p>
+                        <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
+                            Enter Archive
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="dock-nav-wrapper" class="dock-wrapper">
+        <nav class="dock-nav">
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+            <div class="dock-content">
+                <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
+                    <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
+                </button>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
+                    <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
+                </button>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
+                    <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
+                </button>
+                <button onclick="handleNavigation('https://mail.google.com/mail/u/0/#inbox')" class="dock-item">
+                    <i class="fab fa-google"></i><span class="uppercase">郵箱</span>
+                </button>
+            </div>
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+        </nav>
+    </div>
+    <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
+
+    <script>
+        const SPREADSHEET_ID = '1QIwkfmUZPRWMLrDVHYe-bUtUMSmkU2Ad6PlZnYIij_M';
+        let rawData = [];
+        let lastScrollY = window.scrollY;
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('lumina-theme', isDark ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('lumina-theme') === 'dark' || 
+            (!localStorage.getItem('lumina-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark-mode');
+        }
+
+        async function initData() {
+            try {
+                const currentUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
+                const response = await fetch(currentUrl);
+                const csvText = await response.text();
+                rawData = parseCSV(csvText);
+                renderFilters();
+                renderContent();
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請檢查網路連線。</div>`;
+            }
+        }
+
+        async function manualSync() {
+            const btn = document.getElementById('sync-button');
+            btn.classList.add('loading');
+            btn.querySelector('span').innerText = '同步中...';
+            await initData();
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                btn.querySelector('span').innerText = '與雲端同步';
+            }, 800);
+        }
+
+        function parseCSV(text) {
+            const rows = text.split('\n').map(row => {
+                const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+                return row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim());
+            });
+            
+            return rows.slice(1) 
+                .filter(row => row[1]) 
+                .map(row => ({
+                    filter: row[0],
+                    section: row[1],
+                    order: parseInt(row[2]) || 0,
+                    img: row[3],
+                    url: row[4]
+                }));
+        }
+
+        function renderFilters() {
+            const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
+            const container = document.getElementById('filter-container');
+            container.innerHTML = filters.map(f => `
+                <button class="filter-capsule ${f === 'all' ? 'active' : ''}" 
+                        data-filter="${f}" 
+                        onclick="setFilter('${f}')">
+                    ${f === 'all' ? '全部' : f}
+                </button>
+            `).join('');
+        }
+
+        function renderContent() {
+            const mainArea = document.getElementById('main-content-area');
+            mainArea.innerHTML = '';
+            const sections = [...new Set(rawData.map(d => d.section))];
+            sections.forEach(secName => {
+                const itemsInSec = rawData
+                    .filter(d => d.section === secName)
+                    .sort((a, b) => a.order - b.order);
+                if (itemsInSec.length === 0) return;
+                const filterTag = itemsInSec[0].filter;
+                const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
+                const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+                const sectionHtml = `
+                    <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
+                        <h2 class="section-title">${secName}</h2>
+                        <div class="slider-wrapper">
+                            <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
+                                <i class="fas fa-chevron-left text-xs text-slate-400"></i>
+                            </button>
+                            <div class="slider-container hide-scrollbar" id="${sliderId}">
+                                ${itemsInSec.map(item => `
+                                    <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
+                                        <div class="poster-card">
+                                            <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
+                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                            </button>
+                        </div>
+                    </section>
+                `;
+                mainArea.insertAdjacentHTML('beforeend', sectionHtml);
+            });
+        }
+
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        function toggleFilter() { document.getElementById('filter-bar').classList.toggle('collapsed'); }
+        function scrollSlider(id, offset) {
+            const el = document.getElementById(id);
+            if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+        function scrollToHome() { setFilter('all'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function handleNavigation(url) {
+            if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
+            window.location.href = url;
+        }
+
+        function setFilter(filterType) {
+            const buttons = document.querySelectorAll('.filter-capsule');
+            buttons.forEach(btn => {
+                if(btn.dataset.filter === filterType) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
+            const sections = document.querySelectorAll('.dynamic-section');
+            if (filterType === 'all') {
+                heroSection.classList.remove('section-hidden');
+                archiveSection.classList.remove('section-hidden');
+                sections.forEach(sec => sec.classList.remove('section-hidden'));
+            } else {
+                heroSection.classList.add('section-hidden');
+                archiveSection.classList.add('section-hidden');
+                sections.forEach(sec => {
+                    if (sec.getAttribute('data-group') === filterType) sec.classList.remove('section-hidden');
+                    else sec.classList.add('section-hidden');
+                });
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+            if (currentScrollY > 30) document.body.classList.add('scrolled');
+            else document.body.classList.remove('scrolled');
+            const filterBar = document.getElementById('filter-bar');
+            if (currentScrollY > lastScrollY && currentScrollY > 150) {
+                if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
+            } else if (currentScrollY < lastScrollY) {
+                if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', initData);
+    </script>
+</body>
+</html>
