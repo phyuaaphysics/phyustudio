@@ -1,163 +1,206 @@
-
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI YouTube 视频内容分析器</title>
+    <title>學生違規紀錄登記系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #ef4444;
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            border-left-color: #3b82f6;
             animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 10px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .fade-in { animation: fadeIn 0.6s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-900">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-4xl mx-auto py-12 px-4">
-        <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">YouTube AI 视频分析工具</h1>
-            <p class="text-slate-500 text-lg">输入链接，通过 Gemini 2.5 深度解析视频字幕</p>
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 bg-blue-100 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">違規紀錄登記</h1>
         </div>
 
-        <!-- Main Input Card -->
-        <div class="glass border border-white rounded-3xl shadow-2xl p-8 mb-8">
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="videoUrl" placeholder="粘贴 YouTube 视频链接 (例如: https://www.youtube.com/watch?v=...)" 
-                    class="flex-1 px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all shadow-inner">
-                <button onclick="runAnalysis()" id="mainBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold px-10 py-4 rounded-2xl transition-all shadow-lg hover:shadow-red-500/30 flex items-center justify-center whitespace-nowrap">
-                    <span id="btnContent">开始智能分析</span>
-                </button>
-            </div>
-            <div id="errorBox" class="mt-4 hidden p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                <span id="errorMsg"></span>
-            </div>
-        </div>
-
-        <!-- Result Display -->
-        <div id="results" class="hidden space-y-6 fade-in">
-            <!-- Title Section -->
-            <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
-                <label class="text-xs font-bold text-red-600 uppercase tracking-widest block mb-2">建议的爆款标题</label>
-                <h2 id="outTitle" class="text-2xl md:text-3xl font-extrabold text-slate-800 leading-tight"></h2>
+        <form id="recordForm" class="space-y-5">
+            <!-- 學生姓名選擇 -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">選擇學生姓名</label>
+                <select id="studentName" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    <option value="" disabled selected>載入中...</option>
+                </select>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-6">
-                <!-- Summary Section -->
-                <div class="md:col-span-2 bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">30字核心摘要</label>
-                    <p id="outSummary" class="text-xl text-slate-700 leading-relaxed font-medium italic">
-                        <!-- Summary goes here -->
-                    </p>
-                </div>
-
-                <!-- Metadata Section -->
-                <div class="bg-slate-900 rounded-3xl p-8 shadow-xl text-white">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">分析详情</label>
-                    <ul id="outPoints" class="space-y-4 text-sm opacity-90">
-                        <!-- Points go here -->
-                    </ul>
-                </div>
+            <!-- 違規事項選擇 -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">違規事項</label>
+                <select id="violationType" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    <option value="" disabled selected>載入中...</option>
+                </select>
             </div>
-        </div>
+
+            <!-- 提交按鈕 -->
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2 disabled:bg-slate-400">
+                <span>確認送出</span>
+            </button>
+        </form>
+
+        <!-- 狀態回饋區域 -->
+        <div id="statusMessage" class="mt-6 hidden p-4 rounded-lg text-center text-sm font-medium border"></div>
     </div>
 
-    <script type="module">
-        const apiKey = ""; // 执行环境自动填充
+    <!-- 載入中遮罩 -->
+    <div id="loader" class="fixed inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
+        <div class="loading-spinner mb-4"></div>
+        <p id="loaderText" class="text-slate-600 font-medium">正從資料庫獲取清單...</p>
+    </div>
 
-        window.runAnalysis = async () => {
-            const url = document.getElementById('videoUrl').value.trim();
-            const btn = document.getElementById('mainBtn');
-            const btnText = document.getElementById('btnContent');
-            const results = document.getElementById('results');
-            const errorBox = document.getElementById('errorBox');
+    <script>
+        // 確認 GAS URL 正確性
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzy2c5oOX2MdaDeF9K3ulChaYAbZsTQd8HtSRdFxz-YPcYS-lEljUbaNNLMJsDpv2w/exec";
 
-            if (!url) {
-                showError("请先输入视频链接");
+        const form = document.getElementById('recordForm');
+        const studentSelect = document.getElementById('studentName');
+        const violationSelect = document.getElementById('violationType');
+        const submitBtn = document.getElementById('submitBtn');
+        const loader = document.getElementById('loader');
+        const statusMsg = document.getElementById('statusMessage');
+
+        // 初始化：獲取 DATA 分頁的資料
+        async function init() {
+            try {
+                // 使用 mode: 'cors' 確保跨域請求能被發送，雖然 GAS 最終會重導向
+                const response = await fetch(`${GAS_URL}?action=getList`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+
+                if (!response.ok) throw new Error('網絡響應不正常');
+
+                const data = await response.json();
+
+                // 填充學生名單
+                studentSelect.innerHTML = '<option value="" disabled selected>請選擇學生</option>';
+                if (data.students && data.students.length > 0) {
+                    data.students.forEach(name => {
+                        if(name && name.toString().trim() !== "") {
+                            const opt = document.createElement('option');
+                            opt.value = name;
+                            opt.textContent = name;
+                            studentSelect.appendChild(opt);
+                        }
+                    });
+                }
+
+                // 填充違規事項
+                violationSelect.innerHTML = '<option value="" disabled selected>請選擇事項</option>';
+                if (data.violations && data.violations.length > 0) {
+                    data.violations.forEach(item => {
+                        if(item && item.toString().trim() !== "") {
+                            const opt = document.createElement('option');
+                            opt.value = item;
+                            opt.textContent = item;
+                            violationSelect.appendChild(opt);
+                        }
+                    });
+                }
+
+                loader.classList.add('hidden');
+            } catch (error) {
+                console.error("無法載入資料:", error);
+                document.getElementById('loaderText').innerHTML = `
+                    <div class="text-center p-6">
+                        <p class="text-red-500 font-bold mb-2">資料載入失敗 (Fetch Error)</p>
+                        <p class="text-slate-600 text-xs mb-4">請確認 GAS 部署為「所有人 (Anyone)」，且已完成授權。</p>
+                        <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">重新整理</button>
+                    </div>
+                `;
+                document.querySelector('.loading-spinner').classList.add('hidden');
+            }
+        }
+
+        // 送出表單
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = studentSelect.value;
+            const violation = violationSelect.value;
+
+            if (!name || !violation) {
+                showStatus("請確保已選擇學生與事項", "error");
                 return;
             }
 
-            // UI Reset
-            errorBox.classList.add('hidden');
-            results.classList.add('hidden');
-            btn.disabled = true;
-            btnText.innerHTML = '<span class="loader"></span> 正在读取字幕数据...';
-
-            const systemPrompt = `你是一个 YouTube 数据分析机器人。
-            任务：
-            1. 利用 Google Search 工具访问该 URL，并专门查找其 "Transcript" (字幕) 或 "Video Content"。
-            2. 必须基于实际字幕内容进行分析。
-            3. 输出一个点击率高的中文标题。
-            4. 输出一个精确的 30 字左右的中文总结。
-            5. 提供 3 个核心要点。
-
-            输出格式必须为严格的 JSON:
-            {"title": "...", "summary": "...", "points": ["...", "...", "..."]}`;
+            setLoading(true);
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                // 使用 URLSearchParams 以符合 GAS doPost 的 parameter 接收方式
+                const payload = new URLSearchParams();
+                payload.append('action', 'addData');
+                payload.append('name', name);
+                payload.append('violation', violation);
+
+                const response = await fetch(GAS_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `分析这个视频的内容并根据字幕总结: ${url}` }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        tools: [{ "google_search": {} }],
-                        generationConfig: { 
-                            responseMimeType: "application/json",
-                            temperature: 0.2
-                        }
-                    })
+                    mode: 'no-cors', // 關鍵：GAS POST 有時需要 no-cors 來避免 preflight 失敗
+                    body: payload,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
                 });
 
-                if (!response.ok) throw new Error("API 连接失败，请检查网络或 Key");
+                // 注意：在 no-cors 模式下，無法讀取 response body。
+                // 我們等待一小段時間後假設成功，或是嘗試重新抓取狀態。
+                // 為了用戶體驗，我們假設只要沒報錯就是成功發送。
+                showStatus(`已送出登記：${name} - ${violation}`, "success");
+                form.reset();
 
-                const json = await response.json();
-                const rawText = json.candidates[0].content.parts[0].text;
-                const data = JSON.parse(rawText);
-
-                // Update UI
-                document.getElementById('outTitle').innerText = data.title;
-                document.getElementById('outSummary').innerText = data.summary;
-                
-                const pointsHtml = data.points.map(p => `
-                    <li class="flex items-start">
-                        <span class="text-red-500 mr-2">✦</span>
-                        <span>${p}</span>
-                    </li>
-                `).join('');
-                document.getElementById('outPoints').innerHTML = pointsHtml;
-
-                results.classList.remove('hidden');
-            } catch (err) {
-                showError("分析失败: " + err.message + "。请确认视频是否有字幕，或稍后再试。");
+            } catch (error) {
+                console.error("提交失敗:", error);
+                showStatus("發送失敗，請確認網路連線。", "error");
             } finally {
-                btn.disabled = false;
-                btnText.innerText = '开始智能分析';
+                setLoading(false);
             }
-        };
+        });
 
-        window.showError = (msg) => {
-            const errorBox = document.getElementById('errorBox');
-            document.getElementById('errorMsg').innerText = msg;
-            errorBox.classList.remove('hidden');
-        };
+        function setLoading(isLoading) {
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="flex items-center"><svg class="animate-spin h-5 w-5 mr-3 border-2 border-white border-t-transparent rounded-full" viewBox="0 0 24 24"></svg>處理中...</span>';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>確認送出</span>';
+            }
+        }
+
+        function showStatus(msg, type) {
+            statusMsg.textContent = msg;
+            statusMsg.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'border-green-200', 'bg-red-50', 'text-red-700', 'border-red-200');
+            
+            if (type === "success") {
+                statusMsg.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+            } else {
+                statusMsg.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+            }
+
+            statusMsg.classList.remove('hidden');
+            setTimeout(() => {
+                statusMsg.classList.add('hidden');
+            }, 5000);
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>
-
-
