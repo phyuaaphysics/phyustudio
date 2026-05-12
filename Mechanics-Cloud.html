@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 保持原有的 UI 視覺設計與動畫 */
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
 
         :root {
@@ -17,11 +16,16 @@
             --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1);
             --anim-slow: 1.6s cubic-bezier(0.4, 0, 0.2, 1);
             --tab-anim: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --os-curve: cubic-bezier(0.25, 1, 0.3, 1);
+            --os-speed: 0.8s;
         }
 
         html, body {
             height: 100dvh;
-            width: 100%; margin: 0; overflow: hidden; position: fixed;
+            width: 100%;
+            margin: 0;
+            overflow: hidden;
+            position: fixed;
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
             background-color: #f8fafc;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -30,122 +34,144 @@
         .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; }
         #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow), filter 0.8s; }
         .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5; }
-        .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center; transition: opacity var(--anim-os), transform var(--anim-os); z-index: 20; }
-        .hero-content-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; padding-top: env(safe-area-inset-top); }
+        .hero-glass-panel { 
+            background: rgba(255, 255, 255, 0.25); 
+            backdrop-filter: blur(40px); 
+            -webkit-backdrop-filter: blur(40px); 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            border-radius: 40px; 
+            padding: 3.5rem 2.5rem; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); 
+            max-width: 90%; 
+            width: 540px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            transition: opacity var(--anim-os), transform var(--anim-os); 
+            z-index: 20; 
+        }
+        .hero-content-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; }
         .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden; }
 
-        /* Security UI Elements */
-        .auth-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; outline: none; font-size: 14px; transition: 0.3s; color: #1e293b; }
-        .auth-input:focus { background: rgba(255, 255, 255, 0.6); border-color: #10b981; }
-        .error-msg { color: #ef4444; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: none; }
-        
-        /* Auth Loading Indicator */
-        #auth-loading { display: none; align-items: center; gap: 8px; margin-top: 15px; color: #10b981; font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
-
-        /* Window & LMS Layouts */
         .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #fff; transform: translateY(110vh); z-index: 310; display: none; opacity: 0; overflow: hidden; transition: opacity var(--anim-os), transform var(--anim-os); }
         .modal-window.open { display: flex; flex-direction: column; opacity: 1; transform: translateY(0); }
-        .window-header { padding: 0 12px; display: flex; align-items: center; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; height: 54px; gap: 8px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box; }
+        
+        .window-header { padding: 0 12px; display: flex; align-items: center; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; height: 54px; gap: 8px; flex-shrink: 0; }
         .tab-strip { display: flex; align-items: flex-end; gap: 4px; flex: 1; overflow-x: auto; height: 100%; scrollbar-width: none; }
-        .browser-tab { height: 38px; min-width: 100px; max-width: 180px; background: #e2e8f0; border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; transition: all var(--tab-anim); position: relative; margin-bottom: -1px; border: 1px solid transparent; }
-        .browser-tab.active { background: #fff; z-index: 2; transform: scale(1.02); box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
+        .browser-tab { height: 38px; min-width: 100px; max-width: 180px; background: #e2e8f0; border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; transition: all var(--tab-anim); position: relative; margin-bottom: -1px; }
+        .browser-tab.active { background: #fff; z-index: 2; transform: scale(1.02); }
         .tab-title { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #475569; }
-        .tab-close { font-size: 10px; opacity: 0.4; padding: 4px; transition: 0.2s; }
-        .window-body { flex: 1; width: 100%; background: #f8fafc; position: relative; overflow: hidden; padding-bottom: env(safe-area-inset-bottom); }
+
+        .window-body { flex: 1; width: 100%; background: #f8fafc; position: relative; overflow: hidden; }
         .win-content-page { display: none; width: 100%; height: 100%; opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease; }
         .win-content-page.active { display: block; opacity: 1; transform: translateY(0); }
-        .toolbar-item { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 14px; transition: 0.3s; cursor: pointer; }
 
-        /* LMS Elements */
-        .lms-classic-layout { display: flex; height: 100%; width: 100%; overflow: hidden; background: #fff; }
-        .lms-sidebar { width: 320px; flex-shrink: 0; border-right: 1px solid #eee; background: #fff; overflow-y: auto; display: flex; flex-direction: column; }
-        .lms-sidebar-header { padding: 24px; border-bottom: 1px solid #f1f5f9; }
-        .lms-section-title { padding: 12px 24px; background: #f8fafc; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; border-bottom: 1px solid #f1f5f9; }
-        .lms-item-link { padding: 16px 24px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f8fafc; position: relative; }
-        .lms-item-link.active { background: #ecfdf5; color: #059669; }
-        .lms-item-link.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #10b981; }
-        .lms-item-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; background: #f1f5f9; }
-        .lms-item-link.active .lms-item-icon { background: #10b981; color: white; }
+        .lms-classic-layout { display: flex; height: 100%; width: 100%; overflow: hidden; position: relative; }
+        
+        .lms-sidebar { 
+            width: 320px; 
+            flex-shrink: 0; 
+            border-right: 1px solid #eee; 
+            background: #fff; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            transition: width var(--os-speed) var(--os-curve), transform var(--os-speed) var(--os-curve), opacity var(--os-speed) var(--os-curve);
+        }
+        .lms-sidebar.hidden-os { width: 0; transform: translateX(-50px); opacity: 0; pointer-events: none; }
+
+        .lms-md-reader { 
+            width: 0; 
+            flex-shrink: 0; 
+            background: #fef9c3; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: width 0.4s var(--os-curve), transform var(--os-speed) var(--os-curve), opacity var(--os-speed) var(--os-curve);
+        }
+        .lms-md-reader.active { width: 50%; opacity: 1; transform: translateX(0); border-right: 1px solid rgba(0,0,0,0.05); }
+
+        .lms-width-cycle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background: rgba(0,0,0,0.08);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 50;
+        }
+
         .lms-stage { flex: 1; background: #fff; overflow-y: auto; display: flex; flex-direction: column; }
-        .lms-stage-content { max-width: 1100px; margin: 0 auto; width: 100%; padding: 40px; }
-        .media-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        .lms-stage-title { font-size: 28px; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
 
-        /* Grid & Cards */
-        .catalog-container { position: relative; width: 100%; height: 100%; overflow-y: auto; }
-        /* 背景圖片刷淡處理 */
-        .page-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.15; pointer-events: none; z-index: 0; }
-        .lms-grid { position: relative; z-index: 10; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; background: transparent; }
-        .lms-card { position: relative; height: 200px; border-radius: 25px; overflow: hidden; cursor: pointer; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.05); background: #fff; }
-        .lms-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px rgba(0,0,0,0.1); }
-        .lms-card-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
-        .lms-card:hover .lms-card-bg { transform: scale(1.05); }
-        .lms-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; color: white; }
+        .lms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; padding: 40px; position: relative; z-index: 10; }
+        .lms-card { position: relative; height: 200px; border-radius: 20px; overflow: hidden; cursor: pointer; transition: 0.3s; background: #fff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .lms-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .lms-card-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .lms-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; color: white; }
 
-        /* Loader */
-        #page-loader { position: fixed; inset: 0; background-color: #fff; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .sync-spinning { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* Version Selector */
-        .version-selector-container { position: relative; height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: transparent; }
-        .version-card { position: relative; z-index: 10; background: #fff; border-radius: 30px; padding: 40px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
-        .version-btn { width: 100%; padding: 18px; margin-top: 12px; border-radius: 16px; background: #f8fafc; border: 1px solid #f1f5f9; font-weight: 700; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; cursor: pointer; color: #1e293b; }
-        .version-btn:hover { background: #10b981; color: #fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16,185,129,0.2); }
-        .version-btn .badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; background: rgba(0,0,0,0.05); }
+        .auth-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; outline: none; transition: 0.3s; }
 
         @media (max-width: 768px) {
             .lms-classic-layout { flex-direction: column; }
-            .lms-sidebar { width: 100%; height: 100%; border-right: none; border-bottom: 1px solid #eee; }
-            .lms-sidebar.collapsed-mobile { height: 60px; overflow: hidden; }
-            .lms-stage-content { padding: 20px; }
-            .mobile-back-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #f1f5f9; color: #475569; border-radius: 12px; font-size: 11px; font-weight: 800; margin-bottom: 20px; }
+            .lms-sidebar { position: absolute; top: 0; left: 0; height: 100%; z-index: 100; width: 100% !important; transform: translateX(0); }
+            .lms-sidebar.collapsed-mobile { transform: translateX(-100%); }
+            
+            .lms-stage { flex: none; height: auto; }
+            .lms-md-reader { width: 100% !important; flex: 1; transform: none; border-top: 1px solid rgba(0,0,0,0.05); }
+            .lms-md-reader:not(.active) { display: none; }
+            .lms-width-cycle-btn { display: none !important; }
+
+            .compact-video-container { margin: 0 !important; border-radius: 0 !important; }
         }
+
+        .sync-spinning { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="page-loader">
-        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
-        <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">Initializing Gatekeeper...</p>
+    <div id="page-loader" class="fixed inset-0 bg-white z-[1000] flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full sync-spinning mb-4"></div>
+        <p class="text-xs tracking-widest text-gray-400 font-bold uppercase">載入系統中...</p>
     </div>
 
     <div id="main-browser-window" class="modal-window">
         <div class="window-header">
             <div id="browser-tab-strip" class="tab-strip"></div>
             <div class="flex items-center gap-3 px-4">
-                <div class="toolbar-item" onclick="manualRefresh()"><i id="window-cloud-icon" class="fas fa-cloud"></i></div>
-                <div class="toolbar-item" id="sidebar-toggle-btn" style="display: none;" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
-                <div class="toolbar-item" onclick="openHomeFolder()"><i class="fas fa-th-list"></i></div>
-                <div class="toolbar-item" onclick="closeAllTabs()"><i class="fas fa-times"></i></div>
+                <div class="w-8 h-8 flex items-center justify-center cursor-pointer text-gray-500" onclick="manualRefresh()"><i id="window-cloud-icon" class="fas fa-sync-alt"></i></div>
+                <div class="w-8 h-8 flex items-center justify-center cursor-pointer text-gray-500 md:hidden" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+                <div class="w-8 h-8 flex items-center justify-center cursor-pointer text-gray-500" onclick="openHomeFolder()"><i class="fas fa-home"></i></div>
+                <div class="w-8 h-8 flex items-center justify-center cursor-pointer text-red-400" onclick="closeAllTabs()"><i class="fas fa-times"></i></div>
             </div>
         </div>
         <div id="browser-window-body" class="window-body"></div>
     </div>
 
     <section class="hero-full">
-        <img id="hero-bg" src="">
+        <img id="hero-bg" src="" alt="背景">
         <div class="hero-overlay"></div>
         <div class="hero-content-wrapper">
             <div id="hero-main-content" class="hero-glass-panel">
-                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-14 w-14 mb-6">
+                <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-14 w-14 mb-6" alt="Logo">
                 <h1 id="hero-title" class="text-3xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;">Lumina</h1>
-                <p id="hero-subtitle" class="text-xl font-bold tracking-[1em] mb-8 uppercase opacity-80"></p>
-                <div class="w-full mb-2">
-                    <input type="text" id="auth-username" class="auth-input" placeholder="USERNAME">
-                    <input type="password" id="auth-password" class="auth-input" placeholder="PASSWORD">
-                    <div id="auth-error" class="error-msg text-center">Unauthorized Access</div>
+                <p id="hero-subtitle" class="text-xl font-bold tracking-[0.5em] mb-8 uppercase opacity-80 text-center">數位學習平台</p>
+                <div class="w-full">
+                    <input type="text" id="auth-username" class="auth-input" placeholder="使用者名稱">
+                    <input type="password" id="auth-password" class="auth-input" placeholder="密碼">
+                    <div id="auth-error" class="hidden text-red-500 text-xs font-bold text-center mb-4">驗證失敗，請重試</div>
                 </div>
-                <button id="btn-start" onclick="handleAuth()" class="px-12 py-4 rounded-full text-[10px] tracking-[0.5em] font-black uppercase bg-white/20 backdrop-blur-md border border-white/40 shadow-xl active:scale-95 transition-all">
-                    START LEARNING
-                </button>
-                <div id="auth-loading">
-                    <i class="fas fa-spinner sync-spinning"></i>
-                    <span>Verifying Identity...</span>
-                </div>
-                <button onclick="manualRefresh()" class="mt-8 text-emerald-600/60 hover:text-emerald-600 transition-colors">
-                    <i id="hero-cloud-icon" class="fas fa-cloud"></i>
-                </button>
+                <button id="btn-start" onclick="handleAuth()" class="w-full py-4 rounded-full text-[11px] tracking-[0.3em] font-black uppercase bg-white/30 backdrop-blur-md border border-white/50 hover:bg-white/40 transition-all">進入系統</button>
             </div>
         </div>
     </section>
@@ -155,98 +181,66 @@
         let openTabs = [];
         let activeTabId = null;
         let courseList = [];
-        let catalogBgUrl = ""; 
+        let catalogBgUrl = "";
+
+        async function fetchWithRetry(url, options = {}, retries = 5, backoff = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                }
+                throw error;
+            }
+        }
 
         async function loadSheetData(isManual = false) {
-            const heroCloudIcon = document.getElementById('hero-cloud-icon');
-            const windowCloudIcon = document.getElementById('window-cloud-icon');
-            const spinClasses = 'fas fa-spinner sync-spinning';
-            if (isManual) {
-                if(heroCloudIcon) heroCloudIcon.className = spinClasses;
-                if(windowCloudIcon) windowCloudIcon.className = spinClasses;
-            }
-            
+            const syncIcon = document.getElementById('window-cloud-icon');
+            if (isManual && syncIcon) syncIcon.classList.add('sync-spinning');
             try {
-                const response = await fetch(`${GAS_URL}?action=getLand`);
-                const result = await response.json();
-                
+                const result = await fetchWithRetry(`${GAS_URL}?action=getLand`);
                 if (result.result === 'success') {
                     const rows = result.data;
                     courseList = [];
-                    
                     rows.forEach(row => {
                         if (row[0] === 'HEROSECTION') {
                             if (row[1] === 'CONTENT_1') document.getElementById('hero-title').innerText = row[4];
                             if (row[1] === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = row[4];
                             if (row[1] === 'PHOTO') document.getElementById('hero-bg').src = row[4];
                         }
-                        if (row[0] === 'CATALOG_BG') {
-                            catalogBgUrl = row[4];
-                        }
-                        if (row[0] && row[0].toString().startsWith('TOPIC')) {
-                            courseList.push({ id: row[0], title: row[1], image: row[4] });
-                        }
+                        if (row[0] === 'CATALOG_BG') catalogBgUrl = row[4];
+                        if (row[0] && row[0].toString().startsWith('TOPIC')) courseList.push({ id: row[0], title: row[1], image: row[4] });
                     });
-                    localStorage.setItem('LUMINA_DATA', JSON.stringify(courseList));
                     if (isManual) refreshCurrentView();
-                    setStatusIcon(true);
-                } else {
-                    throw new Error("API Failure");
                 }
-            } catch (e) { 
-                console.error("Sync Failed:", e);
-                setStatusIcon(false);
-            } finally {
+            } catch (e) { console.error("Sync Error:", e); } finally {
+                if (syncIcon) syncIcon.classList.remove('sync-spinning');
                 document.getElementById('page-loader').style.opacity = '0';
-                setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; }, 800);
+                setTimeout(() => document.getElementById('page-loader').classList.add('hidden'), 700);
             }
         }
 
         async function handleAuth() {
-            const user = document.getElementById('auth-username').value.trim();
-            const pass = document.getElementById('auth-password').value.trim();
-            const errorEl = document.getElementById('auth-error');
-            const startBtn = document.getElementById('btn-start');
-            const loadingEl = document.getElementById('auth-loading');
-
-            if (!user || !pass) return;
-            
-            // UI Feedback: Start Loading
-            startBtn.innerText = "WAITING...";
-            startBtn.disabled = true;
-            errorEl.style.display = 'none';
-            loadingEl.style.display = 'flex';
-
+            const user = document.getElementById('auth-username').value;
+            const pass = document.getElementById('auth-password').value;
+            if(!user || !pass) return;
             try {
-                const loginRes = await fetch(`${GAS_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
-                const loginData = await loginRes.json();
-
-                if (loginData.result === 'success') {
-                    openHomeFolder();
-                } else {
-                    throw new Error("Invalid");
-                }
-            } catch (e) {
-                errorEl.style.display = 'block';
-                document.getElementById('hero-main-content').animate([
-                    { transform: 'translateX(0px)' }, { transform: 'translateX(-10px)' },
-                    { transform: 'translateX(10px)' }, { transform: 'translateX(0px)' }
-                ], { duration: 300 });
-            } finally {
-                startBtn.innerText = "START LEARNING";
-                startBtn.disabled = false;
-                loadingEl.style.display = 'none';
-            }
+                const data = await fetchWithRetry(`${GAS_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+                if(data.result === 'success') openHomeFolder();
+                else document.getElementById('auth-error').classList.remove('hidden');
+            } catch (e) { document.getElementById('auth-error').classList.remove('hidden'); }
         }
 
-        function openHomeFolder() { openTab("Course Catalog", "FOLDER"); }
+        function openHomeFolder() { openTab("課程目錄", "FOLDER"); }
 
         function openTab(title, type, topicId = null) {
-            const id = topicId || `TAB_${title.replace(/\s/g, '_')}`;
+            const id = topicId || `TAB_${Date.now()}`;
             if (openTabs.find(t => t.id === id)) { switchTab(id); return; }
             const tab = { id, title, type, topicId };
             openTabs.push(tab);
-
             const page = document.createElement('div');
             page.id = `page-${id}`;
             page.className = 'win-content-page';
@@ -254,7 +248,6 @@
             document.getElementById('browser-window-body').appendChild(page);
             if (type === 'FOLDER') renderGrid(`canvas-${id}`);
             else renderVersionSelector(topicId, title, `canvas-${id}`);
-
             switchTab(id);
             document.getElementById('hero-main-content').classList.add('fade-exit-up');
             document.getElementById('main-browser-window').style.display = 'flex';
@@ -263,140 +256,11 @@
 
         function switchTab(id) {
             activeTabId = id;
-            document.querySelectorAll('.win-content-page').forEach(p => {
-                if (p.id === `page-${id}`) {
-                    p.style.display = 'block';
-                    setTimeout(() => p.classList.add('active'), 10);
-                } else {
-                    p.classList.remove('active');
-                    setTimeout(() => { if (!p.classList.contains('active')) p.style.display = 'none'; }, 500);
-                }
-            });
-            const currentTab = openTabs.find(t => t.id === id);
-            const toggleBtn = document.getElementById('sidebar-toggle-btn');
-            toggleBtn.style.display = (currentTab && (currentTab.type === 'SELECTOR' || currentTab.type === 'FOLDER')) ? 'none' : 'flex';
+            document.querySelectorAll('.win-content-page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+            const activePage = document.getElementById(`page-${id}`);
+            activePage.style.display = 'block';
+            setTimeout(() => activePage.classList.add('active'), 10);
             renderTabs();
-        }
-
-        function renderGrid(cid) {
-            let bgHtml = catalogBgUrl ? `<img src="${catalogBgUrl}" class="page-bg-img">` : '';
-            let html = `<div class="catalog-container">${bgHtml}<div class="lms-grid">`;
-            courseList.forEach(c => {
-                html += `<div class="lms-card" onclick="openTab('${c.title}', 'SELECTOR', '${c.id}')">
-                    <img src="${c.image}" class="lms-card-bg">
-                    <div class="lms-card-overlay">
-                        <span class="text-[9px] font-black tracking-widest opacity-60">${c.id}</span>
-                        <h3 class="font-bold text-lg">${c.title}</h3>
-                    </div>
-                </div>`;
-            });
-            document.getElementById(cid).innerHTML = html + `</div></div>`;
-        }
-
-        async function renderVersionSelector(tid, title, cid) {
-            const container = document.getElementById(cid);
-            container.innerHTML = `<div class="flex items-center justify-center h-full opacity-30 animate-pulse text-xs uppercase tracking-widest">Identifying Options...</div>`;
-            
-            // 獲取該課題的圖片作為背景
-            const course = courseList.find(c => c.id === tid);
-            const bgImgUrl = course ? course.image : '';
-            const bgHtml = bgImgUrl ? `<img src="${bgImgUrl}" class="page-bg-img">` : '';
-
-            try {
-                const res = await fetch(`${GAS_URL}?action=getTopic&topicId=${tid}`);
-                const result = await res.json();
-                const rows = result.data;
-                const versions = [...new Set(rows.slice(1).map(r => r[0]).filter(v => v && v !== 'VERSION'))].sort();
-                let versionBtns = '';
-                versions.forEach(v => {
-                    versionBtns += `<div class="version-btn" onclick="renderLMS('${tid}', '${title}', '${cid}', '${v}')">
-                        <span>${v}</span><span class="badge">Open</span>
-                    </div>`;
-                });
-                container.innerHTML = `<div class="version-selector-container">
-                    ${bgHtml}
-                    <div class="version-card">
-                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-layer-group"></i></div>
-                        <h2 class="text-xl font-black text-slate-800 mb-2">${title}</h2>
-                        <p class="text-xs text-slate-400 uppercase tracking-widest mb-8">Please Select to Continue</p>
-                        <div class="space-y-3">${versionBtns}</div>
-                        <button onclick="renderGrid('${cid}')" class="mt-8 text-[10px] font-bold text-slate-300 uppercase hover:text-slate-500 transition-colors">Back to Catalog</button>
-                    </div>
-                </div>`;
-            } catch (e) { container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">COULD NOT LOCATE MODULE: ${tid}</div>`; }
-        }
-
-        async function renderLMS(tid, title, cid, vFilter) {
-            const container = document.getElementById(cid);
-            container.innerHTML = `<div class="flex items-center justify-center h-full opacity-30 animate-pulse text-xs uppercase tracking-widest">Configuring ${vFilter}...</div>`;
-            try {
-                const res = await fetch(`${GAS_URL}?action=getTopic&topicId=${tid}`);
-                const result = await res.json();
-                const rows = result.data;
-                const sections = {};
-                rows.forEach((r, i) => {
-                    if (i === 0 || !r[1] || r[0] === 'VERSION' || (vFilter && r[0] !== vFilter)) return;
-                    if (!sections[r[1]]) sections[r[1]] = [];
-                    sections[r[1]].push({ version: r[0], topic: r[3], type: r[4].toLowerCase(), content: r[5] });
-                });
-
-                let sidebarHtml = '';
-                let firstItem = null;
-                for (const sec in sections) {
-                    sidebarHtml += `<div class="lms-section-title">${sec}</div>`;
-                    sections[sec].forEach((item, idx) => {
-                        const itemId = `item_${tid}_${sec.replace(/\s/g, '')}_${idx}`;
-                        if (!firstItem) firstItem = { ...item, id: itemId, section: sec };
-                        sidebarHtml += `<div id="btn-${itemId}" class="lms-item-link" onclick="updateLMSStage('${tid}', '${sec}', '${item.topic}', '${item.type}', '${item.content}', '${itemId}')">
-                            <div class="lms-item-icon"><i class="fas ${item.type === 'video' ? 'fa-play' : 'fa-file-alt'}"></i></div>
-                            <div class="flex-1">
-                                <div class="text-[13px] font-bold leading-tight">${item.topic}</div>
-                                <div class="text-[9px] opacity-40 uppercase font-black mt-1">${item.type}</div>
-                            </div>
-                        </div>`;
-                    });
-                }
-                container.innerHTML = `<div class="lms-classic-layout">
-                    <div class="lms-sidebar" id="sidebar-${tid}">
-                        <div class="lms-sidebar-header">
-                            <div class="flex justify-between items-center mb-1">
-                                <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">${tid}</div>
-                                <div class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 font-black">${vFilter}</div>
-                            </div>
-                            <div class="text-lg font-black text-slate-800">${title}</div>
-                        </div>
-                        <div class="flex-1">${sidebarHtml}</div>
-                        <div class="p-4 border-t">
-                            <button onclick="renderVersionSelector('${tid}', '${title}', '${cid}')" class="w-full py-2 text-[10px] font-black text-slate-400 uppercase bg-slate-50 rounded-lg">Switch Selection</button>
-                        </div>
-                    </div>
-                    <div class="lms-stage" id="stage-${tid}"></div>
-                </div>`;
-                if (firstItem) updateLMSStage(tid, firstItem.section, firstItem.topic, firstItem.type, firstItem.content, firstItem.id, true);
-            } catch (e) { container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">ERROR LOADING COURSE: ${tid}</div>`; }
-        }
-
-        function setStatusIcon(success) {
-            const h = document.getElementById('hero-cloud-icon');
-            const w = document.getElementById('window-cloud-icon');
-            const cls = success ? 'fas fa-check' : 'fas fa-times';
-            const col = success ? '#10b981' : '#ef4444';
-            if(h) { h.className = cls; h.style.color = col; }
-            if(w) { w.className = cls; w.style.color = col; }
-            setTimeout(() => {
-                if(h) { h.className = 'fas fa-cloud'; h.style.color = ""; }
-                if(w) { w.className = 'fas fa-cloud'; w.style.color = ""; }
-            }, 2000);
-        }
-
-        function toggleSidebar(forceShow = false) { 
-            const activePage = document.querySelector('.win-content-page.active');
-            if (!activePage) return;
-            const sidebar = activePage.querySelector('.lms-sidebar');
-            if (sidebar) {
-                if (forceShow) sidebar.classList.remove('collapsed-mobile');
-                else sidebar.classList.toggle('collapsed-mobile');
-            }
         }
 
         function renderTabs() {
@@ -406,80 +270,171 @@
                 const el = document.createElement('div');
                 el.className = `browser-tab ${activeTabId === t.id ? 'active' : ''}`;
                 el.onclick = () => switchTab(t.id);
-                el.innerHTML = `<i class="fas ${t.type === 'FOLDER' ? 'fa-th' : 'fa-play'} text-[10px] text-emerald-500"></i>
-                    <span class="tab-title">${t.title}</span>
-                    <i class="fas fa-times tab-close" onclick="event.stopPropagation(); closeTab('${t.id}')"></i>`;
+                el.innerHTML = `<i class="fas ${t.type === 'FOLDER' ? 'fa-th' : 'fa-play'} text-[10px] text-emerald-500"></i><span class="tab-title">${t.title}</span><i class="fas fa-times text-[9px] opacity-30 hover:opacity-100 ml-2" onclick="event.stopPropagation(); closeTab('${t.id}')"></i>`;
                 strip.appendChild(el);
             });
         }
 
         function closeTab(id) {
             const idx = openTabs.findIndex(t => t.id === id);
-            const targetPage = document.getElementById(`page-${id}`);
-            if (targetPage) {
-                targetPage.classList.remove('active');
-                setTimeout(() => targetPage.remove(), 500);
-            }
+            document.getElementById(`page-${id}`).remove();
             openTabs.splice(idx, 1);
             if (openTabs.length === 0) closeAllTabs();
             else switchTab(openTabs[Math.max(0, idx - 1)].id);
         }
 
         function closeAllTabs() {
-            openTabs = [];
-            activeTabId = null;
+            openTabs = []; activeTabId = null;
             document.getElementById('main-browser-window').classList.remove('open');
             document.getElementById('hero-main-content').classList.remove('fade-exit-up');
-            setTimeout(() => {
-                document.getElementById('main-browser-window').style.display = 'none';
-                document.getElementById('browser-window-body').innerHTML = '';
-            }, 800);
+            setTimeout(() => { document.getElementById('main-browser-window').style.display = 'none'; document.getElementById('browser-window-body').innerHTML = ''; }, 800);
         }
 
-        function updateLMSStage(tid, section, topic, type, content, itemId, isInitialLoad = false) {
-            const stage = document.getElementById(`stage-${tid}`);
-            document.querySelectorAll(`.lms-item-link`).forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById(`btn-${itemId}`);
-            if (activeBtn) activeBtn.classList.add('active');
-            if (window.innerWidth <= 768 && !isInitialLoad) {
-                const sidebar = document.getElementById(`sidebar-${tid}`);
-                if (sidebar) sidebar.classList.add('collapsed-mobile');
-            }
+        function renderGrid(cid) {
+            const container = document.getElementById(cid);
+            let html = `<div class="h-full overflow-y-auto relative">`;
+            if(catalogBgUrl) html += `<img src="${catalogBgUrl}" class="fixed inset-0 w-full h-full object-cover opacity-10 pointer-events-none">`;
+            html += `<div class="lms-grid">`;
+            courseList.forEach(c => {
+                html += `<div class="lms-card" onclick="openTab('${c.title}', 'SELECTOR', '${c.id}')"><img src="${c.image}" class="lms-card-bg" onerror="this.src='https://via.placeholder.com/400x200?text=Course'"><div class="lms-card-overlay"><span class="text-[9px] font-black tracking-widest opacity-60">${c.id}</span><h3 class="font-bold text-lg">${c.title}</h3></div></div>`;
+            });
+            container.innerHTML = html + `</div></div>`;
+        }
 
-            let mediaHtml = '';
-            let externalButton = '';
-            if (type === 'video') {
-                const vidId = extractYoutubeId(content);
-                mediaHtml = `<div class="media-box"><iframe src="https://www.youtube.com/embed/${vidId}?autoplay=${isInitialLoad ? '0' : '1'}" class="w-full h-full" frameborder="0" allow="autoplay; fullscreen"></iframe></div>`;
-                externalButton = `<button onclick="window.open('${content}', '_blank')" class="px-3 py-1 rounded bg-slate-100 text-slate-600 hover:bg-emerald-500 hover:text-white transition-all text-[11px] font-black flex items-center gap-1.5"><i class="fas fa-mobile-alt"></i> OPEN IN APP</button>`;
-            } else {
-                mediaHtml = `<div class="media-box bg-white"><img src="${content}" class="w-full h-full object-contain"></div>`;
-            }
+        async function renderVersionSelector(tid, title, cid) {
+            const container = document.getElementById(cid);
+            container.innerHTML = `<div class="flex items-center justify-center h-full text-xs text-gray-400 animate-pulse">正在獲取章節資訊...</div>`;
+            try {
+                const result = await fetchWithRetry(`${GAS_URL}?action=getTopic&topicId=${tid}`);
+                const versions = [...new Set(result.data.slice(1).map(r => r[0]))].filter(v => v && v !== 'VERSION');
+                let btns = versions.map(v => `<button onclick="renderLMS('${tid}', '${title}', '${cid}', '${v}')" class="w-full p-4 mb-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center hover:bg-emerald-500 hover:text-white transition-all font-bold">${v} <i class="fas fa-chevron-right text-[10px]"></i></button>`).join('');
+                container.innerHTML = `<div class="flex items-center justify-center h-full p-6"><div class="max-w-md w-full bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center"><h2 class="text-2xl font-black mb-2">${title}</h2><p class="text-xs text-gray-400 uppercase tracking-widest mb-8">選擇學習版本</p>${btns}<button onclick="renderGrid('${cid}')" class="mt-4 text-xs text-slate-300 hover:text-slate-500">返回課程目錄</button></div></div>`;
+            } catch(e) { container.innerHTML = `<div class="p-10 text-center">無法載入</div>`; }
+        }
 
-            stage.innerHTML = `<div class="lms-stage-content">
-                <button class="mobile-back-btn" onclick="toggleSidebar(true)"><i class="fas fa-chevron-left"></i> 返回資源選單</button>
-                ${mediaHtml}
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded text-slate-500 uppercase">${section}</span>
-                        <span class="text-[10px] font-black bg-emerald-100 px-2 py-0.5 rounded text-emerald-600 uppercase">${type}</span>
+        async function renderLMS(tid, title, cid, version) {
+            const container = document.getElementById(cid);
+            try {
+                const result = await fetchWithRetry(`${GAS_URL}?action=getTopic&topicId=${tid}`);
+                const rows = result.data.filter(r => r[0] === version);
+                const sections = {};
+                rows.forEach(r => {
+                    if(!sections[r[1]]) sections[r[1]] = [];
+                    sections[r[1]].push({ topic: r[3], type: r[4].toLowerCase(), content: r[5], md: r[6] || "" });
+                });
+
+                let sidebarHtml = '';
+                for(let sec in sections) {
+                    sidebarHtml += `<div class="px-6 py-3 bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">${sec}</div>`;
+                    sections[sec].forEach((item, i) => {
+                        sidebarHtml += `<div class="lms-nav-item flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-emerald-50 transition-colors border-b border-slate-50" onclick="handleItemClick('${tid}', '${item.topic}', '${item.type}', '${item.content}', '${item.md}', this)"><div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 text-xs"><i class="fas ${item.type === 'video' ? 'fa-play' : 'fa-image'}"></i></div><div class="text-sm font-bold text-slate-700">${item.topic}</div>${item.md ? '<i class="fas fa-book text-emerald-400 text-[12px] ml-auto"></i>' : ''}</div>`;
+                    });
+                }
+
+                container.innerHTML = `
+                    <div class="lms-classic-layout h-full">
+                        <div class="lms-sidebar collapsed-mobile h-full" id="sidebar-${tid}">
+                            <div class="p-6 border-b"><div class="text-[9px] font-black text-emerald-500 mb-1 uppercase">${version}</div><div class="text-lg font-black">${title}</div></div>
+                            <div class="flex-1 overflow-y-auto">${sidebarHtml}</div>
+                        </div>
+                        <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+                            <div class="lms-stage" id="stage-${tid}">
+                                <div class="flex items-center justify-center h-full text-slate-300">請選擇單元</div>
+                            </div>
+                            <div class="lms-md-reader" id="md-reader-${tid}">
+                                <div class="p-4 border-b border-black/5 flex items-center bg-black/5 relative z-10">
+                                    <button onclick="closeMDReader('${tid}')" class="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20 transition-colors"><i class="fas fa-chevron-left text-xs"></i></button>
+                                    <span class="ml-4 text-[10px] font-black uppercase tracking-widest opacity-40">筆記內容</span>
+                                    <div class="lms-width-cycle-btn" onclick="cycleReaderWidth('${tid}')">
+                                        <i class="fas fa-arrows-left-right text-[10px] text-gray-500"></i>
+                                    </div>
+                                </div>
+                                <div class="p-8 flex-1 overflow-y-auto relative z-10" id="md-content-${tid}"></div>
+                            </div>
+                        </div>
                     </div>
-                    ${externalButton}
-                </div>
-                <h2 class="lms-stage-title">${topic}</h2>
-                <p class="lms-stage-subtitle">Focus on the key concepts presented in this session.</p>
-            </div>`;
-            stage.scrollTo({ top: 0, behavior: 'smooth' });
+                `;
+            } catch(e) { container.innerHTML = `<div class="p-10 text-center">載入錯誤</div>`; }
         }
 
-        function extractYoutubeId(url) { 
-            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/); 
-            return (match && match[2].length === 11) ? match[2] : null; 
+        function handleItemClick(tid, topic, type, content, mdData, el) {
+            updateStage(tid, topic, type, content, el);
+            if(mdData) openMDReader(tid, mdData);
+            else closeMDReader(tid);
         }
+
+        function cycleReaderWidth(tid) {
+            const reader = document.getElementById(`md-reader-${tid}`);
+            if (!reader || window.innerWidth <= 768) return;
+            const widths = ['33%', '50%', '75%'];
+            let currentWidth = reader.style.width || '50%';
+            let nextIndex = (widths.indexOf(currentWidth) + 1) % widths.length;
+            reader.style.width = widths[nextIndex];
+            reader.dataset.lastWidth = widths[nextIndex];
+        }
+
+        function openMDReader(tid, mdData) {
+            const sidebar = document.getElementById(`sidebar-${tid}`);
+            const reader = document.getElementById(`md-reader-${tid}`);
+            const content = document.getElementById(`md-content-${tid}`);
+            if (!reader) return;
+
+            if (window.innerWidth > 768) {
+                if (sidebar) sidebar.classList.add('hidden-os');
+                reader.style.width = reader.dataset.lastWidth || '50%';
+            } else {
+                reader.style.width = '100%';
+            }
+            reader.classList.add('active');
+            content.innerHTML = `<div class="prose prose-slate max-w-none text-sm leading-relaxed">${mdData || '暫無內容'}</div>`;
+        }
+
+        function closeMDReader(tid) {
+            const sidebar = document.getElementById(`sidebar-${tid}`);
+            const reader = document.getElementById(`md-reader-${tid}`);
+            if (!reader) return;
+            reader.classList.remove('active');
+            if (sidebar) sidebar.classList.remove('hidden-os');
+            if (window.innerWidth > 768) reader.style.width = '0';
+        }
+
+        function updateStage(tid, topic, type, content, el) {
+            const stage = document.getElementById(`stage-${tid}`);
+            if (!stage) return;
+            document.querySelectorAll(`#page-${activeTabId} .lms-nav-item`).forEach(i => i.classList.remove('bg-emerald-50', 'border-emerald-100'));
+            el.classList.add('bg-emerald-50', 'border-emerald-100');
+            
+            if(window.innerWidth <= 768) toggleSidebar();
+
+            let media = '';
+            if(type === 'video') {
+                const vidId = extractYoutubeId(content);
+                media = `<div class="compact-video-container aspect-video bg-black md:rounded-2xl overflow-hidden shadow-2xl md:mb-8"><iframe src="https://www.youtube.com/embed/${vidId}?autoplay=1" class="w-full h-full" frameborder="0" allowfullscreen></iframe></div>`;
+            } else {
+                media = `<div class="md:rounded-2xl overflow-hidden shadow-lg md:mb-8 border border-slate-100"><img src="${content}" class="w-full h-auto"></div>`;
+            }
+
+            // 手機版隱藏標題和描述，直接顯示 Player
+            if(window.innerWidth <= 768) {
+                stage.innerHTML = `<div class="w-full">${media}</div>`;
+            } else {
+                stage.innerHTML = `<div class="p-12 max-w-4xl mx-auto w-full">${media}<h2 class="text-3xl font-black text-slate-800 mb-4">${topic}</h2><p class="text-slate-500 leading-relaxed">請根據素材進行學習。</p></div>`;
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.win-content-page.active .lms-sidebar');
+            if(sidebar) sidebar.classList.toggle('collapsed-mobile');
+        }
+
+        function extractYoutubeId(url) {
+            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
         function manualRefresh() { loadSheetData(true); }
-        function refreshCurrentView() { openTabs.forEach(tab => { if (tab.type === 'FOLDER') renderGrid(`canvas-${tab.id}`); }); }
-        
-        window.onload = () => loadSheetData(false);
+        function refreshCurrentView() { openTabs.forEach(t => { if(t.type === 'FOLDER') renderGrid(`canvas-${t.id}`); }); }
+        window.onload = () => loadSheetData();
     </script>
 </body>
 </html>
