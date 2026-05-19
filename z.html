@@ -1,206 +1,932 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>學生違規紀錄登記系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Lumina Studio</title>
+    
+    <!-- iOS PWA 狀態列修正 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- jsQR Library for Processing Camera Feed -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        
+        :root {
+            --glacier-deep: #0f172a;
+            --glacier-primary: #0284c7; 
+            --glacier-ice: #38bdf8;
+            --glacier-bg: #eef2f6;
+            --glacier-glass: rgba(224, 242, 254, 0.85); 
+            --glacier-nav-glass: rgba(255, 255, 255, 0.75);
+        }
+
+        /* Dark Mode Theme Variable Overrides */
+        body.dark-mode {
+            --glacier-deep: #f8fafc;
+            --glacier-primary: #38bdf8; 
+            --glacier-ice: #0284c7;
+            --glacier-bg: #090d16; 
+            --glacier-glass: rgba(15, 23, 42, 0.85); 
+            --glacier-nav-glass: rgba(15, 23, 42, 0.75);
+            color: #cbd5e1;
+        }
+
+        /* Day/Night Toggle Switch Transitions */
+        #dark-mode-toggle:checked + .theme-track {
+            background-color: #1e293b;
+            border-color: #0f172a;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-stars {
+            opacity: 1 !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-knob {
+            transform: translateX(0px) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-sun {
+            transform: scale(0) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-moon {
+            transform: scale(1) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-cloud {
+            transform: translateX(48px) !important;
+            opacity: 0 !important;
+        }
+
+        /* Smooth Transition for Theme Toggling */
+        body, .logo-bar, .filter-bar, .hero-container-framed, #page-content, .dock-nav, .filter-capsule, .nav-btn, .sync-btn {
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+        }
+
+        /* Dark Mode Styling Fixes */
+        body.dark-mode .hero-container-framed {
+            background-color: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .hero-gradient-overlay {
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
+        }
+
+        body.dark-mode .filter-capsule {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(56, 189, 248, 0.1);
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+
+        body.dark-mode .nav-btn {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .sync-btn {
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .dock-nav {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .logo-bar .text-sky-800 {
+            color: #38bdf8 !important;
+        }
+
+        body.dark-mode .logo-bar .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+
+        html { 
+            scroll-behavior: smooth;
+            height: 100%;
+            overflow: hidden; 
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--glacier-bg);
+            color: #334155;
+            -webkit-tap-highlight-color: transparent;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 0;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .logo-bar {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 120;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.1);
+            padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+            padding-bottom: 12px;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #main-logo {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: left center;
+            will-change: transform;
+        }
+
+        .scrolled #main-logo { transform: scale(0.75); }
+
+        .filter-bar {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 68px);
+            left: 0;
+            width: 100%;
+            z-index: 110;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.05);
+        }
+
+        .filter-bar.collapsed {
+            transform: translateY(-56px);
+            opacity: 0.9;
+        }
+
+        .filter-capsule {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(14, 165, 233, 0.1);
+            color: var(--glacier-deep);
+        }
+
+        .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+
+        .filter-toggle-trigger {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            background: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            border-radius: 0 0 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(14, 165, 233, 0.05);
+            border-top: none;
+            color: var(--glacier-primary);
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .filter-bar.collapsed .filter-toggle-trigger i {
+            transform: rotate(180deg);
+        }
+
+        /* 頁面內容容器 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
+
+        .slider-wrapper { position: relative; width: 100%; }
+
+        .slider-container { 
+            display: flex;
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory; 
+            gap: 2px; 
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
             width: 36px;
             height: 36px;
+            background: rgba(255,255,255,0.95);
             border-radius: 50%;
-            border-left-color: #3b82f6;
-            animation: spin 1s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.2s;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.03);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        
+        .slider-wrapper:hover .nav-btn { opacity: 1; }
+        .nav-btn.prev { left: -12px; }
+        .nav-btn.next { right: -12px; }
+
+        .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
+
+        .poster-card { 
+            aspect-ratio: 2/3;
+            border-radius: 4px; overflow: hidden; background: #cbd5e1; 
+            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+            will-change: transform;
+        }
+
+        .poster-card:active {
+            transform: scale(0.94);
+            filter: brightness(0.9);
+        }
+
+        .hero-container-framed {
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
+            overflow: hidden; position: relative; background-color: #fff;
+            transition: all 0.4s ease;
+        }
+
+        .hero-gradient-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 40%, rgba(238,242,246,0.9) 95%);
+            pointer-events: none;
+        }
+
+        .section-hidden { display: none !important; }
+
+        .dock-wrapper {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+            width: auto;
+            min-width: 340px;
+        }
+
+        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
+
+        .dock-nav {
+            background-color: var(--glacier-nav-glass);
+            backdrop-filter: blur(28px) saturate(210%);
+            -webkit-backdrop-filter: blur(28px) saturate(210%);
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 14px;
+            border-radius: 42px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+            display: flex; align-items: center; justify-content: center; gap: 14px;
+        }
+
+        .dock-toggle-btn {
+            width: 32px;
+            height: 32px; display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
+        }
+
+        .dock-content { display: flex; align-items: center; gap: 14px; }
+
+        .dock-item {
+            display: flex;
+            flex-direction: column; align-items: center; gap: 5px;
+            color: #94a3b8; transition: all 0.3s; min-width: 58px;
+        }
+
+        .dock-item i { font-size: 1.6rem; }
+        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
+        .dock-item.active { color: var(--glacier-primary); }
+
+        .dock-trigger-bar {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px; height: 5px;
+            background: rgba(15, 23, 42, 0.2);
+            border-radius: 10px;
+            z-index: 199; cursor: pointer; display: none;
+        }
+        .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
+
+        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px; }
+
+        /* 同步按鈕樣式 */
+        .sync-btn {
+            position: absolute;
+            right: 24px;
+            bottom: 24px;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .sync-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+        .sync-btn:active { transform: scale(0.95); }
+        .sync-btn.loading i { animation: spin 1s linear infinite; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Loading Animation */
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 12px;
+            color: var(--glacier-primary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .hero-container-framed { border-radius: 0; }
+            .dock-wrapper { width: 92%; max-width: 400px; }
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
+            .nav-btn { display: none !important; }
+            .sync-btn { right: 16px; bottom: 16px; padding: 8px 14px; }
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+<body class="pb-40 hide-scrollbar">
 
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="p-2 bg-blue-100 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
+    <header id="header-root">
+        <div class="logo-bar px-6" id="logo-nav-bar"> 
+            <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
+                <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
+                </div>
+                
+                <!-- Header Control Elements including Day/Night Toggle -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    
+                    <!-- Day/Night Switch Button -->
+                    <div class="flex items-center">
+                        <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
+                            <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
+                            <!-- Pill Track -->
+                            <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
+                                
+                                <!-- Stars Background (Night Mode Only) -->
+                                <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
+                                    <!-- Tiny Star 1 -->
+                                    <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <!-- Tiny Star 2 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <!-- Tiny Star 3 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <!-- Tiny Star 4 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                </div>
+
+                                <!-- Knob (Sun / Moon) -->
+                                <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
+                                    <!-- Sun (Visible in Light Mode) -->
+                                    <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
+                                    <!-- Moon (Visible in Dark Mode) -->
+                                    <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
+                                        <!-- Moon craters -->
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
+                                        <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Cloud (Light Mode Foreground Decoration) -->
+                                <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
+                                    <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
+                                    </svg>
+                                </div>
+
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- QR Code Scanner Trigger Button -->
+                    <button onclick="openScanner()" class="w-[36px] h-[36px] rounded-full bg-white/50 dark:bg-slate-800/50 border border-slate-300/30 dark:border-slate-700/30 text-sky-800 dark:text-sky-300 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-sm" title="掃描二維碼">
+                        <i class="fas fa-qrcode text-lg"></i>
+                    </button>
+
+                    <div class="flex items-center gap-6 text-sky-800 opacity-60">
+                        <i class="fas fa-search text-xl cursor-pointer"></i>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-900 text-[10px] font-bold shadow-sm">U</div>
+                    </div>
+                </div>
             </div>
-            <h1 class="text-2xl font-bold text-slate-800">違規紀錄登記</h1>
         </div>
-
-        <form id="recordForm" class="space-y-5">
-            <!-- 學生姓名選擇 -->
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">選擇學生姓名</label>
-                <select id="studentName" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                    <option value="" disabled selected>載入中...</option>
-                </select>
+        
+        <div class="filter-bar px-6" id="filter-bar">
+            <div id="filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
+                <button class="filter-capsule active" onclick="setFilter('all')">載入中...</button>
             </div>
-
-            <!-- 違規事項選擇 -->
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">違規事項</label>
-                <select id="violationType" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                    <option value="" disabled selected>載入中...</option>
-                </select>
+            <div class="filter-toggle-trigger" onclick="toggleFilter()">
+                <i class="fas fa-chevron-up text-[10px]" id="filter-chevron"></i>
             </div>
+        </div>
+    </header>
 
-            <!-- 提交按鈕 -->
-            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2 disabled:bg-slate-400">
-                <span>確認送出</span>
-            </button>
-        </form>
+    <div id="page-content">
+        <!-- 錄影庫首頁 -->
+        <div id="view-home">
+            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
+                <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
+                    <div class="hero-gradient-overlay"></div>
+                    
+                    <!-- 手動同步按鈕 -->
+                    <button id="sync-button" onclick="manualSync()" class="sync-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>與雲端同步</span>
+                    </button>
 
-        <!-- 狀態回饋區域 -->
-        <div id="statusMessage" class="mt-6 hidden p-4 rounded-lg text-center text-sm font-medium border"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-end pb-16 px-6 text-center">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-12 relative z-10">
+                        <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')" 
+                                class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
+                            馬上開始
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
+                <!-- 動態生成的內容將放在這裡 -->
+                <div class="loader">正在從數據庫獲取內容...</div>
+            </main>
+
+            <section id="sec-archive" class="mt-20 pb-16 px-6">
+                <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
+                    
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                        <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
+                            Pastpaper Archive
+                        </h2>
+                        <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+                        <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
+                            Detailed Examination Resource Collections
+                        </p>
+                        <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
+                            Enter Archive
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 
-    <!-- 載入中遮罩 -->
-    <div id="loader" class="fixed inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
-        <div class="loading-spinner mb-4"></div>
-        <p id="loaderText" class="text-slate-600 font-medium">正從資料庫獲取清單...</p>
+    <div id="dock-nav-wrapper" class="dock-wrapper">
+        <nav class="dock-nav">
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+            <div class="dock-content">
+                <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
+                    <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
+                </button>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
+                    <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
+                </button>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
+                    <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
+                </button>
+                <button onclick="handleNavigation('https://mail.google.com/mail/u/0/#inbox')" class="dock-item">
+                    <i class="fab fa-google"></i><span class="uppercase">郵箱</span>
+                </button>
+            </div>
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+        </nav>
+    </div>
+    <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
+
+    <!-- QR Scanner Screen Overlay -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[250] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-md opacity-0 transition-opacity duration-300">
+        <div class="relative w-full max-w-md bg-slate-900/95 border border-white/10 rounded-3xl p-6 text-white overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+            <!-- Custom Camera Error Toast Warning Container -->
+            <div id="scanner-error-toast" class="absolute top-4 left-4 right-4 z-50 hidden bg-red-500/90 backdrop-blur-md text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-lg text-center flex items-center justify-between transition-opacity duration-300">
+                <span>無法存取相機，請檢查您的系統設定。</span>
+                <button onclick="document.getElementById('scanner-error-toast').classList.add('hidden')" class="ml-2 font-bold"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-bold tracking-wide text-slate-100 flex items-center gap-2">
+                    <i class="fas fa-camera text-sky-400"></i> 二維碼掃描
+                </h3>
+                <button onclick="closeScanner()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Video scanning viewport -->
+            <div class="relative aspect-square w-full rounded-2xl overflow-hidden bg-black border border-white/10">
+                <video id="scanner-video" class="w-full h-full object-cover" playsinline></video>
+                <!-- HUD Scan lines animation overlay -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="w-56 h-56 border border-sky-400/50 rounded-2xl relative shadow-[0_0_20px_rgba(56,189,248,0.2)]">
+                        <!-- Left-Top Corner -->
+                        <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-sky-400 rounded-tl-md"></div>
+                        <!-- Right-Top Corner -->
+                        <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-sky-400 rounded-tr-md"></div>
+                        <!-- Left-Bottom Corner -->
+                        <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-sky-400 rounded-bl-md"></div>
+                        <!-- Right-Bottom Corner -->
+                        <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-sky-400 rounded-br-md"></div>
+                        <!-- Moving red indicator line -->
+                        <div class="absolute top-0 left-0 right-0 h-[2px] bg-sky-400/80 animate-[bounce_2.5s_infinite] shadow-[0_0_10px_rgba(56,189,248,0.8)]"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-xs text-slate-400 mt-4 font-medium tracking-wide">請將網頁或二維碼對準框內自動進行識別</p>
+            <canvas id="scanner-canvas" class="hidden"></canvas>
+        </div>
+    </div>
+
+    <!-- Beautiful iOS Card Overlay Container -->
+    <div id="iframe-viewer-modal" class="fixed inset-0 z-[300] hidden bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-400">
+        <!-- iOS Sliding card sheet layout -->
+        <div id="iframe-card" class="absolute bottom-0 left-0 right-0 top-12 md:top-16 bg-slate-50 dark:bg-slate-950 rounded-t-[28px] overflow-hidden shadow-[0_-12px_40px_rgba(0,0,0,0.2)] flex flex-col transform translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] border-t border-slate-200/50 dark:border-slate-800/50">
+            <!-- Sheet Drag indicator to replicate iOS -->
+            <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto my-2.5 flex-shrink-0"></div>
+            <!-- Card Header navigation bar -->
+            <div class="px-6 pb-2.5 flex justify-between items-center border-b border-slate-100 dark:border-slate-800/80">
+                <span id="iframe-title" class="text-xs font-bold tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Lumina Viewer
+                </span>
+                <button onclick="closeIframeViewer()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors shadow-sm">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            <!-- Card Frame Body -->
+            <div class="flex-grow relative bg-slate-100 dark:bg-slate-950">
+                <iframe id="viewer-iframe" class="w-full h-full border-none" allow="autoplay; fullscreen; camera; microphone"></iframe>
+                <!-- Elegant Glass Overlay loading container -->
+                <div id="iframe-loader" class="absolute inset-0 flex items-center justify-center bg-slate-100/80 dark:bg-slate-950/85 backdrop-blur-md">
+                    <div class="loader">正在安全地讀取頁面資源...</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // 確認 GAS URL 正確性
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzy2c5oOX2MdaDeF9K3ulChaYAbZsTQd8HtSRdFxz-YPcYS-lEljUbaNNLMJsDpv2w/exec";
+        // Google Sheet CSV URL
+        const SPREADSHEET_ID = '1QIwkfmUZPRWMLrDVHYe-bUtUMSmkU2Ad6PlZnYIij_M';
+        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&cachebust=${Date.now()}`;
 
-        const form = document.getElementById('recordForm');
-        const studentSelect = document.getElementById('studentName');
-        const violationSelect = document.getElementById('violationType');
-        const submitBtn = document.getElementById('submitBtn');
-        const loader = document.getElementById('loader');
-        const statusMsg = document.getElementById('statusMessage');
+        let rawData = [];
+        let lastScrollY = window.scrollY;
 
-        // 初始化：獲取 DATA 分頁的資料
-        async function init() {
-            try {
-                // 使用 mode: 'cors' 確保跨域請求能被發送，雖然 GAS 最終會重導向
-                const response = await fetch(`${GAS_URL}?action=getList`, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
-
-                if (!response.ok) throw new Error('網絡響應不正常');
-
-                const data = await response.json();
-
-                // 填充學生名單
-                studentSelect.innerHTML = '<option value="" disabled selected>請選擇學生</option>';
-                if (data.students && data.students.length > 0) {
-                    data.students.forEach(name => {
-                        if(name && name.toString().trim() !== "") {
-                            const opt = document.createElement('option');
-                            opt.value = name;
-                            opt.textContent = name;
-                            studentSelect.appendChild(opt);
-                        }
-                    });
-                }
-
-                // 填充違規事項
-                violationSelect.innerHTML = '<option value="" disabled selected>請選擇事項</option>';
-                if (data.violations && data.violations.length > 0) {
-                    data.violations.forEach(item => {
-                        if(item && item.toString().trim() !== "") {
-                            const opt = document.createElement('option');
-                            opt.value = item;
-                            opt.textContent = item;
-                            violationSelect.appendChild(opt);
-                        }
-                    });
-                }
-
-                loader.classList.add('hidden');
-            } catch (error) {
-                console.error("無法載入資料:", error);
-                document.getElementById('loaderText').innerHTML = `
-                    <div class="text-center p-6">
-                        <p class="text-red-500 font-bold mb-2">資料載入失敗 (Fetch Error)</p>
-                        <p class="text-slate-600 text-xs mb-4">請確認 GAS 部署為「所有人 (Anyone)」，且已完成授權。</p>
-                        <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">重新整理</button>
-                    </div>
-                `;
-                document.querySelector('.loading-spinner').classList.add('hidden');
+        // Day/Night Theme Toggling
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
             }
         }
 
-        // 送出表單
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Apply theme immediately on load
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
             
-            const name = studentSelect.value;
-            const violation = violationSelect.value;
-
-            if (!name || !violation) {
-                showStatus("請確保已選擇學生與事項", "error");
-                return;
-            }
-
-            setLoading(true);
-
-            try {
-                // 使用 URLSearchParams 以符合 GAS doPost 的 parameter 接收方式
-                const payload = new URLSearchParams();
-                payload.append('action', 'addData');
-                payload.append('name', name);
-                payload.append('violation', violation);
-
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // 關鍵：GAS POST 有時需要 no-cors 來避免 preflight 失敗
-                    body: payload,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    const toggleInput = document.getElementById('dark-mode-toggle');
+                    if (toggleInput) toggleInput.checked = true;
                 });
-
-                // 注意：在 no-cors 模式下，無法讀取 response body。
-                // 我們等待一小段時間後假設成功，或是嘗試重新抓取狀態。
-                // 為了用戶體驗，我們假設只要沒報錯就是成功發送。
-                showStatus(`已送出登記：${name} - ${violation}`, "success");
-                form.reset();
-
-            } catch (error) {
-                console.error("提交失敗:", error);
-                showStatus("發送失敗，請確認網路連線。", "error");
-            } finally {
-                setLoading(false);
             }
-        });
+        })();
 
-        function setLoading(isLoading) {
-            if (isLoading) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="flex items-center"><svg class="animate-spin h-5 w-5 mr-3 border-2 border-white border-t-transparent rounded-full" viewBox="0 0 24 24"></svg>處理中...</span>';
-            } else {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>確認送出</span>';
-            }
+        // QR Code Scanning Controls and Hardware Pipeline
+        let scannerStream = null;
+        let scannerAnimationId = null;
+
+        function openScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('scanner-video');
+            const errorToast = document.getElementById('scanner-error-toast');
+            
+            errorToast.classList.add('hidden');
+            modal.classList.remove('hidden');
+            
+            // Reflow trigger
+            void modal.offsetWidth;
+            modal.classList.add('opacity-100');
+            modal.querySelector('.transform').classList.remove('scale-95');
+            modal.querySelector('.transform').classList.add('scale-100');
+
+            // Access user camera stream
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    scannerStream = stream;
+                    video.srcObject = stream;
+                    video.setAttribute("playsinline", true);
+                    video.play();
+                    scannerAnimationId = requestAnimationFrame(tickScanner);
+                })
+                .catch(err => {
+                    console.error("Camera setup failed:", err);
+                    // Sleek inline validation warning toast
+                    errorToast.classList.remove('hidden');
+                });
         }
 
-        function showStatus(msg, type) {
-            statusMsg.textContent = msg;
-            statusMsg.classList.remove('hidden', 'bg-green-50', 'text-green-700', 'border-green-200', 'bg-red-50', 'text-red-700', 'border-red-200');
+        function closeScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.remove('opacity-100');
+            modal.querySelector('.transform').classList.remove('scale-100');
+            modal.querySelector('.transform').classList.add('scale-95');
             
-            if (type === "success") {
-                statusMsg.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
-            } else {
-                statusMsg.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
+            if (scannerStream) {
+                scannerStream.getTracks().forEach(track => track.stop());
+                scannerStream = null;
             }
-
-            statusMsg.classList.remove('hidden');
+            if (scannerAnimationId) {
+                cancelAnimationFrame(scannerAnimationId);
+                scannerAnimationId = null;
+            }
+            
             setTimeout(() => {
-                statusMsg.classList.add('hidden');
-            }, 5000);
+                modal.classList.add('hidden');
+            }, 300);
         }
 
-        window.onload = init;
+        function tickScanner() {
+            const video = document.getElementById('scanner-video');
+            const canvasElement = document.getElementById('scanner-canvas');
+            
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvas = canvasElement.getContext('2d');
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                
+                // Parse image frame looking for QR Code
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
+                if (code) {
+                    // Search scanned string for any matching path suffix ending in .html
+                    const match = code.data.match(/([^\/]+\.html)$/);
+                    if (match) {
+                        const filename = match[1];
+                        const targetUrl = `https://phyuaaphysics.github.io/phyustudio/${filename}`;
+                        closeScanner();
+                        openIframeContainer(targetUrl);
+                        return; // Terminate scan animation loop
+                    }
+                }
+            }
+            scannerAnimationId = requestAnimationFrame(tickScanner);
+        }
+
+        // Elegant iOS Modal Frame Handling
+        function openIframeContainer(url) {
+            const viewer = document.getElementById('iframe-viewer-modal');
+            const card = document.getElementById('iframe-card');
+            const iframe = document.getElementById('viewer-iframe');
+            const loader = document.getElementById('iframe-loader');
+            
+            loader.style.display = 'flex';
+            iframe.src = url;
+            iframe.onload = () => {
+                loader.style.display = 'none';
+            };
+            
+            viewer.classList.remove('hidden');
+            // Force browser layout calculation for state synchronization
+            void viewer.offsetWidth;
+            
+            viewer.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }
+
+        function closeIframeViewer() {
+            const viewer = document.getElementById('iframe-viewer-modal');
+            const card = document.getElementById('iframe-card');
+            const iframe = document.getElementById('viewer-iframe');
+            
+            card.style.transform = 'translateY(100%)';
+            viewer.style.opacity = '0';
+            
+            setTimeout(() => {
+                viewer.classList.add('hidden');
+                iframe.src = '';
+            }, 500);
+        }
+
+        // 初始化與數據抓取
+        async function initData() {
+            try {
+                // 每次抓取都加上 timestamp 防止快取
+                const currentUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
+                const response = await fetch(currentUrl);
+                const csvText = await response.text();
+                rawData = parseCSV(csvText);
+                renderFilters();
+                renderContent();
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請檢查網路連線。</div>`;
+            }
+        }
+
+        // 手動同步邏輯
+        async function manualSync() {
+            const btn = document.getElementById('sync-button');
+            btn.classList.add('loading');
+            btn.querySelector('span').innerText = '同步中...';
+            
+            await initData();
+            
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                btn.querySelector('span').innerText = '與雲端同步';
+            }, 800);
+        }
+
+        // CSV 解析
+        function parseCSV(text) {
+            const rows = text.split('\n').map(row => {
+                const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+                return row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim());
+            });
+            
+            return rows.slice(1) 
+                .filter(row => row[1]) 
+                .map(row => ({
+                    filter: row[0],
+                    section: row[1],
+                    order: parseInt(row[2]) || 0,
+                    img: row[3],
+                    url: row[4]
+                }));
+        }
+
+        // 渲染 Filter Bar
+        function renderFilters() {
+            const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
+            const container = document.getElementById('filter-container');
+            container.innerHTML = filters.map(f => `
+                <button class="filter-capsule ${f === 'all' ? 'active' : ''}" 
+                        data-filter="${f}" 
+                        onclick="setFilter('${f}')">
+                    ${f === 'all' ? '全部' : f}
+                </button>
+            `).join('');
+        }
+
+        // 渲染主要內容
+        function renderContent() {
+            const mainArea = document.getElementById('main-content-area');
+            mainArea.innerHTML = '';
+
+            const sections = [...new Set(rawData.map(d => d.section))];
+
+            sections.forEach(secName => {
+                const itemsInSec = rawData
+                    .filter(d => d.section === secName)
+                    .sort((a, b) => a.order - b.order);
+
+                if (itemsInSec.length === 0) return;
+
+                const filterTag = itemsInSec[0].filter;
+                const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
+                const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+
+                const sectionHtml = `
+                    <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
+                        <h2 class="section-title">${secName}</h2>
+                        <div class="slider-wrapper">
+                            <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
+                                <i class="fas fa-chevron-left text-xs text-slate-400"></i>
+                            </button>
+                            <div class="slider-container hide-scrollbar" id="${sliderId}">
+                                ${itemsInSec.map(item => `
+                                    <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
+                                        <div class="poster-card">
+                                            <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
+                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                            </button>
+                        </div>
+                    </section>
+                `;
+                mainArea.insertAdjacentHTML('beforeend', sectionHtml);
+            });
+        }
+
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        
+        function toggleFilter() {
+            const bar = document.getElementById('filter-bar');
+            bar.classList.toggle('collapsed');
+        }
+
+        function scrollSlider(id, offset) {
+            const el = document.getElementById(id);
+            if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+
+        function scrollToHome() {
+            setFilter('all');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function handleNavigation(url) {
+            if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
+            window.location.href = url;
+        }
+
+        function setFilter(filterType) {
+            const buttons = document.querySelectorAll('.filter-capsule');
+            buttons.forEach(btn => {
+                if(btn.dataset.filter === filterType) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
+            const sections = document.querySelectorAll('.dynamic-section');
+
+            if (filterType === 'all') {
+                heroSection.classList.remove('section-hidden');
+                archiveSection.classList.remove('section-hidden');
+                sections.forEach(sec => sec.classList.remove('section-hidden'));
+            } else {
+                heroSection.classList.add('section-hidden');
+                archiveSection.classList.add('section-hidden');
+                sections.forEach(sec => {
+                    if (sec.getAttribute('data-group') === filterType) sec.classList.remove('section-hidden');
+                    else sec.classList.add('section-hidden');
+                });
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+            if (currentScrollY > 30) document.body.classList.add('scrolled');
+            else document.body.classList.remove('scrolled');
+            
+            const filterBar = document.getElementById('filter-bar');
+            if (currentScrollY > lastScrollY && currentScrollY > 150) {
+                if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
+            } else if (currentScrollY < lastScrollY) {
+                if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', initData);
     </script>
 </body>
 </html>
