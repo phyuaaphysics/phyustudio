@@ -532,7 +532,7 @@
             </h3>
             <!-- Video / Canvas viewport wrapper -->
             <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
-                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" playsinline></video>
+                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
                 <canvas id="qr-canvas" class="hidden"></canvas>
                 <!-- Scanner Overlay Target Area -->
                 <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
@@ -540,19 +540,20 @@
                     <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
                 </div>
             </div>
-            <p class="text-slate-400 text-xs mt-5 text-center px-4 leading-relaxed">請將相機對準 QR Code 或課本連結條碼。<br>相機啟動時請允許相機權限。</p>
+            
+            <!-- File Upload Fallback Button -->
+            <div class="mt-4 w-full flex justify-center">
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
+                    <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
+                    <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQRFile(this)">
+                </label>
+            </div>
+            
+            <p class="text-slate-400 text-xs mt-4 text-center px-4 leading-relaxed font-light">
+                請將相機對準 QR Code 或直接上傳條碼相片。<br>相機啟動時請允許相機存取權限。
+            </p>
             <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
         </div>
-    </div>
-
-    <!-- Fullscreen Iframe Viewer Modal -->
-    <div id="iframe-viewer-modal" class="fixed inset-0 z-[400] bg-black opacity-0 pointer-events-none transition-all duration-500 ease-in-out flex flex-col">
-        <!-- Close Button (Absolute on top right) -->
-        <button onclick="closeIframeViewer()" class="absolute top-4 right-4 z-[410] w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg transition-all active:scale-95">
-            <i class="fas fa-times text-xl"></i>
-        </button>
-        <!-- Iframe container -->
-        <iframe id="viewer-iframe" class="w-full h-full border-none" src="about:blank" allow="autoplay; fullscreen"></iframe>
     </div>
 
     <div id="dock-nav-wrapper" class="dock-wrapper">
@@ -785,11 +786,17 @@
                 qrStream = stream;
                 video.srcObject = stream;
                 video.setAttribute("playsinline", true); // Required for iOS
-                video.play();
+                
+                try {
+                    await video.play();
+                } catch(playErr) {
+                    console.warn("Video play interrupted, attempting fallback options", playErr);
+                }
+                
                 qrAnimationId = requestAnimationFrame(tickQRScanner);
             } catch (err) {
                 console.error("Camera access failed:", err);
-                errMsg.innerText = "無法啟動相機。請確認是否已授予相機使用權限。";
+                errMsg.innerText = "相機不可用（可能被瀏覽器安全政策限制、未授權，或未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按鈕進行解碼。";
                 errMsg.classList.remove('hidden');
             }
         }
@@ -807,64 +814,108 @@
                 cancelAnimationFrame(qrAnimationId);
                 qrAnimationId = null;
             }
+            
+            // Clear input
+            document.getElementById('qr-file-input').value = "";
         }
 
         function tickQRScanner() {
             const video = document.getElementById('qr-video');
             const canvasElement = document.getElementById('qr-canvas');
+            if (!video || !canvasElement) return;
             const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
 
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
                 canvasElement.height = video.videoHeight;
                 canvasElement.width = video.videoWidth;
                 canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
                 
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
+                try {
+                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "attemptBoth",
+                    });
 
-                if (code) {
-                    let resultText = code.data.trim();
-                    let finalUrl = '';
+                    if (code) {
+                        let resultText = code.data.trim();
+                        let finalUrl = '';
 
-                    // Resolve string like 'yyy/xxx.html' to target domain
-                    if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
-                        finalUrl = resultText;
-                    } else {
-                        // Strip leading slash if exists
-                        if (resultText.startsWith('/')) {
-                            resultText = resultText.substring(1);
+                        // Resolve string like 'yyy/xxx.html' to target domain
+                        if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                            finalUrl = resultText;
+                        } else {
+                            // Strip leading slash if exists
+                            if (resultText.startsWith('/')) {
+                                resultText = resultText.substring(1);
+                            }
+                            finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
                         }
-                        finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
-                    }
 
-                    // Scan successfully completed
-                    closeQRScanner();
-                    openIframeViewer(finalUrl);
-                    return;
+                        // Scan successfully completed - Open in new window
+                        closeQRScanner();
+                        window.open(finalUrl, '_blank');
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error drawing or extracting canvas pixels", e);
                 }
             }
-            qrAnimationId = requestAnimationFrame(tickQRScanner);
+            if (qrStream) {
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            }
         }
 
-        // Full Screen Iframe Viewer Operations
-        function openIframeViewer(url) {
-            const modal = document.getElementById('iframe-viewer-modal');
-            const iframe = document.getElementById('viewer-iframe');
-            
-            iframe.src = url;
-            modal.classList.remove('pointer-events-none', 'opacity-0');
-            modal.classList.add('opacity-100');
-        }
+        // Handle uploaded/taken image containing QR Code
+        function handleQRFile(input) {
+            const file = input.files[0];
+            if (!file) return;
 
-        function closeIframeViewer() {
-            const modal = document.getElementById('iframe-viewer-modal');
-            const iframe = document.getElementById('viewer-iframe');
-            
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.classList.remove('opacity-100');
-            iframe.src = "about:blank";
+            const errMsg = document.getElementById('qr-error-msg');
+            errMsg.classList.add('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvasElement = document.getElementById('qr-canvas');
+                    const canvas = canvasElement.getContext('2d');
+                    canvasElement.width = img.width;
+                    canvasElement.height = img.height;
+                    canvas.drawImage(img, 0, 0);
+
+                    try {
+                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "attemptBoth",
+                        });
+
+                        if (code) {
+                            let resultText = code.data.trim();
+                            let finalUrl = '';
+                            if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                                finalUrl = resultText;
+                            } else {
+                                if (resultText.startsWith('/')) {
+                                    resultText = resultText.substring(1);
+                                }
+                                finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                            }
+                            // Scan successfully completed - Open in new window
+                            closeQRScanner();
+                            window.open(finalUrl, '_blank');
+                        } else {
+                            errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
+                            errMsg.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Manual QR decode error:", err);
+                        errMsg.innerText = "相片讀取失敗，請重新嘗試。";
+                        errMsg.classList.remove('hidden');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
         window.addEventListener('scroll', () => {
