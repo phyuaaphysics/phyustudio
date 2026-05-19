@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -11,6 +12,8 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 引入 jsQR 解析庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
         
@@ -376,6 +379,13 @@
             text-transform: uppercase;
         }
 
+        /* QR Scanner Animation keyframes */
+        @keyframes qr-scan-line {
+            0% { transform: translateY(-130px); }
+            50% { transform: translateY(130px); }
+            100% { transform: translateY(-130px); }
+        }
+
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
             .dock-wrapper { width: 92%; max-width: 400px; }
@@ -443,7 +453,7 @@
 
                     <div class="flex items-center gap-6 text-sky-800 opacity-60">
                         <i class="fas fa-search text-xl cursor-pointer"></i>
-                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-900 text-[10px] font-bold shadow-sm">U</div>
+                        <i class="fas fa-qrcode text-xl cursor-pointer" onclick="openQRScanner()" title="掃描 QR Code"></i>
                     </div>
                 </div>
             </div>
@@ -510,6 +520,42 @@
         </div>
     </div>
 
+    <!-- QR Scanner Modal Overlay -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
+        <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
+            <!-- Close Scanner -->
+            <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
+            </h3>
+            <!-- Video / Canvas viewport wrapper -->
+            <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
+                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+                <canvas id="qr-canvas" class="hidden"></canvas>
+                <!-- Scanner Overlay Target Area -->
+                <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
+                    <!-- Scanner Laser Line -->
+                    <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
+                </div>
+            </div>
+            
+            <!-- File Upload Fallback Button -->
+            <div class="mt-4 w-full flex justify-center">
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
+                    <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
+                    <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQRFile(this)">
+                </label>
+            </div>
+            
+            <p class="text-slate-400 text-xs mt-4 text-center px-4 leading-relaxed font-light">
+                請將相機對準 QR Code 或直接上傳條碼相片。<br>相機啟動時請允許相機存取權限。
+            </p>
+            <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
+        </div>
+    </div>
+
     <div id="dock-nav-wrapper" class="dock-wrapper">
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
@@ -539,6 +585,10 @@
 
         let rawData = [];
         let lastScrollY = window.scrollY;
+
+        // QR Code variables
+        let qrStream = null;
+        let qrAnimationId = null;
 
         // Day/Night Theme Toggling
         function toggleTheme(isDark) {
@@ -718,6 +768,156 @@
             }
         }
 
+        // QR Code Scanner Core Operations
+        async function openQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('qr-video');
+            const errMsg = document.getElementById('qr-error-msg');
+            
+            errMsg.classList.add('hidden');
+            errMsg.innerText = "";
+            
+            // Show Scanner window with smooth fade
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.classList.add('opacity-100');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                qrStream = stream;
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true); // Required for iOS
+                
+                try {
+                    await video.play();
+                } catch(playErr) {
+                    console.warn("Video play interrupted, attempting fallback options", playErr);
+                }
+                
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            } catch (err) {
+                console.error("Camera access failed:", err);
+                errMsg.innerText = "相機不可用（可能被瀏覽器安全政策限制、未授權，或未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按鈕進行解碼。";
+                errMsg.classList.remove('hidden');
+            }
+        }
+
+        function closeQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.classList.remove('opacity-100');
+
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+            if (qrAnimationId) {
+                cancelAnimationFrame(qrAnimationId);
+                qrAnimationId = null;
+            }
+            
+            // Clear input
+            document.getElementById('qr-file-input').value = "";
+        }
+
+        function tickQRScanner() {
+            const video = document.getElementById('qr-video');
+            const canvasElement = document.getElementById('qr-canvas');
+            if (!video || !canvasElement) return;
+            const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                
+                try {
+                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "attemptBoth",
+                    });
+
+                    if (code) {
+                        let resultText = code.data.trim();
+                        let finalUrl = '';
+
+                        // Resolve string like 'yyy/xxx.html' to target domain
+                        if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                            finalUrl = resultText;
+                        } else {
+                            // Strip leading slash if exists
+                            if (resultText.startsWith('/')) {
+                                resultText = resultText.substring(1);
+                            }
+                            finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                        }
+
+                        // Scan successfully completed - Open in new window
+                        closeQRScanner();
+                        window.open(finalUrl, '_blank');
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error drawing or extracting canvas pixels", e);
+                }
+            }
+            if (qrStream) {
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            }
+        }
+
+        // Handle uploaded/taken image containing QR Code
+        function handleQRFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const errMsg = document.getElementById('qr-error-msg');
+            errMsg.classList.add('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvasElement = document.getElementById('qr-canvas');
+                    const canvas = canvasElement.getContext('2d');
+                    canvasElement.width = img.width;
+                    canvasElement.height = img.height;
+                    canvas.drawImage(img, 0, 0);
+
+                    try {
+                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "attemptBoth",
+                        });
+
+                        if (code) {
+                            let resultText = code.data.trim();
+                            let finalUrl = '';
+                            if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                                finalUrl = resultText;
+                            } else {
+                                if (resultText.startsWith('/')) {
+                                    resultText = resultText.substring(1);
+                                }
+                                finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                            }
+                            // Scan successfully completed - Open in new window
+                            closeQRScanner();
+                            window.open(finalUrl, '_blank');
+                        } else {
+                            errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
+                            errMsg.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Manual QR decode error:", err);
+                        errMsg.innerText = "相片讀取失敗，請重新嘗試。";
+                        errMsg.classList.remove('hidden');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY || document.documentElement.scrollTop;
             if (currentScrollY > 30) document.body.classList.add('scrolled');
@@ -736,3 +936,5 @@
     </script>
 </body>
 </html>
+
+
