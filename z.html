@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -11,7 +12,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- jsQR Library for Processing Camera Feed -->
+    <!-- 引入 jsQR 解析庫 -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
@@ -378,6 +379,13 @@
             text-transform: uppercase;
         }
 
+        /* QR Scanner Animation keyframes */
+        @keyframes qr-scan-line {
+            0% { transform: translateY(-130px); }
+            50% { transform: translateY(130px); }
+            100% { transform: translateY(-130px); }
+        }
+
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
             .dock-wrapper { width: 92%; max-width: 400px; }
@@ -443,14 +451,9 @@
                         </label>
                     </div>
 
-                    <!-- QR Code Scanner Trigger Button -->
-                    <button onclick="openScanner()" class="w-[36px] h-[36px] rounded-full bg-white/50 dark:bg-slate-800/50 border border-slate-300/30 dark:border-slate-700/30 text-sky-800 dark:text-sky-300 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-sm" title="掃描二維碼">
-                        <i class="fas fa-qrcode text-lg"></i>
-                    </button>
-
                     <div class="flex items-center gap-6 text-sky-800 opacity-60">
                         <i class="fas fa-search text-xl cursor-pointer"></i>
-                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-900 text-[10px] font-bold shadow-sm">U</div>
+                        <i class="fas fa-qrcode text-xl cursor-pointer" onclick="openQRScanner()" title="掃描 QR Code"></i>
                     </div>
                 </div>
             </div>
@@ -517,6 +520,41 @@
         </div>
     </div>
 
+    <!-- QR Scanner Modal Overlay -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
+        <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
+            <!-- Close Scanner -->
+            <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
+            </h3>
+            <!-- Video / Canvas viewport wrapper -->
+            <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
+                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" playsinline></video>
+                <canvas id="qr-canvas" class="hidden"></canvas>
+                <!-- Scanner Overlay Target Area -->
+                <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
+                    <!-- Scanner Laser Line -->
+                    <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
+                </div>
+            </div>
+            <p class="text-slate-400 text-xs mt-5 text-center px-4 leading-relaxed">請將相機對準 QR Code 或課本連結條碼。<br>相機啟動時請允許相機權限。</p>
+            <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Iframe Viewer Modal -->
+    <div id="iframe-viewer-modal" class="fixed inset-0 z-[400] bg-black opacity-0 pointer-events-none transition-all duration-500 ease-in-out flex flex-col">
+        <!-- Close Button (Absolute on top right) -->
+        <button onclick="closeIframeViewer()" class="absolute top-4 right-4 z-[410] w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg transition-all active:scale-95">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        <!-- Iframe container -->
+        <iframe id="viewer-iframe" class="w-full h-full border-none" src="about:blank" allow="autoplay; fullscreen"></iframe>
+    </div>
+
     <div id="dock-nav-wrapper" class="dock-wrapper">
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
@@ -539,73 +577,6 @@
     </div>
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
-    <!-- QR Scanner Screen Overlay -->
-    <div id="qr-scanner-modal" class="fixed inset-0 z-[250] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-md opacity-0 transition-opacity duration-300">
-        <div class="relative w-full max-w-md bg-slate-900/95 border border-white/10 rounded-3xl p-6 text-white overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
-            <!-- Custom Camera Error Toast Warning Container -->
-            <div id="scanner-error-toast" class="absolute top-4 left-4 right-4 z-50 hidden bg-red-500/90 backdrop-blur-md text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-lg text-center flex items-center justify-between transition-opacity duration-300">
-                <span>無法存取相機，請檢查您的系統設定。</span>
-                <button onclick="document.getElementById('scanner-error-toast').classList.add('hidden')" class="ml-2 font-bold"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base font-bold tracking-wide text-slate-100 flex items-center gap-2">
-                    <i class="fas fa-camera text-sky-400"></i> 二維碼掃描
-                </h3>
-                <button onclick="closeScanner()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <!-- Video scanning viewport -->
-            <div class="relative aspect-square w-full rounded-2xl overflow-hidden bg-black border border-white/10">
-                <video id="scanner-video" class="w-full h-full object-cover" playsinline></video>
-                <!-- HUD Scan lines animation overlay -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="w-56 h-56 border border-sky-400/50 rounded-2xl relative shadow-[0_0_20px_rgba(56,189,248,0.2)]">
-                        <!-- Left-Top Corner -->
-                        <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-sky-400 rounded-tl-md"></div>
-                        <!-- Right-Top Corner -->
-                        <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-sky-400 rounded-tr-md"></div>
-                        <!-- Left-Bottom Corner -->
-                        <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-sky-400 rounded-bl-md"></div>
-                        <!-- Right-Bottom Corner -->
-                        <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-sky-400 rounded-br-md"></div>
-                        <!-- Moving red indicator line -->
-                        <div class="absolute top-0 left-0 right-0 h-[2px] bg-sky-400/80 animate-[bounce_2.5s_infinite] shadow-[0_0_10px_rgba(56,189,248,0.8)]"></div>
-                    </div>
-                </div>
-            </div>
-            <p class="text-center text-xs text-slate-400 mt-4 font-medium tracking-wide">請將網頁或二維碼對準框內自動進行識別</p>
-            <canvas id="scanner-canvas" class="hidden"></canvas>
-        </div>
-    </div>
-
-    <!-- Beautiful iOS Card Overlay Container -->
-    <div id="iframe-viewer-modal" class="fixed inset-0 z-[300] hidden bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-400">
-        <!-- iOS Sliding card sheet layout -->
-        <div id="iframe-card" class="absolute bottom-0 left-0 right-0 top-12 md:top-16 bg-slate-50 dark:bg-slate-950 rounded-t-[28px] overflow-hidden shadow-[0_-12px_40px_rgba(0,0,0,0.2)] flex flex-col transform translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] border-t border-slate-200/50 dark:border-slate-800/50">
-            <!-- Sheet Drag indicator to replicate iOS -->
-            <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto my-2.5 flex-shrink-0"></div>
-            <!-- Card Header navigation bar -->
-            <div class="px-6 pb-2.5 flex justify-between items-center border-b border-slate-100 dark:border-slate-800/80">
-                <span id="iframe-title" class="text-xs font-bold tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase flex items-center gap-2">
-                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Lumina Viewer
-                </span>
-                <button onclick="closeIframeViewer()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors shadow-sm">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-            <!-- Card Frame Body -->
-            <div class="flex-grow relative bg-slate-100 dark:bg-slate-950">
-                <iframe id="viewer-iframe" class="w-full h-full border-none" allow="autoplay; fullscreen; camera; microphone"></iframe>
-                <!-- Elegant Glass Overlay loading container -->
-                <div id="iframe-loader" class="absolute inset-0 flex items-center justify-center bg-slate-100/80 dark:bg-slate-950/85 backdrop-blur-md">
-                    <div class="loader">正在安全地讀取頁面資源...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Google Sheet CSV URL
         const SPREADSHEET_ID = '1QIwkfmUZPRWMLrDVHYe-bUtUMSmkU2Ad6PlZnYIij_M';
@@ -613,6 +584,10 @@
 
         let rawData = [];
         let lastScrollY = window.scrollY;
+
+        // QR Code variables
+        let qrStream = null;
+        let qrAnimationId = null;
 
         // Day/Night Theme Toggling
         function toggleTheme(isDark) {
@@ -639,126 +614,6 @@
                 });
             }
         })();
-
-        // QR Code Scanning Controls and Hardware Pipeline
-        let scannerStream = null;
-        let scannerAnimationId = null;
-
-        function openScanner() {
-            const modal = document.getElementById('qr-scanner-modal');
-            const video = document.getElementById('scanner-video');
-            const errorToast = document.getElementById('scanner-error-toast');
-            
-            errorToast.classList.add('hidden');
-            modal.classList.remove('hidden');
-            
-            // Reflow trigger
-            void modal.offsetWidth;
-            modal.classList.add('opacity-100');
-            modal.querySelector('.transform').classList.remove('scale-95');
-            modal.querySelector('.transform').classList.add('scale-100');
-
-            // Access user camera stream
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    scannerStream = stream;
-                    video.srcObject = stream;
-                    video.setAttribute("playsinline", true);
-                    video.play();
-                    scannerAnimationId = requestAnimationFrame(tickScanner);
-                })
-                .catch(err => {
-                    console.error("Camera setup failed:", err);
-                    // Sleek inline validation warning toast
-                    errorToast.classList.remove('hidden');
-                });
-        }
-
-        function closeScanner() {
-            const modal = document.getElementById('qr-scanner-modal');
-            modal.classList.remove('opacity-100');
-            modal.querySelector('.transform').classList.remove('scale-100');
-            modal.querySelector('.transform').classList.add('scale-95');
-            
-            if (scannerStream) {
-                scannerStream.getTracks().forEach(track => track.stop());
-                scannerStream = null;
-            }
-            if (scannerAnimationId) {
-                cancelAnimationFrame(scannerAnimationId);
-                scannerAnimationId = null;
-            }
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        function tickScanner() {
-            const video = document.getElementById('scanner-video');
-            const canvasElement = document.getElementById('scanner-canvas');
-            
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                const canvas = canvasElement.getContext('2d');
-                canvasElement.height = video.videoHeight;
-                canvasElement.width = video.videoWidth;
-                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                
-                // Parse image frame looking for QR Code
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
-                
-                if (code) {
-                    // Search scanned string for any matching path suffix ending in .html
-                    const match = code.data.match(/([^\/]+\.html)$/);
-                    if (match) {
-                        const filename = match[1];
-                        const targetUrl = `https://phyuaaphysics.github.io/phyustudio/${filename}`;
-                        closeScanner();
-                        openIframeContainer(targetUrl);
-                        return; // Terminate scan animation loop
-                    }
-                }
-            }
-            scannerAnimationId = requestAnimationFrame(tickScanner);
-        }
-
-        // Elegant iOS Modal Frame Handling
-        function openIframeContainer(url) {
-            const viewer = document.getElementById('iframe-viewer-modal');
-            const card = document.getElementById('iframe-card');
-            const iframe = document.getElementById('viewer-iframe');
-            const loader = document.getElementById('iframe-loader');
-            
-            loader.style.display = 'flex';
-            iframe.src = url;
-            iframe.onload = () => {
-                loader.style.display = 'none';
-            };
-            
-            viewer.classList.remove('hidden');
-            // Force browser layout calculation for state synchronization
-            void viewer.offsetWidth;
-            
-            viewer.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }
-
-        function closeIframeViewer() {
-            const viewer = document.getElementById('iframe-viewer-modal');
-            const card = document.getElementById('iframe-card');
-            const iframe = document.getElementById('viewer-iframe');
-            
-            card.style.transform = 'translateY(100%)';
-            viewer.style.opacity = '0';
-            
-            setTimeout(() => {
-                viewer.classList.add('hidden');
-                iframe.src = '';
-            }, 500);
-        }
 
         // 初始化與數據抓取
         async function initData() {
@@ -912,6 +767,106 @@
             }
         }
 
+        // QR Code Scanner Core Operations
+        async function openQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('qr-video');
+            const errMsg = document.getElementById('qr-error-msg');
+            
+            errMsg.classList.add('hidden');
+            errMsg.innerText = "";
+            
+            // Show Scanner window with smooth fade
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.classList.add('opacity-100');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                qrStream = stream;
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true); // Required for iOS
+                video.play();
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            } catch (err) {
+                console.error("Camera access failed:", err);
+                errMsg.innerText = "無法啟動相機。請確認是否已授予相機使用權限。";
+                errMsg.classList.remove('hidden');
+            }
+        }
+
+        function closeQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.classList.remove('opacity-100');
+
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+            if (qrAnimationId) {
+                cancelAnimationFrame(qrAnimationId);
+                qrAnimationId = null;
+            }
+        }
+
+        function tickQRScanner() {
+            const video = document.getElementById('qr-video');
+            const canvasElement = document.getElementById('qr-canvas');
+            const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                
+                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code) {
+                    let resultText = code.data.trim();
+                    let finalUrl = '';
+
+                    // Resolve string like 'yyy/xxx.html' to target domain
+                    if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                        finalUrl = resultText;
+                    } else {
+                        // Strip leading slash if exists
+                        if (resultText.startsWith('/')) {
+                            resultText = resultText.substring(1);
+                        }
+                        finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                    }
+
+                    // Scan successfully completed
+                    closeQRScanner();
+                    openIframeViewer(finalUrl);
+                    return;
+                }
+            }
+            qrAnimationId = requestAnimationFrame(tickQRScanner);
+        }
+
+        // Full Screen Iframe Viewer Operations
+        function openIframeViewer(url) {
+            const modal = document.getElementById('iframe-viewer-modal');
+            const iframe = document.getElementById('viewer-iframe');
+            
+            iframe.src = url;
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.classList.add('opacity-100');
+        }
+
+        function closeIframeViewer() {
+            const modal = document.getElementById('iframe-viewer-modal');
+            const iframe = document.getElementById('viewer-iframe');
+            
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.classList.remove('opacity-100');
+            iframe.src = "about:blank";
+        }
+
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY || document.documentElement.scrollTop;
             if (currentScrollY > 30) document.body.classList.add('scrolled');
@@ -930,3 +885,5 @@
     </script>
 </body>
 </html>
+
+
