@@ -851,9 +851,9 @@
                             finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
                         }
 
-                        // Scan successfully completed - Open in new window
+                        // Scan successfully completed - Direct redirection (PWA seamless workflow)
                         closeQRScanner();
-                        window.open(finalUrl, '_blank');
+                        window.location.href = finalUrl;
                         return;
                     }
                 } catch (e) {
@@ -900,9 +900,9 @@
                                 }
                                 finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
                             }
-                            // Scan successfully completed - Open in new window
+                            // Scan successfully completed - Direct redirection
                             closeQRScanner();
-                            window.open(finalUrl, '_blank');
+                            window.location.href = finalUrl;
                         } else {
                             errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
                             errMsg.classList.remove('hidden');
@@ -936,5 +936,4 @@
     </script>
 </body>
 </html>
-
 
