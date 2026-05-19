@@ -23,6 +23,89 @@
             --glacier-nav-glass: rgba(255, 255, 255, 0.75);
         }
 
+        /* Dark Mode Theme Variable Overrides */
+        body.dark-mode {
+            --glacier-deep: #f8fafc;
+            --glacier-primary: #38bdf8; 
+            --glacier-ice: #0284c7;
+            --glacier-bg: #090d16; 
+            --glacier-glass: rgba(15, 23, 42, 0.85); 
+            --glacier-nav-glass: rgba(15, 23, 42, 0.75);
+            color: #cbd5e1;
+        }
+
+        /* Day/Night Toggle Switch Transitions */
+        #dark-mode-toggle:checked + .theme-track {
+            background-color: #1e293b;
+            border-color: #0f172a;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-stars {
+            opacity: 1 !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-knob {
+            transform: translateX(0px) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-sun {
+            transform: scale(0) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-moon {
+            transform: scale(1) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-cloud {
+            transform: translateX(48px) !important;
+            opacity: 0 !important;
+        }
+
+        /* Smooth Transition for Theme Toggling */
+        body, .logo-bar, .filter-bar, .hero-container-framed, #page-content, .dock-nav, .filter-capsule, .nav-btn, .sync-btn {
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+        }
+
+        /* Dark Mode Styling Fixes */
+        body.dark-mode .hero-container-framed {
+            background-color: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .hero-gradient-overlay {
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
+        }
+
+        body.dark-mode .filter-capsule {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(56, 189, 248, 0.1);
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+
+        body.dark-mode .nav-btn {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .sync-btn {
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .dock-nav {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .logo-bar .text-sky-800 {
+            color: #38bdf8 !important;
+        }
+
+        body.dark-mode .logo-bar .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+
         html { 
             scroll-behavior: smooth;
             height: 100%;
@@ -310,9 +393,58 @@
                 <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
-                <div class="flex items-center gap-6 text-sky-800 opacity-60">
-                    <i class="fas fa-search text-xl"></i>
-                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-900 text-[10px] font-bold">U</div>
+                
+                <!-- Header Control Elements including Day/Night Toggle -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    
+                    <!-- Day/Night Switch Button -->
+                    <div class="flex items-center">
+                        <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
+                            <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
+                            <!-- Pill Track -->
+                            <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
+                                
+                                <!-- Stars Background (Night Mode Only) -->
+                                <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
+                                    <!-- Tiny Star 1 -->
+                                    <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <!-- Tiny Star 2 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <!-- Tiny Star 3 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <!-- Tiny Star 4 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                </div>
+
+                                <!-- Knob (Sun / Moon) -->
+                                <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
+                                    <!-- Sun (Visible in Light Mode) -->
+                                    <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
+                                    <!-- Moon (Visible in Dark Mode) -->
+                                    <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
+                                        <!-- Moon craters -->
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
+                                        <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Cloud (Light Mode Foreground Decoration) -->
+                                <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
+                                    <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
+                                    </svg>
+                                </div>
+
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center gap-6 text-sky-800 opacity-60">
+                        <i class="fas fa-search text-xl cursor-pointer"></i>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-900 text-[10px] font-bold shadow-sm">U</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -407,6 +539,32 @@
 
         let rawData = [];
         let lastScrollY = window.scrollY;
+
+        // Day/Night Theme Toggling
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Apply theme immediately on load
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+            
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    const toggleInput = document.getElementById('dark-mode-toggle');
+                    if (toggleInput) toggleInput.checked = true;
+                });
+            }
+        })();
 
         // 初始化與數據抓取
         async function initData() {
