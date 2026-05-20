@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PH studio | Launch</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    <link rel="shortcut icon" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#81D8D0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PH studio">
+    <link class="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
+    
+    <!-- 外部 Manifest 連結 -->
+    <link rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes formulaFade {
+            0% { opacity: 0; transform: scale(0.85) translateY(10px); filter: blur(4px); }
+            20% { opacity: 0.4; transform: scale(1) translateY(0); filter: blur(0px); }
+            80% { opacity: 0.4; transform: scale(1.05) translateY(-5px); filter: blur(0px); }
+            100% { opacity: 0; transform: scale(1.1) translateY(-15px); filter: blur(2px); }
+        }
+
+        .fade-in {
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .loading-bar-container {
+            width: 80vw;
+            max-width: 280px;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+            z-index: 10;
+        }
+
+        .loading-bar-progress {
+            width: 0%;
+            height: 100%;
+            background: #000000;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            /* 預設為純色背景，隨後經由 Google 試算表動態載入背景圖 */
+            background-color: #81D8D0;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            color: #000000;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            transition: background 1.2s cubic-bezier(0.25, 1, 0.2, 1), background-color 1.2s cubic-bezier(0.25, 1, 0.2, 1);
+            touch-action: manipulation;
+        }
+
+        #status-text {
+            min-height: 1.5em;
+            z-index: 10;
+        }
+
+        /* 磨砂玻璃卡片樣式 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        transform 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        background 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        border-color 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        box-shadow 1.2s cubic-bezier(0.25, 1, 0.2, 1),
+                        backdrop-filter 1.2s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        /* 視差阻尼位移動畫 */
+        .parallax-item {
+            transition: transform 1.2s cubic-bezier(0.25, 1, 0.2, 1), opacity 1.0s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        /* 藥丸型輸入框 */
+        .input-pill {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        .input-pill:focus {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 藥丸型登入按鈕 */
+        .btn-pill {
+            background: rgba(226, 232, 240, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-pill:hover {
+            background: #1b365d;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(27, 54, 93, 0.2);
+        }
+        .btn-pill:active {
+            transform: scale(0.97);
+        }
+
+        #formula-container {
+            position: fixed;
+            top: 0;left: 0;width: 100%;height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 1; 
+            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        .formula {
+            position: absolute;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: 600;
+            color: #1e293b;
+            opacity: 0;
+            white-space: nowrap;
+            text-shadow: 0 0 15px rgba(255,255,255,0.8);
+            will-change: transform, opacity;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen m-0">
+
+    <!-- 背景公式動畫容器 -->
+    <div id="formula-container"></div>
+
+    <!-- 登入卡片主畫面 -->
+    <div id="landing-screen" class="fade-in glass-card w-[90%] max-w-[450px] rounded-[2.5rem] p-10 sm:p-12 flex flex-col items-center text-center space-y-8 relative z-10">
+        
+        <!-- App Icon (完美正方形外框) -->
+        <div class="fade-in parallax-item" id="item-icon">
+            <img 
+                src="https://phyuaaphysics.github.io/phyustudio/appicon.png" 
+                alt="PH studio Icon" 
+                class="w-20 h-20 sm:w-24 sm:h-24 rounded-none shadow-lg transition-all duration-700 mx-auto border border-white/20"
+                onerror="this.src='https://via.placeholder.com/512x512?text=PH+studio'"
+            >
+        </div>
+        
+        <!-- 奢華 Cinzel 字型標題 (大小相弱，具備精品張力) -->
+        <div class="space-y-1 w-full px-2 uppercase select-none" style="font-family: 'Cinzel', 'Playfair Display', serif;">
+            <h1 class="text-[#1b365d]">
+                <span class="block text-2xl sm:text-3xl font-semibold tracking-[0.15em] leading-none parallax-item" id="item-title-1">Self-Directed</span>
+                <span class="block text-xs sm:text-sm font-medium tracking-[0.25em] mt-3 opacity-80 leading-none parallax-item" id="item-title-2">Learning Platform</span>
+            </h1>
+        </div>
+
+        <!-- 登入表單 -->
+        <div class="w-full flex flex-col items-center space-y-3 pt-2 parallax-item" id="item-form">
+            <input 
+                type="text" 
+                id="username" 
+                placeholder="USERNAME" 
+                onkeydown="if(event.key === 'Enter') handleLogin(event)"
+                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[10px] tracking-[0.25em] font-medium"
+                autocomplete="off"
+            >
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="PASSWORD" 
+                onkeydown="if(event.key === 'Enter') handleLogin(event)"
+                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[10px] tracking-[0.25em] font-medium"
+            >
+            
+            <!-- 錯誤訊息提示區 -->
+            <p id="error-msg" class="text-red-700 text-[9px] tracking-widest min-h-[14px] opacity-0 transition-opacity duration-300">
+                帳號或密碼錯誤
+            </p>
+        </div>
+
+        <!-- 登入按鈕區與內嵌式進度條 -->
+        <div class="w-full flex flex-col items-center parallax-item" id="item-button">
+            <button 
+                id="launch-btn"
+                onmouseenter="playHoverSound()"
+                onclick="handleLogin(event)"
+                class="btn-pill w-full max-w-[270px] h-10 rounded-full text-[#1b365d] text-[10px] font-semibold tracking-[0.25em] uppercase transition-all duration-500"
+            >
+                Login & Browse
+            </button>
+
+            <!-- 隱藏的內嵌進度條，啟動時浮現於按鈕下方 -->
+            <div id="loading-inline-container" class="w-full max-w-[270px] mt-6 opacity-0 transition-all duration-1000 hidden flex flex-col items-center">
+                <p id="status-text" class="text-[#1b365d]/60 font-normal tracking-[0.2em] text-[8px] sm:text-[9px] mb-3 transition-opacity duration-500">Initializing System</p>
+                <div class="loading-bar-container w-full" id="bar-container">
+                    <div class="loading-bar-progress" id="bar-progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let formulaInterval;
+
+        // 🔗 您的 Google Apps Script (GAS) Guard API 網址 🔗
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzYiyhiCqL3PGQolKmdheF2q4pzatbuLWbp-5uQcraNcfldCbRmBmLUU0Y64e_Drr6N/exec";
+
+        // PWA Service Worker 註冊
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('https://phyuaaphysics.github.io/phyustudio/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed', err));
+            });
+        }
+
+        // 從試算表 ELEMENTS 分頁載入 LOGIN_BG 背景圖 (改用 JSONP 方式避免 Sandbox Iframe 中的 CORS 阻擋)
+        function loadBackgroundFromSheet() {
+            window.handleSheetData = function(data) {
+                try {
+                    if (data && data.table && data.table.rows) {
+                        for (let row of data.table.rows) {
+                            if (row.c && row.c.length >= 2) {
+                                const colA = row.c[0] ? String(row.c[0].v).trim() : "";
+                                const colB = row.c[1] ? String(row.c[1].v).trim() : "";
+                                if (colA === 'LOGIN_BG' && colB) {
+                                    document.body.style.backgroundImage = `url('${colB}')`;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("解析試算表背景 JSONP 失敗:", e);
+                } finally {
+                    const s = document.getElementById('sheet-bg-loader');
+                    if (s) s.remove();
+                    delete window.handleSheetData;
+                }
+            };
+
+            const script = document.createElement('script');
+            script.id = 'sheet-bg-loader';
+            script.src = "https://docs.google.com/spreadsheets/d/10YR8xKXvlTu1ccDYCMbxYOYjJGW-GxgGfvRpxEOtmYE/gviz/tq?tqx=responseHandler:handleSheetData&sheet=ELEMENTS";
+            script.onerror = function() {
+                console.error("載入試算表背景 JSONP 失敗，維持預設背景色");
+                const s = document.getElementById('sheet-bg-loader');
+                if (s) s.remove();
+                delete window.handleSheetData;
+            };
+            document.head.appendChild(script);
+        }
+
+        // 頁面加載時啟動背景公式與試算表背景圖片讀取
+        window.addEventListener('DOMContentLoaded', () => {
+            formulaInterval = setInterval(() => createFormula(), 250);
+            loadBackgroundFromSheet();
+        });
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const physicsFormulas = [
+            "v = u + at", "s = ut + ½at²", "v² = u² + 2as", "F = ma", "p = mv",
+            "E = mc²", "W = Fs cos θ", "P = IV", "V = IR", "Q = mc∆T",
+            "f = 1/T", "v = fλ", "n = c/v", "F = G m₁m₂/r²", "E = hf",
+            "L = mvr", "a = v²/r", "T = 2π√(l/g)", "pV = nRT", "λ = h/p",
+            "n₁sinθ₁ = n₂sinθ₂", "1/u + 1/v = 1/f", "∆p = F∆t", "E = ½mv²",
+            "τ = Fr sinθ", "φ = BA cosθ", "ε = -N(∆φ/∆t)"
+        ];
+
+        // 建立飄移公式
+        function createFormula() {
+            const container = document.getElementById('formula-container');
+            if (!container) return;
+            const formula = document.createElement('div');
+            formula.className = 'formula';
+            formula.innerText = physicsFormulas[Math.floor(Math.random() * physicsFormulas.length)];
+            const isMobile = window.innerWidth < 768;
+            const padding = isMobile ? 15 : 5;
+            const x = Math.random() * (100 - padding * 2) + padding;
+            const y = Math.random() * (100 - padding * 2) + padding;
+            const size = Math.random() * (isMobile ? 16 : 20) + (isMobile ? 16 : 22); 
+            const duration = Math.random() * 1.5 + 2;
+            formula.style.left = `${x}%`;
+            formula.style.top = `${y}%`;
+            formula.style.fontSize = `${size}px`;
+            formula.style.animation = `formulaFade ${duration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`;
+            container.appendChild(formula);
+            setTimeout(() => formula.remove(), duration * 1000);
+        }
+
+        // 滑鼠懸停音效
+        function playHoverSound() {
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        // 載入提示音效
+        function playLoadingTick(frequency = 600) {
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.03);
+        }
+
+        // 登入驗證與角色處理
+        function handleLogin(event) {
+            if (event) event.preventDefault();
+            
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const userVal = document.getElementById('username').value.trim();
+            const passVal = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            const launchBtn = document.getElementById('launch-btn');
+
+            if (!userVal || !passVal) {
+                errorMsg.innerText = "請輸入帳號與密碼";
+                errorMsg.style.opacity = '1';
+                playLoadingTick(300);
+                return;
+            }
+
+            launchBtn.innerText = "Authenticating...";
+            launchBtn.disabled = true;
+            launchBtn.style.opacity = "0.7";
+
+            fetch(GAS_GUARD_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: JSON.stringify({
+                    username: userVal,
+                    password: passVal
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    errorMsg.style.opacity = '0';
+                    
+                    // 1. 儲存核發的 JWT Token 供 Loader 校驗
+                    if (data.token) {
+                        sessionStorage.setItem('jwt_token', data.token);
+                    }
+                    
+                    // 2. 將 6 種角色身分 (S3, S4, S5, teacher, admin, guest) 存入 sessionStorage 供前端分頁控管
+                    if (data.role) {
+                        sessionStorage.setItem('user_role', data.role);
+                    }
+                    
+                    launchSystem();
+                } else {
+                    errorMsg.innerText = data.message || "帳號或密碼錯誤";
+                    errorMsg.style.opacity = '1';
+                    playLoadingTick(300);
+                    
+                    launchBtn.innerText = "Login & Browse";
+                    launchBtn.disabled = false;
+                    launchBtn.style.opacity = "1";
+                }
+            })
+            .catch(err => {
+                console.error("連線到 Guard API 失敗:", err);
+                errorMsg.innerText = "連線伺服器失敗，請確認 API 狀態";
+                errorMsg.style.opacity = '1';
+                playLoadingTick(300);
+                
+                launchBtn.innerText = "Login & Browse";
+                launchBtn.disabled = false;
+                launchBtn.style.opacity = "1";
+            });
+        }
+
+        // 啟動系統及轉場載入動畫
+        function launchSystem() {
+            const landing = document.getElementById('landing-screen');
+            const formulaContainer = document.getElementById('formula-container');
+            const progress = document.getElementById('bar-progress');
+            const barContainer = document.getElementById('bar-container');
+            const statusText = document.getElementById('status-text');
+            const loadingInline = document.getElementById('loading-inline-container');
+
+            document.body.style.background = "none";
+            document.body.style.backgroundColor = "#FFFFFF";
+
+            formulaContainer.style.opacity = "1";
+
+            // 清除動畫干擾，確保順利完全淡出
+            landing.style.animation = "none";
+            document.getElementById('item-icon').style.animation = "none";
+            document.getElementById('item-title-1').style.animation = "none";
+            document.getElementById('item-title-2').style.animation = "none";
+            document.getElementById('item-form').style.animation = "none";
+            document.getElementById('item-button').style.animation = "none";
+
+            // 磨砂玻璃卡片本體淡出
+            landing.style.background = "rgba(255, 255, 255, 0)";
+            landing.style.borderColor = "transparent";
+            landing.style.boxShadow = "none";
+            landing.style.backdropFilter = "none";
+            landing.style.webkitBackdropFilter = "none";
+            landing.style.transform = "translateY(-20px)";
+
+            // 卡片內部的 ICON、標題、欄位及按鈕同步完全淡出 (opacity: 0)
+            document.getElementById('item-icon').style.transform = "translateY(-40px)";
+            document.getElementById('item-icon').style.opacity = "0";
+
+            document.getElementById('item-title-1').style.transform = "translateY(-50px)";
+            document.getElementById('item-title-1').style.opacity = "0";
+
+            document.getElementById('item-title-2').style.transform = "translateY(-45px)";
+            document.getElementById('item-title-2').style.opacity = "0";
+
+            const itemForm = document.getElementById('item-form');
+            itemForm.style.transform = "translateY(-35px)";
+            itemForm.style.opacity = "0";
+            document.getElementById('username').disabled = true;
+            document.getElementById('password').disabled = true;
+
+            const launchBtn = document.getElementById('launch-btn');
+            launchBtn.style.transform = "translateY(-30px)";
+            launchBtn.style.opacity = "0";
+            launchBtn.style.pointerEvents = "none";
+            launchBtn.disabled = true;
+
+            // 內嵌式進度條浮現
+            loadingInline.classList.remove('hidden');
+            setTimeout(() => {
+                loadingInline.style.opacity = "1";
+                loadingInline.style.transform = "translateY(-40px)";
+            }, 50);
+
+            barContainer.style.display = 'block';
+
+            let width = 0;
+            let messageIndex = 0;
+            const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
+
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    clearInterval(formulaInterval);
+
+                    loadingInline.style.opacity = "0";
+                    loadingInline.style.transform = "translateY(-60px)";
+                    landing.style.opacity = "0";
+                    
+                    setTimeout(() => { 
+                        try {
+                            const baseUrl = (window.location.href && window.location.href !== 'about:blank') ? window.location.href : window.location.origin;
+                            window.location.href = new URL('home.html', baseUrl || 'http://localhost').href;
+                        } catch (e) {
+                            console.error("導向失敗:", e);
+                            try {
+                                window.location.assign('home.html');
+                            } catch (err) {
+                                statusText.innerText = "System Ready (Navigation Blocked)";
+                            }
+                        }
+                    }, 500);
+                } else {
+                    width += Math.random() * 2 + 0.5;
+                    if (width > 100) width = 100;
+                    progress.style.width = width + '%';
+
+                    // 隨著進度條遞增，公式同步不斷淡出
+                    formulaContainer.style.opacity = (1 - (width / 100)).toFixed(3);
+
+                    const targetIdx = Math.min(Math.floor((width / 100) * statusMessages.length), statusMessages.length - 1);
+                    if (targetIdx !== messageIndex) {
+                        messageIndex = targetIdx;
+                        statusText.innerText = statusMessages[messageIndex];
+                        playLoadingTick(800 + (messageIndex * 50));
+                    }
+                }
+            }, 50);
+        }
+    </script>
+</body>
+</html>
