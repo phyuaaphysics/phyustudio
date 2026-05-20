@@ -453,7 +453,6 @@
 
                     <div class="flex items-center gap-6 text-sky-800 opacity-60">
                         <i class="fas fa-search text-xl cursor-pointer"></i>
-                        <i class="fas fa-qrcode text-xl cursor-pointer" onclick="openQRScanner()" title="掃描 QR Code"></i>
                     </div>
                 </div>
             </div>
@@ -569,8 +568,8 @@
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
-                <button onclick="handleNavigation('https://mail.google.com/mail/u/0/#inbox')" class="dock-item">
-                    <i class="fab fa-google"></i><span class="uppercase">郵箱</span>
+                <button onclick="openQRScanner()" class="dock-item">
+                    <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
                 </button>
             </div>
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
@@ -936,4 +935,5 @@
     </script>
 </body>
 </html>
+
 
