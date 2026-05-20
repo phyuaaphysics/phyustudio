@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -142,6 +143,64 @@
             text-shadow: 0 0 15px rgba(255,255,255,0.85);
             will-change: transform, opacity;
         }
+
+        /* ==========================================================================
+           💎 iOS 頂級白淨高透磨砂玻璃彈窗樣式與非線性轉場動畫 💎
+           ========================================================================== */
+        .ios-overlay-blur {
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .ios-overlay-blur.active {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .ios-glass-card {
+            background: rgba(255, 255, 255, 0.72) !important;
+            backdrop-filter: blur(40px) saturate(190%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(190%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.01),
+                0 30px 70px rgba(27, 54, 93, 0.07),
+                inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+            transform: scale(0.85) translateY(30px);
+            opacity: 0;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            
+            /* 💎 核心修改：為歡迎視窗全面載入 Apple 官方字型美學 💎 */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        }
+
+        .ios-glass-card.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* iOS 微震動感按鈕 */
+        .ios-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            color: #1c1c1e;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-btn:hover {
+            background: #1c1c1e;
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(28, 28, 30, 0.15);
+            transform: translateY(-1px);
+        }
+        .ios-btn:active {
+            transform: scale(0.96) translateY(0);
+            background: rgba(28, 28, 30, 0.9);
+            color: #ffffff;
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen m-0">
@@ -185,7 +244,7 @@
                 id="password" 
                 placeholder="PASSWORD" 
                 onkeydown="if(event.key === 'Enter') handleLogin(event)"
-                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[10px] tracking-[0.25em] font-medium"
+                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[#1b365d] text-center text-[10px] tracking-[0.25em] font-medium"
             >
             
             <!-- 錯誤訊息提示區 -->
@@ -215,27 +274,28 @@
         </div>
     </div>
 
-    <!-- 歡迎與驗證結果通知彈出式視窗 (Welcome Modal) -->
-    <div id="welcome-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-700">
-        <div class="glass-card w-[85%] max-w-[380px] rounded-[2rem] p-8 text-center flex flex-col items-center space-y-6 scale-90 transition-all duration-700">
+    <!-- 💎 歡迎與驗證結果通知彈出式視窗 (Welcome Modal - High-end iOS style white glass texture) 💎 -->
+    <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-black/5 opacity-0 pointer-events-none">
+        <div class="ios-glass-card w-[85%] max-w-[370px] rounded-[2.2rem] p-9 text-center flex flex-col items-center space-y-6 relative">
+            
             <!-- 狀態動態 Icon 容器 -->
-            <div id="modal-icon-container" class="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-white/40">
-                <!-- 程式動態代入 SVG 或 Emoji -->
+            <div id="modal-icon-container" class="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-black/5">
+                <!-- 動態注入 -->
             </div>
             
-            <div class="space-y-2 uppercase select-none" style="font-family: 'Cinzel', 'Playfair Display', serif;">
-                <h3 id="modal-title" class="text-[15px] font-bold tracking-[0.15em] text-[#1b365d]">AUTHENTICATION STATUS</h3>
-                <p id="modal-subtext" class="text-[9px] font-semibold tracking-[0.2em] text-[#1b365d]/60 mt-1">Platform Notice</p>
+            <div class="space-y-2 uppercase select-none">
+                <h3 id="modal-title" class="text-[14px] font-bold tracking-[0.15em] text-[#1b365d]">AUTHENTICATION STATUS</h3>
+                <p id="modal-subtext" class="text-[8px] font-semibold tracking-[0.25em] text-[#1b365d]/50 mt-1">Platform Notice</p>
             </div>
 
             <!-- 通知內文 -->
-            <p id="modal-message" class="text-xs font-medium tracking-[0.1em] text-[#1e293b] leading-relaxed px-4">
+            <p id="modal-message" class="text-xs font-medium tracking-[0.08em] text-[#2c2c2e] leading-relaxed px-2">
                 讀取中...
             </p>
 
             <button 
                 onclick="confirmWelcomeRedirect()"
-                class="btn-pill w-full max-w-[200px] h-10 rounded-full text-[#1b365d] text-[10px] font-semibold tracking-[0.2em] uppercase transition-all duration-300 hover:bg-[#1b365d] hover:text-white"
+                class="ios-btn w-full max-w-[210px] h-11 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase"
             >
                 Confirm & Enter
             </button>
@@ -249,7 +309,7 @@
         // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 🔗
         const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbz0eCZ4eyLVJx7bx4yC6Xgj27Yf-t1flL4QzNcCEudv6ezg0C0KcDbi5mLMVYgR0GOR/exec";
         
-        // 🔗 跳轉目標主網頁明文網址 🔗
+        // 🔗 轉跳目標主網頁明文網址 🔗
         const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
 
         // PWA Service Worker 註冊
@@ -553,10 +613,10 @@
             }, 50);
         }
 
-        // 💡 顯示歡迎/通知彈出視窗 💡
+        // 💡 顯示歡迎/通知彈出視窗 (iOS 奢華白高透玻璃材質 + Apple 原生字型美學) 💡
         function showWelcomeModal() {
             const modal = document.getElementById('welcome-modal');
-            const modalCard = modal.querySelector('.glass-card');
+            const modalCard = modal.querySelector('.ios-glass-card');
             const modalIconContainer = document.getElementById('modal-icon-container');
             const modalTitle = document.getElementById('modal-title');
             const modalSubtext = document.getElementById('modal-subtext');
@@ -567,11 +627,11 @@
                 const role = sessionStorage.getItem('user_role') || "User";
                 
                 modalIconContainer.innerHTML = '🛡️';
-                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-emerald-500/30 bg-emerald-50/10 text-emerald-600";
+                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-emerald-500/10 bg-emerald-50/20 text-emerald-600";
                 modalTitle.innerText = "ACCESS GRANTED";
-                modalTitle.className = "text-[15px] font-bold tracking-[0.15em] text-emerald-700";
+                modalTitle.className = "text-[14px] font-bold tracking-[0.15em] text-emerald-700";
                 modalSubtext.innerText = "AUTHENTICATION SUCCESS";
-                modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>身分：<span class="bg-emerald-100 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-semibold tracking-wider">${role.toUpperCase()}</span>`;
+                modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
                 playLoadingTick(1000);
             } else {
                 // 🔴 驗證失敗/未通過分支 (強制切換為 Visitor 訪客身分)
@@ -580,34 +640,39 @@
                 sessionStorage.setItem('user_role', 'guest');
 
                 modalIconContainer.innerHTML = '👤';
-                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-amber-500/30 bg-amber-50/10 text-amber-600";
+                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
                 modalTitle.innerText = "VISITOR ENTRANCE";
-                modalTitle.className = "text-[15px] font-bold tracking-[0.15em] text-amber-700";
+                modalTitle.className = "text-[14px] font-bold tracking-[0.15em] text-amber-700";
                 modalSubtext.innerText = "VERIFICATION BYPASSED";
                 modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>已為您自動切換以 <strong>訪客 (Visitor/Guest)</strong> 身分探訪系統。`;
                 playLoadingTick(400);
             }
 
-            // 啟動阻尼浮現動畫
+            // 啟動 iOS 原生級 non-linear 物理阻尼轉場動畫
             modal.classList.remove('pointer-events-none');
             modal.classList.remove('opacity-0');
             modal.classList.add('opacity-100');
-            modalCard.classList.remove('scale-90');
-            modalCard.classList.add('scale-100');
+            modal.classList.add('active');
+            
+            modalCard.classList.remove('opacity-0');
+            modalCard.classList.add('active');
         }
 
-        // 點擊 Modal 的確認按鈕，流暢跳轉
+        // 點擊 Modal 的確認按鈕，流暢跳轉 (iOS Damped Scale-down Out 特效)
         function confirmWelcomeRedirect() {
             const modal = document.getElementById('welcome-modal');
-            const modalCard = modal.querySelector('.glass-card');
+            const modalCard = modal.querySelector('.ios-glass-card');
             
-            // 點擊音效
+            // 觸發高頻率微小回彈點擊音效
             playLoadingTick(900);
             
-            // 卡片退場動畫
-            modalCard.classList.remove('scale-100');
-            modalCard.classList.add('scale-95');
-            modal.classList.add('opacity-0');
+            // 卡片退場阻尼收縮動畫
+            modalCard.style.transform = "scale(0.95)";
+            modalCard.style.opacity = "0";
+            modal.classList.remove('active');
+            modal.style.opacity = "0";
+            modal.style.backdropFilter = "blur(0px)";
+            modal.style.webkitBackdropFilter = "blur(0px)";
             
             setTimeout(() => {
                 try {
@@ -616,8 +681,10 @@
                     console.error("導向失敗:", e);
                     window.location.assign(TARGET_URL);
                 }
-            }, 400);
+            }, 550);
         }
     </script>
 </body>
 </html>
+
+
