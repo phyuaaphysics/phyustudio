@@ -219,7 +219,7 @@
         let formulaInterval;
 
         // 🔗 您的 Google Apps Script (GAS) Guard API 網址 🔗
-        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzYiyhiCqL3PGQolKmdheF2q4pzatbuLWbp-5uQcraNcfldCbRmBmLUU0Y64e_Drr6N/exec";
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzYiyhiCqL3PGolKmdheF2q4pzatbuLWbp-5uQcraNcfldCbRmBmLUU0Y64e_Drr6N/exec";
 
         // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
@@ -474,12 +474,11 @@
                     
                     setTimeout(() => { 
                         try {
-                            const baseUrl = (window.location.href && window.location.href !== 'about:blank') ? window.location.href : window.location.origin;
-                            window.location.href = new URL('home.html', baseUrl || 'http://localhost').href;
+                            window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
                         } catch (e) {
                             console.error("導向失敗:", e);
                             try {
-                                window.location.assign('home.html');
+                                window.location.assign("https://phyuaaphysics.github.io/phyustudio/home.html");
                             } catch (err) {
                                 statusText.innerText = "System Ready (Navigation Blocked)";
                             }
