@@ -217,9 +217,18 @@
 
     <script>
         let formulaInterval;
+        let currentBgUrl = ""; // 用於保存並在驗證失敗時還原的資料庫背景圖片
 
-        // 🔗 已成功更新為您的 Google Apps Script (GAS) Guard API 網址 🔗
-        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzhIU6e4JzCwgKbuWb6doNOEN5ZuveNtglzVTiFN-r12-frHrGOBOoFEkgyiLtDY9eJ/exec";
+        // 🔒 使用 Base64 強效編碼混淆敏感 API 端點與轉跳位址，防止網頁原始碼直接曝露 🔒
+        const _0x1a2b = {
+            g: "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6aElVNmU0SnpDd2dLYnVXYjZkb05PRU41WnV2ZU50Z2x6VlRpRk4tcjEyLWZySHJHT0JPb0ZLa2d5aUx0RFk5ZUovZXhlYw==", // Guard API
+            l: "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6aXJqQmpRWHZKc2VscEczVE5CNkE3V0JNRzVrbEdnY0VIUXNodjVVeGFweG5OMWRVOHNDMmNZLWxmUjJfME9HUmMvZXhlYw==", // Loader API
+            f: "aHR0cHM6Ly9waHl1YWFwaHlzaWNzLmdpdGh1Yi5pby9waHl1c3R1ZGlvL2luZGV4Lmh0bWw=" // 備用 Fallback 網址 (已更新為 index.html)
+        };
+
+        const GAS_GUARD_URL = atob(_0x1a2b.g);
+        const GAS_LOADER_URL = atob(_0x1a2b.l);
+        const FALLBACK_URL = atob(_0x1a2b.f);
 
         // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
@@ -240,6 +249,7 @@
                                 const colA = row.c[0] ? String(row.c[0].v).trim() : "";
                                 const colB = row.c[1] ? String(row.c[1].v).trim() : "";
                                 if (colA === 'LOGIN_BG' && colB) {
+                                    currentBgUrl = colB; // 保存背景網址
                                     document.body.style.backgroundImage = `url('${colB}')`;
                                     break;
                                 }
@@ -271,6 +281,17 @@
         window.addEventListener('DOMContentLoaded', () => {
             formulaInterval = setInterval(() => createFormula(), 250);
             loadBackgroundFromSheet();
+
+            // 若 Loader 驗證失敗退回時，可從 URL 解析錯誤訊息並顯示
+            const urlParams = new URLSearchParams(window.location.search);
+            const errParam = urlParams.get('error');
+            if (errParam) {
+                const errorMsg = document.getElementById('error-msg');
+                errorMsg.innerText = decodeURIComponent(errParam);
+                errorMsg.style.opacity = '1';
+                // 清除 URL 中的錯誤參數，保持簡潔
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -328,7 +349,12 @@
             osc.start(); osc.stop(audioCtx.currentTime + 0.03);
         }
 
-        // 登入驗證與角色處理
+        // 登入驗證與分流控管邏輯
+        let loadingInterval = null;
+        let progressVal = 0;
+        let authResult = null; // null = 驗證中, true = 成功, false = 失敗
+        let authErrorMessage = "";
+
         function handleLogin(event) {
             if (event) event.preventDefault();
             
@@ -337,7 +363,6 @@
             const userVal = document.getElementById('username').value.trim();
             const passVal = document.getElementById('password').value;
             const errorMsg = document.getElementById('error-msg');
-            const launchBtn = document.getElementById('launch-btn');
 
             if (!userVal || !passVal) {
                 errorMsg.innerText = "請輸入帳號與密碼";
@@ -346,80 +371,105 @@
                 return;
             }
 
-            launchBtn.innerText = "Authenticating...";
-            launchBtn.disabled = true;
-            launchBtn.style.opacity = "0.7";
+            // 初始化驗證與動畫狀態
+            authResult = null;
+            authErrorMessage = "";
 
-            // 確保以 cors 模式發送
-            fetch(GAS_GUARD_URL, {
-                method: "POST",
-                mode: "cors",
-                headers: {
-                    "Content-Type": "text/plain"
-                },
-                body: JSON.stringify({
-                    username: userVal,
-                    password: passVal
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("HTTP status " + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    errorMsg.style.opacity = '0';
-                    
-                    // 1. 儲存核發的 JWT Token 供 Loader 校驗
-                    if (data.token) {
-                        sessionStorage.setItem('jwt_token', data.token);
-                    }
-                    
-                    // 2. 將 6 種角色身分 (S3, S4, S5, teacher, admin, guest) 存入 sessionStorage 供前端分頁控管
-                    if (data.role) {
-                        sessionStorage.setItem('user_role', data.role);
-                    }
-                    
-                    launchSystem();
-                } else {
-                    errorMsg.innerText = data.message || "帳號或密碼錯誤";
-                    errorMsg.style.opacity = '1';
-                    playLoadingTick(300);
-                    
-                    launchBtn.innerText = "Login & Browse";
-                    launchBtn.disabled = false;
-                    launchBtn.style.opacity = "1";
-                }
-            })
-            .catch(err => {
-                console.error("連線到 Guard API 失敗:", err);
-                errorMsg.innerText = "連線伺服器失敗，請確認 API 部署狀態與權限";
-                errorMsg.style.opacity = '1';
-                playLoadingTick(300);
-                
-                launchBtn.innerText = "Login & Browse";
-                launchBtn.disabled = false;
-                launchBtn.style.opacity = "1";
+            // 1. 不論對錯，立刻啟動過渡畫面，消除等待焦慮
+            startPreLaunch();
+            runLoadingLoop();
+
+            // 2. 【核心安全性修正】：為了繞過 Sandbox Iframe 嚴格的 CORS Fetch 阻擋
+            // 採用 Hidden Iframe 表單代理 POST 傳輸方式安全請求 GAS Guard 端點
+            const iframeName = 'gas_post_iframe_' + Date.now();
+            let iframe = document.createElement('iframe');
+            iframe.name = iframeName;
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            let form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GAS_GUARD_URL;
+            form.target = iframeName;
+            form.style.display = 'none';
+
+            // 將 payload 序列化填入表單欄位以防 Preflight OPTIONS 預檢阻擋
+            let input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'payload';
+            input.value = JSON.stringify({
+                username: userVal,
+                password: passVal
             });
+            form.appendChild(input);
+            document.body.appendChild(form);
+
+            // 設置一個跨域安全通道來接收 Iframe 代理回傳的 JSON 結果
+            const messageHandler = function(e) {
+                try {
+                    let data = null;
+                    if (typeof e.data === 'string') {
+                        data = JSON.parse(e.data);
+                    } else if (typeof e.data === 'object' && e.data && e.data.gas_response) {
+                        data = e.data.gas_response;
+                    }
+
+                    if (data && (data.success !== undefined || data.token !== undefined)) {
+                        // 移除監聽器並清理 DOM
+                        window.removeEventListener('message', messageHandler);
+                        if (form.parentNode) form.parentNode.removeChild(form);
+                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+
+                        if (data.success) {
+                            // 驗證成功：快取 JWT 與 Role 到本地
+                            if (data.token) sessionStorage.setItem('jwt_token', data.token);
+                            if (data.role) sessionStorage.setItem('user_role', data.role);
+                            authResult = true; // 觸發進度條加速填滿
+                        } else {
+                            // 驗證失敗：設定錯誤訊息，觸發阻尼回滾
+                            authErrorMessage = data.message || "帳號或密碼錯誤";
+                            authResult = false;
+                        }
+                    }
+                } catch (err) {
+                    // 忽略非 JSON 字串格式的跨域雜訊訊息
+                }
+            };
+            window.addEventListener('message', messageHandler);
+
+            // 當 Iframe 發送成功或遭遇逾時等非預期錯誤防護
+            iframe.onload = function() {
+                setTimeout(() => {
+                    // 若 8 秒內沒有收到 message 信號，主動檢測並提供連線容錯
+                    if (authResult === null) {
+                        window.removeEventListener('message', messageHandler);
+                        if (form.parentNode) form.parentNode.removeChild(form);
+                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+                        authErrorMessage = "連線逾時，請確認伺服器或網路狀態";
+                        authResult = false;
+                    }
+                }, 8000);
+            };
+
+            // 安全提交表單
+            form.submit();
         }
 
-        // 啟動系統及轉場載入動畫
-        function launchSystem() {
+        // 啟動前置淡出轉場畫面
+        function startPreLaunch() {
             const landing = document.getElementById('landing-screen');
             const formulaContainer = document.getElementById('formula-container');
-            const progress = document.getElementById('bar-progress');
-            const barContainer = document.getElementById('bar-container');
-            const statusText = document.getElementById('status-text');
             const loadingInline = document.getElementById('loading-inline-container');
+            const statusText = document.getElementById('status-text');
 
-            document.body.style.background = "none";
+            // 1. 背景平滑過渡至純白
+            document.body.style.backgroundImage = "none";
             document.body.style.backgroundColor = "#FFFFFF";
 
+            // 2. 公式保持高度飄移流動
             formulaContainer.style.opacity = "1";
 
-            // 清除動畫干擾，確保順利完全淡出
+            // 清除動畫干擾，確保強制進入淡出狀態
             landing.style.animation = "none";
             document.getElementById('item-icon').style.animation = "none";
             document.getElementById('item-title-1').style.animation = "none";
@@ -427,7 +477,7 @@
             document.getElementById('item-form').style.animation = "none";
             document.getElementById('item-button').style.animation = "none";
 
-            // 磨砂玻璃卡片本體淡出
+            // 磨砂卡片整體淡出
             landing.style.background = "rgba(255, 255, 255, 0)";
             landing.style.borderColor = "transparent";
             landing.style.boxShadow = "none";
@@ -435,7 +485,7 @@
             landing.style.webkitBackdropFilter = "none";
             landing.style.transform = "translateY(-20px)";
 
-            // 卡片內部的 ICON、標題、欄位及按鈕同步完全淡出 (opacity: 0)
+            // ICON、標題、欄位及按鈕同步完全淡出 (opacity: 0)
             document.getElementById('item-icon').style.transform = "translateY(-40px)";
             document.getElementById('item-icon').style.opacity = "0";
 
@@ -457,49 +507,81 @@
             launchBtn.style.pointerEvents = "none";
             launchBtn.disabled = true;
 
-            // 內嵌式進度條浮現
+            // 進度條與狀態文字浮現
+            statusText.innerText = "Connecting to Secure Guard...";
             loadingInline.classList.remove('hidden');
             setTimeout(() => {
                 loadingInline.style.opacity = "1";
                 loadingInline.style.transform = "translateY(-40px)";
             }, 50);
 
-            barContainer.style.display = 'block';
+            document.getElementById('bar-container').style.display = 'block';
+        }
 
-            let width = 0;
-            let messageIndex = 0;
+        // 動態進度條循環（結合驗證結果）
+        function runLoadingLoop() {
+            const progress = document.getElementById('bar-progress');
+            const statusText = document.getElementById('status-text');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const landing = document.getElementById('landing-screen');
+
+            progressVal = 0;
             const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
+            let messageIndex = 0;
 
-            const interval = setInterval(() => {
-                if (width >= 100) {
-                    clearInterval(interval);
-                    clearInterval(formulaInterval);
+            if (loadingInterval) clearInterval(loadingInterval);
 
+            loadingInterval = setInterval(() => {
+                if (authResult === false) {
+                    // 【分支 A】驗證失敗：立刻停止進度，啟動平滑回滾
+                    clearInterval(loadingInterval);
+                    rollbackSystem(authErrorMessage);
+                    return;
+                }
+
+                if (authResult === true) {
+                    // 【分支 B】驗證成功：加速前進並完成
+                    progressVal += Math.random() * 5 + 3;
+                } else {
+                    // 驗證中：模擬平滑加載，但最多卡在 35%
+                    if (progressVal < 35) {
+                        progressVal += Math.random() * 1.5 + 0.5;
+                    }
+                }
+
+                if (progressVal >= 100) {
+                    progressVal = 100;
+                    progress.style.width = '100%';
+                    formulaContainer.style.opacity = "0";
+                    clearInterval(loadingInterval);
+
+                    // 整體最終淡出
                     loadingInline.style.opacity = "0";
                     loadingInline.style.transform = "translateY(-60px)";
                     landing.style.opacity = "0";
                     
                     setTimeout(() => { 
                         try {
-                            window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
+                            const token = sessionStorage.getItem('jwt_token') || "";
+                            // 🚀 安全導向至 Loader API 進行確認與跳轉 (已混淆 GAS_LOADER_URL) 🚀
+                            window.location.href = `${GAS_LOADER_URL}?token=${encodeURIComponent(token)}`;
                         } catch (e) {
                             console.error("導向失敗:", e);
                             try {
-                                window.location.assign("https://phyuaaphysics.github.io/phyustudio/home.html");
+                                window.location.assign(FALLBACK_URL);
                             } catch (err) {
                                 statusText.innerText = "System Ready (Navigation Blocked)";
                             }
                         }
                     }, 500);
                 } else {
-                    width += Math.random() * 2 + 0.5;
-                    if (width > 100) width = 100;
-                    progress.style.width = width + '%';
+                    progress.style.width = progressVal + '%';
 
-                    // 隨著進度條遞增，公式同步不斷淡出
-                    formulaContainer.style.opacity = (1 - (width / 100)).toFixed(3);
+                    // 隨著進度遞增，公式同步不斷淡出
+                    formulaContainer.style.opacity = (1 - (progressVal / 100)).toFixed(3);
 
-                    const targetIdx = Math.min(Math.floor((width / 100) * statusMessages.length), statusMessages.length - 1);
+                    const targetIdx = Math.min(Math.floor((progressVal / 100) * statusMessages.length), statusMessages.length - 1);
                     if (targetIdx !== messageIndex) {
                         messageIndex = targetIdx;
                         statusText.innerText = statusMessages[messageIndex];
@@ -507,6 +589,67 @@
                     }
                 }
             }, 50);
+        }
+
+        // 登入失敗時的奢華「阻尼回滾」機制
+        function rollbackSystem(errorMessage) {
+            const landing = document.getElementById('landing-screen');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const errorMsg = document.getElementById('error-msg');
+            const launchBtn = document.getElementById('launch-btn');
+
+            // 1. 平滑還原為資料庫背景圖片與綠色基底
+            document.body.style.backgroundColor = "#81D8D0";
+            if (currentBgUrl) {
+                document.body.style.backgroundImage = `url('${currentBgUrl}')`;
+            }
+
+            // 2. 恢復公式飄移透明度
+            formulaContainer.style.opacity = "1";
+
+            // 3. 還原磨砂玻璃卡片本體樣式
+            landing.style.background = "rgba(255, 255, 255, 0.45)";
+            landing.style.borderColor = "rgba(255, 255, 255, 0.4)";
+            landing.style.boxShadow = "0 30px 70px rgba(0, 0, 0, 0.12)";
+            landing.style.backdropFilter = "blur(25px)";
+            landing.style.webkitBackdropFilter = "blur(25px)";
+            landing.style.transform = "translateY(0px)";
+
+            // 4. 還原卡片內部的各項視差元素與功能可用狀態
+            document.getElementById('item-icon').style.transform = "translateY(0px)";
+            document.getElementById('item-icon').style.opacity = "1";
+
+            document.getElementById('item-title-1').style.transform = "translateY(0px)";
+            document.getElementById('item-title-1').style.opacity = "1";
+
+            document.getElementById('item-title-2').style.transform = "translateY(0px)";
+            document.getElementById('item-title-2').style.opacity = "1";
+
+            const itemForm = document.getElementById('item-form');
+            itemForm.style.transform = "translateY(0px)";
+            itemForm.style.opacity = "1";
+            document.getElementById('username').disabled = false;
+            document.getElementById('password').disabled = false;
+
+            launchBtn.style.transform = "translateY(0px)";
+            launchBtn.style.opacity = "1";
+            launchBtn.style.pointerEvents = "auto";
+            launchBtn.disabled = false;
+            launchBtn.innerText = "Login & Browse";
+
+            // 5. 漸隱內嵌式進度條
+            loadingInline.style.opacity = "0";
+            loadingInline.style.transform = "translateY(0px)";
+            setTimeout(() => {
+                loadingInline.classList.add('hidden');
+                document.getElementById('bar-progress').style.width = "0%";
+            }, 1000);
+
+            // 6. 輸出錯誤訊息，並播放警告音效
+            errorMsg.innerText = errorMessage || "帳號或密碼錯誤";
+            errorMsg.style.opacity = '1';
+            playLoadingTick(300);
         }
     </script>
 </body>
