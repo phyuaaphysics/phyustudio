@@ -215,20 +215,47 @@
         </div>
     </div>
 
+    <!-- 歡迎與驗證結果通知彈出式視窗 (Welcome Modal) -->
+    <div id="welcome-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-700">
+        <div class="glass-card w-[85%] max-w-[380px] rounded-[2rem] p-8 text-center flex flex-col items-center space-y-6 scale-90 transition-all duration-700">
+            <!-- 狀態動態 Icon 容器 -->
+            <div id="modal-icon-container" class="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-white/40">
+                <!-- 程式動態代入 SVG 或 Emoji -->
+            </div>
+            
+            <div class="space-y-2 uppercase select-none" style="font-family: 'Cinzel', 'Playfair Display', serif;">
+                <h3 id="modal-title" class="text-[15px] font-bold tracking-[0.15em] text-[#1b365d]">AUTHENTICATION STATUS</h3>
+                <p id="modal-subtext" class="text-[9px] font-semibold tracking-[0.2em] text-[#1b365d]/60 mt-1">Platform Notice</p>
+            </div>
+
+            <!-- 通知內文 -->
+            <p id="modal-message" class="text-xs font-medium tracking-[0.1em] text-[#1e293b] leading-relaxed px-4">
+                讀取中...
+            </p>
+
+            <button 
+                onclick="confirmWelcomeRedirect()"
+                class="btn-pill w-full max-w-[200px] h-10 rounded-full text-[#1b365d] text-[10px] font-semibold tracking-[0.2em] uppercase transition-all duration-300 hover:bg-[#1b365d] hover:text-white"
+            >
+                Confirm & Enter
+            </button>
+        </div>
+    </div>
+
     <script>
         let formulaInterval;
         let currentBgUrl = ""; // 用於保存並在驗證失敗時還原的資料庫背景圖片
 
-        // 🔒 使用 Base64 強效編碼混淆敏感 API 端點與轉跳位址，防止網頁原始碼直接曝露 🔒
+        // 🔒 使用 Base64 強效編碼混淆敏感跳轉位址與 Guard 認證端點，防止原始碼洩漏 🔒
         const _0x1a2b = {
-            g: "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6aElVNmU0SnpDd2dLYnVXYjZkb05PRU41WnV2ZU50Z2x6VlRpRk4tcjEyLWZySHJHT0JPb0ZLa2d5aUx0RFk5ZUovZXhlYw==", // Guard API
-            l: "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6aXJqQmpRWHZKc2VscEczVE5CNkE3V0JNRzVrbEdnY0VIUXNodjVVeGFweG5OMWRVOHNDMmNZLWxmUjJfME9HUmMvZXhlYw==", // Loader API
-            f: "aHR0cHM6Ly9waHl1YWFwaHlzaWNzLmdpdGh1Yi5pby9waHl1c3R1ZGlvL2luZGV4Lmh0bWw=" // 備用 Fallback 網址 (已更新為 index.html)
+            // 🔗 已成功更新為第 7 版的 guard.gs Web App 網址 🔗
+            g: "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6MDVDWjRleUxWSng3Yng0eUM2WGdqMjdZZi10MWZMTDRRelpjQ0V1ZHY2ZXpnMEMwS2NEYmksbUxNVllnUjBHT1IvZXhlYw==",
+            // 跳轉目標主網頁 (https://phyuaaphysics.github.io/phyustudio/home.html)
+            f: "aHR0cHM6Ly9waHl1YWFwaHlzaWNzLmdpdGh1Yi5pby9waHl1c3R1ZGlvL2hvbWUuaHRtbA=="
         };
-
+        
         const GAS_GUARD_URL = atob(_0x1a2b.g);
-        const GAS_LOADER_URL = atob(_0x1a2b.l);
-        const FALLBACK_URL = atob(_0x1a2b.f);
+        const TARGET_URL = atob(_0x1a2b.f);
 
         // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
@@ -281,17 +308,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             formulaInterval = setInterval(() => createFormula(), 250);
             loadBackgroundFromSheet();
-
-            // 若 Loader 驗證失敗退回時，可從 URL 解析錯誤訊息並顯示
-            const urlParams = new URLSearchParams(window.location.search);
-            const errParam = urlParams.get('error');
-            if (errParam) {
-                const errorMsg = document.getElementById('error-msg');
-                errorMsg.innerText = decodeURIComponent(errParam);
-                errorMsg.style.opacity = '1';
-                // 清除 URL 中的錯誤參數，保持簡潔
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
         });
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -354,6 +370,30 @@
         let progressVal = 0;
         let authResult = null; // null = 驗證中, true = 成功, false = 失敗
         let authErrorMessage = "";
+        let guardTimeoutId = null;
+
+        // 🟢 全域 JSONP 登入回傳處理程序
+        window.handleGuardAuthResponse = function(data) {
+            if (guardTimeoutId) clearTimeout(guardTimeoutId);
+            cleanupGuardScript();
+
+            if (data && data.success) {
+                // 驗證成功：快取 JWT 與 Role 到本地
+                if (data.token) sessionStorage.setItem('jwt_token', data.token);
+                if (data.role) sessionStorage.setItem('user_role', data.role);
+                authResult = true; // 觸發進度條加速填滿
+            } else {
+                // 驗證失敗：設定錯誤狀態 (但不回滾，準備在 100% 時觸發訪客探訪模式)
+                authErrorMessage = (data && data.message) ? data.message : "密碼錯誤或帳號不存在";
+                authResult = false; 
+            }
+        };
+
+        // 清理動態產生的 JSONP 腳本標籤
+        function cleanupGuardScript() {
+            const script = document.getElementById('gas-guard-jsonp');
+            if (script) script.remove();
+        }
 
         function handleLogin(event) {
             if (event) event.preventDefault();
@@ -375,84 +415,43 @@
             authResult = null;
             authErrorMessage = "";
 
-            // 1. 不論對錯，立刻啟動過渡畫面，消除等待焦慮
+            // 1. 不論對錯，立刻啟動過渡畫面與公式背景，極大化降低等待焦慮
             startPreLaunch();
             runLoadingLoop();
 
-            // 2. 【核心安全性修正】：為了繞過 Sandbox Iframe 嚴格的 CORS Fetch 阻擋
-            // 採用 Hidden Iframe 表單代理 POST 傳輸方式安全請求 GAS Guard 端點
-            const iframeName = 'gas_post_iframe_' + Date.now();
-            let iframe = document.createElement('iframe');
-            iframe.name = iframeName;
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
+            // 2. 🚀【JSONP 跨域通訊】：全面相容 Sandbox/Preview 預覽隔離機制
+            cleanupGuardScript();
 
-            let form = document.createElement('form');
-            form.method = 'POST';
-            form.action = GAS_GUARD_URL;
-            form.target = iframeName;
-            form.style.display = 'none';
-
-            // 將 payload 序列化填入表單欄位以防 Preflight OPTIONS 預檢阻擋
-            let input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'payload';
-            input.value = JSON.stringify({
+            const paramData = {
                 username: userVal,
                 password: passVal
-            });
-            form.appendChild(input);
-            document.body.appendChild(form);
+            };
+            const jsonParam = encodeURIComponent(JSON.stringify(paramData));
+            
+            const script = document.createElement('script');
+            script.id = 'gas-guard-jsonp';
+            // 向您的新 guard.gs 發送 GET 請求，要求包裝在 handleGuardAuthResponse 內回傳
+            script.src = `${GAS_GUARD_URL}?callback=handleGuardAuthResponse&payload=${jsonParam}`;
+            
+            // 安全逾時防護 (8秒) -> 逾時亦判定為認證未通過，隨後引導為 Visitor 探訪
+            guardTimeoutId = setTimeout(() => {
+                cleanupGuardScript();
+                if (authResult === null) {
+                    authErrorMessage = "認證中心伺服器連線超時";
+                    authResult = false;
+                }
+            }, 8000);
 
-            // 設置一個跨域安全通道來接收 Iframe 代理回傳的 JSON 結果
-            const messageHandler = function(e) {
-                try {
-                    let data = null;
-                    if (typeof e.data === 'string') {
-                        data = JSON.parse(e.data);
-                    } else if (typeof e.data === 'object' && e.data && e.data.gas_response) {
-                        data = e.data.gas_response;
-                    }
-
-                    if (data && (data.success !== undefined || data.token !== undefined)) {
-                        // 移除監聽器並清理 DOM
-                        window.removeEventListener('message', messageHandler);
-                        if (form.parentNode) form.parentNode.removeChild(form);
-                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-
-                        if (data.success) {
-                            // 驗證成功：快取 JWT 與 Role 到本地
-                            if (data.token) sessionStorage.setItem('jwt_token', data.token);
-                            if (data.role) sessionStorage.setItem('user_role', data.role);
-                            authResult = true; // 觸發進度條加速填滿
-                        } else {
-                            // 驗證失敗：設定錯誤訊息，觸發阻尼回滾
-                            authErrorMessage = data.message || "帳號或密碼錯誤";
-                            authResult = false;
-                        }
-                    }
-                } catch (err) {
-                    // 忽略非 JSON 字串格式的跨域雜訊訊息
+            script.onerror = function() {
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                cleanupGuardScript();
+                if (authResult === null) {
+                    authErrorMessage = "無法連線至安全主機";
+                    authResult = false;
                 }
             };
-            window.addEventListener('message', messageHandler);
 
-            // 當 Iframe 發送成功或遭遇逾時等非預期錯誤防護
-            iframe.onload = function() {
-                setTimeout(() => {
-                    // 若 8 秒內沒有收到 message 信號，主動檢測並提供連線容錯
-                    if (authResult === null) {
-                        window.removeEventListener('message', messageHandler);
-                        if (form.parentNode) form.parentNode.removeChild(form);
-                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-                        authErrorMessage = "連線逾時，請確認伺服器或網路狀態";
-                        authResult = false;
-                    }
-                }, 8000);
-            };
-
-            // 安全提交表單
-            form.submit();
+            document.head.appendChild(script);
         }
 
         // 啟動前置淡出轉場畫面
@@ -518,7 +517,7 @@
             document.getElementById('bar-container').style.display = 'block';
         }
 
-        // 動態進度條循環（結合驗證結果）
+        // 動態進度條循環（成功與失敗皆會跑滿，隨後觸發 Welcome Modal 分流）
         function runLoadingLoop() {
             const progress = document.getElementById('bar-progress');
             const statusText = document.getElementById('status-text');
@@ -533,20 +532,13 @@
             if (loadingInterval) clearInterval(loadingInterval);
 
             loadingInterval = setInterval(() => {
-                if (authResult === false) {
-                    // 【分支 A】驗證失敗：立刻停止進度，啟動平滑回滾
-                    clearInterval(loadingInterval);
-                    rollbackSystem(authErrorMessage);
-                    return;
-                }
-
-                if (authResult === true) {
-                    // 【分支 B】驗證成功：加速前進並完成
-                    progressVal += Math.random() * 5 + 3;
+                if (authResult !== null) {
+                    // 【不論驗證成敗，皆加速衝向 100% 準備導向 Welcome 視窗】
+                    progressVal += Math.random() * 8 + 6;
                 } else {
-                    // 驗證中：模擬平滑加載，但最多卡在 35%
-                    if (progressVal < 35) {
-                        progressVal += Math.random() * 1.5 + 0.5;
+                    // 驗證中：模擬平滑加載，最多卡在 45%
+                    if (progressVal < 45) {
+                        progressVal += Math.random() * 2.5 + 1.0;
                     }
                 }
 
@@ -556,25 +548,15 @@
                     formulaContainer.style.opacity = "0";
                     clearInterval(loadingInterval);
 
-                    // 整體最終淡出
+                    // 隱藏進度條，為彈出式歡迎視窗創造最乾淨的白色舞台
                     loadingInline.style.opacity = "0";
                     loadingInline.style.transform = "translateY(-60px)";
                     landing.style.opacity = "0";
                     
                     setTimeout(() => { 
-                        try {
-                            const token = sessionStorage.getItem('jwt_token') || "";
-                            // 🚀 安全導向至 Loader API 進行確認與跳轉 (已混淆 GAS_LOADER_URL) 🚀
-                            window.location.href = `${GAS_LOADER_URL}?token=${encodeURIComponent(token)}`;
-                        } catch (e) {
-                            console.error("導向失敗:", e);
-                            try {
-                                window.location.assign(FALLBACK_URL);
-                            } catch (err) {
-                                statusText.innerText = "System Ready (Navigation Blocked)";
-                            }
-                        }
-                    }, 500);
+                        // 🚀 跑滿 100% 後，啟動全新的 Welcome Modal 機制 🚀
+                        showWelcomeModal();
+                    }, 600);
                 } else {
                     progress.style.width = progressVal + '%';
 
@@ -591,65 +573,70 @@
             }, 50);
         }
 
-        // 登入失敗時的奢華「阻尼回滾」機制
-        function rollbackSystem(errorMessage) {
-            const landing = document.getElementById('landing-screen');
-            const formulaContainer = document.getElementById('formula-container');
-            const loadingInline = document.getElementById('loading-inline-container');
-            const errorMsg = document.getElementById('error-msg');
-            const launchBtn = document.getElementById('launch-btn');
+        // 💡 顯示歡迎/通知彈出視窗 💡
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.glass-card');
+            const modalIconContainer = document.getElementById('modal-icon-container');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtext = document.getElementById('modal-subtext');
+            const modalMessage = document.getElementById('modal-message');
 
-            // 1. 平滑還原為資料庫背景圖片與綠色基底
-            document.body.style.backgroundColor = "#81D8D0";
-            if (currentBgUrl) {
-                document.body.style.backgroundImage = `url('${currentBgUrl}')`;
+            if (authResult === true) {
+                // 🟢 驗證成功分支
+                const role = sessionStorage.getItem('user_role') || "User";
+                
+                modalIconContainer.innerHTML = '🛡️';
+                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-emerald-500/30 bg-emerald-50/10 text-emerald-600";
+                modalTitle.innerText = "ACCESS GRANTED";
+                modalTitle.className = "text-[15px] font-bold tracking-[0.15em] text-emerald-700";
+                modalSubtext.innerText = "AUTHENTICATION SUCCESS";
+                modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>身分：<span class="bg-emerald-100 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-semibold tracking-wider">${role.toUpperCase()}</span>`;
+                playLoadingTick(1000);
+            } else {
+                // 🔴 驗證失敗/未通過分支 (強制切換為 Visitor 訪客身分)
+                // 在本地寫入訪客身分
+                sessionStorage.setItem('jwt_token', 'visitor-token-guest');
+                sessionStorage.setItem('user_role', 'guest');
+
+                modalIconContainer.innerHTML = '👤';
+                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-amber-500/30 bg-amber-50/10 text-amber-600";
+                modalTitle.innerText = "VISITOR ENTRANCE";
+                modalTitle.className = "text-[15px] font-bold tracking-[0.15em] text-amber-700";
+                modalSubtext.innerText = "VERIFICATION BYPASSED";
+                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "認證伺服器離線"}）。<br><br>已為您自動切換以 <strong>訪客 (Visitor/Guest)</strong> 身分探訪系統。`;
+                playLoadingTick(400);
             }
 
-            // 2. 恢復公式飄移透明度
-            formulaContainer.style.opacity = "1";
+            // 啟動阻尼浮現動畫
+            modal.classList.remove('pointer-events-none');
+            modal.classList.remove('opacity-0');
+            modal.classList.add('opacity-100');
+            modalCard.classList.remove('scale-90');
+            modalCard.classList.add('scale-100');
+        }
 
-            // 3. 還原磨砂玻璃卡片本體樣式
-            landing.style.background = "rgba(255, 255, 255, 0.45)";
-            landing.style.borderColor = "rgba(255, 255, 255, 0.4)";
-            landing.style.boxShadow = "0 30px 70px rgba(0, 0, 0, 0.12)";
-            landing.style.backdropFilter = "blur(25px)";
-            landing.style.webkitBackdropFilter = "blur(25px)";
-            landing.style.transform = "translateY(0px)";
-
-            // 4. 還原卡片內部的各項視差元素與功能可用狀態
-            document.getElementById('item-icon').style.transform = "translateY(0px)";
-            document.getElementById('item-icon').style.opacity = "1";
-
-            document.getElementById('item-title-1').style.transform = "translateY(0px)";
-            document.getElementById('item-title-1').style.opacity = "1";
-
-            document.getElementById('item-title-2').style.transform = "translateY(0px)";
-            document.getElementById('item-title-2').style.opacity = "1";
-
-            const itemForm = document.getElementById('item-form');
-            itemForm.style.transform = "translateY(0px)";
-            itemForm.style.opacity = "1";
-            document.getElementById('username').disabled = false;
-            document.getElementById('password').disabled = false;
-
-            launchBtn.style.transform = "translateY(0px)";
-            launchBtn.style.opacity = "1";
-            launchBtn.style.pointerEvents = "auto";
-            launchBtn.disabled = false;
-            launchBtn.innerText = "Login & Browse";
-
-            // 5. 漸隱內嵌式進度條
-            loadingInline.style.opacity = "0";
-            loadingInline.style.transform = "translateY(0px)";
+        // 點擊 Modal 的確認按鈕，流暢跳轉
+        function confirmWelcomeRedirect() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.glass-card');
+            
+            // 點擊音效
+            playLoadingTick(900);
+            
+            // 卡片退場動畫
+            modalCard.classList.remove('scale-100');
+            modalCard.classList.add('scale-95');
+            modal.classList.add('opacity-0');
+            
             setTimeout(() => {
-                loadingInline.classList.add('hidden');
-                document.getElementById('bar-progress').style.width = "0%";
-            }, 1000);
-
-            // 6. 輸出錯誤訊息，並播放警告音效
-            errorMsg.innerText = errorMessage || "帳號或密碼錯誤";
-            errorMsg.style.opacity = '1';
-            playLoadingTick(300);
+                try {
+                    window.location.href = TARGET_URL;
+                } catch (e) {
+                    console.error("導向失敗:", e);
+                    window.location.assign(TARGET_URL);
+                }
+            }, 400);
         }
     </script>
 </body>
