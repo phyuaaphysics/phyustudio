@@ -139,7 +139,7 @@
             color: #1e293b;
             opacity: 0;
             white-space: nowrap;
-            text-shadow: 0 0 15px rgba(255,255,255,0.8);
+            text-shadow: 0 0 15px rgba(255,255,255,0.85);
             will-change: transform, opacity;
         }
     </style>
@@ -162,7 +162,7 @@
             >
         </div>
         
-        <!-- 奢華 Cinzel 字型標題 (大小相弱，具備精品張力) -->
+        <!-- 奢華 Cinzel 字型標題 -->
         <div class="space-y-1 w-full px-2 uppercase select-none" style="font-family: 'Cinzel', 'Playfair Display', serif;">
             <h1 class="text-[#1b365d]">
                 <span class="block text-2xl sm:text-3xl font-semibold tracking-[0.15em] leading-none parallax-item" id="item-title-1">Self-Directed</span>
@@ -218,8 +218,8 @@
     <script>
         let formulaInterval;
 
-        // 🔗 您的 Google Apps Script (GAS) Guard API 網址 🔗
-        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzYiyhiCqL3PGolKmdheF2q4pzatbuLWbp-5uQcraNcfldCbRmBmLUU0Y64e_Drr6N/exec";
+        // 🔗 已成功更新為您的 Google Apps Script (GAS) Guard API 網址 🔗
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzhIU6e4JzCwgKbuWb6doNOEN5ZuveNtglzVTiFN-r12-frHrGOBOoFEkgyiLtDY9eJ/exec";
 
         // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
@@ -350,8 +350,10 @@
             launchBtn.disabled = true;
             launchBtn.style.opacity = "0.7";
 
+            // 確保以 cors 模式發送
             fetch(GAS_GUARD_URL, {
                 method: "POST",
+                mode: "cors",
                 headers: {
                     "Content-Type": "text/plain"
                 },
@@ -360,7 +362,12 @@
                     password: passVal
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTP status " + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     errorMsg.style.opacity = '0';
@@ -388,7 +395,7 @@
             })
             .catch(err => {
                 console.error("連線到 Guard API 失敗:", err);
-                errorMsg.innerText = "連線伺服器失敗，請確認 API 狀態";
+                errorMsg.innerText = "連線伺服器失敗，請確認 API 部署狀態與權限";
                 errorMsg.style.opacity = '1';
                 playLoadingTick(300);
                 
