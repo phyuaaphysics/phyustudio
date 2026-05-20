@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -11,6 +12,9 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 引入高相容性 HTML5 QR 掃描函式庫 -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         
@@ -336,43 +340,15 @@
 
         /* ================= Day/Night UI 核心美術動畫 ================= */
 
-        /* 1. 當切換至深色模式時 (Checkbox Checked)，軌道與圖層狀態 */
-        #dark-mode-toggle:checked + .theme-track {
-            background-color: #1d2432; /* 轉為深夜藏青色 */
-            border-color: #121721;
-        }
-        /* 星星浮現 */
-        #dark-mode-toggle:checked + .theme-track .theme-stars {
-            opacity: 1 !important;
-        }
-        /* 旋鈕橫向平移至左側 */
-        #dark-mode-toggle:checked + .theme-track .theme-knob {
-            transform: translateX(0px) !important;
-        }
-        /* 太陽縮小隱藏 */
-        #dark-mode-toggle:checked + .theme-track .theme-sun {
-            transform: scale(0) !important;
-        }
-        /* 月亮放大顯現 */
-        #dark-mode-toggle:checked + .theme-track .theme-moon {
-            transform: scale(1) !important;
-        }
-        /* 白雲向右移出並淡出 */
-        #dark-mode-toggle:checked + .theme-track .theme-cloud {
-            transform: translateX(48px) !important;
-            opacity: 0 !important;
-        }
-
-        /* 2. 緩動轉場設定（確保所有屬性切換時都平滑進行） */
-        .theme-track, .theme-knob, .theme-sun, .theme-moon, .theme-cloud, body {
+        /* 1. 緩動轉場設定（確保所有屬性切換時都平滑進行） */
+        body {
             transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
                         border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
                         color 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-                        transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
                         opacity 0.4s ease;
         }
 
-        /* 3. 網頁主題色彩定義實例 (配合 Simulation Lab 頂級質感綠調客製) */
+        /* 2. 網頁主題色彩定義實例 (配合 Simulation Lab 頂級質感綠調客製) */
         body {
             background-color: var(--mint-bg);
             color: var(--mint-deep);
@@ -454,6 +430,16 @@
         body.dark-mode #sim-preview-modal {
             background: rgba(0, 0, 0, 0.8);
         }
+
+        /* QR Scanner 動態動畫與樣式 */
+        @keyframes scan-line {
+            0% { top: 5%; }
+            50% { top: 95%; }
+            100% { top: 5%; }
+        }
+        .scanner-laser {
+            animation: scan-line 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
     </style>
 </head>
 <body class="pb-40 hide-scrollbar">
@@ -473,38 +459,8 @@
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                     <span class="text-xl font-black text-emerald-900 tracking-tighter">Simulation Lab</span>
                 </div>
-                <!-- 包含日夜切換按鈕與放大鏡搜尋按鈕的區塊 -->
+                <!-- 包含搜尋按鈕的區塊 -->
                 <div class="flex items-center gap-6 text-emerald-800">
-                    <!-- Day/Night UI 切換元件 -->
-                    <label class="relative inline-flex items-center cursor-pointer select-none">
-                        <input type="checkbox" id="dark-mode-toggle" class="hidden" onchange="toggleTheme()">
-                        <!-- 完美對應 2:1 比例的高細節軌道軌體 -->
-                        <div class="theme-track w-[80px] h-[40px] rounded-full border-[3px] border-[#4ba3e3] bg-[#7ec2f5] relative overflow-hidden shadow-inner flex items-center">
-                            <!-- 星星背景 (暗色模式浮現) -->
-                            <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
-                                <!-- 完美還原星星的尺寸與對角線傾斜排佈 -->
-                                <svg class="absolute w-[13px] h-[13px] text-white" style="top: 7px; left: 44px;" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/></svg>
-                                <svg class="absolute w-[9px] h-[9px] text-[#cbd5e1]" style="top: 21px; left: 52px;" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/></svg>
-                                <svg class="absolute w-[8px] h-[8px] text-[#cbd5e1]" style="top: 23px; left: 62px;" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/></svg>
-                            </div>
-                            <!-- 白雲背景 (白天模式顯現 - SVG Path 還原大圓胖雲朵弧度) -->
-                            <svg class="theme-cloud absolute bottom-[-1px] left-[4px] w-[30px] h-[18px] text-white transition-all duration-500" viewBox="0 0 32 20" fill="currentColor">
-                                <path d="M4 17h24a4 4 0 0 0 1-7.8 6.5 6.5 0 0 0-12.7-1A4.5 4.5 0 0 0 4 17z" />
-                            </svg>
-                            <!-- 優化後的立體動態旋鈕 (高度比例一致) -->
-                            <div class="theme-knob absolute left-[3px] top-[2px] w-[30px] h-[30px] rounded-full overflow-hidden transform translate-x-[41px] transition-all duration-500 shadow-md">
-                                <!-- 太陽圖層 -->
-                                <div class="theme-sun absolute inset-0 bg-gradient-to-br from-[#fef08a] to-[#fde047] border-2 border-[#eab308] rounded-full scale-100 shadow-[0_0_10px_rgba(253,224,71,0.8),_inset_0_2px_4px_rgba(255,255,255,0.6)] transition-all duration-500"></div>
-                                <!-- 月亮圖層 (含有星體隕石坑洞細節) -->
-                                <div class="theme-moon absolute inset-0 bg-gradient-to-br from-[#e2e8f0] to-[#cbd5e1] border-2 border-[#94a3b8] rounded-full scale-0 flex items-center justify-center overflow-hidden shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)] transition-all duration-500">
-                                    <div class="absolute w-2 h-2 bg-[#94a3b8]/70 border border-[#94a3b8] rounded-full top-1.5 left-2 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.2)] opacity-80"></div>
-                                    <div class="absolute w-3 h-3 bg-[#94a3b8]/70 border border-[#94a3b8] rounded-full bottom-1 right-2 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.2)] opacity-80"></div>
-                                    <div class="absolute w-1.5 h-1.5 bg-[#94a3b8]/60 border border-[#94a3b8]/80 rounded-full top-3 right-1.5 shadow-[inset_0.5px_0.5px_1px_rgba(0,0,0,0.15)] opacity-60"></div>
-                                    <div class="absolute w-2 h-1 bg-[#94a3b8]/50 rounded-full bottom-3 left-1 opacity-50"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </label>
                     <i class="fas fa-search text-xl opacity-60 cursor-pointer"></i>
                 </div>
             </div>
@@ -558,6 +514,49 @@
         </div>
     </div>
 
+    <!-- QR 碼相機掃描模擬視窗 (帶有緩慢淡出淡入動畫) -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[500] bg-black/85 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-700 ease-in-out">
+        <div class="relative bg-[#111d15] dark:bg-[#070b08] border border-[#10b981]/30 text-white rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl p-6 flex flex-col items-center transform scale-95 transition-all duration-700 ease-in-out" id="qr-modal-body">
+            <!-- 右上角關閉按鈕 -->
+            <button onclick="closeQRScanner()" class="absolute top-4 right-4 text-emerald-400 hover:text-white transition-colors text-xl w-10 h-10 flex items-center justify-center rounded-full bg-black/40 border border-emerald-500/20 active:scale-90 transform transition-transform">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <!-- 標題欄 -->
+            <div class="text-center mb-6 mt-2">
+                <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-emerald-500/20">
+                    <i class="fas fa-qrcode text-2xl text-emerald-400 animate-pulse"></i>
+                </div>
+                <h3 class="text-lg font-bold tracking-wider text-emerald-100">模擬器 QR Code 掃描</h3>
+                <p class="text-xs text-emerald-500/70 mt-1">請將鏡頭對準條碼以開啟對應模擬</p>
+            </div>
+
+            <!-- 取景框與相機渲染區域 -->
+            <div class="relative w-full aspect-square max-w-[280px] bg-black rounded-3xl overflow-hidden border border-emerald-500/40 shadow-inner flex flex-col items-center justify-center mb-6">
+                <!-- HTML5 相機流元件 -->
+                <div id="qr-reader" class="w-full h-full"></div>
+                
+                <!-- 動態光線掃描效果 -->
+                <div class="scanner-laser absolute inset-x-4 h-0.5 bg-emerald-400 shadow-[0_0_10px_#34d399] top-0 pointer-events-none"></div>
+                
+                <!-- 相機四角網格指示線 -->
+                <div class="absolute top-4 left-4 w-5 h-5 border-t-[3px] border-l-[3px] border-emerald-400 pointer-events-none"></div>
+                <div class="absolute top-4 right-4 w-5 h-5 border-t-[3px] border-r-[3px] border-emerald-400 pointer-events-none"></div>
+                <div class="absolute bottom-4 left-4 w-5 h-5 border-b-[3px] border-l-[3px] border-emerald-400 pointer-events-none"></div>
+                <div class="absolute bottom-4 right-4 w-5 h-5 border-b-[3px] border-r-[3px] border-emerald-400 pointer-events-none"></div>
+            </div>
+
+            <!-- 權限不足與模擬測試輔助輸入框 (避免在無相機權限的嵌套 Iframe 下失效) -->
+            <div class="w-full px-2 text-center">
+                <p class="text-[10px] text-emerald-600/80 mb-2">相機無法使用時，可在下方輸入測試路徑：</p>
+                <div class="flex gap-2">
+                    <input type="text" id="mock-qr-input" placeholder="例如: mechanics/projectile.html" class="flex-1 bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2 text-xs text-emerald-300 focus:outline-none focus:border-emerald-400 transition-colors">
+                    <button onclick="handleMockQRScan()" class="bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold px-4 py-2 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-500/20">傳送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="sim-preview-modal" onclick="closeModal()">
         <div class="modal-body" onclick="event.stopPropagation()">
             <div class="relative w-full aspect-video bg-gray-100">
@@ -579,6 +578,7 @@
         </div>
     </div>
 
+    <!-- 全螢幕模擬器 Iframe 容器 (供 QR 掃描跳轉 & 模擬預覽使用) -->
     <div id="iframe-container">
         <div class="iframe-close-btn" onclick="closeIframe()"><i class="fas fa-times"></i></div>
         <iframe id="sim-frame" src="" class="w-full h-full border-none"></iframe>
@@ -597,8 +597,9 @@
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', false)" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
-                <button onclick="handleNavigation('https://mail.google.com/mail/u/0/#inbox', false)" class="dock-item">
-                    <i class="fab fa-google"></i><span class="uppercase">郵箱</span>
+                <!-- 已將原本郵箱按鈕替換為 QR Code 掃描觸發按鈕 -->
+                <button onclick="openQRScanner()" class="dock-item">
+                    <i class="fas fa-qrcode text-emerald-400"></i><span class="uppercase">掃描</span>
                 </button>
             </div>
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
@@ -613,16 +614,98 @@
         let config = { categories: [], data: [] };
         const loader = document.getElementById('page-loader');
         let lastScrollY = window.scrollY;
+        let qrScannerInstance = null;
 
-        // 主題切換核心邏輯 (支持 LocalStorage 保存狀態)
-        function toggleTheme() {
-            const toggle = document.getElementById('dark-mode-toggle');
-            if (toggle.checked) {
+        // 套用主題邏輯 (讀取傳入的 theme 字串)
+        function applyTheme(theme) {
+            if (theme === 'dark') {
                 document.body.classList.add('dark-mode');
-                localStorage.setItem('theme', 'dark');
             } else {
                 document.body.classList.remove('dark-mode');
-                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        /* ================= QR Code 掃描器控制邏輯 ================= */
+        function openQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const body = document.getElementById('qr-modal-body');
+            
+            modal.classList.remove('pointer-events-none');
+            modal.classList.add('opacity-100');
+            body.classList.remove('scale-95');
+            body.classList.add('scale-100');
+            document.body.style.overflow = 'hidden';
+
+            // 啟動 html5-qrcode 實體
+            if (typeof Html5Qrcode !== 'undefined') {
+                qrScannerInstance = new Html5Qrcode("qr-reader");
+                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+                
+                qrScannerInstance.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText) => {
+                        handleScannedData(decodedText);
+                    },
+                    (errorMessage) => {
+                        // 靜默捕捉重複對焦/無碼資訊，避免控制台過載
+                    }
+                ).catch(err => {
+                    console.warn("無法啟動相機 (環境不支援或無權限):", err);
+                    document.getElementById('qr-reader').innerHTML = `
+                        <div class="text-center p-4 text-xs text-emerald-500/60">
+                            <i class="fas fa-camera-slash text-3xl mb-2 text-emerald-600/50"></i>
+                            <p>無相機存取權限</p>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function closeQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const body = document.getElementById('qr-modal-body');
+            
+            body.classList.remove('scale-100');
+            body.classList.add('scale-95');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('pointer-events-none');
+            document.body.style.overflow = 'auto';
+
+            // 清理並釋放鏡頭控制權
+            if (qrScannerInstance) {
+                qrScannerInstance.stop().then(() => {
+                    qrScannerInstance.clear();
+                    qrScannerInstance = null;
+                }).catch(err => {
+                    qrScannerInstance = null;
+                });
+            }
+        }
+
+        // 處理掃描完成後的路徑補全與跳轉
+        function handleScannedData(data) {
+            closeQRScanner();
+            let rawPath = data.trim();
+            
+            // 判斷是否為 xxx/yyy.html 格式
+            if (rawPath.endsWith('.html') && !rawPath.startsWith('http://') && !rawPath.startsWith('https://')) {
+                rawPath = 'https://phyuaaphysics.github.io/simulatorbank/' + rawPath;
+            }
+            
+            // 延遲載入確保關閉淡出動畫完全結束
+            setTimeout(() => {
+                openIframe(rawPath);
+            }, 500);
+        }
+
+        // 手動輸入輔助
+        function handleMockQRScan() {
+            const input = document.getElementById('mock-qr-input');
+            const value = input.value.trim();
+            if (value) {
+                handleScannedData(value);
+                input.value = '';
             }
         }
 
@@ -727,6 +810,7 @@
             document.body.style.overflow = 'auto';
         }
 
+        // 頁面滾動與排版控制
         function scrollToContent() {
             const main = document.getElementById('main-content');
             if (main) main.scrollIntoView({ behavior: 'smooth' });
@@ -861,16 +945,22 @@
             lastScrollY = currentScrollY;
         }, { passive: true });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // 初始化並恢復先前保存的主題設定，避免加載時閃爍
-            const savedTheme = localStorage.getItem('theme');
-            const toggle = document.getElementById('dark-mode-toggle');
-            if (savedTheme === 'dark' && toggle) {
-                toggle.checked = true;
-                document.body.classList.add('dark-mode');
+        // 監聽 localStorage 改變（當其他同源網頁切換日夜模式按鈕時觸發同步切換）
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                applyTheme(e.newValue);
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化並恢復先前保存的主題設定
+            const savedTheme = localStorage.getItem('theme');
+            applyTheme(savedTheme);
+            
             loadSheetData();
         });
     </script>
 </body>
 </html>
+
+
