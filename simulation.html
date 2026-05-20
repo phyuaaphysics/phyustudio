@@ -597,9 +597,9 @@
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', false)" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
-                <!-- 已將原本郵箱按鈕替換為 QR Code 掃描觸發按鈕 -->
+                <!-- 已將原本郵箱按鈕替換為 QR Code 掃描觸發按鈕，且圖示顏色與其他按鈕同步 -->
                 <button onclick="openQRScanner()" class="dock-item">
-                    <i class="fas fa-qrcode text-emerald-400"></i><span class="uppercase">掃描</span>
+                    <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
                 </button>
             </div>
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
@@ -662,6 +662,7 @@
             }
         }
 
+        // 關閉掃描器
         function closeQRScanner() {
             const modal = document.getElementById('qr-scanner-modal');
             const body = document.getElementById('qr-modal-body');
