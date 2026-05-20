@@ -6,8 +6,8 @@
     <title>PH studio | Launch</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
-    <link rel="shortcut icon" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    <link class="favicon" rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    <link class="shortcut icon" rel="shortcut icon" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#81D8D0">
@@ -17,7 +17,7 @@
     <link class="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
     
     <!-- 外部 Manifest 連結 -->
-    <link rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
+    <link class="manifest" rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -246,16 +246,11 @@
         let formulaInterval;
         let currentBgUrl = ""; // 用於保存並在驗證失敗時還原的資料庫背景圖片
 
-        // 🔒 使用 Base64 強效編碼混淆敏感跳轉位址與 Guard 認證端點，防止原始碼洩漏 🔒
-        const _0x1a2b = {
-            // 🔗 已成功更新為第 7 版的 guard.gs Web App 網址 🔗
-            g: "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6MDVDWjRleUxWSng3Yng0eUM2WGdqMjdZZi10MWZMTDRRelpjQ0V1ZHY2ZXpnMEMwS2NEYmksbUxNVllnUjBHT1IvZXhlYw==",
-            // 跳轉目標主網頁 (https://phyuaaphysics.github.io/phyustudio/home.html)
-            f: "aHR0cHM6Ly9waHl1YWFwaHlzaWNzLmdpdGh1Yi5pby9waHl1c3R1ZGlvL2hvbWUuaHRtbA=="
-        };
+        // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 🔗
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbz0eCZ4eyLVJx7bx4yC6Xgj27Yf-t1flL4QzNcCEudv6ezg0C0KcDbi5mLMVYgR0GOR/exec";
         
-        const GAS_GUARD_URL = atob(_0x1a2b.g);
-        const TARGET_URL = atob(_0x1a2b.f);
+        // 🔗 跳轉目標主網頁明文網址 🔗
+        const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
 
         // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
@@ -372,29 +367,6 @@
         let authErrorMessage = "";
         let guardTimeoutId = null;
 
-        // 🟢 全域 JSONP 登入回傳處理程序
-        window.handleGuardAuthResponse = function(data) {
-            if (guardTimeoutId) clearTimeout(guardTimeoutId);
-            cleanupGuardScript();
-
-            if (data && data.success) {
-                // 驗證成功：快取 JWT 與 Role 到本地
-                if (data.token) sessionStorage.setItem('jwt_token', data.token);
-                if (data.role) sessionStorage.setItem('user_role', data.role);
-                authResult = true; // 觸發進度條加速填滿
-            } else {
-                // 驗證失敗：設定錯誤狀態 (但不回滾，準備在 100% 時觸發訪客探訪模式)
-                authErrorMessage = (data && data.message) ? data.message : "密碼錯誤或帳號不存在";
-                authResult = false; 
-            }
-        };
-
-        // 清理動態產生的 JSONP 腳本標籤
-        function cleanupGuardScript() {
-            const script = document.getElementById('gas-guard-jsonp');
-            if (script) script.remove();
-        }
-
         function handleLogin(event) {
             if (event) event.preventDefault();
             
@@ -419,39 +391,47 @@
             startPreLaunch();
             runLoadingLoop();
 
-            // 2. 🚀【JSONP 跨域通訊】：全面相容 Sandbox/Preview 預覽隔離機制
-            cleanupGuardScript();
+            // 2. 🚀【直按 GAS 結構 POST 對接】：採用標準 fetch POST 請求，發送 JSON 數據
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 秒超時
 
-            const paramData = {
-                username: userVal,
-                password: passVal
-            };
-            const jsonParam = encodeURIComponent(JSON.stringify(paramData));
-            
-            const script = document.createElement('script');
-            script.id = 'gas-guard-jsonp';
-            // 向您的新 guard.gs 發送 GET 請求，要求包裝在 handleGuardAuthResponse 內回傳
-            script.src = `${GAS_GUARD_URL}?callback=handleGuardAuthResponse&payload=${jsonParam}`;
-            
-            // 安全逾時防護 (8秒) -> 逾時亦判定為認證未通過，隨後引導為 Visitor 探訪
-            guardTimeoutId = setTimeout(() => {
-                cleanupGuardScript();
-                if (authResult === null) {
-                    authErrorMessage = "認證中心伺服器連線超時";
-                    authResult = false;
+            fetch(GAS_GUARD_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain" // 採用 text/plain 避免 Preflight 預檢 OPTIONS 請求，最大化相容性
+                },
+                body: JSON.stringify({
+                    username: userVal,
+                    password: passVal
+                }),
+                signal: controller.signal
+            })
+            .then(response => {
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error("HTTP status " + response.status);
                 }
-            }, 8000);
-
-            script.onerror = function() {
-                if (guardTimeoutId) clearTimeout(guardTimeoutId);
-                cleanupGuardScript();
-                if (authResult === null) {
-                    authErrorMessage = "無法連線至安全主機";
-                    authResult = false;
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // 驗證成功：快取 JWT 與 Role 到本地
+                    if (data.token) sessionStorage.setItem('jwt_token', data.token);
+                    if (data.role) sessionStorage.setItem('user_role', data.role);
+                    authResult = true; // 觸發進度條加速填滿
+                } else {
+                    // 驗證失敗：設定錯誤狀態 (但不回滾，準備在 100% 時觸發訪客探訪模式)
+                    authErrorMessage = data.message || "帳號或密碼錯誤";
+                    authResult = false; 
                 }
-            };
-
-            document.head.appendChild(script);
+            })
+            .catch(err => {
+                clearTimeout(timeoutId);
+                console.error("連線到 Guard API 失敗:", err);
+                authErrorMessage = "認證中心伺服器連線超時或異常";
+                authResult = false; // 異常也直接切換成訪客
+            });
         }
 
         // 啟動前置淡出轉場畫面
@@ -604,7 +584,7 @@
                 modalTitle.innerText = "VISITOR ENTRANCE";
                 modalTitle.className = "text-[15px] font-bold tracking-[0.15em] text-amber-700";
                 modalSubtext.innerText = "VERIFICATION BYPASSED";
-                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "認證伺服器離線"}）。<br><br>已為您自動切換以 <strong>訪客 (Visitor/Guest)</strong> 身分探訪系統。`;
+                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>已為您自動切換以 <strong>訪客 (Visitor/Guest)</strong> 身分探訪系統。`;
                 playLoadingTick(400);
             }
 
