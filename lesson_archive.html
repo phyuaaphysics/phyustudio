@@ -195,9 +195,26 @@
         }
         .year-filter-expand.show { max-height: 48px; opacity: 1; margin-top: 4px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* 關閉系統與 CRT 塌陷特效動畫 */
+        @keyframes crt-off {
+            0% { transform: scale(1, 1); filter: brightness(1); }
+            50% { transform: scale(1, 0.005); filter: brightness(3); }
+            100% { transform: scale(0, 0); filter: brightness(5); }
+        }
+        .crt-shutdown {
+            animation: crt-off 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body>
+
+<!-- 關閉系統模擬遮罩 -->
+<div id="shutdownOverlay" class="fixed inset-0 bg-black z-[3000] hidden flex-col items-center justify-center font-mono text-green-500 p-6 select-none">
+    <div class="w-full max-w-md space-y-3 text-left">
+        <div id="shutdownConsole" class="space-y-1 text-xs md:text-sm"></div>
+    </div>
+</div>
 
 <!-- 登入頁面 (包含安全過渡窗與登入窗) -->
 <div id="loginOverlay">
@@ -263,22 +280,28 @@
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-8 h-8">
             <h1 class="font-bold text-[17px]">LESSON ARCHIVE</h1>
         </div>
-        <!-- 雲端同步按鈕 (一舊雲，內含原生 SVG 淡出多重狀態圖標，完美避免 JS 重繪衝突) -->
-        <button id="statusBadge" onclick="forceSync()" title="強制與雲端 Spreadsheet 資料庫同步" class="relative flex items-center justify-center text-blue-500 bg-blue-50 hover:bg-blue-100 w-10 h-10 rounded-full cursor-pointer transition-all duration-200 active:scale-90 focus:outline-none">
-            <!-- 雲朵 SVG -->
-            <svg id="syncCloudIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute transition-all duration-300" style="opacity: 1; transform: scale(1);">
-                <path d="M17.5 19A3.5 3.5 0 0 0 21 15.5c0-2.79-2.54-4.5-5-4.5-.42-1.89-1.78-3.5-3.5-3.5a5.5 5.5 0 0 0-5.38 4.41c-2 .24-3.62 1.89-3.62 3.91a3.5 3.5 0 0 0 3.5 3.5Z"/>
-            </svg>
-            <!-- 成功勾號 (Tick) SVG -->
-            <svg id="syncSuccessIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute text-green-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;">
-                <path d="M20 6 9 17l-5-5"/>
-            </svg>
-            <!-- 失敗叉號 (X) SVG -->
-            <svg id="syncFailIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute text-red-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;">
-                <path d="M18 6 6 18M6 6l12 12"/>
-            </svg>
-            <span id="userNameLabel" class="hidden">已同步</span>
-        </button>
+        <div class="flex items-center gap-2">
+            <!-- 雲端同步按鈕 (一舊雲，內含原生 SVG 淡出多重狀態圖標，完美避免 JS 重繪衝突) -->
+            <button id="statusBadge" onclick="forceSync()" title="強制與雲端 Spreadsheet 資料庫同步" class="relative flex items-center justify-center text-blue-500 bg-blue-50 hover:bg-blue-100 w-10 h-10 rounded-full cursor-pointer transition-all duration-200 active:scale-90 focus:outline-none">
+                <!-- 雲朵 SVG -->
+                <svg id="syncCloudIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute transition-all duration-300" style="opacity: 1; transform: scale(1);">
+                    <path d="M17.5 19A3.5 3.5 0 0 0 21 15.5c0-2.79-2.54-4.5-5-4.5-.42-1.89-1.78-3.5-3.5-3.5a5.5 5.5 0 0 0-5.38 4.41c-2 .24-3.62 1.89-3.62 3.91a3.5 3.5 0 0 0 3.5 3.5Z"/>
+                </svg>
+                <!-- 成功勾號 (Tick) SVG -->
+                <svg id="syncSuccessIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute text-green-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                <!-- 失敗叉號 (X) SVG -->
+                <svg id="syncFailIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute text-red-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+                <span id="userNameLabel" class="hidden">已同步</span>
+            </button>
+            <!-- 系統關閉退出按鈕 (更新為 Power Off 關機鍵) -->
+            <button onclick="triggerShutdown()" title="安全關閉並返回首頁" class="flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 w-10 h-10 rounded-full cursor-pointer transition-all duration-200 active:scale-90 focus:outline-none">
+                <i data-lucide="power" class="w-5 h-5"></i>
+            </button>
+        </div>
     </nav>
 
     <main class="max-w-4xl mx-auto p-4 space-y-4">
@@ -476,6 +499,52 @@
         if (progressEl) {
             progressEl.style.width = '100%';
         }
+    }
+
+    // ==========================================
+    // 關閉系統安全模擬與 CRT 塌陷重定向
+    // ==========================================
+    function triggerShutdown() {
+        const overlay = document.getElementById('shutdownOverlay');
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        
+        const consoleEl = document.getElementById('shutdownConsole');
+        consoleEl.innerHTML = '';
+        
+        const lines = [
+            "[ SYSTEM TERMINATION SEQUENCE INITIATED ]",
+            "» Revoking secure connection to Spreadsheet server...",
+            "» Cleaning active database structures from RAM...",
+            "» Discarding transient runtime tokens...",
+            "» Purging DOM content caches...",
+            "» Unmounting Lucide UI vector asset engines...",
+            "» Restoring environment variables...",
+            "» Disengaging active lesson streams...",
+            "» SAFE SHUTDOWN COMPLETE. SYSTEM HALTED.",
+            "» REDIRECTING PORT..."
+        ];
+        
+        let idx = 0;
+        function printLine() {
+            if (idx < lines.length) {
+                const p = document.createElement('p');
+                p.className = idx === 0 ? "text-red-500 font-bold" : (idx === lines.length - 1 || idx === lines.length - 2 ? "text-white font-bold" : "text-green-400 animate-pulse");
+                p.innerText = lines[idx];
+                consoleEl.appendChild(p);
+                idx++;
+                setTimeout(printLine, 220);
+            } else {
+                // 啟動 CRT 螢幕電視塌陷收縮動畫
+                setTimeout(() => {
+                    overlay.classList.add('crt-shutdown');
+                    setTimeout(() => {
+                        window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
+                    }, 450);
+                }, 500);
+            }
+        }
+        printLine();
     }
 
     // 🔗 雲端微服務 API 生產環境設定網址 (Web App URLs)
@@ -781,6 +850,7 @@
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
+    // 篩選分類
     function updateTopicFilter() {
         const topicBar = document.getElementById('topicFilter');
         if (currentFilterLevel === 'main') {
