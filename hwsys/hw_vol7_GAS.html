@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -380,37 +379,52 @@
         #custom-alert.show { transform: translateX(-50%) translateY(0);
         }
 
-        /* 增強後的成功與驗證視窗 (iOS 風格) */
+        /* 磨砂玻璃驗證視窗：完美維持與 .hero-glass-panel 相同之尺寸與磨砂外觀 */
         #auth-overlay {
             position: fixed;
             top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
-            padding: 40px 50px;
-            border-radius: 35px;
-            border: 1px solid rgba(255,255,255,0.6);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.15);
+            transform: translate(-50%, -50%) scale(1);
+            background: rgba(255, 255, 255, 0.25); 
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); 
+            padding: 3.5rem 2.5rem;
+            border-radius: 40px; 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); 
             z-index: 2100;
-            display: none; flex-direction: column; align-items: center;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
             gap: 24px;
             opacity: 0;
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 90%;
+            width: 540px;
+            height: 480px; /* 完美符合原本 Login Panel 之高度結構 */
+            box-sizing: border-box;
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.3, 1), transform 1.2s cubic-bezier(0.25, 1, 0.3, 1);
             pointer-events: none;
-            min-width: 280px;
         }
-        #auth-overlay.show { opacity: 1; transform: translate(-50%, -50%) scale(1); display: flex; }
+        #auth-overlay.show { opacity: 1; transform: translate(-50%, -50%) scale(1); display: flex;
+        }
+        
+        /* Native OS Slide Up Fade Out 效果 */
+        #auth-overlay.exit-up {
+            opacity: 0;
+            transform: translate(-50%, -100%) scale(0.95);
+            visibility: hidden;
+        }
         
         #auth-icon-container {
-            width: 72px; height: 72px; /* 固定寬高確保正圓 */
+            width: 72px;
+            height: 72px; 
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center; justify-content: center;
             font-size: 32px;
             transition: 0.4s;
-            flex-shrink: 0; /* 防止被擠壓 */
+            flex-shrink: 0;
         }
-        .auth-loading-icon { color: #10b981; animation: spin 1.2s linear infinite; }
-        .auth-success-icon { background: #10b981; color: white; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .auth-loading-icon { color: #10b981;
+        animation: spin 1.2s linear infinite; }
+        .auth-success-icon { background: #10b981; color: white;
+        animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
         .login-input {
             width: 100%;
@@ -440,12 +454,12 @@
         <p class="text-white text-xs tracking-[0.4em] font-medium uppercase animate-pulse">系統正在關機中...</p>
     </div>
 
+    <!-- 白色預載遮罩：加載完背景後會立即淡出，確保背景露出 -->
     <div id="page-loader">
         <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
         <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在與雲端同步數據...</p>
     </div>
 
-    <!-- 驗證/成功視窗 (iOS Window) -->
     <div id="auth-overlay">
         <div id="auth-icon-container">
             <i id="auth-main-icon" class="fas fa-spinner auth-loading-icon"></i>
@@ -508,7 +522,12 @@
     </section>
 
     <script>
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyD-OWFI0YLPKm9XSrujlJHurzmyU6clU_hdGqKsEfhAhTKBOnfE0XtExeHXmE9rdY/exec';
+        // ==========================================
+        // 雙端服務端 Google Apps Script 佈署配置
+        // ==========================================
+        const LOADER_GAS_URL = 'https://script.google.com/macros/s/AKfycbzUiNsuc9uW4-qXeP1TuPDkFldg6PMwyRPeHQBl5F2MksLiQqVc7UHcIaHSGNiSwufK/exec';
+        const GUARD_GAS_URL = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';
+
         const SPREADSHEET_ID_HERO = '1-JB2srNidbjg3Kf15rzaGmSwRp5O6SnR_xoWmuYY0Mg';
         const HERO_DATA_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID_HERO}/gviz/tq?tqx=out:csv&sheet=VOL7`;
 
@@ -551,26 +570,114 @@
             if (isApple) document.body.classList.add('is-ios');
         }
 
+        /**
+         * 系統初始化：優先加載背景並檢查由新共享機制 AuthStorage 所發放的憑證資料作自動登入
+         */
         async function loadSheetData(isManual = false) {
             if (isSyncing) return;
             isSyncing = true;
             const cloudIcons = [document.getElementById('hero-cloud-icon'), document.getElementById('win-cloud-icon')];
             if (isManual) cloudIcons.forEach(i => { if(i) i.className = 'fas fa-spinner sync-spinning'; });
             try {
-                const heroRes = await fetch(HERO_DATA_URL);
-                const heroText = await heroRes.text();
-                const heroRows = parseCSV(heroText);
-                applyHeroData(heroRows);
-                if (currentUserGrade) { await fetchHwData(); }
+                // 1. ⚡ 性能優化點：非同步發起 Hero 數據加載，減少網絡堵塞
+                const heroPromise = fetch(HERO_DATA_URL)
+                    .then(res => res.text())
+                    .then(text => applyHeroData(parseCSV(text)))
+                    .catch(e => console.error("Hero background load failed:", e));
+
+                // 2. 檢索共享來源以接收 Token
+                const urlParams = new URLSearchParams(window.location.search);
+                let savedToken = urlParams.get('token') || 
+                                 urlParams.get('jwt') || 
+                                 localStorage.getItem('jwt_token') || 
+                                 localStorage.getItem('lumina_token') || 
+                                 localStorage.getItem('token') || 
+                                 localStorage.getItem('jwt') || 
+                                 localStorage.getItem('accessToken');
+
+                // 確保封面背景載入 Promise 完成
+                await heroPromise;
+
+                // 💡 預載遮罩在背景就緒後直接淡出
+                if (!isManual) {
+                    const pageLoader = document.getElementById('page-loader');
+                    if (pageLoader) {
+                        pageLoader.style.opacity = '0';
+                        setTimeout(() => { pageLoader.style.display = 'none'; }, 1000);
+                    }
+                }
+                                 
+                let tokenValid = false;
+                
+                if (savedToken) {
+                    // 💡 登入面板保持隱藏，防止閃爍
+                    const loginPanel = document.getElementById('hero-main-content');
+                    if (loginPanel) {
+                        loginPanel.style.opacity = '0';
+                        loginPanel.style.visibility = 'hidden';
+                    }
+
+                    // 立即拉起磨砂玻璃驗證窗，美觀地浮在封面背景之上
+                    const authOverlay = document.getElementById('auth-overlay');
+                    const authIcon = document.getElementById('auth-main-icon');
+                    const authIconContainer = document.getElementById('auth-icon-container');
+                    const authTitle = document.getElementById('auth-title');
+                    const authSubtitle = document.getElementById('auth-subtitle');
+                    
+                    authIcon.className = "fas fa-spinner auth-loading-icon";
+                    authIconContainer.className = "w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500";
+                    authTitle.innerText = "讀取憑證中";
+                    authSubtitle.innerText = "Securing Connection";
+                    authOverlay.style.display = 'flex';
+                    setTimeout(() => authOverlay.classList.add('show'), 10);
+
+                    // ⚡ 同步執行後端驗證（毫無人工多餘等待）
+                    tokenValid = await fetchHwDataWithToken(savedToken);
+
+                    if (tokenValid) {
+                        // 自動登入成功：寫入共享 Session
+                        localStorage.setItem('jwt_token', savedToken);
+                        localStorage.setItem('user_role', currentUserGrade);
+                        
+                        // 清除 URL Token 參數防洩露
+                        if (urlParams.has('token') || urlParams.has('jwt')) {
+                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+                        }
+
+                        // 動態點亮等級徽章
+                        const badge = document.getElementById('user-grade-display');
+                        badge.innerText = currentUserGrade;
+                        badge.style.display = 'block';
+
+                        // 💡 究極加速：一旦驗證過，立刻以 1.2 秒的慢速漂移動畫淡出並加載資料夾，完全省略中間的 success 字樣和延遲
+                        authOverlay.classList.add('exit-up');
+                        setTimeout(() => { 
+                            authOverlay.classList.remove('show', 'exit-up');
+                            authOverlay.style.display = 'none';
+                            openHomeFolder(); 
+                        }, 1200); 
+
+                    } else {
+                        // 憑證失效：迅速還原並清理
+                        authOverlay.classList.remove('show');
+                        setTimeout(() => { authOverlay.style.display = 'none'; }, 600);
+                        localStorage.removeItem('jwt_token');
+                        localStorage.removeItem('lumina_token');
+
+                        if (loginPanel) {
+                            loginPanel.style.opacity = '1';
+                            loginPanel.style.visibility = 'visible';
+                            loginPanel.style.transition = 'opacity 0.8s ease';
+                        }
+                    }
+                }
 
                 if (isManual) {
                     cloudIcons.forEach(i => { if(i) i.className = 'fas fa-check sync-success'; });
                     setTimeout(() => { cloudIcons.forEach(i => { if(i) i.className = 'fas fa-cloud'; }); isSyncing = false; }, 2000);
                 } else {
-                    setTimeout(() => {
-                        document.getElementById('page-loader').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; isSyncing = false; }, 1000);
-                    }, 800);
+                    isSyncing = false;
                 }
             } catch (error) { 
                 console.error(error);
@@ -579,16 +686,24 @@
             }
         }
 
-        async function fetchHwData() {
+        async function fetchHwDataWithToken(token) {
             try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getTopic&topicId=VOL7`);
+                const response = await fetch(`${LOADER_GAS_URL}?action=getTopic&topicId=VOL7&token=${encodeURIComponent(token)}`);
                 const result = await response.json();
+                
                 if (result.result === 'success') {
+                    // 將角色等級寫入全局
+                    currentUserGrade = (result.user && result.user.role) ? result.user.role : (localStorage.getItem('user_role') || 'guest');
                     rawDataRows = result.data;
                     updateHwList();
+                    return true;
+                } else {
+                    console.warn("Token 無效或已過期：", result.msg || result.details);
+                    return false;
                 }
             } catch (e) {
-                console.error("Fetch HW Error:", e);
+                console.error("安全鏈接失敗 (Loader-Side):", e);
+                return false;
             }
         }
 
@@ -626,6 +741,7 @@
             return allowedGrades.includes(u);
         }
 
+ 
         async function handleLoginAndBrowse() {
             const userIn = document.getElementById('login-username').value.trim();
             const passIn = document.getElementById('login-password').value; 
@@ -636,47 +752,72 @@
             const authIconContainer = document.getElementById('auth-icon-container');
             const authTitle = document.getElementById('auth-title');
             const authSubtitle = document.getElementById('auth-subtitle');
-
+            
             authIcon.className = "fas fa-spinner auth-loading-icon";
             authIconContainer.className = "w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500";
             authTitle.innerText = "正在驗證";
             authSubtitle.innerText = "請稍候片刻";
             authOverlay.style.display = 'flex';
             setTimeout(() => authOverlay.classList.add('show'), 10);
-
+            
             try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=login&user=${encodeURIComponent(userIn)}&pass=${encodeURIComponent(passIn)}`);
-                const result = await response.json();
+                const guardResponse = await fetch(GUARD_GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        username: userIn,
+                        password: passIn
+                    })
+                });
                 
-                if (result.result === 'success') {
-                    currentUserGrade = result.role;
-                    await fetchHwData();
+                const guardResult = await guardResponse.json();
+                
+                if (guardResult.success && guardResult.token) {
+                    const freshToken = guardResult.token;
+                    const loaderSuccess = await fetchHwDataWithToken(freshToken);
+                    
+                    if (loaderSuccess) {
+                        // 雙關卡全數通過！完整寫入 AuthStorage 所需的多組身分快取欄位
+                        localStorage.setItem('jwt_token', freshToken);
+                        localStorage.setItem('user_role', currentUserGrade);
+                        localStorage.setItem('user_username', userIn);
+                        
+                        authIcon.className = "fas fa-check";
+                        authIconContainer.classList.add('auth-success-icon', 'shadow-xl');
+                        authTitle.innerText = "驗證成功";
+                        authSubtitle.innerText = `歡迎進入 (${currentUserGrade})`;
 
-                    authIcon.className = "fas fa-check";
-                    authIconContainer.classList.add('auth-success-icon', 'shadow-xl');
-                    authTitle.innerText = "驗證成功";
-                    authSubtitle.innerText = `歡迎進入 (${currentUserGrade})`;
+                        const badge = document.getElementById('user-grade-display');
+                        badge.innerText = currentUserGrade;
+                        badge.style.display = 'block';
 
-                    const badge = document.getElementById('user-grade-display');
-                    badge.innerText = currentUserGrade;
-                    badge.style.display = 'block';
-
-                    setTimeout(() => {
+                        // 手動登入成功後同樣執行優雅的 Native Upward Slide 效果
+                        setTimeout(() => {
+                            authOverlay.classList.add('exit-up');
+                            setTimeout(() => { 
+                                authOverlay.classList.remove('show', 'exit-up');
+                                authOverlay.style.display = 'none';
+                                openHomeFolder(); 
+                            }, 1200);
+                        }, 1000);
+                    } else {
                         authOverlay.classList.remove('show');
                         setTimeout(() => { 
                             authOverlay.style.display = 'none';
-                            openHomeFolder(); 
+                            showAlert("資料同步失敗，憑證無法被接收");
                         }, 600);
-                    }, 1500);
-
+                    }
                 } else {
                     authOverlay.classList.remove('show');
                     setTimeout(() => { 
                         authOverlay.style.display = 'none';
-                        showAlert("帳號或密碼錯誤");
+                        showAlert(guardResult.message || "帳號或密碼錯誤");
                     }, 600);
                 }
             } catch (e) {
+                console.error("雙重驗證通道發生異常：", e);
                 authOverlay.classList.remove('show');
                 setTimeout(() => { 
                     authOverlay.style.display = 'none';
@@ -687,9 +828,26 @@
 
         function handleLogout() {
             currentUserGrade = null;
+            // 配合 AuthStorage 機制，徹底清除所有對應的共享快取欄位
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_username');
+            localStorage.removeItem('user_real_name');
+            localStorage.removeItem('user_class');
+            localStorage.removeItem('user_class_no');
+            localStorage.removeItem('lumina_token'); 
+            
             document.getElementById('login-username').value = "";
             document.getElementById('login-password').value = "";
             document.getElementById('user-grade-display').style.display = 'none';
+            
+            // 恢復 Login panel 的顯示
+            const loginPanel = document.getElementById('hero-main-content');
+            if (loginPanel) {
+                loginPanel.style.opacity = '1';
+                loginPanel.style.visibility = 'visible';
+            }
+            
             closeAllTabs();
         }
 
@@ -830,7 +988,6 @@
                 rowContainer.className = 'flex flex-col';
                 const rowEl = document.createElement('div');
                 rowEl.className = `list-item-row ${!isAllowed ? 'is-locked' : 'bg-emerald-50/10'}`;
-            
                 rowEl.innerHTML = `
                     <div class="flex items-center gap-5">
                         <i class="fas ${isAllowed ? icon : 'fa-lock'} ${iconColor} text-lg"></i>
@@ -905,7 +1062,7 @@
                 const toggleVideo = (e) => {
                     if (e) e.stopPropagation();
                     if (!isAllowed) { showAlert(`權限不足 (需要: ${itemPermission})`); return; }
-                    if (!videoUrl) { showAlert('尚未配置連結'); return; }
+                    if (!videoUrl) { showAlert('健全配置連結'); return; }
                     if (drawer.classList.contains('expanded')) {
                         drawer.classList.remove('expanded');
                         setTimeout(() => { drawer.innerHTML = ''; }, 600);
@@ -954,3 +1111,4 @@
     </script>
 </body>
 </html>
+
