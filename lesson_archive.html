@@ -348,6 +348,15 @@
             localStorage.setItem('user_real_name', identityTag.real_name || "");
         },
         
+        saveGuestBypass() {
+            localStorage.setItem('jwt_token', 'visitor-token-guest');
+            localStorage.setItem('user_role', 'guest');
+            localStorage.setItem('user_username', 'guest_visitor');
+            localStorage.setItem('user_real_name', '訪客');
+            localStorage.setItem('user_class', 'Visitor');
+            localStorage.setItem('user_class_no', 'N/A');
+        },
+        
         logout() {
             localStorage.removeItem('jwt_token');
             localStorage.removeItem('user_role');
