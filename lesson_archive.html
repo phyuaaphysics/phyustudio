@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -209,7 +210,10 @@
         <div id="autoAuthLoading" class="py-4 space-y-4">
             <div class="flex flex-col items-center gap-3">
                 <div class="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                <span class="text-sm font-medium text-gray-500">正取得憑證...</span>
+                <span id="autoAuthText" class="text-sm font-medium text-gray-500">正取得憑證...</span>
+                <div class="w-full max-w-[240px] bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div id="autoAuthProgress" class="bg-blue-500 h-full w-0 transition-all duration-300 ease-out"></div>
+                </div>
             </div>
         </div>
 
@@ -229,6 +233,9 @@
             <div class="flex flex-col items-center gap-3">
                 <div class="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
                 <span id="syncText" class="text-sm font-medium text-gray-500">正在驗證身份...</span>
+                <div class="w-full max-w-[240px] bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div id="syncProgress" class="bg-blue-500 h-full w-0 transition-all duration-300 ease-out"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -390,6 +397,87 @@
         }
     };
 
+    // ==========================================
+    // 降低等待焦慮之模擬進度與動態語句載入器
+    // ==========================================
+    const loadingSentences = [
+        "正在建立安全 HTTPS 連接...",
+        "驗證 OAuth2.0 加密憑證位址...",
+        "正在解密本地使用者安全快取...",
+        "向 Google Spreadsheet 發起安全查詢...",
+        "連線中，正在建立多通道備援連結...",
+        "偵測資料庫版本號與本地快取比對中...",
+        "讀取雲端 Spreadsheet 結構列...",
+        "正在整理並過濾重複課堂影片...",
+        "載入 S3A、S3B、S3C 影片中繼資料...",
+        "載入 S3D、S4、S5、S6 年級清單...",
+        "正在最佳化行事曆前端渲染緩衝區...",
+        "載入物理科課堂講義及主題鏈結...",
+        "即將完成，正在準備開啟 Archive 介面..."
+    ];
+
+    let loaderIntervals = {};
+    let progressIntervals = {};
+
+    function startPretendLoading(textId, progressId) {
+        let sentenceIndex = 0;
+        let progress = 0;
+        const textEl = document.getElementById(textId);
+        const progressEl = document.getElementById(progressId);
+        
+        if (textEl) textEl.innerText = loadingSentences[0];
+        if (progressEl) progressEl.style.width = '0%';
+
+        // 清除先前任何可能殘留的計時器
+        clearInterval(loaderIntervals[textId]);
+        clearInterval(progressIntervals[progressId]);
+
+        // 輪播動態載入句子以降低等待焦慮
+        loaderIntervals[textId] = setInterval(() => {
+            sentenceIndex = (sentenceIndex + 1) % loadingSentences.length;
+            if (textEl) {
+                textEl.innerText = loadingSentences[sentenceIndex];
+            }
+        }, 800);
+
+        // 漸進式進度條模擬（先快後慢，達到極致真實感）
+        progressIntervals[progressId] = setInterval(() => {
+            if (progress < 40) {
+                progress += Math.random() * 8 + 4;
+            } else if (progress < 75) {
+                progress += Math.random() * 4 + 1;
+            } else if (progress < 96) {
+                progress += Math.random() * 1 + 0.1;
+            }
+            if (progress > 98) progress = 98;
+            
+            if (progressEl) {
+                progressEl.style.width = progress + '%';
+            }
+        }, 100);
+    }
+
+    function stopPretendLoading(progressId) {
+        // 清除對應的定時器並將進度條推滿到 100%
+        for (let key in progressIntervals) {
+            if (key === progressId) {
+                clearInterval(progressIntervals[key]);
+                delete progressIntervals[key];
+            }
+        }
+        // 找到對應的 text id 清除
+        const textId = progressId === 'autoAuthProgress' ? 'autoAuthText' : 'syncText';
+        if (loaderIntervals[textId]) {
+            clearInterval(loaderIntervals[textId]);
+            delete loaderIntervals[textId];
+        }
+
+        const progressEl = document.getElementById(progressId);
+        if (progressEl) {
+            progressEl.style.width = '100%';
+        }
+    }
+
     // 🔗 雲端微服務 API 生產環境設定網址 (Web App URLs)
     const LOADER_URL = 'https://script.google.com/macros/s/AKfycbzUiNsuc9uW4-qXeP1TuPDkFldg6PMwyRPeHQBl5F2MksLiQqVc7UHcIaHSGNiSwufK/exec'; 
     const GUARD_URL = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec'; 
@@ -494,6 +582,9 @@
         syncStatus.classList.remove('hidden');
         syncText.innerText = "正在驗證身份...";
 
+        // 啟動手動驗證之模擬進度條與語句輪播
+        startPretendLoading('syncText', 'syncProgress');
+
         try {
             // 發送 credentials 至驗證中心 (guard.gs - POST)
             const res = await fetch(GUARD_URL, {
@@ -531,12 +622,14 @@
                 // 新登入一律強制重刷資料庫（避免套用舊使用者的快取版本）
                 const loadSuccess = await loadDatabase(result.token, true);
                 if (loadSuccess) {
+                    stopPretendLoading('syncProgress');
                     dismissLoginOverlay();
                 }
             } else { 
                 throw new Error(result.message || "帳號或密碼錯誤"); 
             }
         } catch (e) {
+            stopPretendLoading('syncProgress');
             document.getElementById('loginError').innerText = e.message;
             document.getElementById('loginError').classList.remove('hidden');
             loginForm.classList.remove('hidden');
@@ -623,6 +716,10 @@
             localStorage.removeItem('lesson_archive_sheet_ver');
             localStorage.removeItem('lesson_archive_recordings_cache');
             
+            // 安全阻斷模擬器定時器殘留
+            stopPretendLoading('autoAuthProgress');
+            stopPretendLoading('syncProgress');
+
             showLoginOverlay(e.message);
             return false;
         }
@@ -911,12 +1008,17 @@
             overlay.style.opacity = '1';
             overlay.style.pointerEvents = 'auto';
             
+            // 啟動自動憑證獲取模擬
+            startPretendLoading('autoAuthText', 'autoAuthProgress');
+
             // 自動驗證不強制刷新 (force = false)，若 Spreadsheet 版本不變則秒開
             const success = await loadDatabase(savedToken, false);
             if (success) {
+                stopPretendLoading('autoAuthProgress');
                 // 驗證成功：向上慢速平滑阻尼滑動並漸變淡出
                 dismissLoginOverlay();
             } else {
+                stopPretendLoading('autoAuthProgress');
                 showLoginOverlay();
             }
         } else {
@@ -937,3 +1039,5 @@
 </script>
 </body>
 </html>
+
+
