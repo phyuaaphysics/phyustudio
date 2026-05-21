@@ -305,8 +305,8 @@
         let formulaInterval;
         let currentBgUrl = ""; // 用於保存並在驗證失敗時還原的資料庫背景圖片
 
-        // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 (已對接您最新的第 8 版 API 端點) 🔗
-        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbYWTxckbkAkupCXU5OKLwjFcLn1cHBsMGYlXWhaVtnz4nz8eURBZiBAIEsuax5I4Ft/exec";
+        // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 (對接第 10 版正式端點) 🔗
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
         
         // 🔗 轉跳目標主網頁明文網址 🔗
         const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
@@ -414,7 +414,8 @@
             const gain = audioCtx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.005, middleFrequency, audioCtx.currentTime);
+            // 🛠️ 已修復：移除非法的中介變數，保證 Audio API 執行期零中斷 🛠️
+            gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.03);
         }
@@ -450,7 +451,7 @@
             startPreLaunch();
             runLoadingLoop();
 
-            // 2. 🚀【採用最簡潔、直接的標準 fetch POST 對接 guard.gs ( doPOST )】🚀
+            // 2. 🚀【標準明文 fetch POST 連線，無縫對接第 10 版後端】🚀
             const controller = new AbortController();
             guardTimeoutId = setTimeout(() => {
                 controller.abort();
@@ -464,7 +465,7 @@
                 method: "POST",
                 mode: "cors",
                 headers: {
-                    "Content-Type": "text/plain" // text/plain 可避免預檢 OPTIONS 請求，最不易出錯
+                    "Content-Type": "text/plain" // text/plain 可避免 OPTIONS 預檢阻擋，在各網域最不易出錯
                 },
                 body: JSON.stringify({
                     username: userVal,
@@ -485,7 +486,7 @@
                     if (data.token) sessionStorage.setItem('jwt_token', data.token);
                     if (data.role) sessionStorage.setItem('user_role', data.role);
                     
-                    // 本地寫入最新的 Identity Tag 資料欄位
+                    // 本地儲存身分標籤詳細欄位
                     if (data.identity_tag) {
                         sessionStorage.setItem('user_class', data.identity_tag.class || "");
                         sessionStorage.setItem('user_class_no', data.identity_tag.class_no || "");
@@ -511,7 +512,7 @@
                 } else {
                     authErrorMessage = "認證中心伺服器連線異常";
                 }
-                authResult = false; // 異常也直接切換成訪客
+                authResult = false; // 異常也直接降級切換成訪客
             });
         }
 
