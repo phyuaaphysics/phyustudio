@@ -580,23 +580,13 @@
             const cloudIcons = [document.getElementById('hero-cloud-icon'), document.getElementById('win-cloud-icon')];
             if (isManual) cloudIcons.forEach(i => { if(i) i.className = 'fas fa-spinner sync-spinning'; });
             try {
-                // 1. 優先獲取公共 Hero 背景與文字
-                const heroRes = await fetch(HERO_DATA_URL);
-                const heroText = await heroRes.text();
-                const heroRows = parseCSV(heroText);
-                applyHeroData(heroRows);
+                // 1. ⚡ 性能優化點：非同步發起 Hero 數據加載，減少網絡堵塞
+                const heroPromise = fetch(HERO_DATA_URL)
+                    .then(res => res.text())
+                    .then(text => applyHeroData(parseCSV(text)))
+                    .catch(e => console.error("Hero background load failed:", e));
 
-                // 💡 關鍵 UI 優化：在獲取完封面背景並套用至 '#hero-bg' 後，立即淡出並關閉白色的預載遮罩
-                if (!isManual) {
-                    const pageLoader = document.getElementById('page-loader');
-                    if (pageLoader) {
-                        pageLoader.style.opacity = '0';
-                        setTimeout(() => { pageLoader.style.display = 'none'; }, 1000);
-                    }
-                }
-
-                // 2. 核心安全檢測：
-                // 優化對接主流 Launch 機制，讀取由全域 AuthStorage 指定寫入的 'jwt_token' 與 'user_role'
+                // 2. 檢索共享來源以接收 Token
                 const urlParams = new URLSearchParams(window.location.search);
                 let savedToken = urlParams.get('token') || 
                                  urlParams.get('jwt') || 
@@ -605,18 +595,30 @@
                                  localStorage.getItem('token') || 
                                  localStorage.getItem('jwt') || 
                                  localStorage.getItem('accessToken');
+
+                // 確保封面背景載入 Promise 完成
+                await heroPromise;
+
+                // 💡 預載遮罩在背景就緒後直接淡出
+                if (!isManual) {
+                    const pageLoader = document.getElementById('page-loader');
+                    if (pageLoader) {
+                        pageLoader.style.opacity = '0';
+                        setTimeout(() => { pageLoader.style.display = 'none'; }, 1000);
+                    }
+                }
                                  
                 let tokenValid = false;
                 
                 if (savedToken) {
-                    // 💡 UI 優化：在自動登入時，完全隱蔽原生的登入面板，防止其提前閃爍顯示或呼出
+                    // 💡 登入面板保持隱藏，防止閃爍
                     const loginPanel = document.getElementById('hero-main-content');
                     if (loginPanel) {
                         loginPanel.style.opacity = '0';
                         loginPanel.style.visibility = 'hidden';
                     }
 
-                    // 💡 當有備用 Token 時，立即拉起磨砂玻璃驗證窗，完美浮在原生封面背景圖之上！
+                    // 立即拉起磨砂玻璃驗證窗，美觀地浮在封面背景之上
                     const authOverlay = document.getElementById('auth-overlay');
                     const authIcon = document.getElementById('auth-main-icon');
                     const authIconContainer = document.getElementById('auth-icon-container');
@@ -630,18 +632,23 @@
                     authOverlay.style.display = 'flex';
                     setTimeout(() => authOverlay.classList.add('show'), 10);
 
-                    // 同步執行後端驗證
+                    // ⚡ 性能優化點：精確測量網絡驗證時間，藉此決定是否需要補幀延遲
+                    const startTime = Date.now();
                     tokenValid = await fetchHwDataWithToken(savedToken);
+                    const elapsed = Date.now() - startTime;
+                    const minTransitionTime = 1000; // 最低動畫緩衝（1.0秒）
 
                     if (tokenValid) {
-                        // 細緻定時延遲，使系統整體切換更加流暢與具備 OS 儀式感
-                        await new Promise(resolve => setTimeout(resolve, 1200));
+                        // ⚡ 動態延遲：若網路速度極快，補足餘下時間以完成平滑過渡；若網路慢，立刻向下運行
+                        if (elapsed < minTransitionTime) {
+                            await new Promise(resolve => setTimeout(resolve, minTransitionTime - elapsed));
+                        }
 
-                        // 自動登入成功：為完全對齊子系統，統一寫入 jwt_token
+                        // 自動登入成功：寫入共享 Session
                         localStorage.setItem('jwt_token', savedToken);
                         localStorage.setItem('user_role', currentUserGrade);
                         
-                        // 清除網址列中的 Token 參數，防止洩漏
+                        // 清除 URL Token 參數防洩露
                         if (urlParams.has('token') || urlParams.has('jwt')) {
                             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
                             window.history.replaceState({path: cleanUrl}, '', cleanUrl);
@@ -657,7 +664,7 @@
                         badge.innerText = currentUserGrade;
                         badge.style.display = 'block';
 
-                        // 💡 慢速往上飄移淡出之 OS 動畫
+                        // 精緻的 Native Upward Slide-out 動畫
                         setTimeout(() => {
                             authOverlay.classList.add('exit-up');
                             setTimeout(() => { 
@@ -665,16 +672,15 @@
                                 authOverlay.style.display = 'none';
                                 openHomeFolder(); 
                             }, 1200);
-                        }, 1200);
+                        }, 1000);
 
                     } else {
-                        // Token 驗證失敗，迅速收起並清理快取
+                        // 憑證失效：迅速還原並清理
                         authOverlay.classList.remove('show');
                         setTimeout(() => { authOverlay.style.display = 'none'; }, 600);
                         localStorage.removeItem('jwt_token');
                         localStorage.removeItem('lumina_token');
 
-                        // 當驗證失敗時，平滑地將登入面板顯現
                         if (loginPanel) {
                             loginPanel.style.opacity = '1';
                             loginPanel.style.visibility = 'visible';
@@ -810,7 +816,7 @@
                         badge.innerText = currentUserGrade;
                         badge.style.display = 'block';
 
-                        // 💡 手動登入成功後同樣執行優雅的 Native Upward Slide 效果
+                        // 手動登入成功後同樣執行優雅的 Native Upward Slide 效果
                         setTimeout(() => {
                             authOverlay.classList.add('exit-up');
                             setTimeout(() => { 
