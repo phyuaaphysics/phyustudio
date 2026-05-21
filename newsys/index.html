@@ -149,14 +149,10 @@
            ========================================================================== */
         .ios-overlay-blur {
             background: rgba(255, 255, 255, 0.01);
-            backdrop-filter: blur(0px);
-            -webkit-backdrop-filter: blur(0px);
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .ios-overlay-blur.active {
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            /* 💎 核心修改：移除遮罩層的模糊濾鏡與暗色，讓背景 100% 完全透亮 💎 */
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .ios-glass-card {
@@ -297,7 +293,8 @@
     </div>
 
     <!-- 💎 歡迎與驗證結果通知彈出式視窗 (Welcome Modal - High-end iOS style white glass texture) 💎 -->
-    <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-black/5 opacity-0 pointer-events-none">
+    <!-- 💎 核心修改：將 bg-black/5 改為 bg-transparent，去除遮罩背景的磨砂模糊，使後方公式 100% 清晰可見 💎 -->
+    <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-transparent opacity-0 pointer-events-none">
         <div class="ios-glass-card w-[85%] max-w-[370px] rounded-[2.2rem] p-9 text-center flex flex-col items-center space-y-6 relative">
             
             <!-- 狀態動態 Icon 容器 (尺寸放大以呼應更大字型) -->
@@ -648,7 +645,7 @@
             startReassuringMessages();
         }
 
-        // 動態進度條循環（成功與失敗皆會跑滿，隨後觸發 Welcome Modal 分流）
+        // 💎 動態進度條循環（成功與失敗皆會跑滿，並確保背景公式繼續正常浮動） 💎
         function runLoadingLoop() {
             const progress = document.getElementById('bar-progress');
             const statusText = document.getElementById('status-text');
@@ -676,7 +673,8 @@
                 if (progressVal >= 100) {
                     progressVal = 100;
                     progress.style.width = '100%';
-                    formulaContainer.style.opacity = "0";
+                    
+                    // 💎 核心修改：移除對 formulaContainer.style.opacity 的漸顯與隱藏控制，使其持續浮動 💎
                     clearInterval(loadingInterval);
                     
                     // 💎 停止動態文字循環 💎
@@ -694,8 +692,8 @@
                 } else {
                     progress.style.width = progressVal + '%';
 
-                    // 隨著進度遞增，公式同步不斷淡出
-                    formulaContainer.style.opacity = (1 - (progressVal / 100)).toFixed(3);
+                    // 💎 核心修改：移除與進度條綁定的公式容器淡出，讓公式透明度穩定維持 1.0 持續顯示 💎
+                    // formulaContainer.style.opacity = (1 - (progressVal / 100)).toFixed(3);
 
                     const targetIdx = Math.min(Math.floor((progressVal / 100) * statusMessages.length), statusMessages.length - 1);
                     if (targetIdx !== messageIndex) {
@@ -775,21 +773,25 @@
             modalCard.classList.add('active');
         }
 
-        // 點擊 Modal 的確認按鈕，流暢跳轉 (iOS Damped Scale-down Out 特效)
+        // 💎 修改：點擊 Modal 的確認按鈕時，讓背景公式與彈窗同步優雅淡出 💎
         function confirmWelcomeRedirect() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
+            const formulaContainer = document.getElementById('formula-container');
             
             // 觸發高頻率微小回彈點擊音效
             playLoadingTick(900);
             
-            // 卡片退場阻尼收縮動畫
+            // 卡片與背景公式退場阻尼收縮及漸隱動畫
             modalCard.style.transform = "scale(0.95)";
             modalCard.style.opacity = "0";
             modal.classList.remove('active');
             modal.style.opacity = "0";
-            modal.style.backdropFilter = "blur(0px)";
-            modal.style.webkitBackdropFilter = "blur(0px)";
+            
+            if (formulaContainer) {
+                formulaContainer.style.transition = "opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1)";
+                formulaContainer.style.opacity = "0";
+            }
             
             setTimeout(() => {
                 try {
