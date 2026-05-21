@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -306,8 +305,8 @@
         let formulaInterval;
         let currentBgUrl = ""; // 用於保存並在驗證失敗時還原的資料庫背景圖片
 
-        // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 🔗
-        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbz0eCZ4eyLVJx7bx4yC6Xgj27Yf-t1flL4QzNcCEudv6ezg0C0KcDbi5mLMVYgR0GOR/exec";
+        // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 (已對接您最新的第 8 版 API 端點) 🔗
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbYWTxckbkAkupCXU5OKLwjFcLn1cHBsMGYlXWhaVtnz4nz8eURBZiBAIEsuax5I4Ft/exec";
         
         // 🔗 轉跳目標主網頁明文網址 🔗
         const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
@@ -479,6 +478,18 @@
                     // 驗證成功：快取 JWT 與 Role 到本地
                     if (data.token) sessionStorage.setItem('jwt_token', data.token);
                     if (data.role) sessionStorage.setItem('user_role', data.role);
+                    
+                    // 🚀【更新擴充：本地寫入最新的 Identity Tag 資料欄位】🚀
+                    if (data.identity_tag) {
+                        sessionStorage.setItem('user_class', data.identity_tag.class || "");
+                        sessionStorage.setItem('user_class_no', data.identity_tag.class_no || "");
+                        sessionStorage.setItem('user_real_name', data.identity_tag.real_name || "");
+                    } else {
+                        sessionStorage.setItem('user_class', "");
+                        sessionStorage.setItem('user_class_no', "");
+                        sessionStorage.setItem('user_real_name', "");
+                    }
+                    
                     authResult = true; // 觸發進度條加速填滿
                 } else {
                     // 驗證失敗：設定錯誤狀態 (但不回滾，準備在 100% 時觸發訪客探訪模式)
@@ -625,19 +636,37 @@
             if (authResult === true) {
                 // 🟢 驗證成功分支
                 const role = sessionStorage.getItem('user_role') || "User";
+                const realName = sessionStorage.getItem('user_real_name') || "";
+                const userClass = sessionStorage.getItem('user_class') || "";
+                const classNo = sessionStorage.getItem('user_class_no') || "";
                 
+                // 動態排版呈现：班級、姓名、與身分角色 (採用 Apple 原生 UI 經典對齊風格)
                 modalIconContainer.innerHTML = '🛡️';
                 modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-emerald-500/10 bg-emerald-50/20 text-emerald-600";
                 modalTitle.innerText = "ACCESS GRANTED";
                 modalTitle.className = "text-[14px] font-bold tracking-[0.15em] text-emerald-700";
                 modalSubtext.innerText = "AUTHENTICATION SUCCESS";
-                modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
+                
+                // 如果後端有提供真實姓名與班級資料，就完美呈現在卡片面板上
+                if (realName) {
+                    modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>` +
+                                             `<div class="text-left bg-black/[0.02] border border-black/5 rounded-2xl p-4 space-y-2 mt-2 mb-2 text-[11px] tracking-wide text-[#2c2c2e]">` +
+                                             `<div>• 姓名：<strong>${realName}</strong></div>` +
+                                             `<div>• 班級：<strong>${userClass ? userClass : "N/A"} (${classNo ? classNo : "N/A"} 號)</strong></div>` +
+                                             `</div>` +
+                                             `身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
+                } else {
+                    modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
+                }
                 playLoadingTick(1000);
             } else {
-                // 🔴 驗證失敗/未通過分支 (強制切換為 Visitor 訪客身分)
-                // 在本地寫入訪客身分
+                // 🔴 驗證失敗/未通過分支 (強制安全切換為 Visitor 訪客身分)
+                // 在本地寫入訪客身分與對等資料
                 sessionStorage.setItem('jwt_token', 'visitor-token-guest');
                 sessionStorage.setItem('user_role', 'guest');
+                sessionStorage.setItem('user_real_name', '訪客');
+                sessionStorage.setItem('user_class', 'Visitor');
+                sessionStorage.setItem('user_class_no', 'N/A');
 
                 modalIconContainer.innerHTML = '👤';
                 modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
@@ -686,5 +715,3 @@
     </script>
 </body>
 </html>
-
-
