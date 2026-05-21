@@ -632,11 +632,11 @@
                     authOverlay.style.display = 'flex';
                     setTimeout(() => authOverlay.classList.add('show'), 10);
 
-                    // ⚡ 性能優化點：精確測量網絡驗證時間，藉此決定是否需要補幀延遲
+                    // ⚡ 性能優化點：降低最低動畫緩衝至 450ms，實現極致快速流暢的登入體驗
                     const startTime = Date.now();
                     tokenValid = await fetchHwDataWithToken(savedToken);
                     const elapsed = Date.now() - startTime;
-                    const minTransitionTime = 1000; // 最低動畫緩衝（1.0秒）
+                    const minTransitionTime = 450; // 最低動畫緩衝降至 450ms
 
                     if (tokenValid) {
                         // ⚡ 動態延遲：若網路速度極快，補足餘下時間以完成平滑過渡；若網路慢，立刻向下運行
@@ -664,7 +664,7 @@
                         badge.innerText = currentUserGrade;
                         badge.style.display = 'block';
 
-                        // 精緻的 Native Upward Slide-out 動畫
+                        // 精緻的 Native Upward Slide-out 動畫 (配合快速登入縮短延遲)
                         setTimeout(() => {
                             authOverlay.classList.add('exit-up');
                             setTimeout(() => { 
@@ -672,7 +672,7 @@
                                 authOverlay.style.display = 'none';
                                 openHomeFolder(); 
                             }, 1200);
-                        }, 1000);
+                        }, 600);
 
                     } else {
                         // 憑證失效：迅速還原並清理
@@ -824,7 +824,7 @@
                                 authOverlay.style.display = 'none';
                                 openHomeFolder(); 
                             }, 1200);
-                        }, 1500);
+                        }, 1000);
                     } else {
                         authOverlay.classList.remove('show');
                         setTimeout(() => { 
@@ -1134,5 +1134,6 @@
     </script>
 </body>
 </html>
+
 
 
