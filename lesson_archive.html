@@ -243,9 +243,10 @@
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-8 h-8">
             <h1 class="font-bold text-[17px]">LESSON ARCHIVE</h1>
         </div>
-        <div id="statusBadge" class="flex items-center gap-1 text-blue-500 font-semibold text-xs bg-blue-50 px-2 py-1 rounded-full">
-            <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
-            <span>已同步</span>
+        <!-- 顯示真實姓名與班級 / 點擊安全登出 -->
+        <div id="statusBadge" onclick="triggerLogout()" title="點擊安全登出並返回主控台" class="flex items-center gap-1 text-blue-500 font-semibold text-xs bg-blue-50 hover:bg-red-50 hover:text-red-500 px-3 py-1.5 rounded-full cursor-pointer transition-colors duration-200">
+            <i data-lucide="user" class="w-3.5 h-3.5"></i>
+            <span id="userNameLabel">已同步</span>
         </div>
     </nav>
 
@@ -325,7 +326,43 @@
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbympD3SFqe2qhxNXtq05r5XfIQONLK7mcrPMeHo0NXos6M1WnEdbCuMdyWBFx5R0J13/exec';
+    // ==========================================
+    // 統一憑證整合機制：AuthStorage (對齊 PH studio 標準)
+    // ==========================================
+    const AuthStorage = {
+        getToken() { return localStorage.getItem('jwt_token'); },
+        getRole() { return localStorage.getItem('user_role'); },
+        getUsername() { return localStorage.getItem('user_username'); },
+        getRealName() { return localStorage.getItem('user_real_name') || "訪客"; },
+        getClass() { return localStorage.getItem('user_class') || "Visitor"; },
+        getClassNo() { return localStorage.getItem('user_class_no') || "N/A"; },
+        isGuest() { return this.getRole() === 'guest' || this.getToken() === 'visitor-token-guest'; },
+        isLoggedIn() { return this.getToken() !== null; },
+        
+        saveLoginSuccess(token, role, username, identityTag = {}) {
+            localStorage.setItem('jwt_token', token);
+            localStorage.setItem('user_role', role);
+            localStorage.setItem('user_username', username);
+            localStorage.setItem('user_class', identityTag.class || "");
+            localStorage.setItem('user_class_no', identityTag.class_no || "");
+            localStorage.setItem('user_real_name', identityTag.real_name || "");
+        },
+        
+        logout() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_username');
+            localStorage.removeItem('user_real_name');
+            localStorage.removeItem('user_class');
+            localStorage.removeItem('user_class_no');
+            // 安全清除後直接引導回 Launch 主登入頁
+            window.location.href = "https://phyuaaphysics.github.io/phyustudio/index.html";
+        }
+    };
+
+    // 🔗 雲端微服務 API 生產環境設定網址 (Web App URLs)
+    const LOADER_URL = 'https://script.google.com/macros/s/AKfycbzUiNsuc9uW4-qXeP1TuPDkFldg6PMwyRPeHQBl5F2MksLiQqVc7UHcIaHSGNiSwufK/exec'; 
+    const GUARD_URL = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec'; 
 
     let recordingsData = {};
     let viewDate = new Date(); 
@@ -336,13 +373,13 @@
     let selectedYear = "全部"; 
     let currentFilterLevel = 'main';
 
+    // 處理系統登入（經由 guard.gs 驗證取得安全 Token，並寫入 AuthStorage 快取）
     async function handleLogin() {
         const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value.trim();
         const loginForm = document.getElementById('loginForm');
         const syncStatus = document.getElementById('syncStatus');
         const syncText = document.getElementById('syncText');
-        const overlay = document.getElementById('loginOverlay');
         
         if (!user || !pass) return;
         loginForm.classList.add('hidden');
@@ -350,17 +387,41 @@
         syncText.innerText = "正在驗證身份...";
 
         try {
-            const res = await fetch(`${API_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+            // 發送 credentials 至驗證中心 (guard.gs - POST)
+            const res = await fetch(GUARD_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'text/plain' // 規避 Preflight OPTIONS 限制
+                },
+                body: JSON.stringify({
+                    username: user,
+                    password: pass
+                })
+            });
             const result = await res.json();
 
-            if (result.result === 'success') {
+            if (result.success && result.token) {
                 syncText.innerText = "正在同步資料庫...";
-                sessionStorage.setItem('is_auth', 'true');
-                await loadDatabase();
-                overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none';
-                setTimeout(() => overlay.classList.add('hidden'), 600);
-            } else { throw new Error("帳號或密碼錯誤"); }
+                
+                // 使用 AuthStorage 統一儲存規格寫入本地端快取
+                AuthStorage.saveLoginSuccess(result.token, result.role, result.username, {
+                    class: result.class || "",
+                    class_no: result.class_no || "",
+                    real_name: result.real_name || ""
+                });
+                
+                // 使用新生成的 Token 向資料載入器存取
+                const loadSuccess = await loadDatabase(result.token);
+                if (loadSuccess) {
+                    const overlay = document.getElementById('loginOverlay');
+                    overlay.style.opacity = '0';
+                    overlay.style.pointerEvents = 'none';
+                    setTimeout(() => overlay.classList.add('hidden'), 600);
+                }
+            } else { 
+                throw new Error(result.message || "帳號或密碼錯誤"); 
+            }
         } catch (e) {
             document.getElementById('loginError').innerText = e.message;
             document.getElementById('loginError').classList.remove('hidden');
@@ -369,24 +430,67 @@
         }
     }
 
-    async function loadDatabase() {
+    // 從 loader.gs 安全載入並同步整頁課程資料庫 (topicId = LESSON_ARCHIVE)
+    async function loadDatabase(token) {
         try {
-            const res = await fetch(`${API_URL}?action=getAllData`);
+            const res = await fetch(`${LOADER_URL}?action=getTopic&topicId=LESSON_ARCHIVE&token=${encodeURIComponent(token)}`);
             const json = await res.json();
+            
             if (json.result === 'success') {
                 processData(json.data);
                 document.getElementById('mainContent').classList.remove('hidden');
                 initRollerWheels();
                 updateTopicFilter();
                 
-                // Use strict Today's date with no time component
+                // 動態設定右上角狀態欄使用者顯示名稱 (真實姓名 + 班級)
+                const realName = AuthStorage.getRealName();
+                const userClass = AuthStorage.getClass();
+                document.getElementById('userNameLabel').innerText = `${realName} (${userClass})`;
+                
+                // 初始化標準今日時間，清除時間誤差
                 const now = new Date();
                 selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                 viewDate = new Date(now.getFullYear(), now.getMonth(), 1);
                 
                 render();
+                return true;
+            } else {
+                throw new Error(json.msg || "Token 已失效，請重新登入");
             }
-        } catch (e) { console.error('Load error:', e); }
+        } catch (e) { 
+            console.error('Load error:', e); 
+            // 如果驗證失敗，清除所有快取
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_username');
+            localStorage.removeItem('user_real_name');
+            localStorage.removeItem('user_class');
+            localStorage.removeItem('user_class_no');
+            
+            showLoginOverlay(e.message);
+            return false;
+        }
+    }
+
+    function showLoginOverlay(errorMsg = '') {
+        const overlay = document.getElementById('loginOverlay');
+        overlay.classList.remove('hidden');
+        overlay.style.opacity = '1';
+        overlay.style.pointerEvents = 'auto';
+        
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('syncStatus').classList.add('hidden');
+        
+        if (errorMsg) {
+            document.getElementById('loginError').innerText = errorMsg;
+            document.getElementById('loginError').classList.remove('hidden');
+        } else {
+            document.getElementById('loginError').classList.add('hidden');
+        }
+    }
+
+    function triggerLogout() {
+        AuthStorage.logout();
     }
 
     function processData(rows) {
@@ -578,6 +682,7 @@
         mw.innerHTML = mHtml + '<div class="h-[80px]"></div>';
     }
 
+    // 滾輪選擇器交互
     function openRoller() { document.getElementById('rollerOverlay').classList.add('show'); }
     function closeRoller() { document.getElementById('rollerOverlay').classList.remove('show'); }
     function handleWheelScroll(type) {
@@ -604,7 +709,7 @@
             const targetText = (cls === '全部' ? '全部年級' : cls);
             btn.classList.toggle('active', btnText === targetText);
         });
-        render(); // Now independent filter, just re-render list and calendar indicators
+        render(); 
     }
 
     function filterByTopic(t) {
@@ -626,12 +731,22 @@
     function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); render(); }
     function filterByYear(y) { selectedYear = y; updateYearFilter(); render(); }
 
-    window.onload = () => {
+    window.onload = async () => {
         lucide.createIcons();
-        if (sessionStorage.getItem('is_auth') === 'true') {
+        
+        // 優先從 AuthStorage 取得 JWT Token 憑證
+        const savedToken = AuthStorage.getToken();
+        
+        if (savedToken) {
+            // 自動隱藏登入層並嘗試使用已存 Token 安全讀取 Topic 檔案
             document.getElementById('loginOverlay').classList.add('hidden');
             document.getElementById('loginOverlay').style.pointerEvents = 'none';
-            loadDatabase();
+            const success = await loadDatabase(savedToken);
+            if (!success) {
+                showLoginOverlay();
+            }
+        } else {
+            showLoginOverlay();
         }
     };
 </script>
