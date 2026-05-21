@@ -348,15 +348,6 @@
             localStorage.setItem('user_real_name', identityTag.real_name || "");
         },
         
-        saveGuestBypass() {
-            localStorage.setItem('jwt_token', 'visitor-token-guest');
-            localStorage.setItem('user_role', 'guest');
-            localStorage.setItem('user_username', 'guest_visitor');
-            localStorage.setItem('user_real_name', '訪客');
-            localStorage.setItem('user_class', 'Visitor');
-            localStorage.setItem('user_class_no', 'N/A');
-        },
-        
         logout() {
             localStorage.removeItem('jwt_token');
             localStorage.removeItem('user_role');
@@ -426,7 +417,9 @@
                     const overlay = document.getElementById('loginOverlay');
                     overlay.style.opacity = '0';
                     overlay.style.pointerEvents = 'none';
-                    setTimeout(() => overlay.classList.add('hidden'), 600);
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 600);
                 }
             } else { 
                 throw new Error(result.message || "帳號或密碼錯誤"); 
@@ -483,7 +476,7 @@
 
     function showLoginOverlay(errorMsg = '') {
         const overlay = document.getElementById('loginOverlay');
-        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex'; // 使用行內樣式覆蓋 CSS ID 優先權
         overlay.style.opacity = '1';
         overlay.style.pointerEvents = 'auto';
         
@@ -711,6 +704,7 @@
         closeRoller();
     }
 
+    // 篩選功能
     function filterByClass(cls) {
         selectedClass = cls;
         document.querySelectorAll('#classFilter .capsule-item').forEach(btn => {
@@ -748,8 +742,11 @@
         
         if (savedToken) {
             // 自動隱藏登入層並嘗試使用已存 Token 安全讀取 Topic 檔案
-            document.getElementById('loginOverlay').classList.add('hidden');
-            document.getElementById('loginOverlay').style.pointerEvents = 'none';
+            const overlay = document.getElementById('loginOverlay');
+            overlay.style.display = 'none'; // 直接使用行內樣式隱藏，避開 ID 特異度衝突
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+            
             const success = await loadDatabase(savedToken);
             if (!success) {
                 showLoginOverlay();
