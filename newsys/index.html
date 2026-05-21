@@ -414,7 +414,7 @@
             const gain = audioCtx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.005, middleFrequency, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.03);
         }
@@ -425,43 +425,6 @@
         let authResult = null; // null = 驗證中, true = 成功, false = 失敗
         let authErrorMessage = "";
         let guardTimeoutId = null;
-
-        // 全域回呼函數：用來接收 iframe 異步 POST 後得到的數據
-        window.receiveGuardAuthMessage = function(data) {
-            if (guardTimeoutId) clearTimeout(guardTimeoutId);
-            cleanupHelperIframe();
-
-            if (data && data.success) {
-                // 驗證成功：快取 JWT 與 Role 到本地
-                if (data.token) sessionStorage.setItem('jwt_token', data.token);
-                if (data.role) sessionStorage.setItem('user_role', data.role);
-                
-                // 本地寫入最新的 Identity Tag 資料欄位
-                if (data.identity_tag) {
-                    sessionStorage.setItem('user_class', data.identity_tag.class || "");
-                    sessionStorage.setItem('user_class_no', data.identity_tag.class_no || "");
-                    sessionStorage.setItem('user_real_name', data.identity_tag.real_name || "");
-                } else {
-                    sessionStorage.setItem('user_class', "");
-                    sessionStorage.setItem('user_class_no', "");
-                    sessionStorage.setItem('user_real_name', "");
-                }
-                
-                authResult = true; // 觸發進度條加速填滿
-            } else {
-                // 驗證失敗：設定錯誤狀態 (準備在 100% 時觸發訪客探訪模式)
-                authErrorMessage = (data && data.message) ? data.message : "帳號或密碼錯誤";
-                authResult = false; 
-            }
-        };
-
-        // 清理動態產生的 helper 表單與 iframe
-        function cleanupHelperIframe() {
-            const iframe = document.getElementById('gas-helper-iframe');
-            if (iframe) iframe.remove();
-            const form = document.getElementById('gas-helper-form');
-            if (form) form.remove();
-        }
 
         function handleLogin(event) {
             if (event) event.preventDefault();
@@ -487,79 +450,69 @@
             startPreLaunch();
             runLoadingLoop();
 
-            // 2. 🚀【全新強固：表單 POST 提交技術，100% 繞過 Iframe CORS 封鎖制限】🚀
-            cleanupHelperIframe();
-
-            const iframeName = 'gas_helper_target_' + Date.now();
-            
-            // 建立隱藏 iframe
-            const iframe = document.createElement('iframe');
-            iframe.id = 'gas-helper-iframe';
-            iframe.name = iframeName;
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-
-            // 建立隱藏表單
-            const form = document.createElement('form');
-            form.id = 'gas-helper-form';
-            form.method = 'POST';
-            form.action = GAS_GUARD_URL;
-            form.target = iframeName;
-            form.style.display = 'none';
-
-            // 將原有的 JSON POST 格式對應封裝進標準 POST payload 
-            // 這樣 doGet / doPost 的傳遞數據能被 GAS 的 e.postData.contents 正常捕獲，且毫無 CORS 摩擦阻礙！
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'payload';
-            input.value = JSON.stringify({
-                username: userVal,
-                password: passVal
-            });
-            form.appendChild(input);
-            document.body.appendChild(form);
-
-            // 為了讓 GAS 提交結果後，能順利穿透 cross-origin iframe，我們在 window 註冊一個 message 監聽器
-            const handlePostMessage = function(e) {
-                try {
-                    // 檢查數據是否是由我們的 GAS 回傳
-                    let parsedData = null;
-                    if (typeof e.data === 'string') {
-                        parsedData = JSON.parse(e.data);
-                    } else if (typeof e.data === 'object' && e.data && e.data.success !== undefined) {
-                        parsedData = e.data;
-                    }
-
-                    if (parsedData && (parsedData.success !== undefined || parsedData.token !== undefined)) {
-                        window.removeEventListener('message', handlePostMessage);
-                        receiveGuardAuthMessage(parsedData);
-                    }
-                } catch (err) {
-                    // 忽略跨域第三方通訊雜訊
-                }
-            };
-            window.addEventListener('message', handlePostMessage);
-
-            // 安全逾時防護 (8秒) -> 逾時亦判定為認證未通過，隨後引導為 Visitor 探訪
+            // 2. 🚀【採用最簡潔、直接的標準 fetch POST 對接 guard.gs ( doPOST )】🚀
+            const controller = new AbortController();
             guardTimeoutId = setTimeout(() => {
-                window.removeEventListener('message', handlePostMessage);
-                cleanupHelperIframe();
+                controller.abort();
                 if (authResult === null) {
                     authErrorMessage = "認證中心伺服器連線超時";
                     authResult = false;
                 }
-            }, 8000);
+            }, 8000); // 8 秒超時
 
-            // 提交表單
-            try {
-                form.submit();
-            } catch (err) {
-                console.error("Form submit error: ", err);
-                window.removeEventListener('message', handlePostMessage);
-                cleanupHelperIframe();
-                authErrorMessage = "本地表單提交異常";
-                authResult = false;
-            }
+            fetch(GAS_GUARD_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain" // text/plain 可避免預檢 OPTIONS 請求，最不易出錯
+                },
+                body: JSON.stringify({
+                    username: userVal,
+                    password: passVal
+                }),
+                signal: controller.signal
+            })
+            .then(response => {
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                if (!response.ok) {
+                    throw new Error("HTTP status " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // 驗證成功：快取 JWT 與 Role 到本地
+                    if (data.token) sessionStorage.setItem('jwt_token', data.token);
+                    if (data.role) sessionStorage.setItem('user_role', data.role);
+                    
+                    // 本地寫入最新的 Identity Tag 資料欄位
+                    if (data.identity_tag) {
+                        sessionStorage.setItem('user_class', data.identity_tag.class || "");
+                        sessionStorage.setItem('user_class_no', data.identity_tag.class_no || "");
+                        sessionStorage.setItem('user_real_name', data.identity_tag.real_name || "");
+                    } else {
+                        sessionStorage.setItem('user_class', "");
+                        sessionStorage.setItem('user_class_no', "");
+                        sessionStorage.setItem('user_real_name', "");
+                    }
+                    
+                    authResult = true; // 觸發進度條加速填滿
+                } else {
+                    // 驗證失敗：設定錯誤狀態 (準備在 100% 時觸發訪客探訪模式)
+                    authErrorMessage = data.message || "帳號或密碼錯誤";
+                    authResult = false; 
+                }
+            })
+            .catch(err => {
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                console.error("連線到 Guard API 失敗:", err);
+                if (err.name === 'AbortError') {
+                    authErrorMessage = "認證中心伺服器連線超時";
+                } else {
+                    authErrorMessage = "認證中心伺服器連線異常";
+                }
+                authResult = false; // 異常也直接切換成訪客
+            });
         }
 
         // 啟動前置淡出轉場畫面
