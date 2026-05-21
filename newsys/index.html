@@ -395,6 +395,19 @@
         window.addEventListener('DOMContentLoaded', () => {
             formulaInterval = setInterval(() => createFormula(), 250);
             loadBackgroundFromSheet();
+
+            // 💎 核心修改：當頁面重新加載時，自動解析網址帶來的錯誤參數並精準顯示 💎
+            const urlParams = new URLSearchParams(window.location.search);
+            const errParam = urlParams.get('error');
+            if (errParam) {
+                const errorMsg = document.getElementById('error-msg');
+                if (errorMsg) {
+                    errorMsg.innerText = decodeURIComponent(errParam);
+                    errorMsg.style.opacity = '1';
+                }
+                // 清除網址列中的 error 參數，保持使用者介面清爽美觀
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -824,7 +837,7 @@
             }, 550);
         }
 
-        // 💎 核心修改：點擊 Try Again 按鈕時，觸發 iOS 阻尼回彈退場，並將介面無縫重設回登入表單狀態 💎
+        // 💎 核心修改：點擊 Try Again 按鈕時，不進行本地重置，而是直接透過實體 URL 連結重新載入 index.html 並傳遞 error 參數 💎
         function reloginWelcome() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
@@ -839,12 +852,13 @@
             
             setTimeout(() => {
                 modal.classList.add('pointer-events-none');
-                // 呼叫重置回滾程序，顯示具體錯誤訊息
-                rollbackSystem(authErrorMessage || "帳號或密碼錯誤");
+                // 🚀 核心優化：直接透過實體 Link 重新載入，避免載入不全的問題 🚀
+                const errMsg = authErrorMessage || "帳號或密碼錯誤";
+                window.location.href = "https://phyuaaphysics.github.io/phyustudio/index.html?error=" + encodeURIComponent(errMsg);
             }, 550);
         }
 
-        // 💎 核心修改：完美還原磨砂玻璃卡片與輸入欄位的 iOS 阻尼回滾與重置程序 💎
+        // 💎 完美還原磨砂玻璃卡片與輸入欄位的 iOS 阻尼回滾與重置程序 (用於其他本地重設情境) 💎
         function rollbackSystem(errorMessage) {
             const landing = document.getElementById('landing-screen');
             const formulaContainer = document.getElementById('formula-container');
