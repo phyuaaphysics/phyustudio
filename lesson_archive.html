@@ -31,8 +31,8 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            /* iOS 阻尼減速與淡出動畫 */
-            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            /* iOS 慢速阻尼減速與淡出動畫，呈現系統 OS 的絲滑質感 */
+            transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
             transform: translateY(0);
             opacity: 1;
         }
@@ -256,11 +256,13 @@
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-8 h-8">
             <h1 class="font-bold text-[17px]">LESSON ARCHIVE</h1>
         </div>
-        <!-- 顯示真實姓名與班級 / 點擊安全登出 -->
-        <div id="statusBadge" onclick="triggerLogout()" title="點擊安全登出並返回主控台" class="flex items-center gap-1 text-blue-500 font-semibold text-xs bg-blue-50 hover:bg-red-50 hover:text-red-500 px-3 py-1.5 rounded-full cursor-pointer transition-colors duration-200">
-            <i data-lucide="user" class="w-3.5 h-3.5"></i>
-            <span id="userNameLabel">已同步</span>
-        </div>
+        <!-- 雲端同步按鈕 (一舊雲，內含淡出多重狀態圖標) -->
+        <button id="statusBadge" onclick="forceSync()" title="強制與雲端 Spreadsheet 資料庫同步" class="relative flex items-center justify-center text-blue-500 bg-blue-50 hover:bg-blue-100 w-10 h-10 rounded-full cursor-pointer transition-all duration-200 active:scale-90 focus:outline-none">
+            <i id="syncCloudIcon" data-lucide="cloud" class="w-5.5 h-5.5 absolute transition-all duration-300" style="opacity: 1; transform: scale(1);"></i>
+            <i id="syncSuccessIcon" data-lucide="check" class="w-5.5 h-5.5 absolute text-green-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;"></i>
+            <i id="syncFailIcon" data-lucide="x" class="w-5.5 h-5.5 absolute text-red-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;"></i>
+            <span id="userNameLabel" class="hidden">已同步</span>
+        </button>
     </nav>
 
     <main class="max-w-4xl mx-auto p-4 space-y-4">
@@ -346,8 +348,14 @@
         getToken() { return localStorage.getItem('jwt_token'); },
         getRole() { return localStorage.getItem('user_role'); },
         getUsername() { return localStorage.getItem('user_username'); },
-        getRealName() { return localStorage.getItem('user_real_name') || "訪客"; },
-        getClass() { return localStorage.getItem('user_class') || "Visitor"; },
+        getRealName() { 
+            const val = localStorage.getItem('user_real_name');
+            return (val && val.trim() !== "") ? val : "訪客"; 
+        },
+        getClass() { 
+            const val = localStorage.getItem('user_class');
+            return (val && val.trim() !== "") ? val : "Visitor"; 
+        },
         getClassNo() { return localStorage.getItem('user_class_no') || "N/A"; },
         isGuest() { return this.getRole() === 'guest' || this.getToken() === 'visitor-token-guest'; },
         isLoggedIn() { return this.getToken() !== null; },
@@ -386,6 +394,84 @@
     let selectedYear = "全部"; 
     let currentFilterLevel = 'main';
 
+    // 執行優雅的 iOS 緩慢阻尼感向上推開並淡出過渡轉場
+    // 成功/自動登出均以此處理器呈現絲滑轉場質感
+    function dismissLoginOverlay() {
+        const overlay = document.getElementById('loginOverlay');
+        overlay.style.transform = 'translateY(-100vh)';
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 1600); // 配合 CSS 中的 1.6s 阻尼轉換時長
+    }
+
+    // 強制與雲端 Spreadsheet 重新同步載入 (force = true)
+    // 升級：移除轉圈，改為優雅的 Cloud Fade Out、成功出 Tick、失敗出 X
+    async function forceSync() {
+        const token = AuthStorage.getToken();
+        if (!token) {
+            showLoginOverlay("憑證已失效，請重新登入");
+            return;
+        }
+        
+        const cloudIcon = document.getElementById('syncCloudIcon');
+        const successIcon = document.getElementById('syncSuccessIcon');
+        const failIcon = document.getElementById('syncFailIcon');
+        const badgeBtn = document.getElementById('statusBadge');
+        
+        if (cloudIcon && successIcon && failIcon && badgeBtn) {
+            badgeBtn.style.pointerEvents = 'none'; // 鎖定按鈕，防止連續重複點擊
+            
+            // 讓原有雲朵優雅 Fade Out（透明度 0 且略微縮小）
+            cloudIcon.style.opacity = '0';
+            cloudIcon.style.transform = 'scale(0.7)';
+            
+            // 預先重設狀態圖標，確保乾淨
+            successIcon.style.opacity = '0';
+            successIcon.style.transform = 'scale(0.5)';
+            failIcon.style.opacity = '0';
+            failIcon.style.transform = 'scale(0.5)';
+        }
+        
+        // 傳入 true 阻斷本地快取，強制重新抓取網路端最新版本
+        const success = await loadDatabase(token, true);
+        
+        if (cloudIcon && successIcon && failIcon && badgeBtn) {
+            if (success) {
+                // 同步成功：漸變淡入顯示綠色 Tick 勾號
+                successIcon.style.opacity = '1';
+                successIcon.style.transform = 'scale(1)';
+                
+                // 1.5秒後，優雅淡回雲朵
+                setTimeout(() => {
+                    successIcon.style.opacity = '0';
+                    successIcon.style.transform = 'scale(0.5)';
+                    setTimeout(() => {
+                        cloudIcon.style.opacity = '1';
+                        cloudIcon.style.transform = 'scale(1)';
+                        badgeBtn.style.pointerEvents = 'auto'; // 解除鎖定
+                    }, 200); // 順滑轉折緩衝時間
+                }, 1500);
+            } else {
+                // 同步失敗：漸變淡入顯示紅色 X 叉號
+                failIcon.style.opacity = '1';
+                failIcon.style.transform = 'scale(1)';
+                
+                // 2秒後，優雅淡回雲朵
+                setTimeout(() => {
+                    failIcon.style.opacity = '0';
+                    failIcon.style.transform = 'scale(0.5)';
+                    setTimeout(() => {
+                        cloudIcon.style.opacity = '1';
+                        cloudIcon.style.transform = 'scale(1)';
+                        badgeBtn.style.pointerEvents = 'auto'; // 解除鎖定
+                    }, 200);
+                }, 2000);
+            }
+        }
+    }
+
     // 處理系統登入（經由 guard.gs 驗證取得安全 Token，並寫入 AuthStorage 快取）
     async function handleLogin() {
         const user = document.getElementById('username').value.trim();
@@ -423,23 +509,20 @@
 
                 syncText.innerText = "正在同步資料庫...";
                 
+                // 正確取得嵌套於 identity_tag 物件內的屬性
+                const tag = result.identity_tag || {};
+                
                 // 使用 AuthStorage 統一儲存規格寫入本地端快取
                 AuthStorage.saveLoginSuccess(result.token, result.role, result.username, {
-                    class: result.class || "",
-                    class_no: result.class_no || "",
-                    real_name: result.real_name || ""
+                    class: tag.class || result.class || "",
+                    class_no: tag.class_no || result.class_no || "",
+                    real_name: tag.real_name || result.real_name || ""
                 });
                 
-                // 使用新生成的 Token 向資料載入器存取
-                const loadSuccess = await loadDatabase(result.token);
+                // 新登入一律強制重刷資料庫（避免套用舊使用者的快取版本）
+                const loadSuccess = await loadDatabase(result.token, true);
                 if (loadSuccess) {
-                    const overlay = document.getElementById('loginOverlay');
-                    overlay.style.transform = 'translateY(-100vh)';
-                    overlay.style.opacity = '0';
-                    overlay.style.pointerEvents = 'none';
-                    setTimeout(() => {
-                        overlay.style.display = 'none';
-                    }, 1200);
+                    dismissLoginOverlay();
                 }
             } else { 
                 throw new Error(result.message || "帳號或密碼錯誤"); 
@@ -453,7 +536,8 @@
     }
 
     // 從 loader.gs 安全載入並同步整頁課程資料庫 (topicId = LESSON_ARCHIVE)
-    async function loadDatabase(token) {
+    // 新增 force 參數，控制是否繞過版本檢測機制強制向 Spreadsheet 連線重讀
+    async function loadDatabase(token, force = false) {
         try {
             // 🚨 嚴格限制（第二道防線）：執行請求前，雙重核驗本機 Role 欄位，防止透過 LocalStorage 偽造注入
             const role = (AuthStorage.getRole() || '').toLowerCase().trim();
@@ -465,15 +549,45 @@
             const json = await res.json();
             
             if (json.result === 'success') {
-                processData(json.data);
+                // 📊 版本控制核心邏輯：
+                // json.data[0][6] 代表第 7 欄（G 欄 - Ver），json.data[0][7] 代表第 8 欄（H 欄 - 數字版本）
+                const webVerLabel = json.data[0] ? json.data[0][6] : null;
+                const webVerVal = json.data[0] ? String(json.data[0][7]).trim() : null;
+
+                const cachedVerVal = localStorage.getItem('lesson_archive_sheet_ver');
+                const cachedData = localStorage.getItem('lesson_archive_recordings_cache');
+
+                // 若非強制重載、本地存有相同版本號、且快取存在：直接調用快取，光速載入！
+                if (!force && webVerVal && cachedVerVal === webVerVal && cachedData) {
+                    try {
+                        recordingsData = JSON.parse(cachedData);
+                        // 還原 JSON 還原後的 Date 型態物件
+                        Object.values(recordingsData).flat().forEach(v => {
+                            if (v.dateObj) v.dateObj = new Date(v.dateObj);
+                        });
+                        console.log("⚡ [快取命中] 偵測到 Spreadsheet 版本無分別，成功調動 Local Storage 加快載入：" + webVerVal);
+                    } catch (cacheErr) {
+                        console.warn("快取解析失敗，重新解析 Spreadsheet...", cacheErr);
+                        processData(json.data);
+                        localStorage.setItem('lesson_archive_sheet_ver', webVerVal);
+                        localStorage.setItem('lesson_archive_recordings_cache', JSON.stringify(recordingsData));
+                    }
+                } else {
+                    // 若版本改變或強制刷新：重新執行核心 processData，並保存快取
+                    console.log("🔄 [快取失效] Spreadsheet 版本已更新或強制同步。正在重新讀取/解析：" + webVerVal);
+                    processData(json.data);
+                    if (webVerVal) {
+                        localStorage.setItem('lesson_archive_sheet_ver', webVerVal);
+                        localStorage.setItem('lesson_archive_recordings_cache', JSON.stringify(recordingsData));
+                    }
+                }
+
                 document.getElementById('mainContent').classList.remove('hidden');
                 initRollerWheels();
                 updateTopicFilter();
                 
-                // 動態設定右上角狀態欄使用者顯示名稱 (真實姓名 + 班級)
-                const realName = AuthStorage.getRealName();
-                const userClass = AuthStorage.getClass();
-                document.getElementById('userNameLabel').innerText = `${realName} (${userClass})`;
+                // 右上角狀態欄重設為最穩定的「已同步」字串
+                document.getElementById('userNameLabel').innerText = "已同步";
                 
                 // 初始化標準今日時間，清除時間誤差
                 const now = new Date();
@@ -494,6 +608,8 @@
             localStorage.removeItem('user_real_name');
             localStorage.removeItem('user_class');
             localStorage.removeItem('user_class_no');
+            localStorage.removeItem('lesson_archive_sheet_ver');
+            localStorage.removeItem('lesson_archive_recordings_cache');
             
             showLoginOverlay(e.message);
             return false;
@@ -743,6 +859,8 @@
         render(); 
     }
 
+    // 課題篩選
+    // 課題篩選
     function filterByTopic(t) {
         if (t === '全部') { 
             selectedMainTopic = '全部'; 
@@ -782,15 +900,11 @@
             overlay.style.opacity = '1';
             overlay.style.pointerEvents = 'auto';
             
-            const success = await loadDatabase(savedToken);
+            // 自動驗證不強制刷新 (force = false)，若 Spreadsheet 版本不變則秒開
+            const success = await loadDatabase(savedToken, false);
             if (success) {
-                // 驗證成功：向上平滑阻尼滑動並漸變淡出
-                overlay.style.transform = 'translateY(-100vh)';
-                overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 1200);
+                // 驗證成功：向上慢速平滑阻尼滑動並漸變淡出
+                dismissLoginOverlay();
             } else {
                 showLoginOverlay();
             }
@@ -803,6 +917,8 @@
                 localStorage.removeItem('user_real_name');
                 localStorage.removeItem('user_class');
                 localStorage.removeItem('user_class_no');
+                localStorage.removeItem('lesson_archive_sheet_ver');
+                localStorage.removeItem('lesson_archive_recordings_cache');
             }
             showLoginOverlay();
         }
