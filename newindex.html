@@ -568,19 +568,22 @@
             })
             .then(data => {
                 if (data.success) {
-                    // 驗證成功：快取 JWT 與 Role 到本地
-                    if (data.token) sessionStorage.setItem('jwt_token', data.token);
-                    if (data.role) sessionStorage.setItem('user_role', data.role);
+                    // 驗證成功：快取 JWT 與 Role 到本地 (💎 升級儲存至 localStorage 💎)
+                    if (data.token) localStorage.setItem('jwt_token', data.token);
+                    if (data.role) localStorage.setItem('user_role', data.role);
                     
-                    // 本地儲存身分標籤詳細欄位
+                    // 💎 新增：將使用者帳密之 Username 欄位儲存至 localStorage 💎
+                    localStorage.setItem('user_username', userVal);
+                    
+                    // 💎 核心修改：將身分標籤詳細欄位全面儲存至 localStorage 💎
                     if (data.identity_tag) {
-                        sessionStorage.setItem('user_class', data.identity_tag.class || "");
-                        sessionStorage.setItem('user_class_no', data.identity_tag.class_no || "");
-                        sessionStorage.setItem('user_real_name', data.identity_tag.real_name || "");
+                        localStorage.setItem('user_class', data.identity_tag.class || "");
+                        localStorage.setItem('user_class_no', data.identity_tag.class_no || "");
+                        localStorage.setItem('user_real_name', data.identity_tag.real_name || "");
                     } else {
-                        sessionStorage.setItem('user_class', "");
-                        sessionStorage.setItem('user_class_no', "");
-                        sessionStorage.setItem('user_real_name', "");
+                        localStorage.setItem('user_class', "");
+                        localStorage.setItem('user_class_no', "");
+                        localStorage.setItem('user_real_name', "");
                     }
                     
                     authResult = true; // 觸發進度條加速填滿
@@ -737,11 +740,11 @@
             const secondaryBtn = document.getElementById('modal-secondary-btn');
 
             if (authResult === true) {
-                // 🟢 驗證成功分支
-                const role = sessionStorage.getItem('user_role') || "User";
-                const realName = sessionStorage.getItem('user_real_name') || "";
-                const userClass = sessionStorage.getItem('user_class') || "";
-                const classNo = sessionStorage.getItem('user_class_no') || "";
+                // 🟢 驗證成功分支 (💎 核心修改：由 localStorage 讀取身分標籤詳細欄位 💎)
+                const role = localStorage.getItem('user_role') || "User";
+                const realName = localStorage.getItem('user_real_name') || "";
+                const userClass = localStorage.getItem('user_class') || "";
+                const classNo = localStorage.getItem('user_class_no') || "";
                 
                 // 動態排版呈现：班級、姓名、與身分角色 (採用 Apple 原生 UI 經典對齊風格)
                 // 💎 使用打勾符號 (✓) 替代原本的盾牌，容器大小微調 💎
@@ -772,12 +775,13 @@
                 playLoadingTick(1000);
             } else {
                 // 🔴 驗證失敗/未通過分支 (強制安全切換為 Visitor 訪客身分)
-                // 在本地寫入訪客身分與對等資料
-                sessionStorage.setItem('jwt_token', 'visitor-token-guest');
-                sessionStorage.setItem('user_role', 'guest');
-                sessionStorage.setItem('user_real_name', '訪客');
-                sessionStorage.setItem('user_class', 'Visitor');
-                sessionStorage.setItem('user_class_no', 'N/A');
+                // 💎 核心修改：在本地 localStorage 寫入訪客身分與對等資料 💎
+                localStorage.setItem('jwt_token', 'visitor-token-guest');
+                localStorage.setItem('user_role', 'guest');
+                localStorage.setItem('user_username', 'guest_visitor');
+                localStorage.setItem('user_real_name', '訪客');
+                localStorage.setItem('user_class', 'Visitor');
+                localStorage.setItem('user_class_no', 'N/A');
 
                 modalIconContainer.innerHTML = '👤';
                 modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
