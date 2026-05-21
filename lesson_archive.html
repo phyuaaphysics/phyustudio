@@ -219,6 +219,19 @@
         .crt-shutdown {
             animation: crt-off 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* iOS 搜尋框滑動展開動畫 */
+        .search-bar-expand {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .search-bar-expand.show {
+            max-height: 56px;
+            opacity: 1;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -311,7 +324,13 @@
                 </svg>
                 <span id="userNameLabel" class="hidden">已同步</span>
             </button>
-            <!-- 系統關閉退出按鈕 (更新為 Power Off 關機鍵) -->
+            
+            <!-- 模糊搜尋觸發按鈕 (🔍 放大鏡圖標) -->
+            <button onclick="toggleSearchBar()" title="關鍵字搜尋課程影片" class="flex items-center justify-center text-blue-500 bg-blue-50 hover:bg-blue-100 w-10 h-10 rounded-full cursor-pointer transition-all duration-200 active:scale-90 focus:outline-none">
+                <i data-lucide="search" class="w-5 h-5"></i>
+            </button>
+
+            <!-- 系統關閉退出按鈕 (Power Off 關機鍵) -->
             <button onclick="triggerShutdown()" title="安全關閉並返回首頁" class="flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 w-10 h-10 rounded-full cursor-pointer transition-all duration-200 active:scale-90 focus:outline-none">
                 <i data-lucide="power" class="w-5 h-5"></i>
             </button>
@@ -319,6 +338,15 @@
     </nav>
 
     <main class="max-w-4xl mx-auto p-4 space-y-4">
+        <!-- iOS 頂級質感模糊搜尋輸入欄 -->
+        <div id="searchBarWrapper" class="search-bar-expand">
+            <div class="relative flex items-center gap-2 bg-white/80 backdrop-blur-md border border-black/5 rounded-2xl p-2 pl-3 shadow-sm">
+                <i data-lucide="search" class="w-5 h-5 text-gray-400 flex-shrink-0"></i>
+                <input type="text" id="searchInput" oninput="handleSearchInput()" class="w-full bg-transparent text-sm text-gray-900 outline-none placeholder-gray-400" placeholder="搜尋課程標題、主課題、子課題或年級...">
+                <button onclick="clearSearch()" class="text-xs text-gray-400 hover:text-blue-500 font-medium px-2 py-1 transition-colors">清除</button>
+            </div>
+        </div>
+
         <div id="classFilter" class="capsule-container overflow-x-auto no-scrollbar">
             <button onclick="filterByClass('全部')" class="capsule-item active">全部年級</button>
             <button onclick="filterByClass('S3A')" class="capsule-item">S3A</button>
@@ -568,6 +596,39 @@
         }, 1200);
     }
 
+    // ==========================================
+    // 模糊關鍵字搜尋控制邏輯
+    // ==========================================
+    let isSearchActive = false;
+    let searchQuery = "";
+
+    function toggleSearchBar() {
+        const wrapper = document.getElementById('searchBarWrapper');
+        const input = document.getElementById('searchInput');
+        isSearchActive = !isSearchActive;
+        
+        if (isSearchActive) {
+            wrapper.classList.add('show');
+            setTimeout(() => input.focus(), 150);
+        } else {
+            wrapper.classList.remove('show');
+            clearSearch();
+        }
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('searchInput');
+        input.value = "";
+        searchQuery = "";
+        render();
+    }
+
+    function handleSearchInput() {
+        const input = document.getElementById('searchInput');
+        searchQuery = input.value.trim().toLowerCase();
+        render();
+    }
+
     // 🔗 雲端微服務 API 生產環境設定網址 (Web App URLs)
     const LOADER_URL = 'https://script.google.com/macros/s/AKfycbzUiNsuc9uW4-qXeP1TuPDkFldg6PMwyRPeHQBl5F2MksLiQqVc7UHcIaHSGNiSwufK/exec'; 
     const GUARD_URL = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec'; 
@@ -626,7 +687,7 @@
         
         if (cloudIcon && successIcon && failIcon && badgeBtn) {
             if (success) {
-                // 同步成功：漸變淡入顯示綠色 Tick 勾號
+                // 同步成功：漸變淡入顯示逆時針勾號
                 successIcon.style.opacity = '1';
                 successIcon.style.transform = 'scale(1)';
                 
@@ -906,9 +967,12 @@
         wrapper.classList.add('show');
     }
 
-    /* REBUILT CALENDAR ENGINE */
+    /* REBUILT CALENDAR ENGINE WITH SEARCH VISIBILITY HOOK */
     function render() {
-        const isTopicMode = selectedMainTopic !== "全部";
+        // 當搜尋關鍵字啟動時，自動隱藏日曆部分，以便提供直列式的全方位搜尋結果視野
+        const isSearching = searchQuery !== "";
+        const isTopicMode = selectedMainTopic !== "全部" || isSearching;
+
         document.getElementById('calendarSection').classList.toggle('hidden', isTopicMode);
         document.getElementById('listSection').className = isTopicMode ? 'md:col-span-5 space-y-4' : 'md:col-span-3 space-y-4';
 
@@ -960,15 +1024,29 @@
                 grid.appendChild(cell);
             }
         }
-        renderList(isTopicMode);
+        renderList(isTopicMode, isSearching);
     }
 
-    function renderList(isTopicMode) {
+    function renderList(isTopicMode, isSearching) {
         const list = document.getElementById('videoList');
         list.innerHTML = '';
         let vids = [];
 
-        if (isTopicMode) {
+        if (isSearching) {
+            // 模糊搜尋模式下：遍歷資料庫內所有影片項目，匹配年級、標題、主課題及子課題
+            vids = Object.values(recordingsData).flat().filter(v => {
+                const matchQuery = (
+                    v.title.toLowerCase().includes(searchQuery) ||
+                    v.mainTopic.toLowerCase().includes(searchQuery) ||
+                    v.subTopic.toLowerCase().includes(searchQuery) ||
+                    v.class.toLowerCase().includes(searchQuery)
+                );
+                const matchClass = selectedClass === "全部" || v.class.includes(selectedClass);
+                return matchQuery && matchClass;
+            });
+            vids.sort((a,b) => b.dateObj - a.dateObj);
+            document.getElementById('listTitle').innerText = `搜尋結果: "${searchQuery}"`;
+        } else if (isTopicMode) {
             // Topic Mode: Main Topic + Optional Sub Topic + Optional Year + Optional Class
             vids = Object.values(recordingsData).flat().filter(v => v.mainTopic === selectedMainTopic);
             if (selectedSubTopic !== "全部") vids = vids.filter(v => v.subTopic === selectedSubTopic);
