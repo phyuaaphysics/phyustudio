@@ -41,9 +41,9 @@
         .loading-bar-container {
             width: 80vw;
             max-width: 280px;
-            height: 2px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 4px;
+            height: 12px; /* 調整高度，與綠色膠囊 progress bar 高度契合 */
+            background: #E5E5EA; /* iOS 標準未加載灰色軌跡 */
+            border-radius: 9999px;
             overflow: hidden;
             display: none;
             z-index: 10;
@@ -52,7 +52,8 @@
         .loading-bar-progress {
             width: 0%;
             height: 100%;
-            background: #000000;
+            background: #81D8D0; /* 💎 完美升級：高飽和度 Tiffany Blue 色澤 💎 */
+            border-radius: 9999px;
             transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -171,7 +172,7 @@
             opacity: 0;
             transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
             
-            /* 💎 核心修改：為歡迎視窗全面載入 Apple 官方字型美學 💎 */
+            /* 💎 歡迎視窗全面載入 Apple 官方字型美學 💎 */
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
         }
 
@@ -264,11 +265,33 @@
             </button>
 
             <!-- 隱藏的內嵌進度條，啟動時浮現於按鈕下方 -->
-            <div id="loading-inline-container" class="w-full max-w-[270px] mt-6 opacity-0 transition-all duration-1000 hidden flex flex-col items-center">
-                <p id="status-text" class="text-[#1b365d]/60 font-normal tracking-[0.2em] text-[8px] sm:text-[9px] mb-3 transition-opacity duration-500">Initializing System</p>
+            <!-- 💎 核心修改：移除 mt-6，改用負 margin 及置中 translateY 來把整個過渡組件向上提升，使其完全居中 💎 -->
+            <div id="loading-inline-container" class="w-full max-w-[270px] -mt-10 opacity-0 transition-all duration-1000 hidden flex flex-col items-center translate-y-[-10px]">
+                
+                <!-- 💎 核心修改：旋轉器顏色完美更換為大氣優美的 Tiffany Blue (#81D8D0) 💎 -->
+                <div class="relative w-12 h-12 mb-4 animate-spin">
+                    <svg class="w-full h-full text-[#81D8D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="2" opacity="1.0" />
+                        <line x1="17" y1="7" x2="19.1" y2="4.9" opacity="0.87" />
+                        <line x1="19" y1="12" x2="22" y2="12" opacity="0.75" />
+                        <line x1="17" y1="17" x2="19.1" y2="19.1" opacity="0.62" />
+                        <line x1="12" y1="19" x2="12" y2="22" opacity="0.5" />
+                        <line x1="7" y1="17" x2="4.9" y2="19.1" opacity="0.37" />
+                        <line x1="5" y1="12" x2="2" y2="12" opacity="0.25" />
+                        <line x1="7" y1="7" x2="4.9" y2="4.9" opacity="0.12" />
+                    </svg>
+                </div>
+
+                <!-- 💎 標題「Loading...」微調為與圖片高度一致的優雅大氣字型 💎 -->
+                <p id="status-text" class="text-gray-900 font-bold tracking-wide text-sm sm:text-base mb-3 transition-opacity duration-300">Loading...</p>
+                
+                <!-- 💎 進度條軌跡顏色已在 CSS 樣式中切換為極致質感的 Tiffany Blue (#81D8D0) 💎 -->
                 <div class="loading-bar-container w-full" id="bar-container">
                     <div class="loading-bar-progress" id="bar-progress"></div>
                 </div>
+
+                <!-- 💎 全新加入：位於 Bar 下方的動態防焦慮、舒緩安撫細節載入提示文本 💎 -->
+                <p id="reassuring-text" class="text-gray-500 text-[10px] tracking-wide mt-3 h-8 text-center px-1 transition-opacity duration-300 opacity-0"></p>
             </div>
         </div>
     </div>
@@ -277,24 +300,27 @@
     <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-black/5 opacity-0 pointer-events-none">
         <div class="ios-glass-card w-[85%] max-w-[370px] rounded-[2.2rem] p-9 text-center flex flex-col items-center space-y-6 relative">
             
-            <!-- 狀態動態 Icon 容器 -->
-            <div id="modal-icon-container" class="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-black/5">
+            <!-- 狀態動態 Icon 容器 (尺寸放大以呼應更大字型) -->
+            <div id="modal-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-black/5">
                 <!-- 動態注入 -->
             </div>
             
             <div class="space-y-2 uppercase select-none">
-                <h3 id="modal-title" class="text-[14px] font-bold tracking-[0.15em] text-[#1b365d]">AUTHENTICATION STATUS</h3>
-                <p id="modal-subtext" class="text-[8px] font-semibold tracking-[0.25em] text-[#1b365d]/50 mt-1">Platform Notice</p>
+                <!-- 💎 標題尺寸放大為 20px 💎 -->
+                <h3 id="modal-title" class="text-[20px] font-bold tracking-[0.12em] text-[#1b365d]">WELCOME</h3>
+                <!-- 💎 副標題尺寸放大為 10px 💎 -->
+                <p id="modal-subtext" class="text-[10px] font-semibold tracking-[0.2em] text-[#1b365d]/50 mt-1">Platform Notice</p>
             </div>
 
-            <!-- 通知內文 -->
-            <p id="modal-message" class="text-xs font-medium tracking-[0.08em] text-[#2c2c2e] leading-relaxed px-2">
+            <!-- 通知內文 (💎 尺寸放大為 14px / text-sm 💎) -->
+            <p id="modal-message" class="text-sm font-medium tracking-[0.08em] text-[#2c2c2e] leading-relaxed px-2">
                 讀取中...
             </p>
 
+            <!-- 💎 按鈕高度增加、字型放大為 12px / text-xs 💎 -->
             <button 
                 onclick="confirmWelcomeRedirect()"
-                class="ios-btn w-full max-w-[210px] h-11 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase"
+                class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase"
             >
                 Confirm & Enter
             </button>
@@ -410,11 +436,11 @@
         // 載入提示音效
         function playLoadingTick(frequency = 600) {
             if (audioCtx.state === 'suspended') return;
-            const osc = audioCtx.createOscillator();
+            const osc = IP = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-            // 🛠️ 已修復：移除非法的中介變數，保證 Audio API 執行期零中斷 🛠️
+            // 已修復：移除非法的中介變數，保證 Audio API 執行期零中斷
             gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.03);
@@ -426,6 +452,46 @@
         let authResult = null; // null = 驗證中, true = 成功, false = 失敗
         let authErrorMessage = "";
         let guardTimeoutId = null;
+        let reassuringInterval = null;
+
+        // 💎 防焦慮動態載入小提示語句 💎
+        const reassuringMessages = [
+            "正在初始化 PH studio 安全沙盒模組...",
+            "正在與 Permissions 驗證主機進行安全校驗...",
+            "正在建立 SSL 雙向加密信道...",
+            "正在同步 Google 試算表學籍檔案...",
+            "正在解析熱力學、電磁學與波動模組...",
+            "正在載入高級 Canvas 物理軌跡渲染組件...",
+            "正在微調 iOS 系統級物理阻尼交互引擎...",
+            "安全憑證核發中，正在整理系統快取檔案..."
+        ];
+
+        // 啟動舒緩安撫文字動態循環
+        function startReassuringMessages() {
+            const reassuringText = document.getElementById('reassuring-text');
+            if (!reassuringText) return;
+            let index = 0;
+            reassuringText.innerText = reassuringMessages[0];
+            reassuringText.style.opacity = "0.7";
+            
+            reassuringInterval = setInterval(() => {
+                reassuringText.style.opacity = "0";
+                setTimeout(() => {
+                    index = (index + 1) % reassuringMessages.length;
+                    reassuringText.innerText = reassuringMessages[index];
+                    reassuringText.style.opacity = "0.7";
+                }, 300);
+            }, 1500);
+        }
+
+        // 停止舒緩安撫文字動態循環
+        function stopReassuringMessages() {
+            if (reassuringInterval) {
+                clearInterval(reassuringInterval);
+            }
+            const reassuringText = document.getElementById('reassuring-text');
+            if (reassuringText) reassuringText.style.opacity = "0";
+        }
 
         function handleLogin(event) {
             if (event) event.preventDefault();
@@ -499,7 +565,7 @@
                     
                     authResult = true; // 觸發進度條加速填滿
                 } else {
-                    // 驗證失敗：設定錯誤狀態 (準備在 100% 時觸發訪客探訪模式)
+                    // 驗證失敗：設定錯誤狀態 (但不回滾，準備在 100% 時觸發訪客探訪模式)
                     authErrorMessage = data.message || "帳號或密碼錯誤";
                     authResult = false; 
                 }
@@ -577,6 +643,9 @@
             }, 50);
 
             document.getElementById('bar-container').style.display = 'block';
+            
+            // 💎 啟動動態語句安撫系統 💎
+            startReassuringMessages();
         }
 
         // 動態進度條循環（成功與失敗皆會跑滿，隨後觸發 Welcome Modal 分流）
@@ -598,7 +667,7 @@
                     // 【不論驗證成敗，皆加速衝向 100% 準備導向 Welcome 視窗】
                     progressVal += Math.random() * 8 + 6;
                 } else {
-                    // 驗證中：模擬平滑加載，最多卡在 45%
+                    // 驗證中：模擬平滑加載，但最多卡在 45%
                     if (progressVal < 45) {
                         progressVal += Math.random() * 2.5 + 1.0;
                     }
@@ -609,6 +678,9 @@
                     progress.style.width = '100%';
                     formulaContainer.style.opacity = "0";
                     clearInterval(loadingInterval);
+                    
+                    // 💎 停止動態文字循環 💎
+                    stopReassuringMessages();
 
                     // 隱藏進度條，為彈出式歡迎視窗創造最乾淨的白色舞台
                     loadingInline.style.opacity = "0";
@@ -652,16 +724,19 @@
                 const classNo = sessionStorage.getItem('user_class_no') || "";
                 
                 // 動態排版呈现：班級、姓名、與身分角色 (採用 Apple 原生 UI 經典對齊風格)
-                modalIconContainer.innerHTML = '🛡️';
-                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-emerald-500/10 bg-emerald-50/20 text-emerald-600";
-                modalTitle.innerText = "ACCESS GRANTED";
-                modalTitle.className = "text-[14px] font-bold tracking-[0.15em] text-emerald-700";
-                modalSubtext.innerText = "AUTHENTICATION SUCCESS";
+                // 💎 使用打勾符號 (✓) 替代原本的盾牌，容器大小微調 💎
+                modalIconContainer.innerHTML = '✓';
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold shadow-sm border border-emerald-500/10 bg-emerald-50/20 text-emerald-600";
+                
+                // 💎 標題改為「WELCOME」，文字大小設為放大後的 20px 💎
+                modalTitle.innerText = "WELCOME";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-[#1b365d]"; // 統一使用經典 PH 藍色或綠色
+                modalSubtext.innerText = "ACCESS GRANTED";
                 
                 // 如果後端有提供真實姓名與班級資料，就完美呈現在卡片面板上
                 if (realName) {
                     modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>` +
-                                             `<div class="text-left bg-black/[0.02] border border-black/5 rounded-2xl p-4 space-y-2 mt-2 mb-2 text-[11px] tracking-wide text-[#2c2c2e]">` +
+                                             `<div class="text-left bg-black/[0.02] border border-black/5 rounded-2xl p-4 space-y-2 mt-2 mb-2 text-xs tracking-wide text-[#2c2c2e]">` +
                                              `<div>• 姓名：<strong>${realName}</strong></div>` +
                                              `<div>• 班級：<strong>${userClass ? userClass : "N/A"} (${classNo ? classNo : "N/A"} 號)</strong></div>` +
                                              `</div>` +
@@ -680,10 +755,12 @@
                 sessionStorage.setItem('user_class_no', 'N/A');
 
                 modalIconContainer.innerHTML = '👤';
-                modalIconContainer.className = "w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
-                modalTitle.innerText = "VISITOR ENTRANCE";
-                modalTitle.className = "text-[14px] font-bold tracking-[0.15em] text-amber-700";
-                modalSubtext.innerText = "VERIFICATION BYPASSED";
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
+                
+                // 💎 標題同樣使用大字型的「WELCOME」 💎
+                modalTitle.innerText = "WELCOME";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-amber-700";
+                modalSubtext.innerText = "VISITOR ENTRANCE";
                 modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>已為您自動切換以 <strong>訪客 (Visitor/Guest)</strong> 身分探訪系統。`;
                 playLoadingTick(400);
             }
