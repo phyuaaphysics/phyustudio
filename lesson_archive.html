@@ -31,8 +31,8 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            /* iOS 慢速阻尼減速與淡出動畫，呈現系統 OS 的絲滑質感 */
-            transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            /* iOS 慢速超質感阻尼減速與淡出動畫，呈現極佳的系統 OS 絲滑質感 */
+            transition: transform 2.6s cubic-bezier(0.1, 0.9, 0.15, 1), opacity 2.0s cubic-bezier(0.1, 0.9, 0.15, 1);
             transform: translateY(0);
             opacity: 1;
         }
@@ -256,11 +256,20 @@
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-8 h-8">
             <h1 class="font-bold text-[17px]">LESSON ARCHIVE</h1>
         </div>
-        <!-- 雲端同步按鈕 (一舊雲，內含淡出多重狀態圖標) -->
+        <!-- 雲端同步按鈕 (一舊雲，內含原生 SVG 淡出多重狀態圖標，完美避免 JS 重繪衝突) -->
         <button id="statusBadge" onclick="forceSync()" title="強制與雲端 Spreadsheet 資料庫同步" class="relative flex items-center justify-center text-blue-500 bg-blue-50 hover:bg-blue-100 w-10 h-10 rounded-full cursor-pointer transition-all duration-200 active:scale-90 focus:outline-none">
-            <i id="syncCloudIcon" data-lucide="cloud" class="w-5.5 h-5.5 absolute transition-all duration-300" style="opacity: 1; transform: scale(1);"></i>
-            <i id="syncSuccessIcon" data-lucide="check" class="w-5.5 h-5.5 absolute text-green-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;"></i>
-            <i id="syncFailIcon" data-lucide="x" class="w-5.5 h-5.5 absolute text-red-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;"></i>
+            <!-- 雲朵 SVG -->
+            <svg id="syncCloudIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute transition-all duration-300" style="opacity: 1; transform: scale(1);">
+                <path d="M17.5 19A3.5 3.5 0 0 0 21 15.5c0-2.79-2.54-4.5-5-4.5-.42-1.89-1.78-3.5-3.5-3.5a5.5 5.5 0 0 0-5.38 4.41c-2 .24-3.62 1.89-3.62 3.91a3.5 3.5 0 0 0 3.5 3.5Z"/>
+            </svg>
+            <!-- 成功勾號 (Tick) SVG -->
+            <svg id="syncSuccessIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute text-green-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;">
+                <path d="M20 6 9 17l-5-5"/>
+            </svg>
+            <!-- 失敗叉號 (X) SVG -->
+            <svg id="syncFailIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute text-red-500 transition-all duration-300" style="opacity: 0; transform: scale(0.5); pointer-events: none;">
+                <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
             <span id="userNameLabel" class="hidden">已同步</span>
         </button>
     </nav>
@@ -395,7 +404,7 @@
     let currentFilterLevel = 'main';
 
     // 執行優雅的 iOS 緩慢阻尼感向上推開並淡出過渡轉場
-    // 成功/自動登出均以此處理器呈現絲滑轉場質感
+    // 成功/自動登出均以此處理器呈現絲滑轉場質感 (設定 2.6 秒慢速阻尼)
     function dismissLoginOverlay() {
         const overlay = document.getElementById('loginOverlay');
         overlay.style.transform = 'translateY(-100vh)';
@@ -403,7 +412,7 @@
         overlay.style.pointerEvents = 'none';
         setTimeout(() => {
             overlay.style.display = 'none';
-        }, 1600); // 配合 CSS 中的 1.6s 阻尼轉換時長
+        }, 2600); // 配合 CSS 中的 2.6s 阻尼轉換時長
     }
 
     // 強制與雲端 Spreadsheet 重新同步載入 (force = true)
@@ -561,9 +570,12 @@
                 if (!force && webVerVal && cachedVerVal === webVerVal && cachedData) {
                     try {
                         recordingsData = JSON.parse(cachedData);
-                        // 還原 JSON 還原後的 Date 型態物件
+                        // 還原 JSON 還原後的 Date 型態物件 (採用本地時區 T00:00:00 防止時區偏移)
                         Object.values(recordingsData).flat().forEach(v => {
-                            if (v.dateObj) v.dateObj = new Date(v.dateObj);
+                            if (v.dateObj) {
+                                const dateStr = typeof v.dateObj === 'string' ? v.dateObj.split('T')[0] : v.dateObj;
+                                v.dateObj = new Date(dateStr + 'T00:00:00');
+                            }
                         });
                         console.log("⚡ [快取命中] 偵測到 Spreadsheet 版本無分別，成功調動 Local Storage 加快載入：" + webVerVal);
                     } catch (cacheErr) {
@@ -859,7 +871,6 @@
         render(); 
     }
 
-    // 課題篩選
     // 課題篩選
     function filterByTopic(t) {
         if (t === '全部') { 
