@@ -314,13 +314,23 @@
                 讀取中...
             </p>
 
-            <!-- 💎 按鈕高度增加、字型放大為 12px / text-xs 💎 -->
-            <button 
-                onclick="confirmWelcomeRedirect()"
-                class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase"
-            >
-                Confirm & Enter
-            </button>
+            <!-- 💎 核心修改：優化按鈕容器結構以容納雙按鈕或單按鈕排列 💎 -->
+            <div id="modal-actions" class="w-full flex flex-col items-center space-y-3">
+                <button 
+                    id="modal-primary-btn"
+                    onclick="confirmWelcomeRedirect()"
+                    class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase"
+                >
+                    Confirm & Enter
+                </button>
+                <button 
+                    id="modal-secondary-btn"
+                    onclick="reloginWelcome()"
+                    class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase hidden"
+                >
+                    Try Again
+                </button>
+            </div>
         </div>
     </div>
 
@@ -631,14 +641,6 @@
             launchBtn.style.pointerEvents = "none";
             launchBtn.disabled = true;
 
-            // 進度條與狀態文字浮現
-            statusText.innerText = "Connecting to Secure Guard...";
-            loadingInline.classList.remove('hidden');
-            setTimeout(() => {
-                loadingInline.style.opacity = "1";
-                loadingInline.style.transform = "translateY(-40px)";
-            }, 50);
-
             document.getElementById('bar-container').style.display = 'block';
             
             // 💎 啟動動態語句安撫系統 💎
@@ -652,6 +654,11 @@
             const formulaContainer = document.getElementById('formula-container');
             const loadingInline = document.getElementById('loading-inline-container');
             const landing = document.getElementById('landing-screen');
+
+            // 確保每次重登前置啟動時，進度條容器可視、透明度為 1 且重設寬度
+            loadingInline.classList.remove('hidden');
+            loadingInline.style.opacity = "1";
+            loadingInline.style.transform = "translateY(-40px)";
 
             progressVal = 0;
             const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
@@ -713,6 +720,8 @@
             const modalTitle = document.getElementById('modal-title');
             const modalSubtext = document.getElementById('modal-subtext');
             const modalMessage = document.getElementById('modal-message');
+            const primaryBtn = document.getElementById('modal-primary-btn');
+            const secondaryBtn = document.getElementById('modal-secondary-btn');
 
             if (authResult === true) {
                 // 🟢 驗證成功分支
@@ -731,6 +740,11 @@
                 modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-[#1b365d]"; // 統一使用經典 PH 藍色或綠色
                 modalSubtext.innerText = "ACCESS GRANTED";
                 
+                // 💎 成功時只保留一個進入按鈕 💎
+                primaryBtn.innerText = "Confirm & Enter";
+                primaryBtn.classList.remove('hidden');
+                secondaryBtn.classList.add('hidden');
+
                 // 如果後端有提供真實姓名與班級資料，就完美呈現在卡片面板上
                 if (realName) {
                     modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>` +
@@ -759,7 +773,14 @@
                 modalTitle.innerText = "WELCOME";
                 modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-amber-700";
                 modalSubtext.innerText = "VISITOR ENTRANCE";
-                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>已為您自動切換以 <strong>訪客 (Visitor/Guest)</strong> 身分探訪系統。`;
+                
+                // 💎 失敗時提供雙按鈕：繼續進入（訪客）或是重新登入 💎
+                primaryBtn.innerText = "Enter as Visitor";
+                primaryBtn.classList.remove('hidden');
+                secondaryBtn.innerText = "Try Again";
+                secondaryBtn.classList.remove('hidden');
+
+                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>您可以選擇以 <strong>訪客</strong> 身份探訪系統，或是返回重新登入。`;
                 playLoadingTick(400);
             }
 
@@ -773,7 +794,7 @@
             modalCard.classList.add('active');
         }
 
-        // 💎 修改：點擊 Modal 的確認按鈕時，讓背景公式與彈窗同步優雅淡出 💎
+        // 點擊 Modal 的確認按鈕，流暢跳轉 (iOS Damped Scale-down Out 特效)
         function confirmWelcomeRedirect() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
@@ -801,6 +822,94 @@
                     window.location.assign(TARGET_URL);
                 }
             }, 550);
+        }
+
+        // 💎 核心修改：點擊 Try Again 按鈕時，觸發 iOS 阻尼回彈退場，並將介面無縫重設回登入表單狀態 💎
+        function reloginWelcome() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.ios-glass-card');
+            
+            playLoadingTick(900);
+            
+            // 卡片阻尼縮小退場動畫
+            modalCard.style.transform = "scale(0.95)";
+            modalCard.style.opacity = "0";
+            modal.classList.remove('active');
+            modal.style.opacity = "0";
+            
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none');
+                // 呼叫重置回滾程序，顯示具體錯誤訊息
+                rollbackSystem(authErrorMessage || "帳號或密碼錯誤");
+            }, 550);
+        }
+
+        // 💎 核心修改：完美還原磨砂玻璃卡片與輸入欄位的 iOS 阻尼回滾與重置程序 💎
+        function rollbackSystem(errorMessage) {
+            const landing = document.getElementById('landing-screen');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const errorMsg = document.getElementById('error-msg');
+            const launchBtn = document.getElementById('launch-btn');
+
+            // 1. 平滑還原為資料庫背景圖片與 Tiffany Blue 綠色基底
+            document.body.style.backgroundColor = "#81D8D0";
+            if (currentBgUrl) {
+                document.body.style.backgroundImage = `url('${currentBgUrl}')`;
+            }
+
+            // 2. 恢復公式飄移與容器透明度
+            if (formulaContainer) {
+                formulaContainer.style.opacity = "1";
+            }
+
+            // 3. 還原磨砂玻璃卡片本體樣式
+            landing.style.background = "rgba(255, 255, 255, 0.45)";
+            landing.style.borderColor = "rgba(255, 255, 255, 0.4)";
+            landing.style.boxShadow = "0 30px 70px rgba(0, 0, 0, 0.12)";
+            landing.style.backdropFilter = "blur(25px)";
+            landing.style.webkitBackdropFilter = "blur(25px)";
+            landing.style.transform = "translateY(0px)";
+            landing.style.opacity = "1";
+
+            // 4. 還原卡片內部的各項視差元素與功能可用狀態 (保留 username，僅清除並解鎖 password)
+            document.getElementById('item-icon').style.transform = "translateY(0px)";
+            document.getElementById('item-icon').style.opacity = "1";
+
+            document.getElementById('item-title-1').style.transform = "translateY(0px)";
+            document.getElementById('item-title-1').style.opacity = "1";
+
+            document.getElementById('item-title-2').style.transform = "translateY(0px)";
+            document.getElementById('item-title-2').style.opacity = "1";
+
+            const itemForm = document.getElementById('item-form');
+            itemForm.style.transform = "translateY(0px)";
+            itemForm.style.opacity = "1";
+            
+            document.getElementById('username').disabled = false;
+            document.getElementById('password').disabled = false;
+            document.getElementById('password').value = ""; // 清空密碼欄位
+
+            launchBtn.style.transform = "translateY(0px)";
+            launchBtn.style.opacity = "1";
+            launchBtn.style.pointerEvents = "auto";
+            launchBtn.disabled = false;
+            launchBtn.innerText = "Login & Browse";
+
+            // 5. 漸隱內嵌式進度條
+            loadingInline.style.opacity = "0";
+            loadingInline.style.transform = "translateY(0px)";
+            setTimeout(() => {
+                loadingInline.classList.add('hidden');
+                document.getElementById('bar-progress').style.width = "0%";
+            }, 1000);
+
+            // 6. 輸出錯誤訊息，並播放警告音效
+            if (errorMessage) {
+                errorMsg.innerText = errorMessage;
+                errorMsg.style.opacity = "1";
+            }
+            playLoadingTick(300);
         }
     </script>
 </body>
