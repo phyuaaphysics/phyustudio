@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -588,29 +589,62 @@
                 let tokenValid = false;
                 
                 if (savedToken) {
-                    tokenValid = await fetchHwDataWithToken(savedToken);
-                }
-
-                if (tokenValid) {
-                    // 自動登入成功：為了與子系統及 Launch 頁面完全對齊，統一寫入 jwt_token 作為主要憑證
-                    localStorage.setItem('jwt_token', savedToken);
-                    localStorage.setItem('user_role', currentUserGrade);
+                    // 💡 UI 改善點：當有備用 Token 時，立即拉起 iOS 驗證懸浮窗，讓用戶看見正在載入與驗證憑證
+                    const authOverlay = document.getElementById('auth-overlay');
+                    const authIcon = document.getElementById('auth-main-icon');
+                    const authIconContainer = document.getElementById('auth-icon-container');
+                    const authTitle = document.getElementById('auth-title');
+                    const authSubtitle = document.getElementById('auth-subtitle');
                     
-                    // 清除網址列中的 Token 參數（防止重新整理時或分享網址時洩漏憑證）
-                    if (urlParams.has('token') || urlParams.has('jwt')) {
-                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                        window.history.replaceState({path: cleanUrl}, '', cleanUrl);
-                    }
+                    authIcon.className = "fas fa-spinner auth-loading-icon";
+                    authIconContainer.className = "w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500";
+                    authTitle.innerText = "讀取憑證中";
+                    authSubtitle.innerText = "Securing Connection";
+                    authOverlay.style.display = 'flex';
+                    setTimeout(() => authOverlay.classList.add('show'), 10);
 
-                    // 動態點亮等級徽章並進入資料夾頁面
-                    const badge = document.getElementById('user-grade-display');
-                    badge.innerText = currentUserGrade;
-                    badge.style.display = 'block';
-                    openHomeFolder();
-                } else {
-                    // 自動登入失敗或不存在，清除無效 Token
-                    localStorage.removeItem('jwt_token');
-                    localStorage.removeItem('lumina_token');
+                    // 同步執行後端驗證
+                    tokenValid = await fetchHwDataWithToken(savedToken);
+
+                    if (tokenValid) {
+                        // 💡 UI 改善點：加入 1.2 秒細緻定時延遲，使用戶能清楚閱覽 Cover Page，帶出極緻流暢的動畫感受
+                        await new Promise(resolve => setTimeout(resolve, 1200));
+
+                        // 自動登入成功：為了與子系統及 Launch 頁面完全對齊，統一寫入 jwt_token 作為主要憑證
+                        localStorage.setItem('jwt_token', savedToken);
+                        localStorage.setItem('user_role', currentUserGrade);
+                        
+                        // 清除網址列中的 Token 參數（防止重新整理時或分享網址時洩漏憑證）
+                        if (urlParams.has('token') || urlParams.has('jwt')) {
+                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+                        }
+
+                        authIcon.className = "fas fa-check";
+                        authIconContainer.classList.add('auth-success-icon', 'shadow-xl');
+                        authTitle.innerText = "自動登入成功";
+                        authSubtitle.innerText = `歡迎回來 (${currentUserGrade})`;
+
+                        // 動態點亮等級徽章並進入資料夾頁面
+                        const badge = document.getElementById('user-grade-display');
+                        badge.innerText = currentUserGrade;
+                        badge.style.display = 'block';
+
+                        setTimeout(() => {
+                            authOverlay.classList.remove('show');
+                            setTimeout(() => { 
+                                authOverlay.style.display = 'none';
+                                openHomeFolder(); 
+                            }, 600);
+                        }, 1200);
+
+                    } else {
+                        // Token 驗證失敗，迅速收起並清理快取
+                        authOverlay.classList.remove('show');
+                        setTimeout(() => { authOverlay.style.display = 'none'; }, 600);
+                        localStorage.removeItem('jwt_token');
+                        localStorage.removeItem('lumina_token');
+                    }
                 }
 
                 if (isManual) {
@@ -1051,3 +1085,6 @@
     </script>
 </body>
 </html>
+
+
+
