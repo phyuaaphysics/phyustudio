@@ -1,29 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PH studio | Launch</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
-    <link rel="shortcut icon" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    <link class="favicon" rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    <link class="shortcut icon" rel="shortcut icon" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#81D8D0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PH studio">
-    <link rel="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
+    <link class="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
     
-    <!-- External Manifest Link -->
-    <link rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
+    <!-- 外部 Manifest 連結 -->
+    <link class="manifest" rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -35,15 +35,15 @@
         }
 
         .fade-in {
-            animation: fadeIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .loading-bar-container {
             width: 80vw;
             max-width: 280px;
-            height: 2px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 4px;
+            height: 12px; /* 調整高度，與綠色膠囊 progress bar 高度契合 */
+            background: #E5E5EA; /* iOS 標準未加載灰色軌跡 */
+            border-radius: 9999px;
             overflow: hidden;
             display: none;
             z-index: 10;
@@ -52,17 +52,22 @@
         .loading-bar-progress {
             width: 0%;
             height: 100%;
-            background: #000000;
+            background: #81D8D0; /* 💎 完美升級：高飽和度 Tiffany Blue 色澤 💎 */
+            border-radius: 9999px;
             transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
+            /* 預設為純色背景，隨後經由 Google 試算表動態載入背景圖 */
             background-color: #81D8D0;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
             color: #000000;
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
             overflow: hidden;
-            transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 1.2s cubic-bezier(0.25, 1, 0.2, 1), background-color 1.2s cubic-bezier(0.25, 1, 0.2, 1);
             touch-action: manipulation;
         }
 
@@ -71,33 +76,51 @@
             z-index: 10;
         }
 
-        .btn-modern {
-            font-weight: 500;
-            letter-spacing: 0.15em;
-            position: relative;
-            background: transparent;
-            color: #000000;
-            border: 1.5px solid #000000;
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            cursor: pointer;
-            outline: none;
-            z-index: 10;
+        /* 磨砂玻璃卡片樣式 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        transform 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        background 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        border-color 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        box-shadow 1.2s cubic-bezier(0.25, 1, 0.2, 1),
+                        backdrop-filter 1.2s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        /* 視差阻尼位移動畫 */
+        .parallax-item {
+            transition: transform 1.2s cubic-bezier(0.25, 1, 0.2, 1), opacity 1.0s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        /* 藥丸型輸入框 */
+        .input-pill {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        .input-pill:focus {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 藥丸型登入按鈕 */
+        .btn-pill {
+            background: rgba(226, 232, 240, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
             -webkit-tap-highlight-color: transparent;
         }
-
-        @media (min-width: 1024px) {
-            .btn-modern:hover {
-                background: #000000;
-                color: #ffffff;
-                letter-spacing: 0.2em;
-                padding-left: 4rem;
-                padding-right: 4rem;
-            }
+        .btn-pill:hover {
+            background: #1b365d;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(27, 54, 93, 0.2);
         }
-
-        .btn-modern:active {
-            transform: scale(0.96);
-            background: rgba(0, 0, 0, 0.1);
+        .btn-pill:active {
+            transform: scale(0.97);
         }
 
         #formula-container {
@@ -105,6 +128,8 @@
             top: 0;left: 0;width: 100%;height: 100%;
             pointer-events: none;
             z-index: 0;
+            opacity: 1; 
+            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.2, 1);
         }
 
         .formula {
@@ -115,55 +140,211 @@
             color: #1e293b;
             opacity: 0;
             white-space: nowrap;
-            text-shadow: 0 0 15px rgba(255,255,255,0.8);
+            text-shadow: 0 0 15px rgba(255,255,255,0.85);
             will-change: transform, opacity;
+        }
+
+        /* ==========================================================================
+           💎 iOS 頂級白淨高透磨砂玻璃彈窗樣式與非線性轉場動畫 💎
+           ========================================================================== */
+        .ios-overlay-blur {
+            background: rgba(255, 255, 255, 0.01);
+            /* 💎 核心修改：移除遮罩層的模糊濾鏡與暗色，讓背景 100% 完全透亮 💎 */
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ios-glass-card {
+            background: rgba(255, 255, 255, 0.72) !important;
+            backdrop-filter: blur(40px) saturate(190%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(190%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.01),
+                0 30px 70px rgba(27, 54, 93, 0.07),
+                inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+            transform: scale(0.85) translateY(30px);
+            opacity: 0;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            
+            /* 💎 歡迎視窗全面載入 Apple 官方字型美學 💎 */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        }
+
+        .ios-glass-card.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* iOS 微震動感按鈕 */
+        .ios-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            color: #1c1c1e;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-btn:hover {
+            background: #1c1c1e;
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(28, 28, 30, 0.15);
+            transform: translateY(-1px);
+        }
+        .ios-btn:active {
+            transform: scale(0.96) translateY(0);
+            background: rgba(28, 28, 30, 0.9);
+            color: #ffffff;
         }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen m-0">
 
-    <div id="formula-container" class="hidden"></div>
+    <!-- 背景公式動畫容器 -->
+    <div id="formula-container"></div>
 
-    <div id="landing-screen" class="flex flex-col items-center text-center space-y-10 sm:space-y-14 px-6 relative z-10 w-full max-w-lg">
-        <div class="fade-in">
-            <!-- App Icon from GitHub -->
+    <!-- 登入卡片主畫面 -->
+    <div id="landing-screen" class="fade-in glass-card w-[90%] max-w-[450px] rounded-[2.5rem] p-10 sm:p-12 flex flex-col items-center text-center space-y-8 relative z-10">
+        
+        <!-- App Icon (完美正方形外框) -->
+        <div class="fade-in parallax-item" id="item-icon">
             <img 
                 src="https://phyuaaphysics.github.io/phyustudio/appicon.png" 
                 alt="PH studio Icon" 
-                class="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-[2rem] sm:rounded-[2.2rem] shadow-2xl transition-all duration-700"
+                class="w-20 h-20 sm:w-24 sm:h-24 rounded-none shadow-lg transition-all duration-700 mx-auto border border-white/20"
                 onerror="this.src='https://via.placeholder.com/512x512?text=PH+studio'"
             >
         </div>
         
-        <div class="fade-in" style="animation-delay: 0.2s;">
-            <p class="text-black/60 text-[9px] sm:text-[10px] md:text-xs font-semibold tracking-[0.3em] sm:tracking-[0.5em] uppercase">
-                Self Directed Learning Platform
+        <!-- 奢華 Cinzel 字型標題 -->
+        <div class="space-y-1 w-full px-2 uppercase select-none" style="font-family: 'Cinzel', 'Playfair Display', serif;">
+            <h1 class="text-[#1b365d]">
+                <span class="block text-2xl sm:text-3xl font-semibold tracking-[0.15em] leading-none parallax-item" id="item-title-1">Self-Directed</span>
+                <span class="block text-xs sm:text-sm font-medium tracking-[0.25em] mt-3 opacity-80 leading-none parallax-item" id="item-title-2">Learning Platform</span>
+            </h1>
+        </div>
+
+        <!-- 登入表單 -->
+        <div class="w-full flex flex-col items-center space-y-3 pt-2 parallax-item" id="item-form">
+            <input 
+                type="text" 
+                id="username" 
+                placeholder="USERNAME" 
+                onkeydown="if(event.key === 'Enter') handleLogin(event)"
+                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[10px] tracking-[0.25em] font-medium"
+                autocomplete="off"
+            >
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="PASSWORD" 
+                onkeydown="if(event.key === 'Enter') handleLogin(event)"
+                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[#1b365d] text-center text-[10px] tracking-[0.25em] font-medium"
+            >
+            
+            <!-- 錯誤訊息提示區 -->
+            <p id="error-msg" class="text-red-700 text-[9px] tracking-widest min-h-[14px] opacity-0 transition-opacity duration-300">
+                帳號或密碼錯誤
             </p>
         </div>
 
-        <div class="fade-in w-full flex justify-center" style="animation-delay: 0.4s;">
+        <!-- 登入按鈕區與內嵌式進度條 -->
+        <div class="w-full flex flex-col items-center parallax-item" id="item-button">
             <button 
                 id="launch-btn"
                 onmouseenter="playHoverSound()"
-                onclick="launchSystem()"
-                class="btn-modern px-8 py-3 sm:px-10 sm:py-3.5 text-[10px] sm:text-[11px] md:text-xs uppercase w-full sm:w-auto"
+                onclick="handleLogin(event)"
+                class="btn-pill w-full max-w-[270px] h-10 rounded-full text-[#1b365d] text-[10px] font-semibold tracking-[0.25em] uppercase transition-all duration-500"
             >
-                Launch System
+                Login & Browse
             </button>
+
+            <!-- 隱藏的內嵌進度條，啟動時浮現於按鈕下方 -->
+            <!-- 💎 核心修改：移除 mt-6，改用負 margin 及置中 translateY 來把整個過渡組件向上提升，使其完全居中 💎 -->
+            <div id="loading-inline-container" class="w-full max-w-[270px] -mt-10 opacity-0 transition-all duration-1000 hidden flex flex-col items-center translate-y-[-10px]">
+                
+                <!-- 💎 核心修改：旋轉器顏色完美更換為大氣優美的 Tiffany Blue (#81D8D0) 💎 -->
+                <div class="relative w-12 h-12 mb-4 animate-spin">
+                    <svg class="w-full h-full text-[#81D8D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="2" opacity="1.0" />
+                        <line x1="17" y1="7" x2="19.1" y2="4.9" opacity="0.87" />
+                        <line x1="19" y1="12" x2="22" y2="12" opacity="0.75" />
+                        <line x1="17" y1="17" x2="19.1" y2="19.1" opacity="0.62" />
+                        <line x1="12" y1="19" x2="12" y2="22" opacity="0.5" />
+                        <line x1="7" y1="17" x2="4.9" y2="19.1" opacity="0.37" />
+                        <line x1="5" y1="12" x2="2" y2="12" opacity="0.25" />
+                        <line x1="7" y1="7" x2="4.9" y2="4.9" opacity="0.12" />
+                    </svg>
+                </div>
+
+                <!-- 💎 標題「Loading...」微調為與圖片高度一致的優雅大氣字型 💎 -->
+                <p id="status-text" class="text-gray-900 font-bold tracking-wide text-sm sm:text-base mb-3 transition-opacity duration-300">Loading...</p>
+                
+                <!-- 💎 進度條軌跡顏色已在 CSS 樣式中切換為極致質感的 Tiffany Blue (#81D8D0) 💎 -->
+                <div class="loading-bar-container w-full" id="bar-container">
+                    <div class="loading-bar-progress" id="bar-progress"></div>
+                </div>
+
+                <!-- 💎 全新加入：位於 Bar 下方的動態防焦慮、舒緩安撫細節載入提示文本 💎 -->
+                <p id="reassuring-text" class="text-gray-500 text-[10px] tracking-wide mt-3 h-8 text-center px-1 transition-opacity duration-300 opacity-0"></p>
+            </div>
         </div>
     </div>
 
-    <div id="loading-screen" class="hidden flex flex-col items-center space-y-8 sm:space-y-10 relative z-10 w-full px-6">
-        <div class="text-center w-full max-w-[280px]">
-            <p id="status-text" class="text-slate-500 font-normal tracking-[0.2em] text-[8px] sm:text-[9px] mb-6 sm:mb-8 transition-opacity duration-500">Initializing System</p>
-            <div class="loading-bar-container mx-auto" id="bar-container">
-                <div class="loading-bar-progress" id="bar-progress"></div>
+    <!-- 💎 歡迎與驗證結果通知彈出式視窗 (Welcome Modal - High-end iOS style white glass texture) 💎 -->
+    <!-- 💎 核心修改：將 bg-black/5 改為 bg-transparent，去除遮罩背景的磨砂模糊，使後方公式 100% 清晰可見 💎 -->
+    <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-transparent opacity-0 pointer-events-none">
+        <div class="ios-glass-card w-[85%] max-w-[370px] rounded-[2.2rem] p-9 text-center flex flex-col items-center space-y-6 relative">
+            
+            <!-- 狀態動態 Icon 容器 (尺寸放大以呼應更大字型) -->
+            <div id="modal-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-black/5">
+                <!-- 動態注入 -->
+            </div>
+            
+            <div class="space-y-2 uppercase select-none">
+                <!-- 💎 標題尺寸放大為 20px 💎 -->
+                <h3 id="modal-title" class="text-[20px] font-bold tracking-[0.12em] text-[#1b365d]">WELCOME</h3>
+                <!-- 💎 副標題尺寸放大為 10px 💎 -->
+                <p id="modal-subtext" class="text-[10px] font-semibold tracking-[0.2em] text-[#1b365d]/50 mt-1">Platform Notice</p>
+            </div>
+
+            <!-- 通知內文 (💎 尺寸放大為 14px / text-sm 💎) -->
+            <p id="modal-message" class="text-sm font-medium tracking-[0.08em] text-[#2c2c2e] leading-relaxed px-2">
+                讀取中...
+            </p>
+
+            <!-- 💎 核心修改：優化按鈕容器結構以容納雙按鈕或單按鈕排列 💎 -->
+            <div id="modal-actions" class="w-full flex flex-col items-center space-y-3">
+                <button 
+                    id="modal-primary-btn"
+                    onclick="confirmWelcomeRedirect()"
+                    class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase"
+                >
+                    Confirm & Enter
+                </button>
+                <button 
+                    id="modal-secondary-btn"
+                    onclick="reloginWelcome()"
+                    class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase hidden"
+                >
+                    Try Again
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // PWA Service Worker Registration
+        let formulaInterval;
+        let currentBgUrl = ""; // 用於保存並在驗證失敗時還原的資料庫背景圖片
+
+        // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 (對接第 10 版正式端點) 🔗
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
+        
+        // 🔗 轉跳目標主網頁明文網址 🔗
+        const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
+
+        // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('https://phyuaaphysics.github.io/phyustudio/sw.js')
@@ -171,6 +352,63 @@
                     .catch(err => console.log('SW registration failed', err));
             });
         }
+
+        // 從試算表 ELEMENTS 分頁載入 LOGIN_BG 背景圖 (改用 JSONP 方式避免 Sandbox Iframe 中的 CORS 阻擋)
+        function loadBackgroundFromSheet() {
+            window.handleSheetData = function(data) {
+                try {
+                    if (data && data.table && data.table.rows) {
+                        for (let row of data.table.rows) {
+                            if (row.c && row.c.length >= 2) {
+                                const colA = row.c[0] ? String(row.c[0].v).trim() : "";
+                                const colB = row.c[1] ? String(row.c[1].v).trim() : "";
+                                if (colA === 'LOGIN_BG' && colB) {
+                                    currentBgUrl = colB; // 保存背景網址
+                                    document.body.style.backgroundImage = `url('${colB}')`;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("解析試算表背景 JSONP 失敗:", e);
+                } finally {
+                    const s = document.getElementById('sheet-bg-loader');
+                    if (s) s.remove();
+                    delete window.handleSheetData;
+                }
+            };
+
+            const script = document.createElement('script');
+            script.id = 'sheet-bg-loader';
+            script.src = "https://docs.google.com/spreadsheets/d/10YR8xKXvlTu1ccDYCMbxYOYjJGW-GxgGfvRpxEOtmYE/gviz/tq?tqx=responseHandler:handleSheetData&sheet=ELEMENTS";
+            script.onerror = function() {
+                console.error("載入試算表背景 JSONP 失敗，維持預設背景色");
+                const s = document.getElementById('sheet-bg-loader');
+                if (s) s.remove();
+                delete window.handleSheetData;
+            };
+            document.head.appendChild(script);
+        }
+
+        // 頁面加載時啟動背景公式與試算表背景圖片讀取
+        window.addEventListener('DOMContentLoaded', () => {
+            formulaInterval = setInterval(() => createFormula(), 250);
+            loadBackgroundFromSheet();
+
+            // 💎 核心修改：當頁面重新加載時，自動解析網址帶來的錯誤參數並精準顯示 💎
+            const urlParams = new URLSearchParams(window.location.search);
+            const errParam = urlParams.get('error');
+            if (errParam) {
+                const errorMsg = document.getElementById('error-msg');
+                if (errorMsg) {
+                    errorMsg.innerText = decodeURIComponent(errParam);
+                    errorMsg.style.opacity = '1';
+                }
+                // 清除網址列中的 error 參數，保持使用者介面清爽美觀
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
@@ -183,8 +421,10 @@
             "τ = Fr sinθ", "φ = BA cosθ", "ε = -N(∆φ/∆t)"
         ];
 
+        // 建立飄移公式
         function createFormula() {
             const container = document.getElementById('formula-container');
+            if (!container) return;
             const formula = document.createElement('div');
             formula.className = 'formula';
             formula.innerText = physicsFormulas[Math.floor(Math.random() * physicsFormulas.length)];
@@ -202,6 +442,7 @@
             setTimeout(() => formula.remove(), duration * 1000);
         }
 
+        // 滑鼠懸停音效
         function playHoverSound() {
             if (audioCtx.state === 'suspended') return;
             const osc = audioCtx.createOscillator();
@@ -212,61 +453,481 @@
             osc.start(); osc.stop(audioCtx.currentTime + 0.05);
         }
 
+        // 載入提示音效
         function playLoadingTick(frequency = 600) {
             if (audioCtx.state === 'suspended') return;
-            const osc = audioCtx.createOscillator();
+            const osc = IP = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            // 已修復：移除非法的中介變數，保證 Audio API 執行期零中斷
             gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.03);
         }
 
-        function launchSystem() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        // 登入驗證與分流控管邏輯
+        let loadingInterval = null;
+        let progressVal = 0;
+        let authResult = null; // null = 驗證中, true = 成功, false = 失敗
+        let authErrorMessage = "";
+        let guardTimeoutId = null;
+        let reassuringInterval = null;
+
+        // 💎 防焦慮動態載入小提示語句 💎
+        const reassuringMessages = [
+            "正在初始化 PH studio 安全沙盒模組...",
+            "正在與 Permissions 驗證主機進行安全校驗...",
+            "正在建立 SSL 雙向加密信道...",
+            "正在同步 Google 試算表學籍檔案...",
+            "正在解析熱力學、電磁學與波動模組...",
+            "正在載入高級 Canvas 物理軌跡渲染組件...",
+            "正在微調 iOS 系統級物理阻尼交互引擎...",
+            "安全憑證核發中，正在整理系統快取檔案..."
+        ];
+
+        // 啟動舒緩安撫文字動態循環
+        function startReassuringMessages() {
+            const reassuringText = document.getElementById('reassuring-text');
+            if (!reassuringText) return;
+            let index = 0;
+            reassuringText.innerText = reassuringMessages[0];
+            reassuringText.style.opacity = "0.7";
             
+            reassuringInterval = setInterval(() => {
+                reassuringText.style.opacity = "0";
+                setTimeout(() => {
+                    index = (index + 1) % reassuringMessages.length;
+                    reassuringText.innerText = reassuringMessages[index];
+                    reassuringText.style.opacity = "0.7";
+                }, 300);
+            }, 1500);
+        }
+
+        // 停止舒緩安撫文字動態循環
+        function stopReassuringMessages() {
+            if (reassuringInterval) {
+                clearInterval(reassuringInterval);
+            }
+            const reassuringText = document.getElementById('reassuring-text');
+            if (reassuringText) reassuringText.style.opacity = "0";
+        }
+
+        function handleLogin(event) {
+            if (event) event.preventDefault();
+            
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const userVal = document.getElementById('username').value.trim();
+            const passVal = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            if (!userVal || !passVal) {
+                errorMsg.innerText = "請輸入帳號與密碼";
+                errorMsg.style.opacity = '1';
+                playLoadingTick(300);
+                return;
+            }
+
+            // 初始化驗證與動畫狀態
+            authResult = null;
+            authErrorMessage = "";
+
+            // 1. 不論對錯，立刻啟動過渡畫面與公式背景，極大化降低等待焦慮
+            startPreLaunch();
+            runLoadingLoop();
+
+            // 2. 🚀【標準明文 fetch POST 連線，無縫對接第 10 版後端】🚀
+            const controller = new AbortController();
+            guardTimeoutId = setTimeout(() => {
+                controller.abort();
+                if (authResult === null) {
+                    authErrorMessage = "認證中心伺服器連線超時";
+                    authResult = false;
+                }
+            }, 8000); // 8 秒超時
+
+            fetch(GAS_GUARD_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain" // text/plain 可避免 OPTIONS 預檢阻擋，在各網域最不易出錯
+                },
+                body: JSON.stringify({
+                    username: userVal,
+                    password: passVal
+                }),
+                signal: controller.signal
+            })
+            .then(response => {
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                if (!response.ok) {
+                    throw new Error("HTTP status " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // 驗證成功：快取 JWT 與 Role 到本地 (💎 升級儲存至 localStorage 💎)
+                    if (data.token) localStorage.setItem('jwt_token', data.token);
+                    if (data.role) localStorage.setItem('user_role', data.role);
+                    
+                    // 💎 新增：將使用者帳密之 Username 欄位儲存至 localStorage 💎
+                    localStorage.setItem('user_username', userVal);
+                    
+                    // 💎 核心修改：將身分標籤詳細欄位全面儲存至 localStorage 💎
+                    if (data.identity_tag) {
+                        localStorage.setItem('user_class', data.identity_tag.class || "");
+                        localStorage.setItem('user_class_no', data.identity_tag.class_no || "");
+                        localStorage.setItem('user_real_name', data.identity_tag.real_name || "");
+                    } else {
+                        localStorage.setItem('user_class', "");
+                        localStorage.setItem('user_class_no', "");
+                        localStorage.setItem('user_real_name', "");
+                    }
+                    
+                    authResult = true; // 觸發進度條加速填滿
+                } else {
+                    // 驗證失敗：設定錯誤狀態 (但不回滾，準備在 100% 時觸發訪客探訪模式)
+                    authErrorMessage = data.message || "帳號或密碼錯誤";
+                    authResult = false; 
+                }
+            })
+            .catch(err => {
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                console.error("連線到 Guard API 失敗:", err);
+                if (err.name === 'AbortError') {
+                    authErrorMessage = "認證中心伺服器連線超時";
+                } else {
+                    authErrorMessage = "認證中心伺服器連線異常";
+                }
+                authResult = false; // 異常也直接降級切換成訪客
+            });
+        }
+
+        // 啟動前置淡出轉場畫面
+        function startPreLaunch() {
             const landing = document.getElementById('landing-screen');
-            const loading = document.getElementById('loading-screen');
             const formulaContainer = document.getElementById('formula-container');
-            const progress = document.getElementById('bar-progress');
-            const barContainer = document.getElementById('bar-container');
+            const loadingInline = document.getElementById('loading-inline-container');
             const statusText = document.getElementById('status-text');
 
+            // 1. 背景平滑過渡至純白
+            document.body.style.backgroundImage = "none";
             document.body.style.backgroundColor = "#FFFFFF";
-            landing.style.opacity = '0';
-            landing.style.transform = 'translateY(-4px)';
 
-            setTimeout(() => {
-                landing.classList.add('hidden');
-                loading.classList.remove('hidden');
-                loading.classList.add('flex');
-                formulaContainer.classList.remove('hidden');
-                barContainer.style.display = 'block';
+            // 2. 公式保持高度飄移流動
+            formulaContainer.style.opacity = "1";
 
-                const formulaInterval = setInterval(() => createFormula(), 250);
-                let width = 0;
-                let messageIndex = 0;
-                const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
+            // 清除動畫干擾，確保強制進入淡出狀態
+            landing.style.animation = "none";
+            document.getElementById('item-icon').style.animation = "none";
+            document.getElementById('item-title-1').style.animation = "none";
+            document.getElementById('item-title-2').style.animation = "none";
+            document.getElementById('item-form').style.animation = "none";
+            document.getElementById('item-button').style.animation = "none";
 
-                const interval = setInterval(() => {
-                    if (width >= 100) {
-                        clearInterval(interval);
-                        clearInterval(formulaInterval);
-                        setTimeout(() => { window.location.href = 'home.html'; }, 500);
-                    } else {
-                        width += Math.random() * 2 + 0.5;
-                        if (width > 100) width = 100;
-                        progress.style.width = width + '%';
-                        const targetIdx = Math.min(Math.floor((width / 100) * statusMessages.length), statusMessages.length - 1);
-                        if (targetIdx !== messageIndex) {
-                            messageIndex = targetIdx;
-                            statusText.innerText = statusMessages[messageIndex];
-                            playLoadingTick(800 + (messageIndex * 50));
-                        }
+            // 磨砂卡片整體淡出
+            landing.style.background = "rgba(255, 255, 255, 0)";
+            landing.style.borderColor = "transparent";
+            landing.style.boxShadow = "none";
+            landing.style.backdropFilter = "none";
+            landing.style.webkitBackdropFilter = "none";
+            landing.style.transform = "translateY(-20px)";
+
+            // ICON、標題、欄位及按鈕同步完全淡出 (opacity: 0)
+            document.getElementById('item-icon').style.transform = "translateY(-40px)";
+            document.getElementById('item-icon').style.opacity = "0";
+
+            document.getElementById('item-title-1').style.transform = "translateY(-50px)";
+            document.getElementById('item-title-1').style.opacity = "0";
+
+            document.getElementById('item-title-2').style.transform = "translateY(-45px)";
+            document.getElementById('item-title-2').style.opacity = "0";
+
+            const itemForm = document.getElementById('item-form');
+            itemForm.style.transform = "translateY(-35px)";
+            itemForm.style.opacity = "0";
+            document.getElementById('username').disabled = true;
+            document.getElementById('password').disabled = true;
+
+            const launchBtn = document.getElementById('launch-btn');
+            launchBtn.style.transform = "translateY(-30px)";
+            launchBtn.style.opacity = "0";
+            launchBtn.style.pointerEvents = "none";
+            launchBtn.disabled = true;
+
+            document.getElementById('bar-container').style.display = 'block';
+            
+            // 💎 啟動動態語句安撫系統 💎
+            startReassuringMessages();
+        }
+
+        // 💎 動態進度條循環（成功與失敗皆會跑滿，並確保背景公式繼續正常浮動） 💎
+        function runLoadingLoop() {
+            const progress = document.getElementById('bar-progress');
+            const statusText = document.getElementById('status-text');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const landing = document.getElementById('landing-screen');
+
+            // 確保每次重登前置啟動時，進度條容器可視、透明度為 1 且重設寬度
+            loadingInline.classList.remove('hidden');
+            loadingInline.style.opacity = "1";
+            loadingInline.style.transform = "translateY(-40px)";
+
+            progressVal = 0;
+            const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
+            let messageIndex = 0;
+
+            if (loadingInterval) clearInterval(loadingInterval);
+
+            loadingInterval = setInterval(() => {
+                if (authResult !== null) {
+                    // 【不論驗證成敗，皆加速衝向 100% 準備導向 Welcome 視窗】
+                    progressVal += Math.random() * 8 + 6;
+                } else {
+                    // 驗證中：模擬平滑加載，但最多卡在 45%
+                    if (progressVal < 45) {
+                        progressVal += Math.random() * 2.5 + 1.0;
                     }
-                }, 50);
-            }, 800);
+                }
+
+                if (progressVal >= 100) {
+                    progressVal = 100;
+                    progress.style.width = '100%';
+                    
+                    // 💎 核心修改：移除對 formulaContainer.style.opacity 的漸顯與隱藏控制，使其持續浮動 💎
+                    clearInterval(loadingInterval);
+                    
+                    // 💎 停止動態文字循環 💎
+                    stopReassuringMessages();
+
+                    // 隱藏進度條，為彈出式歡迎視窗創造最乾淨的白色舞台
+                    loadingInline.style.opacity = "0";
+                    loadingInline.style.transform = "translateY(-60px)";
+                    landing.style.opacity = "0";
+                    
+                    setTimeout(() => { 
+                        // 🚀 跑滿 100% 後，啟動全新的 Welcome Modal 機制 🚀
+                        showWelcomeModal();
+                    }, 600);
+                } else {
+                    progress.style.width = progressVal + '%';
+
+                    // 💎 核心修改：移除與進度條綁定的公式容器淡出，讓公式透明度穩定維持 1.0 持續顯示 💎
+                    // formulaContainer.style.opacity = (1 - (progressVal / 100)).toFixed(3);
+
+                    const targetIdx = Math.min(Math.floor((progressVal / 100) * statusMessages.length), statusMessages.length - 1);
+                    if (targetIdx !== messageIndex) {
+                        messageIndex = targetIdx;
+                        statusText.innerText = statusMessages[messageIndex];
+                        playLoadingTick(800 + (messageIndex * 50));
+                    }
+                }
+            }, 50);
+        }
+
+        // 💡 顯示歡迎/通知彈出視窗 (iOS 奢華白高透玻璃材質 + Apple 原生字型美學) 💡
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.ios-glass-card');
+            const modalIconContainer = document.getElementById('modal-icon-container');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtext = document.getElementById('modal-subtext');
+            const modalMessage = document.getElementById('modal-message');
+            const primaryBtn = document.getElementById('modal-primary-btn');
+            const secondaryBtn = document.getElementById('modal-secondary-btn');
+
+            if (authResult === true) {
+                // 🟢 驗證成功分支 (💎 核心修改：由 localStorage 讀取身分標籤詳細欄位 💎)
+                const role = localStorage.getItem('user_role') || "User";
+                const realName = localStorage.getItem('user_real_name') || "";
+                const userClass = localStorage.getItem('user_class') || "";
+                const classNo = localStorage.getItem('user_class_no') || "";
+                
+                // 動態排版呈现：班級、姓名、與身分角色 (採用 Apple 原生 UI 經典對齊風格)
+                // 💎 使用打勾符號 (✓) 替代原本的盾牌，容器大小微調 💎
+                modalIconContainer.innerHTML = '✓';
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold shadow-sm border border-emerald-500/10 bg-emerald-50/20 text-emerald-600";
+                
+                // 💎 標題改為「WELCOME」，文字大小設為放大後的 20px 💎
+                modalTitle.innerText = "WELCOME";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-[#1b365d]"; // 統一使用經典 PH 藍色或綠色
+                modalSubtext.innerText = "ACCESS GRANTED";
+                
+                // 💎 成功時只保留一個進入按鈕 💎
+                primaryBtn.innerText = "Confirm & Enter";
+                primaryBtn.classList.remove('hidden');
+                secondaryBtn.classList.add('hidden');
+
+                // 如果後端有提供真實姓名與班級資料，就完美呈現在卡片面板上
+                if (realName) {
+                    modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>` +
+                                             `<div class="text-left bg-black/[0.02] border border-black/5 rounded-2xl p-4 space-y-2 mt-2 mb-2 text-xs tracking-wide text-[#2c2c2e]">` +
+                                             `<div>• 姓名：<strong>${realName}</strong></div>` +
+                                             `<div>• 班級：<strong>${userClass ? userClass : "N/A"} (${classNo ? classNo : "N/A"} 號)</strong></div>` +
+                                             `</div>` +
+                                             `身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
+                } else {
+                    modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
+                }
+                playLoadingTick(1000);
+            } else {
+                // 🔴 驗證失敗/未通過分支 (強制安全切換為 Visitor 訪客身分)
+                // 💎 核心修改：在本地 localStorage 寫入訪客身分與對等資料 💎
+                localStorage.setItem('jwt_token', 'visitor-token-guest');
+                localStorage.setItem('user_role', 'guest');
+                localStorage.setItem('user_username', 'guest_visitor');
+                localStorage.setItem('user_real_name', '訪客');
+                localStorage.setItem('user_class', 'Visitor');
+                localStorage.setItem('user_class_no', 'N/A');
+
+                modalIconContainer.innerHTML = '👤';
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
+                
+                // 💎 標題同樣使用大字型的「WELCOME」 💎
+                modalTitle.innerText = "WELCOME";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-amber-700";
+                modalSubtext.innerText = "VISITOR ENTRANCE";
+                
+                // 💎 失敗時提供雙按鈕：繼續進入（訪客）或是重新登入 💎
+                primaryBtn.innerText = "Enter as Visitor";
+                primaryBtn.classList.remove('hidden');
+                secondaryBtn.innerText = "Try Again";
+                secondaryBtn.classList.remove('hidden');
+
+                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>您可以選擇以 <strong>訪客</strong> 身份探訪系統，或是返回重新登入。`;
+                playLoadingTick(400);
+            }
+
+            // 啟動 iOS 原生級 non-linear 物理阻尼轉場動畫
+            modal.classList.remove('pointer-events-none');
+            modal.classList.remove('opacity-0');
+            modal.classList.add('opacity-100');
+            modal.classList.add('active');
+            
+            modalCard.classList.remove('opacity-0');
+            modalCard.classList.add('active');
+        }
+
+        // 點擊 Modal 的確認按鈕，流暢跳轉 (iOS Damped Scale-down Out 特效)
+        function confirmWelcomeRedirect() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.ios-glass-card');
+            const formulaContainer = document.getElementById('formula-container');
+            
+            // 觸發高頻率微小回彈點擊音效
+            playLoadingTick(900);
+            
+            // 卡片與背景公式退場阻尼收縮及漸隱動畫
+            modalCard.style.transform = "scale(0.95)";
+            modalCard.style.opacity = "0";
+            modal.classList.remove('active');
+            modal.style.opacity = "0";
+            
+            if (formulaContainer) {
+                formulaContainer.style.transition = "opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1)";
+                formulaContainer.style.opacity = "0";
+            }
+            
+            setTimeout(() => {
+                try {
+                    window.location.href = TARGET_URL;
+                } catch (e) {
+                    console.error("導向失敗:", e);
+                    window.location.assign(TARGET_URL);
+                }
+            }, 550);
+        }
+
+        // 💎 核心修改：點擊 Try Again 按鈕時，不進行本地重置，而是直接透過實體 URL 連結重新載入 index.html 並傳遞 error 參數 💎
+        function reloginWelcome() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.ios-glass-card');
+            
+            playLoadingTick(900);
+            
+            // 卡片阻尼縮小退場動畫
+            modalCard.style.transform = "scale(0.95)";
+            modalCard.style.opacity = "0";
+            modal.classList.remove('active');
+            modal.style.opacity = "0";
+            
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none');
+                // 🚀 核心優化：直接透過實體 Link 重新載入，避免載入不全的問題 🚀
+                const errMsg = authErrorMessage || "帳號或密碼錯誤";
+                window.location.href = "https://phyuaaphysics.github.io/phyustudio/index.html?error=" + encodeURIComponent(errMsg);
+            }, 550);
+        }
+
+        // 💎 完美還原磨砂玻璃卡片與輸入欄位的 iOS 阻尼回滾與重置程序 (用於其他本地重設情境) 💎
+        function rollbackSystem(errorMessage) {
+            const landing = document.getElementById('landing-screen');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const errorMsg = document.getElementById('error-msg');
+            const launchBtn = document.getElementById('launch-btn');
+
+            // 1. 平滑還原為資料庫背景圖片與 Tiffany Blue 綠色基底
+            document.body.style.backgroundColor = "#81D8D0";
+            if (currentBgUrl) {
+                document.body.style.backgroundImage = `url('${currentBgUrl}')`;
+            }
+
+            // 2. 恢復公式飄移與容器透明度
+            if (formulaContainer) {
+                formulaContainer.style.opacity = "1";
+            }
+
+            // 3. 還原磨砂玻璃卡片本體樣式
+            landing.style.background = "rgba(255, 255, 255, 0.45)";
+            landing.style.borderColor = "rgba(255, 255, 255, 0.4)";
+            landing.style.boxShadow = "0 30px 70px rgba(0, 0, 0, 0.12)";
+            landing.style.backdropFilter = "blur(25px)";
+            landing.style.webkitBackdropFilter = "blur(25px)";
+            landing.style.transform = "translateY(0px)";
+            landing.style.opacity = "1";
+
+            // 4. 還原卡片內部的各項視差元素與功能可用狀態 (保留 username，僅清除並解鎖 password)
+            document.getElementById('item-icon').style.transform = "translateY(0px)";
+            document.getElementById('item-icon').style.opacity = "1";
+
+            document.getElementById('item-title-1').style.transform = "translateY(0px)";
+            document.getElementById('item-title-1').style.opacity = "1";
+
+            document.getElementById('item-title-2').style.transform = "translateY(0px)";
+            document.getElementById('item-title-2').style.opacity = "1";
+
+            const itemForm = document.getElementById('item-form');
+            itemForm.style.transform = "translateY(0px)";
+            itemForm.style.opacity = "1";
+            
+            document.getElementById('username').disabled = false;
+            document.getElementById('password').disabled = false;
+            document.getElementById('password').value = ""; // 清空密碼欄位
+
+            launchBtn.style.transform = "translateY(0px)";
+            launchBtn.style.opacity = "1";
+            launchBtn.style.pointerEvents = "auto";
+            launchBtn.disabled = false;
+            launchBtn.innerText = "Login & Browse";
+
+            // 5. 漸隱內嵌式進度條
+            loadingInline.style.opacity = "0";
+            loadingInline.style.transform = "translateY(0px)";
+            setTimeout(() => {
+                loadingInline.classList.add('hidden');
+                document.getElementById('bar-progress').style.width = "0%";
+            }, 1000);
+
+            // 6. 輸出錯誤訊息，並播放警告音效
+            if (errorMessage) {
+                errorMsg.innerText = errorMessage;
+                errorMsg.style.opacity = "1";
+            }
+            playLoadingTick(300);
         }
     </script>
 </body>
