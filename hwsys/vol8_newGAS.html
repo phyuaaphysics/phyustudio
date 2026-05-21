@@ -576,8 +576,16 @@
                 const heroRows = parseCSV(heroText);
                 applyHeroData(heroRows);
 
-                // 2. 核心安全檢測：若本地已存有先前登入時所取得的 token，嘗試自動登入
-                const savedToken = localStorage.getItem('lumina_token');
+                // 2. 核心安全檢測：
+                // 擴展檢索來源以接收來自其他頁面（如第三方登入器）傳遞的 Token：
+                // 優先檢查網址列參數（?token= 或 ?jwt=），若無則檢查多組常見的 LocalStorage 鍵值
+                const urlParams = new URLSearchParams(window.location.search);
+                let savedToken = urlParams.get('token') || 
+                                 urlParams.get('jwt') || 
+                                 localStorage.getItem('lumina_token') || 
+                                 localStorage.getItem('token') || 
+                                 localStorage.getItem('jwt') || 
+                                 localStorage.getItem('accessToken');
                 let tokenValid = false;
                 
                 if (savedToken) {
@@ -585,7 +593,16 @@
                 }
 
                 if (tokenValid) {
-                    // 自動登入成功：動態點亮等級徽章並進入資料夾頁面
+                    // 自動登入成功：將有效的 Token 儲存為統一使用的 lumina_token
+                    localStorage.setItem('lumina_token', savedToken);
+                    
+                    // 清除網址列中的 Token 參數（防止重新整理時或分享網址時洩漏憑證）
+                    if (urlParams.has('token') || urlParams.has('jwt')) {
+                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                        window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+                    }
+
+                    // 動態點亮等級徽章並進入資料夾頁面
                     const badge = document.getElementById('user-grade-display');
                     badge.innerText = currentUserGrade;
                     badge.style.display = 'block';
