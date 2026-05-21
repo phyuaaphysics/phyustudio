@@ -403,14 +403,13 @@
         
         #auth-icon-container {
             width: 72px;
-            height: 72px; /* 固定寬高確保正圓 */
+            height: 72px; 
             border-radius: 50%;
             display: flex;
             align-items: center; justify-content: center;
             font-size: 32px;
             transition: 0.4s;
             flex-shrink: 0;
-            /* 防止被擠壓 */
         }
         .auth-loading-icon { color: #10b981;
         animation: spin 1.2s linear infinite; }
@@ -450,7 +449,6 @@
         <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在與雲端同步數據...</p>
     </div>
 
-    <!-- 驗證/成功視窗 (iOS Window) -->
     <div id="auth-overlay">
         <div id="auth-icon-container">
             <i id="auth-main-icon" class="fas fa-spinner auth-loading-icon"></i>
@@ -562,7 +560,7 @@
         }
 
         /**
-         * 系統初始化：優先加載背景並檢查 saved token 作自動登入
+         * 系統初始化：優先加載背景並檢查由新共享機制 AuthStorage 所發放的憑證資料作自動登入
          */
         async function loadSheetData(isManual = false) {
             if (isSyncing) return;
@@ -577,15 +575,16 @@
                 applyHeroData(heroRows);
 
                 // 2. 核心安全檢測：
-                // 擴展檢索來源以接收來自其他頁面（如第三方登入器）傳遞的 Token：
-                // 優先檢查網址列參數（?token= 或 ?jwt=），若無則檢查多組常見的 LocalStorage 鍵值
+                // 優化對接主流 Launch 機制，讀取由全域 AuthStorage 指定寫入的 'jwt_token' 與 'user_role'
                 const urlParams = new URLSearchParams(window.location.search);
                 let savedToken = urlParams.get('token') || 
                                  urlParams.get('jwt') || 
+                                 localStorage.getItem('jwt_token') || 
                                  localStorage.getItem('lumina_token') || 
                                  localStorage.getItem('token') || 
                                  localStorage.getItem('jwt') || 
                                  localStorage.getItem('accessToken');
+                                 
                 let tokenValid = false;
                 
                 if (savedToken) {
@@ -593,8 +592,9 @@
                 }
 
                 if (tokenValid) {
-                    // 自動登入成功：將有效的 Token 儲存為統一使用的 lumina_token
-                    localStorage.setItem('lumina_token', savedToken);
+                    // 自動登入成功：為了與子系統及 Launch 頁面完全對齊，統一寫入 jwt_token 作為主要憑證
+                    localStorage.setItem('jwt_token', savedToken);
+                    localStorage.setItem('user_role', currentUserGrade);
                     
                     // 清除網址列中的 Token 參數（防止重新整理時或分享網址時洩漏憑證）
                     if (urlParams.has('token') || urlParams.has('jwt')) {
@@ -609,6 +609,7 @@
                     openHomeFolder();
                 } else {
                     // 自動登入失敗或不存在，清除無效 Token
+                    localStorage.removeItem('jwt_token');
                     localStorage.removeItem('lumina_token');
                 }
 
@@ -638,7 +639,7 @@
                 
                 if (result.result === 'success') {
                     // 將角色等級寫入全局
-                    currentUserGrade = (result.user && result.user.role) ? result.user.role : 'guest';
+                    currentUserGrade = (result.user && result.user.role) ? result.user.role : (localStorage.getItem('user_role') || 'guest');
                     rawDataRows = result.data;
                     updateHwList();
                     return true;
@@ -710,7 +711,6 @@
             setTimeout(() => authOverlay.classList.add('show'), 10);
             
             try {
-                // 第一階段：調用密碼保護中心 guard.gs 獲取一組動態 jwt 憑證 (POST Payload)
                 const guardResponse = await fetch(GUARD_GAS_URL, {
                     method: 'POST',
                     headers: {
@@ -726,14 +726,14 @@
                 
                 if (guardResult.success && guardResult.token) {
                     const freshToken = guardResult.token;
-                    
-                    // 第二階段：將取得的 jwt 安全憑證傳遞給 loader.gs 載入與解密數據
                     const loaderSuccess = await fetchHwDataWithToken(freshToken);
                     
                     if (loaderSuccess) {
-                        // 雙關卡全數通過！將憑證寫入本地以利後續自動登入，並更新面板
-                        localStorage.setItem('lumina_token', freshToken);
-
+                        // 雙關卡全數通過！完整寫入 AuthStorage 所需的多組身分快取欄位
+                        localStorage.setItem('jwt_token', freshToken);
+                        localStorage.setItem('user_role', currentUserGrade);
+                        localStorage.setItem('user_username', userIn);
+                        
                         authIcon.className = "fas fa-check";
                         authIconContainer.classList.add('auth-success-icon', 'shadow-xl');
                         authTitle.innerText = "驗證成功";
@@ -751,7 +751,6 @@
                             }, 600);
                         }, 1500);
                     } else {
-                        // 端點對接失敗
                         authOverlay.classList.remove('show');
                         setTimeout(() => { 
                             authOverlay.style.display = 'none';
@@ -759,7 +758,6 @@
                         }, 600);
                     }
                 } else {
-                    // 密碼或帳號錯誤
                     authOverlay.classList.remove('show');
                     setTimeout(() => { 
                         authOverlay.style.display = 'none';
@@ -778,7 +776,15 @@
 
         function handleLogout() {
             currentUserGrade = null;
-            localStorage.removeItem('lumina_token'); // 清除本地儲存的 Token
+            // 配合 AuthStorage 機制，徹底清除所有對應的共享快取欄位
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_username');
+            localStorage.removeItem('user_real_name');
+            localStorage.removeItem('user_class');
+            localStorage.removeItem('user_class_no');
+            localStorage.removeItem('lumina_token'); 
+            
             document.getElementById('login-username').value = "";
             document.getElementById('login-password').value = "";
             document.getElementById('user-grade-display').style.display = 'none';
