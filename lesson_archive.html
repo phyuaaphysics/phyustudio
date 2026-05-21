@@ -196,6 +196,20 @@
         .year-filter-expand.show { max-height: 48px; opacity: 1; margin-top: 4px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
+        /* 主要內容 iOS 慢速阻尼 OS 漸進退場質感 */
+        #mainContent {
+            transition: opacity 1.2s cubic-bezier(0.1, 0.9, 0.15, 1), transform 1.2s cubic-bezier(0.1, 0.9, 0.15, 1), filter 1.2s cubic-bezier(0.1, 0.9, 0.15, 1);
+            transform: scale(1);
+            opacity: 1;
+            filter: blur(0px);
+        }
+        .os-fade-out {
+            opacity: 0 !important;
+            transform: scale(0.96) !important;
+            filter: blur(12px) !important;
+            pointer-events: none !important;
+        }
+
         /* 關閉系統與 CRT 塌陷特效動畫 */
         @keyframes crt-off {
             0% { transform: scale(1, 1); filter: brightness(1); }
@@ -274,7 +288,7 @@
 </div>
 
 <!-- 主要內容 -->
-<div id="mainContent" class="hidden pb-10">
+<div id="mainContent" class="pb-10">
     <nav class="sticky top-0 z-40 px-4 h-14 flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-black/5">
         <div class="flex items-center gap-2">
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-8 h-8">
@@ -505,46 +519,53 @@
     // 關閉系統安全模擬與 CRT 塌陷重定向
     // ==========================================
     function triggerShutdown() {
-        const overlay = document.getElementById('shutdownOverlay');
-        overlay.classList.remove('hidden');
-        overlay.classList.add('flex');
+        // 第一階段：主畫面套用 OS 慢速阻尼模糊淡出
+        const mainContent = document.getElementById('mainContent');
+        mainContent.classList.add('os-fade-out');
         
-        const consoleEl = document.getElementById('shutdownConsole');
-        consoleEl.innerHTML = '';
-        
-        const lines = [
-            "[ SYSTEM TERMINATION SEQUENCE INITIATED ]",
-            "» Revoking secure connection to Spreadsheet server...",
-            "» Cleaning active database structures from RAM...",
-            "» Discarding transient runtime tokens...",
-            "» Purging DOM content caches...",
-            "» Unmounting Lucide UI vector asset engines...",
-            "» Restoring environment variables...",
-            "» Disengaging active lesson streams...",
-            "» SAFE SHUTDOWN COMPLETE. SYSTEM HALTED.",
-            "» REDIRECTING PORT..."
-        ];
-        
-        let idx = 0;
-        function printLine() {
-            if (idx < lines.length) {
-                const p = document.createElement('p');
-                p.className = idx === 0 ? "text-red-500 font-bold" : (idx === lines.length - 1 || idx === lines.length - 2 ? "text-white font-bold" : "text-green-400 animate-pulse");
-                p.innerText = lines[idx];
-                consoleEl.appendChild(p);
-                idx++;
-                setTimeout(printLine, 220);
-            } else {
-                // 啟動 CRT 螢幕電視塌陷收縮動畫
-                setTimeout(() => {
-                    overlay.classList.add('crt-shutdown');
+        // 1.2 秒（1200毫秒）後，完全淡出，並接著啟動控制台關閉序列
+        setTimeout(() => {
+            const overlay = document.getElementById('shutdownOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            
+            const consoleEl = document.getElementById('shutdownConsole');
+            consoleEl.innerHTML = '';
+            
+            const lines = [
+                "[ SYSTEM TERMINATION SEQUENCE INITIATED ]",
+                "» Revoking secure connection to Spreadsheet server...",
+                "» Cleaning active database structures from RAM...",
+                "» Discarding transient runtime tokens...",
+                "» Purging DOM content caches...",
+                "» Unmounting Lucide UI vector asset engines...",
+                "» Restoring environment variables...",
+                "» Disengaging active lesson streams...",
+                "» SAFE SHUTDOWN COMPLETE. SYSTEM HALTED.",
+                "» REDIRECTING PORT..."
+            ];
+            
+            let idx = 0;
+            function printLine() {
+                if (idx < lines.length) {
+                    const p = document.createElement('p');
+                    p.className = idx === 0 ? "text-red-500 font-bold" : (idx === lines.length - 1 || idx === lines.length - 2 ? "text-white font-bold" : "text-green-400 animate-pulse");
+                    p.innerText = lines[idx];
+                    consoleEl.appendChild(p);
+                    idx++;
+                    setTimeout(printLine, 220);
+                } else {
+                    // 啟動 CRT 螢幕電視塌陷收縮動畫
                     setTimeout(() => {
-                        window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
-                    }, 450);
-                }, 500);
+                        overlay.classList.add('crt-shutdown');
+                        setTimeout(() => {
+                            window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html";
+                        }, 450);
+                    }, 500);
+                }
             }
-        }
-        printLine();
+            printLine();
+        }, 1200);
     }
 
     // 🔗 雲端微服務 API 生產環境設定網址 (Web App URLs)
