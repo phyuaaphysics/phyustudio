@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -632,18 +631,10 @@
                     authOverlay.style.display = 'flex';
                     setTimeout(() => authOverlay.classList.add('show'), 10);
 
-                    // ⚡ 性能優化點：降低最低動畫緩衝至 450ms，實現極致快速流暢的登入體驗
-                    const startTime = Date.now();
+                    // ⚡ 同步執行後端驗證（毫無人工多餘等待）
                     tokenValid = await fetchHwDataWithToken(savedToken);
-                    const elapsed = Date.now() - startTime;
-                    const minTransitionTime = 450; // 最低動畫緩衝降至 450ms
 
                     if (tokenValid) {
-                        // ⚡ 動態延遲：若網路速度極快，補足餘下時間以完成平滑過渡；若網路慢，立刻向下運行
-                        if (elapsed < minTransitionTime) {
-                            await new Promise(resolve => setTimeout(resolve, minTransitionTime - elapsed));
-                        }
-
                         // 自動登入成功：寫入共享 Session
                         localStorage.setItem('jwt_token', savedToken);
                         localStorage.setItem('user_role', currentUserGrade);
@@ -654,25 +645,18 @@
                             window.history.replaceState({path: cleanUrl}, '', cleanUrl);
                         }
 
-                        authIcon.className = "fas fa-check";
-                        authIconContainer.classList.add('auth-success-icon', 'shadow-xl');
-                        authTitle.innerText = "自動登入成功";
-                        authSubtitle.innerText = `歡迎回來 (${currentUserGrade})`;
-
-                        // 動態點亮等級徽章並進入資料夾頁面
+                        // 動態點亮等級徽章
                         const badge = document.getElementById('user-grade-display');
                         badge.innerText = currentUserGrade;
                         badge.style.display = 'block';
 
-                        // 精緻的 Native Upward Slide-out 動畫 (配合快速登入縮短延遲)
-                        setTimeout(() => {
-                            authOverlay.classList.add('exit-up');
-                            setTimeout(() => { 
-                                authOverlay.classList.remove('show', 'exit-up');
-                                authOverlay.style.display = 'none';
-                                openHomeFolder(); 
-                            }, 1200);
-                        }, 600);
+                        // 💡 究極加速：一旦驗證過，立刻以 1.2 秒的慢速漂移動畫淡出並加載資料夾，完全省略中間的 success 字樣和延遲
+                        authOverlay.classList.add('exit-up');
+                        setTimeout(() => { 
+                            authOverlay.classList.remove('show', 'exit-up');
+                            authOverlay.style.display = 'none';
+                            openHomeFolder(); 
+                        }, 1200); 
 
                     } else {
                         // 憑證失效：迅速還原並清理
@@ -1134,6 +1118,3 @@
     </script>
 </body>
 </html>
-
-
-
