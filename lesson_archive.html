@@ -21,7 +21,7 @@
             overflow-x: hidden;
         }
 
-        /* 登入介面樣式 */
+        /* 登入介面與阻尼過渡樣式 */
         #loginOverlay {
             position: fixed;
             inset: 0;
@@ -31,7 +31,10 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            /* iOS 阻尼減速與淡出動畫 */
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(0);
+            opacity: 1;
         }
         .login-card {
             background: white;
@@ -195,14 +198,23 @@
 </head>
 <body>
 
-<!-- 登入頁面 -->
+<!-- 登入頁面 (包含安全過渡窗與登入窗) -->
 <div id="loginOverlay">
     <div class="login-card" id="loginCard">
         <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-20 h-20 mx-auto mb-6">
         <h2 class="text-2xl font-bold mb-1">Lesson Archive</h2>
         <p class="text-xs text-gray-400 mb-8">請登入以存取雲端課堂錄影資料庫</p>
         
-        <div id="loginForm">
+        <!-- 自動取得憑證狀態 -->
+        <div id="autoAuthLoading" class="py-4 space-y-4">
+            <div class="flex flex-col items-center gap-3">
+                <div class="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                <span class="text-sm font-medium text-gray-500">正取得憑證...</span>
+            </div>
+        </div>
+
+        <!-- 登入表單 -->
+        <div id="loginForm" class="hidden">
             <input type="text" id="username" class="ios-input" placeholder="帳號">
             <input type="password" id="password" class="ios-input" placeholder="密碼">
             <p id="loginError" class="text-red-500 text-[11px] mb-4 hidden"></p>
@@ -212,6 +224,7 @@
             </button>
         </div>
 
+        <!-- 驗證中 / 同步資料庫狀態 -->
         <div id="syncStatus" class="hidden py-4 space-y-4">
             <div class="flex flex-col items-center gap-3">
                 <div class="w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
@@ -402,6 +415,12 @@
             const result = await res.json();
 
             if (result.success && result.token) {
+                // 🚨 嚴格限制（第一道防線）：不允許 guest 或 visitor 身分登入此資料庫
+                const role = (result.role || '').toLowerCase().trim();
+                if (role === 'guest' || role === 'visitor') {
+                    throw new Error("您的帳號權限不足，無法存取本資料庫。");
+                }
+
                 syncText.innerText = "正在同步資料庫...";
                 
                 // 使用 AuthStorage 統一儲存規格寫入本地端快取
@@ -415,11 +434,12 @@
                 const loadSuccess = await loadDatabase(result.token);
                 if (loadSuccess) {
                     const overlay = document.getElementById('loginOverlay');
+                    overlay.style.transform = 'translateY(-100vh)';
                     overlay.style.opacity = '0';
                     overlay.style.pointerEvents = 'none';
                     setTimeout(() => {
                         overlay.style.display = 'none';
-                    }, 600);
+                    }, 1200);
                 }
             } else { 
                 throw new Error(result.message || "帳號或密碼錯誤"); 
@@ -435,6 +455,12 @@
     // 從 loader.gs 安全載入並同步整頁課程資料庫 (topicId = LESSON_ARCHIVE)
     async function loadDatabase(token) {
         try {
+            // 🚨 嚴格限制（第二道防線）：執行請求前，雙重核驗本機 Role 欄位，防止透過 LocalStorage 偽造注入
+            const role = (AuthStorage.getRole() || '').toLowerCase().trim();
+            if (role === 'guest' || role === 'visitor' || AuthStorage.isGuest()) {
+                throw new Error("您的帳號權限不足，拒絕存取資料庫。");
+            }
+
             const res = await fetch(`${LOADER_URL}?action=getTopic&topicId=LESSON_ARCHIVE&token=${encodeURIComponent(token)}`);
             const json = await res.json();
             
@@ -477,9 +503,11 @@
     function showLoginOverlay(errorMsg = '') {
         const overlay = document.getElementById('loginOverlay');
         overlay.style.display = 'flex'; // 使用行內樣式覆蓋 CSS ID 優先權
+        overlay.style.transform = 'translateY(0)'; // 重設為正常位置
         overlay.style.opacity = '1';
         overlay.style.pointerEvents = 'auto';
         
+        document.getElementById('autoAuthLoading').classList.add('hidden');
         document.getElementById('loginForm').classList.remove('hidden');
         document.getElementById('syncStatus').classList.add('hidden');
         
@@ -739,19 +767,43 @@
         
         // 優先從 AuthStorage 取得 JWT Token 憑證
         const savedToken = AuthStorage.getToken();
+        const savedRole = (AuthStorage.getRole() || '').toLowerCase().trim();
+        const overlay = document.getElementById('loginOverlay');
         
-        if (savedToken) {
-            // 自動隱藏登入層並嘗試使用已存 Token 安全讀取 Topic 檔案
-            const overlay = document.getElementById('loginOverlay');
-            overlay.style.display = 'none'; // 直接使用行內樣式隱藏，避開 ID 特異度衝突
-            overlay.style.opacity = '0';
-            overlay.style.pointerEvents = 'none';
+        // 🚨 嚴格限制（第三道防線）：無 Token、或是 Guest / Visitor 角色，一律直接攔截並顯示登入畫面
+        if (savedToken && savedRole !== 'guest' && savedRole !== 'visitor' && !AuthStorage.isGuest()) {
+            // 自動顯示「正取得憑證...」狀態，隱藏輸入框與手動驗證欄
+            document.getElementById('autoAuthLoading').classList.remove('hidden');
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('syncStatus').classList.add('hidden');
+            
+            overlay.style.display = 'flex'; 
+            overlay.style.transform = 'translateY(0)';
+            overlay.style.opacity = '1';
+            overlay.style.pointerEvents = 'auto';
             
             const success = await loadDatabase(savedToken);
-            if (!success) {
+            if (success) {
+                // 驗證成功：向上平滑阻尼滑動並漸變淡出
+                overlay.style.transform = 'translateY(-100vh)';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 1200);
+            } else {
                 showLoginOverlay();
             }
         } else {
+            // 如果偵測到非法/訪客憑證，安全清除以防止登入頁面卡死
+            if (savedToken) {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('user_role');
+                localStorage.removeItem('user_username');
+                localStorage.removeItem('user_real_name');
+                localStorage.removeItem('user_class');
+                localStorage.removeItem('user_class_no');
+            }
             showLoginOverlay();
         }
     };
