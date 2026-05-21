@@ -380,17 +380,17 @@
         #custom-alert.show { transform: translateX(-50%) translateY(0);
         }
 
-        /* 增強後的成功與驗證視窗 (iOS 風格) */
+        /* 優化：將驗證視窗與封面背景進行完美磨砂玻璃融合 */
         #auth-overlay {
             position: fixed;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
+            background: rgba(255, 255, 255, 0.25); /* 與 .hero-glass-panel 相同 */
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); /* 磨砂比例相同 */
             padding: 40px 50px;
-            border-radius: 35px;
-            border: 1px solid rgba(255,255,255,0.6);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.15);
+            border-radius: 40px; /* 一致的圓角 */
+            border: 1px solid rgba(255, 255, 255, 0.5); /* 一致的微光邊框 */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); /* 一致的高級投影 */
             z-index: 2100;
             display: none; flex-direction: column; align-items: center;
             gap: 24px;
@@ -1036,7 +1036,7 @@
                 const toggleVideo = (e) => {
                     if (e) e.stopPropagation();
                     if (!isAllowed) { showAlert(`權限不足 (需要: ${itemPermission})`); return; }
-                    if (!videoUrl) { showAlert('尚未配置連結'); return; }
+                    if (!videoUrl) { showAlert('健全配置連結'); return; }
                     if (drawer.classList.contains('expanded')) {
                         drawer.classList.remove('expanded');
                         setTimeout(() => { drawer.innerHTML = ''; }, 600);
@@ -1085,6 +1085,5 @@
     </script>
 </body>
 </html>
-
 
 
