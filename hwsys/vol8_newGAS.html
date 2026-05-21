@@ -380,26 +380,36 @@
         #custom-alert.show { transform: translateX(-50%) translateY(0);
         }
 
-        /* 優化：將驗證視窗與封面背景進行完美磨砂玻璃融合 */
+        /* 磨砂玻璃驗證視窗：完美維持與 .hero-glass-panel 相同之尺寸與磨砂外觀 */
         #auth-overlay {
             position: fixed;
             top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(255, 255, 255, 0.25); /* 與 .hero-glass-panel 相同 */
-            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); /* 磨砂比例相同 */
-            padding: 40px 50px;
-            border-radius: 40px; /* 一致的圓角 */
-            border: 1px solid rgba(255, 255, 255, 0.5); /* 一致的微光邊框 */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); /* 一致的高級投影 */
+            transform: translate(-50%, -50%) scale(1);
+            background: rgba(255, 255, 255, 0.25); 
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); 
+            padding: 3.5rem 2.5rem;
+            border-radius: 40px; 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); 
             z-index: 2100;
-            display: none; flex-direction: column; align-items: center;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
             gap: 24px;
             opacity: 0;
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 90%;
+            width: 540px;
+            height: 480px; /* 完美符合原本 Login Panel 之高度結構 */
+            box-sizing: border-box;
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.3, 1), transform 1.2s cubic-bezier(0.25, 1, 0.3, 1);
             pointer-events: none;
-            min-width: 280px;
         }
         #auth-overlay.show { opacity: 1; transform: translate(-50%, -50%) scale(1); display: flex;
+        }
+        
+        /* Native OS Slide Up Fade Out 效果 */
+        #auth-overlay.exit-up {
+            opacity: 0;
+            transform: translate(-50%, -100%) scale(0.95);
+            visibility: hidden;
         }
         
         #auth-icon-container {
@@ -445,6 +455,7 @@
         <p class="text-white text-xs tracking-[0.4em] font-medium uppercase animate-pulse">系統正在關機中...</p>
     </div>
 
+    <!-- 白色預載遮罩：加載完背景後會立即淡出，確保背景露出 -->
     <div id="page-loader">
         <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
         <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在與雲端同步數據...</p>
@@ -575,6 +586,15 @@
                 const heroRows = parseCSV(heroText);
                 applyHeroData(heroRows);
 
+                // 💡 關鍵 UI 優化：在獲取完封面背景並套用至 '#hero-bg' 後，立即淡出並關閉白色的預載遮罩
+                if (!isManual) {
+                    const pageLoader = document.getElementById('page-loader');
+                    if (pageLoader) {
+                        pageLoader.style.opacity = '0';
+                        setTimeout(() => { pageLoader.style.display = 'none'; }, 1000);
+                    }
+                }
+
                 // 2. 核心安全檢測：
                 // 優化對接主流 Launch 機制，讀取由全域 AuthStorage 指定寫入的 'jwt_token' 與 'user_role'
                 const urlParams = new URLSearchParams(window.location.search);
@@ -589,7 +609,14 @@
                 let tokenValid = false;
                 
                 if (savedToken) {
-                    // 💡 UI 改善點：當有備用 Token 時，立即拉起 iOS 驗證懸浮窗，讓用戶看見正在載入與驗證憑證
+                    // 💡 UI 優化：在自動登入時，完全隱蔽原生的登入面板，防止其提前閃爍顯示或呼出
+                    const loginPanel = document.getElementById('hero-main-content');
+                    if (loginPanel) {
+                        loginPanel.style.opacity = '0';
+                        loginPanel.style.visibility = 'hidden';
+                    }
+
+                    // 💡 當有備用 Token 時，立即拉起磨砂玻璃驗證窗，完美浮在原生封面背景圖之上！
                     const authOverlay = document.getElementById('auth-overlay');
                     const authIcon = document.getElementById('auth-main-icon');
                     const authIconContainer = document.getElementById('auth-icon-container');
@@ -607,14 +634,14 @@
                     tokenValid = await fetchHwDataWithToken(savedToken);
 
                     if (tokenValid) {
-                        // 💡 UI 改善點：加入 1.2 秒細緻定時延遲，使用戶能清楚閱覽 Cover Page，帶出極緻流暢的動畫感受
+                        // 細緻定時延遲，使系統整體切換更加流暢與具備 OS 儀式感
                         await new Promise(resolve => setTimeout(resolve, 1200));
 
-                        // 自動登入成功：為了與子系統及 Launch 頁面完全對齊，統一寫入 jwt_token 作為主要憑證
+                        // 自動登入成功：為完全對齊子系統，統一寫入 jwt_token
                         localStorage.setItem('jwt_token', savedToken);
                         localStorage.setItem('user_role', currentUserGrade);
                         
-                        // 清除網址列中的 Token 參數（防止重新整理時或分享網址時洩漏憑證）
+                        // 清除網址列中的 Token 參數，防止洩漏
                         if (urlParams.has('token') || urlParams.has('jwt')) {
                             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
                             window.history.replaceState({path: cleanUrl}, '', cleanUrl);
@@ -630,12 +657,14 @@
                         badge.innerText = currentUserGrade;
                         badge.style.display = 'block';
 
+                        // 💡 慢速往上飄移淡出之 OS 動畫
                         setTimeout(() => {
-                            authOverlay.classList.remove('show');
+                            authOverlay.classList.add('exit-up');
                             setTimeout(() => { 
+                                authOverlay.classList.remove('show', 'exit-up');
                                 authOverlay.style.display = 'none';
                                 openHomeFolder(); 
-                            }, 600);
+                            }, 1200);
                         }, 1200);
 
                     } else {
@@ -644,6 +673,13 @@
                         setTimeout(() => { authOverlay.style.display = 'none'; }, 600);
                         localStorage.removeItem('jwt_token');
                         localStorage.removeItem('lumina_token');
+
+                        // 當驗證失敗時，平滑地將登入面板顯現
+                        if (loginPanel) {
+                            loginPanel.style.opacity = '1';
+                            loginPanel.style.visibility = 'visible';
+                            loginPanel.style.transition = 'opacity 0.8s ease';
+                        }
                     }
                 }
 
@@ -651,10 +687,7 @@
                     cloudIcons.forEach(i => { if(i) i.className = 'fas fa-check sync-success'; });
                     setTimeout(() => { cloudIcons.forEach(i => { if(i) i.className = 'fas fa-cloud'; }); isSyncing = false; }, 2000);
                 } else {
-                    setTimeout(() => {
-                        document.getElementById('page-loader').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; isSyncing = false; }, 1000);
-                    }, 800);
+                    isSyncing = false;
                 }
             } catch (error) { 
                 console.error(error);
@@ -777,12 +810,14 @@
                         badge.innerText = currentUserGrade;
                         badge.style.display = 'block';
 
+                        // 💡 手動登入成功後同樣執行優雅的 Native Upward Slide 效果
                         setTimeout(() => {
-                            authOverlay.classList.remove('show');
+                            authOverlay.classList.add('exit-up');
                             setTimeout(() => { 
+                                authOverlay.classList.remove('show', 'exit-up');
                                 authOverlay.style.display = 'none';
                                 openHomeFolder(); 
-                            }, 600);
+                            }, 1200);
                         }, 1500);
                     } else {
                         authOverlay.classList.remove('show');
@@ -822,6 +857,14 @@
             document.getElementById('login-username').value = "";
             document.getElementById('login-password').value = "";
             document.getElementById('user-grade-display').style.display = 'none';
+            
+            // 恢復 Login panel 的顯示
+            const loginPanel = document.getElementById('hero-main-content');
+            if (loginPanel) {
+                loginPanel.style.opacity = '1';
+                loginPanel.style.visibility = 'visible';
+            }
+            
             closeAllTabs();
         }
 
