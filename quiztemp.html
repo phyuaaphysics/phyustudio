@@ -1,18 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>力學基礎小測驗</title>
+    <title>PH studio | Mechanics Quiz</title>
     
+    <!-- iOS Web App 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="力學小測">
+    <meta name="apple-mobile-web-app-title" content="PH quiz">
     
+    <!-- Tailwind CSS (修正為標準 CDN 引入方式) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- MathJax 數學公式渲染 -->
     <script>
         window.MathJax = {
             tex: {
@@ -33,21 +35,23 @@
         .safe-padding-top {
             padding-top: calc(1.5rem + env(safe-area-inset-top));
         }
-        /* 觸控選項選中效果 */
+        /* 選項選中效果：契合主網頁 Tiffany Blue (#81D8D0) 色調 */
         .option-card input:checked + .option-content {
             border-color: #81D8D0;
-            background-color: rgba(129, 216, 208, 0.15);
-            box-shadow: 0 0 0 2px rgba(129, 216, 208, 0.4);
+            background-color: rgba(129, 216, 208, 0.12);
+            box-shadow: 0 0 0 2px rgba(129, 216, 208, 0.3);
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12">
 
-    <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 safe-padding-top pb-3 px-4 flex items-center justify-between">
+    <!-- 頂部導航列 (iOS 容器優化，視覺契合 Tiffany Blue) -->
+    <header class="bg-white/85 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 safe-padding-top pb-3 px-4 flex items-center justify-between">
         <div class="flex items-center space-x-2">
-            <div class="w-2 h-6 bg-[#81D8D0] rounded-full"></div>
-            <span class="font-bold text-lg tracking-wide text-slate-800">力學小測驗</span>
+            <div class="w-2.5 h-6 bg-[#81D8D0] rounded-full"></div>
+            <span class="font-bold text-lg tracking-wide text-slate-800">力學單元小測</span>
         </div>
+        <!-- 右上角 X 返回主頁按鈕 -->
         <a href="https://phyuaaphysics.github.io/phyustudio/home.html" 
            class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-200 active:scale-95"
            aria-label="返回首頁">
@@ -59,39 +63,46 @@
 
     <main class="max-w-xl w-full mx-auto px-4 mt-6 flex-grow">
         
-        <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-2xl p-5 shadow-lg mb-6">
-            <h3 class="text-xs font-semibold uppercase tracking-widest opacity-60 mb-2">學生考試憑證</h3>
-            <div class="grid grid-cols-3 gap-4 text-center">
-                <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
-                    <p class="text-[10px] opacity-80">班級</p>
-                    <p id="info-class" class="font-bold text-sm mt-0.5">載入中...</p>
+        <!-- 學生資料卡 (對接 PH studio 登入欄位) -->
+        <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl mb-6 border border-slate-800 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-[#81D8D0] opacity-10 rounded-full blur-2xl"></div>
+            <h3 class="text-xs font-semibold uppercase tracking-widest text-[#81D8D0] mb-3">學生考試認證電子憑證</h3>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">班級</p>
+                    <p id="info-class" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
                 </div>
-                <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
-                    <p class="text-[10px] opacity-80">座號</p>
-                    <p id="info-no" class="font-bold text-sm mt-0.5">載入中...</p>
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">座號</p>
+                    <p id="info-no" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
                 </div>
-                <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
-                    <p class="text-[10px] opacity-80">姓名</p>
-                    <p id="info-name" class="font-bold text-sm mt-0.5">載入中...</p>
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">姓名</p>
+                    <p id="info-name" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
                 </div>
             </div>
             
-            <div id="credentials-fallback" class="hidden mt-4 pt-3 border-t border-white/20 text-xs">
-                <p class="mb-2 text-amber-300 font-semibold">⚠️ 未偵測到登入紀錄，請手動確認資料以確保成績上傳正確：</p>
+            <!-- 備用手動修正欄位 (當雙向讀取皆失敗時浮現) -->
+            <div id="credentials-fallback" class="hidden mt-4 pt-4 border-t border-white/10 text-xs">
+                <p class="mb-2 text-amber-300 font-medium">⚠️ 系統未偵測到本地登入紀錄，請手動校對資訊：</p>
                 <div class="grid grid-cols-3 gap-2 text-slate-800">
-                    <input type="text" id="fallback-class" placeholder="班級" class="rounded px-2 py-1 text-xs focus:outline-none">
-                    <input type="text" id="fallback-no" placeholder="座號" class="rounded px-2 py-1 text-xs focus:outline-none">
-                    <input type="text" id="fallback-name" placeholder="真實姓名" class="rounded px-2 py-1 text-xs focus:outline-none">
+                    <input type="text" id="fallback-class" placeholder="班級 (如: 4A)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="number" id="fallback-no" placeholder="座號 (如: 4)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="text" id="fallback-name" placeholder="姓名 (如: 陳大文)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
                 </div>
             </div>
         </div>
 
+        <!-- 答題進度條 -->
         <div class="mb-6 bg-slate-200 h-1.5 rounded-full overflow-hidden">
             <div id="progress-bar" class="bg-[#81D8D0] h-full w-0 transition-all duration-300"></div>
         </div>
 
+        <!-- 測驗內容表單 -->
         <form id="quiz-form" class="space-y-6">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 question-block">
+            
+            <!-- 題目 1 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
                 <div class="flex items-center space-x-2 mb-3">
                     <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 1 題</span>
                     <span class="text-slate-400 text-xs">牛頓第一定律</span>
@@ -102,64 +113,172 @@
                 <div class="space-y-3 options">
                     <label class="option-card block relative cursor-pointer">
                         <input type="radio" name="q1" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-semibold text-slate-500 mr-2">A</span> 立即停止運動並保持靜止
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 立即停止運動並保持靜止
                         </div>
                     </label>
                     <label class="option-card block relative cursor-pointer">
                         <input type="radio" name="q1" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-semibold text-slate-500 mr-2">B</span> 保持靜止或作等速度直線運動
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 保持靜止或作等速度直線運動
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q1" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 必定作等加速度運動
                         </div>
                     </label>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 question-block">
+            <!-- 題目 2 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
                 <div class="flex items-center space-x-2 mb-3">
                     <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 2 題</span>
                     <span class="text-slate-400 text-xs">牛頓第二定律計算</span>
                 </div>
                 <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    一個質量 $m = 2 \text{ kg}$ 的物體受到 $F = 10 \text{ N}$ 的水平外力作用。若不計任何摩擦阻力，該物體產生的加速度大小為多少？
+                    一個質量 $m = 4 \text{ kg}$ 的物體受到 $F = 12 \text{ N}$ 的水平外力作用。若不計任何摩擦阻力，該物體產生的加速度大小為多少？
                 </p>
                 <div class="space-y-3 options">
                     <label class="option-card block relative cursor-pointer">
                         <input type="radio" name="q2" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-semibold text-slate-500 mr-2">A</span> $2 \text{ m/s}^2$
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> $2 \text{ m/s}^2$
                         </div>
                     </label>
                     <label class="option-card block relative cursor-pointer">
                         <input type="radio" name="q2" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-semibold text-slate-500 mr-2">B</span> $5 \text{ m/s}^2$
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> $3 \text{ m/s}^2$
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q2" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> $48 \text{ m/s}^2$
                         </div>
                     </label>
                 </div>
             </div>
 
+            <!-- 題目 3 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 3 題</span>
+                    <span class="text-slate-400 text-xs">拋體運動</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    在不計任何空氣阻力下，一物體自高處作「水平拋體運動」。關於其水平方向與鉛直方向的運動性質，下列敘述何者正確？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q3" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 水平方向為等速度運動，鉛直方向為自由落體運動
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q3" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 水平方向為等加速度運動，鉛直方向為等速度運動
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q3" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 水平方向與鉛直方向皆為等速度運動
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 4 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 4 題</span>
+                    <span class="text-slate-400 text-xs">牛頓第三定律</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    當人用力向前推牆壁時，人會感受到牆壁給予人一個向後的反作用力。關於此作用力與反作用力，下列何者正確？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q4" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 作用力與反作用力大小相等、方向相反，可互相抵消
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q4" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 兩力分別作用在牆壁與人身上，因為作用物體不同，故不可抵消
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q4" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 人推牆壁的作用力會先產生，隨後才產生牆壁推人的反作用力
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 5 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 5 題</span>
+                    <span class="text-slate-400 text-xs">機械能守恆</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    一個小球自高空自由落下（忽略一切摩擦阻力），在下落至地面前的過程中，其能量如何轉化？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q5" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 動能增加，重力位能減少，機械能總量不變
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q5" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 動能減少，重力位能增加，機械能總量不變
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q5" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 動能與重力位能同時增加，機械能總量增加
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 提交按鈕 -->
             <div class="pt-4">
-                <button type="submit" id="submit-btn" class="w-full bg-[#81D8D0] text-slate-800 font-bold py-4 rounded-xl shadow-lg hover:opacity-90 active:scale-[0.99] transition-all duration-150 flex items-center justify-center space-x-2">
+                <button type="submit" id="submit-btn" class="w-full bg-[#81D8D0] text-slate-900 font-bold py-4 rounded-2xl shadow-lg shadow-[#81D8D0]/25 hover:opacity-95 active:scale-[0.99] transition-all duration-150 flex items-center justify-center space-x-2">
                     <span>交卷並上傳成績</span>
                 </button>
             </div>
         </form>
 
-        <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-2xl p-6 shadow-xl transition-all duration-300">
+        <!-- 結果反饋彈出卡片 -->
+        <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl transition-all duration-300">
             <div class="flex items-center space-x-3 mb-4">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center bg-green-100 text-green-600 font-bold text-2xl">✓</div>
+                <div class="w-12 h-12 rounded-full flex items-center justify-center bg-[#81D8D0]/20 text-slate-800 font-bold text-2xl">✓</div>
                 <div>
-                    <h4 class="font-bold text-lg text-slate-800">提交成功</h4>
-                    <p class="text-xs text-slate-500">成績已同步至試算表</p>
+                    <h4 class="font-bold text-lg text-slate-800">上傳成功</h4>
+                    <p class="text-xs text-slate-500">測驗成績已無縫同步至雲端試算表</p>
                 </div>
             </div>
-            <div class="bg-slate-50 rounded-xl p-4 mb-4 text-center">
-                <p class="text-slate-500 text-sm">本次測驗得分</p>
-                <p class="text-4xl font-extrabold text-slate-800 mt-1"><span id="user-score">0</span> <span class="text-lg font-medium text-slate-400">/ 100</span></p>
+            <div class="bg-slate-50 rounded-2xl p-5 mb-4 text-center">
+                <p class="text-slate-500 text-xs tracking-wider uppercase">本次測驗得分</p>
+                <p class="text-4xl font-extrabold text-slate-800 mt-1"><span id="user-score">0</span> <span class="text-base font-medium text-slate-400">/ 100 分</span></p>
             </div>
             <div class="mt-6">
-                <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="block text-center w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-3 rounded-xl transition-all duration-150">
+                <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="block text-center w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-3.5 rounded-2xl transition-all duration-150">
                     返回物理首頁
                 </a>
             </div>
@@ -167,12 +286,21 @@
     </main>
 
     <script>
-        const CONFIG = { bigTopic: "物理", smallTopic: "力學", quizName: "力學基礎概念小測驗" };
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbw0H83aeXxYvnDsi5KrRXXnUkSWRyK30Z9vq7hen46WtVLDW5qiQ7iTlLctP3LD8k_3/exec"; 
-        const answerKey = { q1: "B", q2: "B" }; // 簡化示範
+        // === 1. 設定測驗中繼資料 ===
+        const CONFIG = {
+            bigTopic: "力學",
+            smallTopic: "拋體",
+            quizName: "Quiz01"
+        };
 
-        // 🔗 核心修改：精準讀取主網頁 index.html 寫入的 user_ 欄位 🔗
-        // 同時引入 URL 參數解析，解決 iOS PWA 獨立沙盒讀取不到 localStorage 的限制
+        // 🚀 使用您提供的新部署作業網址進行對接 🚀
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxTk3NT4rn1G3LdGt3NIEHoqEzNcuzEO4jfxHiitJPwA4ZsodbA3h4b6_uVW3aK3j5o/exec"; 
+
+        // 題目解答對應表
+        const answerKey = { q1: "B", q2: "B", q3: "A", q4: "B", q5: "A" };
+        const totalQuestions = Object.keys(answerKey).length;
+
+        // === 2. 提取 Local Storage & URL 參數雙重保險設計 ===
         const urlParams = new URLSearchParams(window.location.search);
         
         let studentClass = urlParams.get('class') || localStorage.getItem('user_class');
@@ -190,62 +318,88 @@
             infoNoEl.innerText = studentNo;
             infoNameEl.innerText = realName;
         } else {
-            infoClassEl.innerText = "未設定";
-            infoNoEl.innerText = "未設定";
-            infoNameEl.innerText = "未設定";
+            // 兩者皆無時（例如單獨測試此網頁），轉為手動校對輸入狀態
+            infoClassEl.innerText = "手動輸入";
+            infoNoEl.innerText = "手動輸入";
+            infoNameEl.innerText = "手動輸入";
             fallbackSection.classList.remove('hidden');
             hasAuth = false;
         }
 
-        // 進度條與提交邏輯保持不變...
+        // === 3. 進度條動態響應 ===
         const form = document.getElementById('quiz-form');
         form.addEventListener('change', () => {
             const formData = new FormData(form);
             let answered = 0;
-            for (let key in answerKey) { if (formData.get(key)) answered++; }
-            document.getElementById('progress-bar').style.width = `${(answered / Object.keys(answerKey).length) * 100}%`;
+            for (let key in answerKey) {
+                if (formData.get(key)) answered++;
+            }
+            document.getElementById('progress-bar').style.width = `${(answered / totalQuestions) * 100}%`;
         });
 
+        // === 4. 表單提交 & 傳送至最新版 code.gs ===
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // 提取最終寫入屬性
             let finalClass = hasAuth ? studentClass : document.getElementById('fallback-class').value.trim();
             let finalNo = hasAuth ? studentNo : document.getElementById('fallback-no').value.trim();
             let finalName = hasAuth ? realName : document.getElementById('fallback-name').value.trim();
 
             if (!finalClass || !finalNo || !finalName) {
-                alert('請完整填寫學生資料！');
+                alert('請完整填寫或確認您的班級、座號與真實姓名！');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
 
+            // 計算得分 (每題 20 分，共 100 分)
             let score = 0;
             const formData = new FormData(form);
-            for (let key in answerKey) { if (formData.get(key) === answerKey[key]) score += 50; }
+            for (let key in answerKey) {
+                if (formData.get(key) === answerKey[key]) {
+                    score += 20; 
+                }
+            }
 
-            document.getElementById('submit-btn').disabled = true;
-            document.getElementById('submit-btn').innerText = "上傳中...";
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "正在儲存並同步成績...";
 
+            // 封裝對應最新 code.gs 欄位的 JSON
+            const payload = {
+                quiz_name: CONFIG.quizName,        // 對應 params.quiz_name
+                class: finalClass,                 // 對應 params.class
+                class_no: Number(finalNo),         // 對應 params.class_no
+                real_name: finalName,              // 對應 params.real_name
+                big_topic: CONFIG.bigTopic,        // 對應 params.big_topic
+                small_topic: CONFIG.smallTopic,    // 對應 params.small_topic
+                score: score,                      // 對應 params.score
+                fullmarks: 100                     // 對應 params.fullmarks
+            };
+
+            // 傳送 POST 數據
             fetch(GAS_URL, {
                 method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    class: finalClass,
-                    classNo: finalNo,
-                    realName: finalName,
-                    bigTopic: CONFIG.bigTopic,
-                    smallTopic: CONFIG.smallTopic,
-                    quizName: CONFIG.quizName,
-                    score: score,
-                    fullmarks: 100
-                })
-            }).then(() => {
+                mode: "no-cors", // 完美解決跨域傳輸限制
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                // 表單退場，展示成績卡片
                 form.classList.add('hidden');
                 document.getElementById('user-score').innerText = score;
                 document.getElementById('result-modal').classList.remove('hidden');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            })
+            .catch(error => {
+                console.error("寫入錯誤:", error);
+                alert("傳送失敗，請確認網路連線狀態後重試！");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "交卷並上傳成績";
             });
         });
     </script>
 </body>
 </html>
-
