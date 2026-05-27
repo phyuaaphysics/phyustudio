@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PH studio | Space Safety & Heroes Quiz</title>
+    
+    <!-- iOS Web App 設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PH quiz">
+    
+    <!-- Tailwind CSS (修正為標準 CDN 引入方式) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MathJax 數學公式渲染 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* 針對 iOS 瀏海屏避開頂部狀態列 */
+        .safe-padding-top {
+            padding-top: calc(1.5rem + env(safe-area-inset-top));
+        }
+        /* 選項選中效果：契合主網頁 Tiffany Blue (#81D8D0) 色調 */
+        .option-card input:checked + .option-content {
+            border-color: #81D8D0;
+            background-color: rgba(129, 216, 208, 0.12);
+            box-shadow: 0 0 0 2px rgba(129, 216, 208, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12 relative">
+
+    <!-- 頂部導航列 (iOS 容器優化，視覺契合 Tiffany Blue) -->
+    <header class="bg-white/85 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 safe-padding-top pb-3 px-4 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <div class="w-2.5 h-6 bg-[#81D8D0] rounded-full"></div>
+            <span class="font-bold text-lg tracking-wide text-slate-800">太空安全與航天英雄小測</span>
+        </div>
+        <!-- 右上角 X 返回主頁按鈕 -->
+        <a href="https://phyuaaphysics.github.io/phyustudio/home.html" 
+           class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-200 active:scale-95"
+           aria-label="返回首頁">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </a>
+    </header>
+
+    <main class="max-w-xl w-full mx-auto px-4 mt-6 flex-grow">
+        
+        <!-- 學生資料卡 (對接 PH studio 登入欄位) -->
+        <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl mb-6 border border-slate-800 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-[#81D8D0] opacity-10 rounded-full blur-2xl"></div>
+            <h3 class="text-xs font-semibold uppercase tracking-widest text-[#81D8D0] mb-3">學生考試認證電子憑證</h3>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">班級</p>
+                    <p id="info-class" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
+                </div>
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">座號</p>
+                    <p id="info-no" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
+                </div>
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">姓名</p>
+                    <p id="info-name" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
+                </div>
+            </div>
+            
+            <!-- 備用手動修正欄位 (當雙向讀取皆失敗時浮現) -->
+            <div id="credentials-fallback" class="hidden mt-4 pt-4 border-t border-white/10 text-xs">
+                <p class="mb-2 text-amber-300 font-medium">⚠️ 系統未偵測到本地登入紀錄，請手動校對資訊：</p>
+                <div class="grid grid-cols-3 gap-2 text-slate-800">
+                    <input type="text" id="fallback-class" placeholder="班級 (如: 4A)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="number" id="fallback-no" placeholder="座號 (如: 4)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="text" id="fallback-name" placeholder="姓名 (如: 陳大文)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                </div>
+            </div>
+        </div>
+
+        <!-- 答題進度條 -->
+        <div class="mb-6 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+            <div id="progress-bar" class="bg-[#81D8D0] h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <!-- 測驗內容表單 -->
+        <form id="quiz-form" class="space-y-6">
+            
+            <!-- 題目 1 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 1 題</span>
+                    <span class="text-slate-400 text-xs">太空安全定義</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    根據材料，關於「太空安全」的定義，下列敘述何者最準確？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q1" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 僅指防止外國軍事武力進入太空。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q1" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 是指太空系統、權益、軌道環境等不受威脅、侵害的客觀狀態。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q1" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 是指在太空軌道建立絕對的軍事霸權。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q1" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 是指確保所有國家的航天飛機都能順利發射。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 2 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 2 題</span>
+                    <span class="text-slate-400 text-xs">外空國際合作</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    中國在參與外空領域國際交流合作時，倡導的基礎為何？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q2" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 平等互利、和平利用、包容發展。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q2" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 技術壟斷、市場保護、單邊管理。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q2" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 聯合軍演、共同防禦、利益交換。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q2" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 優先開發、資源共享、軍事管制。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 3 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 3 題</span>
+                    <span class="text-slate-400 text-xs">錢學森留美審查</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    錢學森在美國期間，由於什麼原因受到美國當局的非法審查與監禁？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q3" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 他拒絕支付在美國進行航空研究的相關稅收。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q3" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 他參與了針對美國政府的實質武裝革命活動。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q3" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 美方將他與共產主義連結，編造他為「間諜」等罪名，企圖阻撓其回國。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q3" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 他擅自將美國國防機密技術帶回中國。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 4 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 4 題</span>
+                    <span class="text-slate-400 text-xs">錢學森榮譽稱號</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    錢學森在回國後，中國政府為表彰其功績，於1991年授予他什麼稱號？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q4" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 航天事業傑出貢獻者
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q4" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 國家傑出貢獻科學家
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q4" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 愛國功勳科學家
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q4" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 頂尖航空航天工程師
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 5 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 5 題</span>
+                    <span class="text-slate-400 text-xs">楊利偉太空心理</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    楊利偉在神舟五號發射前，面對巨大的個人壓力，保持怎樣的心態？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q5" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 極度興奮，期待揚名立萬。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q5" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 擔憂家人的健康，一心想放棄任務。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q5" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 保持心理穩定，以「平常心」做好各項準備。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q5" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 因訓練艱苦而對任務感到恐懼與退縮。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 6 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 6 題</span>
+                    <span class="text-slate-400 text-xs">航天危險階段</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    楊利偉在神舟五號執行任務期間，哪一個階段被認為是最危險的？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q6" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 發射後的首小時階段。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q6" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 在太空軌道平穩飛行階段。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q6" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 與地面進行無線電通訊的階段。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q6" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 穿過「黑障區」的返回階段。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 7 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 7 題</span>
+                    <span class="text-slate-400 text-xs">錢學森面對詰問</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    根據文中記載，錢學森面對美國檢察官的無理審問時，採取了什麼態度？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q7" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 沉默以對，不給予任何回應。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q7" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 理直氣壯地維護自身尊嚴，堅決表示忠於中國人民。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q7" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 為了獲得自由，違心承認自己參與共產黨活動。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q7" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 極度憤怒，當場與官員發生爭吵。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 8 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 8 題</span>
+                    <span class="text-slate-400 text-xs">楊利偉太空日記</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    楊利偉在太空日記中，提到自己來到了太空，是代表誰？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q8" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 僅代表中國人民解放軍。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q8" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 僅代表他自己個人的榮譽。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q8" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 代表所有中國人，甚至是全人類。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q8" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 代表亞洲所有參與航空事業的國家。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 9 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 9 題</span>
+                    <span class="text-slate-400 text-xs">航天選拔與訓練</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    中國載人航天工程在選拔與訓練太空人方面，有何特別之處？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q9" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 淘汰率極高，僅留下最強壯的飛行員。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q9" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 訓練淘汰率為零，所有入選者皆具備獨立執行任務的能力。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q9" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 與美俄經驗一致，訓練過程中有超過一半的人員被淘汰。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q9" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 採用公開招募，未經嚴格訓練直接執行飛行任務。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 題目 10 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 10 題</span>
+                    <span class="text-slate-400 text-xs">錢學森抗爭歸國</span>
+                </div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">
+                    錢學森最後是如何回到中國的？
+                </p>
+                <div class="space-y-3 options">
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q10" value="A" class="sr-only" required>
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">A</span> 1951年被美國司法部強制驅逐出境。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q10" value="B" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">B</span> 美國政府主動認錯，並親自邀請他回國。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q10" value="C" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">C</span> 經過5年艱苦抗爭，在中國政府的營救下於1955年歸國。
+                        </div>
+                    </label>
+                    <label class="option-card block relative cursor-pointer">
+                        <input type="radio" name="q10" value="D" class="sr-only">
+                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
+                            <span class="font-bold text-slate-400 mr-2">D</span> 透過國際紅十字會的斡旋，秘密回到中國。
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 提交按鈕 -->
+            <div class="pt-4">
+                <button type="submit" id="submit-btn" class="w-full bg-[#81D8D0] text-slate-900 font-bold py-4 rounded-2xl shadow-lg shadow-[#81D8D0]/25 hover:opacity-95 active:scale-[0.99] transition-all duration-150 flex items-center justify-center space-x-2">
+                    <span>交卷並上傳成績</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- 結果反饋彈出卡片 -->
+        <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl transition-all duration-300 animate-fade-in-up">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center bg-[#81D8D0]/20 text-slate-800 font-bold text-2xl">✓</div>
+                <div>
+                    <h4 class="font-bold text-lg text-slate-800">上傳成功</h4>
+                    <p class="text-xs text-slate-500">測驗成績已無縫同步至雲端試算表</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 rounded-2xl p-5 mb-4 text-center">
+                <p class="text-slate-500 text-xs tracking-wider uppercase">本次測驗得分</p>
+                <p class="text-4xl font-extrabold text-slate-800 mt-1"><span id="user-score">0</span> <span class="text-base font-medium text-slate-400">/ 100 分</span></p>
+            </div>
+            <div class="mt-6">
+                <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="block text-center w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-3.5 rounded-2xl transition-all duration-150">
+                    返回物理首頁
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- 自訂美化提示訊息 (Toast) -->
+    <div id="custom-alert" class="fixed bottom-6 left-1/2 -translate-x-1/2 max-w-sm w-[90%] bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-2xl z-50 hidden transition-all duration-300 transform translate-y-10 opacity-0 flex items-center space-x-3 border border-slate-800">
+        <div id="alert-icon" class="w-6 h-6 shrink-0 flex items-center justify-center rounded-full bg-rose-500/20 text-rose-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        <span id="custom-alert-msg" class="text-sm font-medium leading-normal text-slate-200">提示訊息</span>
+    </div>
+
+    <script>
+        // === 1. 設定測驗中繼資料 (已更新為太空安全與航天英雄) ===
+        const CONFIG = {
+            bigTopic: "太空安全",
+            smallTopic: "航天英雄",
+            quizName: "SpaceQuiz01"
+        };
+
+        // 🚀 使用您提供的新部署作業網址進行對接 🚀
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxTk3NT4rn1G3LdGt3NIEHoqEzNcuzEO4jfxHiitJPwA4ZsodbA3h4b6_uVW3aK3j5o/exec"; 
+
+        // 題目解答對應表 (已更新為 10 題)
+        const answerKey = { 
+            q1: "B", 
+            q2: "A", 
+            q3: "C", 
+            q4: "B", 
+            q5: "C",
+            q6: "D",
+            q7: "B",
+            q8: "C",
+            q9: "B",
+            q10: "C"
+        };
+        const totalQuestions = Object.keys(answerKey).length;
+
+        // === 2. 提取 Local Storage & URL 參數雙重保險設計 ===
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        let studentClass = urlParams.get('class') || localStorage.getItem('user_class');
+        let studentNo = urlParams.get('classNo') || localStorage.getItem('user_class_no');
+        let realName = urlParams.get('realName') || localStorage.getItem('user_real_name');
+
+        const infoClassEl = document.getElementById('info-class');
+        const infoNoEl = document.getElementById('info-no');
+        const infoNameEl = document.getElementById('info-name');
+        const fallbackSection = document.getElementById('credentials-fallback');
+        let hasAuth = true;
+
+        if (studentClass && studentNo && realName) {
+            infoClassEl.innerText = studentClass;
+            infoNoEl.innerText = studentNo;
+            infoNameEl.innerText = realName;
+        } else {
+            // 兩者皆無時（例如單獨測試此網頁），轉為手動校對輸入狀態
+            infoClassEl.innerText = "手動輸入";
+            infoNoEl.innerText = "手動輸入";
+            infoNameEl.innerText = "手動輸入";
+            fallbackSection.classList.remove('hidden');
+            hasAuth = false;
+        }
+
+        // === 3. 自訂 Toast 提示函數（取代瀏覽器原生的 alert） ===
+        let alertTimeout = null;
+        function showToast(message, isSuccess = false) {
+            const toast = document.getElementById('custom-alert');
+            const toastMsg = document.getElementById('custom-alert-msg');
+            const toastIcon = document.getElementById('alert-icon');
+
+            toastMsg.innerText = message;
+            
+            // 根據成功或失敗切換 icon 樣式與顏色
+            if (isSuccess) {
+                toastIcon.className = "w-6 h-6 shrink-0 flex items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400";
+                toastIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+            } else {
+                toastIcon.className = "w-6 h-6 shrink-0 flex items-center justify-center rounded-full bg-rose-500/20 text-rose-400";
+                toastIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+            }
+
+            // 顯示與滑入動畫
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            // 清除之前的計時器
+            if (alertTimeout) clearTimeout(alertTimeout);
+
+            // 3.5秒後自動滑出並隱藏
+            alertTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 3500);
+        }
+
+        // === 4. 進度條動態響應 ===
+        const form = document.getElementById('quiz-form');
+        form.addEventListener('change', () => {
+            const formData = new FormData(form);
+            let answered = 0;
+            for (let key in answerKey) {
+                if (formData.get(key)) answered++;
+            }
+            document.getElementById('progress-bar').style.width = `${(answered / totalQuestions) * 100}%`;
+        });
+
+        // === 5. 表單提交 & 傳送至最新版 code.gs ===
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // 提取最終寫入屬性
+            let finalClass = hasAuth ? studentClass : document.getElementById('fallback-class').value.trim();
+            let finalNo = hasAuth ? studentNo : document.getElementById('fallback-no').value.trim();
+            let finalName = hasAuth ? realName : document.getElementById('fallback-name').value.trim();
+
+            if (!finalClass || !finalNo || !finalName) {
+                showToast('請完整填寫或確認您的班級、座號與真實姓名！', false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            // 計算得分 (每題 10 分，共 100 分)
+            let score = 0;
+            const formData = new FormData(form);
+            for (let key in answerKey) {
+                if (formData.get(key) === answerKey[key]) {
+                    score += 10; 
+                }
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "正在儲存並同步成績...";
+
+            // 封裝對應最新 code.gs 欄位的 JSON
+            const payload = {
+                quiz_name: CONFIG.quizName,        // 對應 params.quiz_name
+                class: finalClass,                 // 對應 params.class
+                class_no: Number(finalNo),         // 對應 params.class_no
+                real_name: finalName,              // 對應 params.real_name
+                big_topic: CONFIG.bigTopic,        // 對應 params.big_topic
+                small_topic: CONFIG.smallTopic,    // 對應 params.small_topic
+                score: score,                      // 對應 params.score
+                fullmarks: 100                     // 對應 params.fullmarks
+            };
+
+            // 傳送 POST 數據
+            fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors", // 完美解決跨域傳輸限制
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                // 表單退場，展示成績卡片
+                form.classList.add('hidden');
+                document.getElementById('user-score').innerText = score;
+                document.getElementById('result-modal').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            })
+            .catch(error => {
+                console.error("寫入錯誤:", error);
+                showToast("傳送失敗，請確認網路連線狀態後重試！", false);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "交卷並上傳成績";
+            });
+        });
+    </script>
+</body>
+</html>
