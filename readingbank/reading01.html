@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PH studio | Mechanics Quiz</title>
+    <title>PH studio | Reading Practice</title>
     
-    <!-- iOS Web App 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PH quiz">
     
-    <!-- Tailwind CSS (修正為標準 CDN 引入方式) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- MathJax 數學公式渲染 -->
     <script>
         window.MathJax = {
             tex: {
@@ -31,11 +28,9 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        /* 針對 iOS 瀏海屏避開頂部狀態列 */
         .safe-padding-top {
             padding-top: calc(1.5rem + env(safe-area-inset-top));
         }
-        /* 選項選中效果：契合主網頁 Tiffany Blue (#81D8D0) 色調 */
         .option-card input:checked + .option-content {
             border-color: #81D8D0;
             background-color: rgba(129, 216, 208, 0.12);
@@ -45,13 +40,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12">
 
-    <!-- 頂部導航列 (iOS 容器優化，視覺契合 Tiffany Blue) -->
     <header class="bg-white/85 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 safe-padding-top pb-3 px-4 flex items-center justify-between">
         <div class="flex items-center space-x-2">
             <div class="w-2.5 h-6 bg-[#81D8D0] rounded-full"></div>
-            <span class="font-bold text-lg tracking-wide text-slate-800">力學單元小測</span>
+            <span class="font-bold text-lg tracking-wide text-slate-800">閱讀測驗：飛秒振盪器</span>
         </div>
-        <!-- 右上角 X 返回主頁按鈕 -->
         <a href="https://phyuaaphysics.github.io/phyustudio/home.html" 
            class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-200 active:scale-95"
            aria-label="返回首頁">
@@ -63,7 +56,6 @@
 
     <main class="max-w-xl w-full mx-auto px-4 mt-6 flex-grow">
         
-        <!-- 學生資料卡 (對接 PH studio 登入欄位) -->
         <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl mb-6 border border-slate-800 relative overflow-hidden">
             <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-[#81D8D0] opacity-10 rounded-full blur-2xl"></div>
             <h3 class="text-xs font-semibold uppercase tracking-widest text-[#81D8D0] mb-3">學生考試認證電子憑證</h3>
@@ -81,324 +73,175 @@
                     <p id="info-name" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
                 </div>
             </div>
-            
-            <!-- 備用手動修正欄位 (當雙向讀取皆失敗時浮現) -->
             <div id="credentials-fallback" class="hidden mt-4 pt-4 border-t border-white/10 text-xs">
                 <p class="mb-2 text-amber-300 font-medium">⚠️ 系統未偵測到本地登入紀錄，請手動校對資訊：</p>
                 <div class="grid grid-cols-3 gap-2 text-slate-800">
-                    <input type="text" id="fallback-class" placeholder="班級 (如: 4A)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
-                    <input type="number" id="fallback-no" placeholder="座號 (如: 4)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
-                    <input type="text" id="fallback-name" placeholder="姓名 (如: 陳大文)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="text" id="fallback-class" placeholder="班級" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="number" id="fallback-no" placeholder="座號" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="text" id="fallback-name" placeholder="姓名" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
                 </div>
             </div>
         </div>
 
-        <!-- 答題進度條 -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
+            <h1 class="text-2xl font-black text-slate-900 mb-4 leading-snug">近視族福音？不動刀、無傷口的「飛秒振盪器」視力矯正技術走到哪了？【挺健康】</h1>
+            <a href="https://pansci.asia/archives/380835" target="_blank" class="inline-block text-xs text-[#81D8D0] font-bold underline mb-6">資料來源：泛科學 PanSci</a>
+            
+            <div class="text-slate-600 text-sm leading-relaxed space-y-4">
+                <p>我們對這項名為「飛秒振盪器（Femtosecond Oscillator）」的非侵入式角膜交聯技術進行了深度追蹤。好消息是：這項技術不僅沒有夭折，反而正在經歷嚴格的商業化與法規驗證，準備迎接臨床挑戰！</p>
+                <h3 class="font-bold text-slate-800 text-base mt-6">拋棄「減法工程」：用光化學改變角膜形狀</h3>
+                <p>要了解這項新技術到底有多神，我們得先看看現有的雷射近視手術。不管是傳統的 LASIK 還是近年的 SMILE 全飛秒，其核心邏輯都是「減法工程」——透過切削或移除部分角膜基質，改變角膜的弧度來矯正屈光度數。但這種物理切削不可避免地會帶來一些副作用，像是切斷角膜神經造成的乾眼症，或是讓角膜變薄導致整體結構強度下降（約下降 15-25%）。</p>
+                <p>哥倫比亞大學 Sinisa Vukelic 教授團隊則提出了一個根本性的顛覆：我們能不能在不移除任何組織、不製造傷口的情況下，僅透過改變角膜的「材料屬性」來改變它的形狀？</p>
+                <h3 class="font-bold text-slate-800 text-base mt-6">「高頻低能」的魔法：水分子與膠原蛋白的共舞</h3>
+                <p>關鍵在於雷射的選擇。傳統眼科雷射使用的是「飛秒放大器」，單發能量極高，會產生微型爆炸來物理切割組織。而 Vukelic 團隊改用當時極罕見的「飛秒振盪器」，特點是能量極低（納焦耳級别）但頻率極高（百萬赫茲級別）。</p>
+                <p>這種「高頻低能」的設定創造出一個溫和的「低密度電漿（LDP）」模式。雷射光束聚焦於角膜基質內，精準地將焦點處的水分子電離，產生微量且受控的「活性氧化物（ROS）」。這些短壽命的自由基會迅速與周圍的膠原蛋白纖維產生化學反應，形成新的共價鍵，這個過程稱為「光化學交聯」。</p>
+                <p>醫師可以像在角膜內部進行「3D 列印」一樣，透過繪製特定圖案，讓角膜局部收縮、變形，進而改變屈光度。而且，交聯作用還會讓角膜變得更堅固！</p>
+                <h3 class="font-bold text-slate-800 text-base mt-6">結語：我們什麼時候能用到？</h3>
+                <p>對於迫不及待想丟掉眼鏡的朋友，最關心的莫過於「何時上市」。由於這涉及改變人體組織的第三類醫療器材，FDA 的審查極為嚴格。目前的進度正處於申請人體臨床試驗前的籌備期。樂觀預估，2026 至 2027 年可能會開展小規模的早期可行性研究（EFS）；隨後需進行數百人的大規模臨床試驗。真正要獲得 FDA 批准並進入醫療市場，可能需要等到 2030 年之後。</p>
+            </div>
+        </div>
+
         <div class="mb-6 bg-slate-200 h-1.5 rounded-full overflow-hidden">
             <div id="progress-bar" class="bg-[#81D8D0] h-full w-0 transition-all duration-300"></div>
         </div>
 
-        <!-- 測驗內容表單 -->
         <form id="quiz-form" class="space-y-6">
-            
-            <!-- 題目 1 -->
+            <!-- Questions remain same as requested -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 1 題</span>
-                    <span class="text-slate-400 text-xs">牛頓第一定律</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    根據牛頓第一運動定律，當物體所受合力為零（$\sum F = 0$）時，物體會如何運動？
-                </p>
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 1 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">關於傳統雷射近視手術與新技術的差異，下列何者正確？</p>
                 <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q1" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 立即停止運動並保持靜止
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q1" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 保持靜止或作等速度直線運動
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q1" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 必定作等加速度運動
-                        </div>
-                    </label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 傳統手術是透過「材料改性」來增強角膜結構強度</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 傳統手術屬於「減法工程」，需要切削或移除部分角膜組織</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 新技術需要切斷角膜神經，因此更容易導致乾眼症</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 新技術會使角膜整體結構強度下降約 15-25%</div></label>
                 </div>
             </div>
 
-            <!-- 題目 2 -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 2 題</span>
-                    <span class="text-slate-400 text-xs">牛頓第二定律計算</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    一個質量 $m = 4 \text{ kg}$ 的物體受到 $F = 12 \text{ N}$ 的水平外力作用。若不計任何摩擦阻力，該物體產生的加速度大小為多少？
-                </p>
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 2 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">Vukelic 教授團隊在雷射選擇上的特點為何？</p>
                 <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q2" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> $2 \text{ m/s}^2$
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q2" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> $3 \text{ m/s}^2$
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q2" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> $48 \text{ m/s}^2$
-                        </div>
-                    </label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 使用「飛秒放大器」，具有極高的單發能量，可產生微型爆炸</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 使用「飛秒振盪器」，具有高能量、低頻率的特性</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 使用「飛秒放大器」，具有低能量、高頻率的特性</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 使用「飛秒振盪器」，具有低能量與高頻率的特性</div></label>
                 </div>
             </div>
 
-            <!-- 題目 3 -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 3 題</span>
-                    <span class="text-slate-400 text-xs">拋體運動</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    在不計任何空氣阻力下，一物體自高處作「水平拋體運動」。關於其水平方向與鉛直方向的運動性質，下列敘述何者正確？
-                </p>
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 3 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">新技術如何實現不開刀的矯正？</p>
                 <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q3" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 水平方向為等速度運動，鉛直方向為自由落體運動
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q3" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 水平方向為等加速度運動，鉛直方向為等速度運動
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q3" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 水平方向與鉛直方向皆為等速度運動
-                        </div>
-                    </label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 透過物理高溫直接熔化角膜邊緣，使其自然重塑</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 電離角膜內的水分子產生「活性氧化物」，促使膠原蛋白纖維形成共價鍵</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 利用雷射將人工材料像 3D 列印般注射到角膜基質表面</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 藉由電磁干擾暫時改變眼球形狀，需定期接受照射</div></label>
                 </div>
             </div>
 
-            <!-- 題目 4 -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 4 題</span>
-                    <span class="text-slate-400 text-xs">牛頓第三定律</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    當人用力向前推牆壁時，人會感受到牆壁給予人一個向後的反作用力。關於此作用力與反作用力，下列何者正確？
-                </p>
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 4 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">關於這項技術的商業化進度，何者最符合現實？</p>
                 <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q4" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 作用力與反作用力大小相等、方向相反，可互相抵消
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q4" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 兩力分別作用在牆壁與人身上，因為作用物體不同，故不可抵消
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q4" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 人推牆壁的作用力會先產生，隨後才產生牆壁推人的反作用力
-                        </div>
-                    </label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 技術已宣告夭折，無法通過嚴格法規驗證</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 已獲得 FDA 批准，在全球普及</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 屬於嚴格的第三類醫療器材，上市可能需等到 2030 年之後</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 已完成大規模臨床試驗，預計 2026 年全面上市</div></label>
                 </div>
             </div>
 
-            <!-- 題目 5 -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 5 題</span>
-                    <span class="text-slate-400 text-xs">機械能守恆</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    一個小球自高空自由落下（忽略一切摩擦阻力），在下落至地面前的過程中，其能量如何轉化？
-                </p>
-                <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q5" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 動能增加，重力位能減少，機械能總量不變
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q5" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 動能減少，重力位能增加，機械能總量不變
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q5" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 動能與重力位能同時增加，機械能總量增加
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <!-- 提交按鈕 -->
             <div class="pt-4">
-                <button type="submit" id="submit-btn" class="w-full bg-[#81D8D0] text-slate-900 font-bold py-4 rounded-2xl shadow-lg shadow-[#81D8D0]/25 hover:opacity-95 active:scale-[0.99] transition-all duration-150 flex items-center justify-center space-x-2">
-                    <span>交卷並上傳成績</span>
-                </button>
+                <button type="submit" id="submit-btn" class="w-full bg-[#81D8D0] text-slate-900 font-bold py-4 rounded-2xl shadow-lg shadow-[#81D8D0]/25 hover:opacity-95 active:scale-[0.99] transition-all duration-150">提交測驗</button>
             </div>
         </form>
 
-        <!-- 結果反饋彈出卡片 -->
-        <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl transition-all duration-300">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center bg-[#81D8D0]/20 text-slate-800 font-bold text-2xl">✓</div>
-                <div>
-                    <h4 class="font-bold text-lg text-slate-800">上傳成功</h4>
-                    <p class="text-xs text-slate-500">測驗成績已無縫同步至雲端試算表</p>
-                </div>
-            </div>
-            <div class="bg-slate-50 rounded-2xl p-5 mb-4 text-center">
-                <p class="text-slate-500 text-xs tracking-wider uppercase">本次測驗得分</p>
-                <p class="text-4xl font-extrabold text-slate-800 mt-1"><span id="user-score">0</span> <span class="text-base font-medium text-slate-400">/ 100 分</span></p>
-            </div>
-            <div class="mt-6">
-                <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="block text-center w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-3.5 rounded-2xl transition-all duration-150">
-                    返回物理首頁
-                </a>
+        <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl">
+            <div class="text-center">
+                <h4 class="font-bold text-lg mb-4">上傳成功</h4>
+                <p class="text-4xl font-extrabold text-slate-800"><span id="user-score">0</span> <span class="text-base text-slate-400">/ 100 分</span></p>
+                <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="mt-6 block w-full bg-slate-100 py-3.5 rounded-2xl">返回首頁</a>
             </div>
         </div>
     </main>
 
     <script>
-        // === 1. 設定測驗中繼資料 ===
         const CONFIG = {
-            bigTopic: "力學",
-            smallTopic: "拋體",
-            quizName: "Quiz01"
+            bigTopic: "眼科醫學",
+            smallTopic: "飛秒振盪器",
+            quizName: "Reading01"
         };
-
-        // 🚀 使用您提供的新部署作業網址進行對接 🚀
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxTk3NT4rn1G3LdGt3NIEHoqEzNcuzEO4jfxHiitJPwA4ZsodbA3h4b6_uVW3aK3j5o/exec"; 
-
-        // 題目解答對應表
-        const answerKey = { q1: "B", q2: "B", q3: "A", q4: "B", q5: "A" };
+        const answerKey = { q1: "B", q2: "D", q3: "B", q4: "C" };
         const totalQuestions = Object.keys(answerKey).length;
 
-        // === 2. 提取 Local Storage & URL 參數雙重保險設計 ===
         const urlParams = new URLSearchParams(window.location.search);
-        
         let studentClass = urlParams.get('class') || localStorage.getItem('user_class');
         let studentNo = urlParams.get('classNo') || localStorage.getItem('user_class_no');
         let realName = urlParams.get('realName') || localStorage.getItem('user_real_name');
 
-        const infoClassEl = document.getElementById('info-class');
-        const infoNoEl = document.getElementById('info-no');
-        const infoNameEl = document.getElementById('info-name');
         const fallbackSection = document.getElementById('credentials-fallback');
         let hasAuth = true;
 
         if (studentClass && studentNo && realName) {
-            infoClassEl.innerText = studentClass;
-            infoNoEl.innerText = studentNo;
-            infoNameEl.innerText = realName;
+            document.getElementById('info-class').innerText = studentClass;
+            document.getElementById('info-no').innerText = studentNo;
+            document.getElementById('info-name').innerText = realName;
         } else {
-            // 兩者皆無時（例如單獨測試此網頁），轉為手動校對輸入狀態
-            infoClassEl.innerText = "手動輸入";
-            infoNoEl.innerText = "手動輸入";
-            infoNameEl.innerText = "手動輸入";
             fallbackSection.classList.remove('hidden');
             hasAuth = false;
         }
 
-        // === 3. 進度條動態響應 ===
         const form = document.getElementById('quiz-form');
         form.addEventListener('change', () => {
             const formData = new FormData(form);
             let answered = 0;
-            for (let key in answerKey) {
-                if (formData.get(key)) answered++;
-            }
+            for (let key in answerKey) { if (formData.get(key)) answered++; }
             document.getElementById('progress-bar').style.width = `${(answered / totalQuestions) * 100}%`;
         });
 
-        // === 4. 表單提交 & 傳送至最新版 code.gs ===
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-
-            // 提取最終寫入屬性
             let finalClass = hasAuth ? studentClass : document.getElementById('fallback-class').value.trim();
             let finalNo = hasAuth ? studentNo : document.getElementById('fallback-no').value.trim();
             let finalName = hasAuth ? realName : document.getElementById('fallback-name').value.trim();
 
             if (!finalClass || !finalNo || !finalName) {
-                alert('請完整填寫或確認您的班級、座號與真實姓名！');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                alert('請填寫完整資訊！');
                 return;
             }
 
-            // 計算得分 (每題 20 分，共 100 分)
             let score = 0;
             const formData = new FormData(form);
             for (let key in answerKey) {
-                if (formData.get(key) === answerKey[key]) {
-                    score += 20; 
-                }
+                if (formData.get(key) === answerKey[key]) score += 25; 
             }
 
             const submitBtn = document.getElementById('submit-btn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "正在儲存並同步成績...";
+            submitBtn.innerText = "儲存中...";
 
-            // 封裝對應最新 code.gs 欄位的 JSON
-            const payload = {
-                quiz_name: CONFIG.quizName,        // 對應 params.quiz_name
-                class: finalClass,                 // 對應 params.class
-                class_no: Number(finalNo),         // 對應 params.class_no
-                real_name: finalName,              // 對應 params.real_name
-                big_topic: CONFIG.bigTopic,        // 對應 params.big_topic
-                small_topic: CONFIG.smallTopic,    // 對應 params.small_topic
-                score: score,                      // 對應 params.score
-                fullmarks: 100                     // 對應 params.fullmarks
-            };
-
-            // 傳送 POST 數據
             fetch(GAS_URL, {
                 method: "POST",
-                mode: "no-cors", // 完美解決跨域傳輸限制
-                headers: {
-                    "Content-Type": "text/plain"
-                },
-                body: JSON.stringify(payload)
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    quiz_name: CONFIG.quizName,
+                    class: finalClass,
+                    class_no: Number(finalNo),
+                    real_name: finalName,
+                    big_topic: CONFIG.bigTopic,
+                    small_topic: CONFIG.smallTopic,
+                    score: score,
+                    fullmarks: 100
+                })
             })
             .then(() => {
-                // 表單退場，展示成績卡片
                 form.classList.add('hidden');
                 document.getElementById('user-score').innerText = score;
                 document.getElementById('result-modal').classList.remove('hidden');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
             })
-            .catch(error => {
-                console.error("寫入錯誤:", error);
-                alert("傳送失敗，請確認網路連線狀態後重試！");
-                submitBtn.disabled = false;
-                submitBtn.innerText = "交卷並上傳成績";
-            });
+            .catch(() => { alert("失敗，請重試"); submitBtn.disabled = false; });
         });
     </script>
 </body>
