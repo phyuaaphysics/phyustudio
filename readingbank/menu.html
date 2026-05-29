@@ -718,7 +718,7 @@
             `).join('');
         }
 
-        // 權限檢查機制：比對 localStorage 的 user_class 與 試算表的 權限 欄位
+        // 權限檢查機制：比對 localStorage 的 user_role 與 試算表的 權限 (欄E) 欄位
         function checkClassPermission(permissionStr) {
             const userRole = localStorage.getItem('user_role');
             if (userRole === 'admin' || userRole === 'teacher') return true; // 管理員與教師自動解鎖
@@ -729,12 +729,12 @@
                 return true;
             }
 
-            const userClass = localStorage.getItem('user_class');
-            if (!userClass) return false; // 限制權限但使用者未登入
+            // 若項目限制特定角色但當前使用者未登入 / 無角色
+            if (!userRole) return false; 
 
-            // 支援逗號或空格分隔多個班級
-            const allowedClasses = permissionStr.split(/[,，\s]+/).map(c => c.trim().toUpperCase());
-            return allowedClasses.includes(userClass.toUpperCase());
+            // 支援逗號或空格分隔多個角色設定
+            const allowedRoles = permissionStr.split(/[,，\s]+/).map(r => r.trim().toLowerCase());
+            return allowedRoles.includes(userRole.toLowerCase());
         }
 
         // 渲染主要內容 (改扁長形且將標題置於下方)
@@ -778,7 +778,7 @@
                                                 <!-- 頂端元數據標籤 -->
                                                 <div class="absolute top-2 left-2 right-2 flex justify-between items-center z-10">
                                                     <span class="text-[8px] font-mono tracking-widest text-white/90 bg-stone-900/60 backdrop-blur-md px-1.5 py-0.5 rounded">#${item.reading_id}</span>
-                                                    ${item.permission ? `<span class="bg-amber-600/90 backdrop-blur-md px-1.5 py-0.5 rounded text-[8px] font-bold text-white uppercase border border-white/5">Class ${item.permission}</span>` : ''}
+                                                    ${item.permission ? `<span class="bg-amber-600/90 backdrop-blur-md px-1.5 py-0.5 rounded text-[8px] font-bold text-white uppercase border border-white/5">Role: ${item.permission}</span>` : ''}
                                                 </div>
 
                                                 <!-- 權限不足的磨砂鎖定層 -->
@@ -819,8 +819,8 @@
         function handleCardClick(url, title, reqPermission, hasAccess) {
             if (!hasAccess) {
                 // 觸發 iOS 回饋感警告
-                const myClass = localStorage.getItem('user_class') || '訪客';
-                showNotification("閱讀權限受限", `此文章限制班級：[${reqPermission}]，您目前的班級是：[${myClass}]`, "error");
+                const myRole = localStorage.getItem('user_role') || '訪客';
+                showNotification("閱讀權限受限", `此文章限制身分：[${reqPermission}]，您目前的身分是：[${myRole}]`, "error");
                 return;
             }
             
@@ -1068,5 +1068,4 @@
     </script>
 </body>
 </html>
-
 
