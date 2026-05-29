@@ -106,8 +106,7 @@
         </div>
 
         <form id="quiz-form" class="space-y-6">
-            <!-- Questions remain same as requested -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q1">
                 <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 1 題</span></div>
                 <p class="font-medium text-slate-800 leading-relaxed mb-4">關於傳統雷射近視手術與新技術的差異，下列何者正確？</p>
                 <div class="space-y-3 options">
@@ -118,7 +117,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q2">
                 <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 2 題</span></div>
                 <p class="font-medium text-slate-800 leading-relaxed mb-4">Vukelic 教授團隊在雷射選擇上的特點為何？</p>
                 <div class="space-y-3 options">
@@ -129,7 +128,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q3">
                 <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 3 題</span></div>
                 <p class="font-medium text-slate-800 leading-relaxed mb-4">新技術如何實現不開刀的矯正？</p>
                 <div class="space-y-3 options">
@@ -140,7 +139,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q4">
                 <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 4 題</span></div>
                 <p class="font-medium text-slate-800 leading-relaxed mb-4">關於這項技術的商業化進度，何者最符合現實？</p>
                 <div class="space-y-3 options">
@@ -157,11 +156,14 @@
         </form>
 
         <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl">
-            <div class="text-center">
-                <h4 class="font-bold text-lg mb-4">上傳成功</h4>
+            <div class="text-center mb-6">
+                <h4 class="font-bold text-lg mb-4">測驗結果</h4>
                 <p class="text-4xl font-extrabold text-slate-800"><span id="user-score">0</span> <span class="text-base text-slate-400">/ 100 分</span></p>
-                <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="mt-6 block w-full bg-slate-100 py-3.5 rounded-2xl">返回首頁</a>
             </div>
+            <div id="answer-review" class="space-y-4 pt-4 border-t border-slate-100">
+                <!-- 顯示對錯結果 -->
+            </div>
+            <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="mt-8 block w-full bg-slate-100 py-3.5 rounded-2xl text-center">返回首頁</a>
         </div>
     </main>
 
@@ -172,6 +174,12 @@
             quizName: "Reading01"
         };
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxTk3NT4rn1G3LdGt3NIEHoqEzNcuzEO4jfxHiitJPwA4ZsodbA3h4b6_uVW3aK3j5o/exec"; 
+        const questionsData = {
+            q1: { text: "關於傳統雷射近視手術與新技術的差異，下列何者正確？", answer: "B" },
+            q2: { text: "Vukelic 教授團隊在雷射選擇上的特點為何？", answer: "D" },
+            q3: { text: "新技術如何實現不開刀的矯正？", answer: "B" },
+            q4: { text: "關於這項技術的商業化進度，何者最符合現實？", answer: "C" }
+        };
         const answerKey = { q1: "B", q2: "D", q3: "B", q4: "C" };
         const totalQuestions = Object.keys(answerKey).length;
 
@@ -213,8 +221,20 @@
 
             let score = 0;
             const formData = new FormData(form);
+            const reviewDiv = document.getElementById('answer-review');
+            reviewDiv.innerHTML = "";
+
             for (let key in answerKey) {
-                if (formData.get(key) === answerKey[key]) score += 25; 
+                const userAns = formData.get(key);
+                const isCorrect = userAns === answerKey[key];
+                if (isCorrect) score += 25;
+
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-2xl border ${isCorrect ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`;
+                div.innerHTML = `<p class="font-bold text-sm mb-1">${questionsData[key].text}</p>
+                                 <p class="text-xs">您的選擇：<span class="font-bold ${isCorrect ? 'text-emerald-700' : 'text-red-700'}">${userAns || '未選擇'}</span></p>
+                                 <p class="text-xs">正確答案：<span class="font-bold text-slate-600">${answerKey[key]}</span></p>`;
+                reviewDiv.appendChild(div);
             }
 
             const submitBtn = document.getElementById('submit-btn');
@@ -241,7 +261,7 @@
                 document.getElementById('user-score').innerText = score;
                 document.getElementById('result-modal').classList.remove('hidden');
             })
-            .catch(() => { alert("失敗，請重試"); submitBtn.disabled = false; });
+            .catch(() => { alert("儲存失敗，請檢查網路後重試"); submitBtn.disabled = false; });
         });
     </script>
 </body>
