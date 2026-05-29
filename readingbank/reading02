@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PH studio | Reading Practice</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PH quiz">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .safe-padding-top {
+            padding-top: calc(1.5rem + env(safe-area-inset-top));
+        }
+        .option-card input:checked + .option-content {
+            border-color: #81D8D0;
+            background-color: rgba(129, 216, 208, 0.12);
+            box-shadow: 0 0 0 2px rgba(129, 216, 208, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12">
+
+    <header class="bg-white/85 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 safe-padding-top pb-3 px-4 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <div class="w-2.5 h-6 bg-[#81D8D0] rounded-full"></div>
+            <span class="font-bold text-lg tracking-wide text-slate-800">閱讀測驗：物質波的發現</span>
+        </div>
+        <a href="https://phyuaaphysics.github.io/phyustudio/home.html" 
+           class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-200 active:scale-95"
+           aria-label="返回首頁">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </a>
+    </header>
+
+    <main class="max-w-xl w-full mx-auto px-4 mt-6 flex-grow">
+        
+        <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl mb-6 border border-slate-800 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-[#81D8D0] opacity-10 rounded-full blur-2xl"></div>
+            <h3 class="text-xs font-semibold uppercase tracking-widest text-[#81D8D0] mb-3">學生考試認證電子憑證</h3>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">班級</p>
+                    <p id="info-class" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
+                </div>
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">座號</p>
+                    <p id="info-no" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
+                </div>
+                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                    <p class="text-[10px] text-slate-400">姓名</p>
+                    <p id="info-name" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
+                </div>
+            </div>
+            <div id="credentials-fallback" class="hidden mt-4 pt-4 border-t border-white/10 text-xs">
+                <p class="mb-2 text-amber-300 font-medium">⚠️ 系統未偵測到本地登入紀錄，請手動校對資訊：</p>
+                <div class="grid grid-cols-3 gap-2 text-slate-800">
+                    <input type="text" id="fallback-class" placeholder="班級" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="number" id="fallback-no" placeholder="座號" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                    <input type="text" id="fallback-name" placeholder="姓名" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
+            <h1 class="text-2xl font-black text-slate-900 mb-4 leading-snug">量子革命的開端——物質波的發現</h1>
+            <a href="https://pansci.asia/archives/376350" target="_blank" class="inline-block text-xs text-[#81D8D0] font-bold underline mb-6">資料來源：泛科學 PanSci</a>
+            
+            <div class="text-slate-600 text-sm leading-relaxed space-y-4">
+                <p>在 20 世紀初期的物理學界，一個年輕人的大膽想法引發了一場徹底改變人類認知的革命浪潮。1924 年，德國物理學家路易．德布羅意（Louis de Broglie）在他的博士論文中提出了一個驚人的觀點：除了電磁波之外，構成物質的基本粒子，也應該具有波動的特性。</p>
+                <p>當時，這想法招來廣泛質疑。然而，在愛因斯坦的支持下，德布羅意最終獲得學位。短短三年後，戴維森（Davisson）、革末（Germer）與喬治．普賴斯．湯姆森（G. P. Thomson）分別透過電子繞射實驗證實了微觀粒子確實具備波動特性，徹底顛覆了經典物理學中粒子與波的截然分野，揭示了微觀世界的「波粒二象性」。</p>
+                <p>這一發現不僅開創了量子力學的新紀元，其應用層面也極具影響力，最顯著的便是電子顯微鏡的發明。利用電子的物質波波長遠小於可見光波長的特性，科學家成功突破了傳統光學顯微鏡的解析度限制，解析度達到 0.1 奈米，讓人們得以觀測到原子與分子。</p>
+                <p>物質波的發現不僅是理論上的革命，更為後續量子疊加、量子糾纏等奇特物理現象的探索奠定了基礎。它告訴我們，微觀世界與日常經驗大相逕庭，人類對宇宙運行法則的認知之旅，才剛剛開始。</p>
+            </div>
+        </div>
+
+        <div class="mb-6 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+            <div id="progress-bar" class="bg-[#81D8D0] h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <form id="quiz-form" class="space-y-6">
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q1">
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 1 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">關於德布羅意（Louis de Broglie）提出的「物質波」假說，下列敘述何者正確？</p>
+                <div class="space-y-3 options">
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 該假說在提出之初立即受到物理學界的一致讚譽與推崇</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 該理論主張除了電磁波外，構成物質的基本粒子也具有波動特性</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 德布羅意因為這篇論文遭到愛因斯坦的強烈反對而差點無法畢業</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q1" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 該假說認為經典物理學定律可以完美解釋微觀世界的所有現象</div></label>
+                </div>
+            </div>
+
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q2">
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 2 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">湯姆森父子在物理學史上的研究，共同見證了電子的哪一種神祕性質？</p>
+                <div class="space-y-3 options">
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 量子糾纏</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 質能互換</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 波粒二象性</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q2" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 全反射</div></label>
+                </div>
+            </div>
+
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q3">
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 3 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">根據文本，電子顯微鏡之所以能突破傳統光學顯微鏡的「解析度極限」，關鍵原因為何？</p>
+                <div class="space-y-3 options">
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 電子顯微鏡使用了更高功率的放大鏡片組</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 電子的物質波波長遠小於可見光的波長</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 電子在真空中的運動速度比光速還要快</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q3" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 電子顯微鏡能夠直接改變原子的排列組合</div></label>
+                </div>
+            </div>
+
+            <div class="question-block bg-white rounded-3xl p-6 shadow-sm border border-slate-100" data-id="q4">
+                <div class="flex items-center space-x-2 mb-3"><span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 4 題</span></div>
+                <p class="font-medium text-slate-800 leading-relaxed mb-4">戴維森、革末以及喬治．湯姆森是透過觀測到電子的哪一種物理現象，進而直接證實了物質波的存在？</p>
+                <div class="space-y-3 options">
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="A" class="sr-only" required><div class="option-content border border-slate-200 rounded-2xl p-4">A. 繞射現象（Diffraction）</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="B" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">B. 折射現象（Refraction）</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="C" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">C. 光電效應（Photoelectric Effect）</div></label>
+                    <label class="option-card block cursor-pointer"><input type="radio" name="q4" value="D" class="sr-only"><div class="option-content border border-slate-200 rounded-2xl p-4">D. 量子疊加（Quantum Superposition）</div></label>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" id="submit-btn" class="w-full bg-[#81D8D0] text-slate-900 font-bold py-4 rounded-2xl shadow-lg shadow-[#81D8D0]/25 hover:opacity-95 active:scale-[0.99] transition-all duration-150">提交測驗</button>
+            </div>
+        </form>
+
+        <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl">
+            <div class="text-center mb-6">
+                <h4 class="font-bold text-lg mb-4">測驗結果</h4>
+                <p class="text-4xl font-extrabold text-slate-800"><span id="user-score">0</span> <span class="text-base text-slate-400">/ 100 分</span></p>
+            </div>
+            <div id="answer-review" class="space-y-4 pt-4 border-t border-slate-100">
+            </div>
+            <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="mt-8 block w-full bg-slate-100 py-3.5 rounded-2xl text-center">返回首頁</a>
+        </div>
+    </main>
+
+    <script>
+        const CONFIG = {
+            bigTopic: "物理學史",
+            smallTopic: "物質波",
+            quizName: "Reading02"
+        };
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxTk3NT4rn1G3LdGt3NIEHoqEzNcuzEO4jfxHiitJPwA4ZsodbA3h4b6_uVW3aK3j5o/exec"; 
+        const questionsData = {
+            q1: { text: "關於德布羅意（Louis de Broglie）提出的「物質波」假說，下列敘述何者正確？", answer: "B" },
+            q2: { text: "湯姆森父子在物理學史上的研究，共同見證了電子的哪一種神祕性質？", answer: "C" },
+            q3: { text: "根據文本，電子顯微鏡之所以能突破傳統光學顯微鏡的「解析度極限」，關鍵原因為何？", answer: "B" },
+            q4: { text: "戴維森、革末以及喬治．湯姆森是透過觀測到電子的哪一種物理現象，進而直接證實了物質波的存在？", answer: "A" }
+        };
+        const answerKey = { q1: "B", q2: "C", q3: "B", q4: "A" };
+        const totalQuestions = Object.keys(answerKey).length;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let studentClass = urlParams.get('class') || localStorage.getItem('user_class');
+        let studentNo = urlParams.get('classNo') || localStorage.getItem('user_class_no');
+        let realName = urlParams.get('realName') || localStorage.getItem('user_real_name');
+
+        const fallbackSection = document.getElementById('credentials-fallback');
+        let hasAuth = true;
+
+        if (studentClass && studentNo && realName) {
+            document.getElementById('info-class').innerText = studentClass;
+            document.getElementById('info-no').innerText = studentNo;
+            document.getElementById('info-name').innerText = realName;
+        } else {
+            fallbackSection.classList.remove('hidden');
+            hasAuth = false;
+        }
+
+        const form = document.getElementById('quiz-form');
+        form.addEventListener('change', () => {
+            const formData = new FormData(form);
+            let answered = 0;
+            for (let key in answerKey) { if (formData.get(key)) answered++; }
+            document.getElementById('progress-bar').style.width = `${(answered / totalQuestions) * 100}%`;
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            let finalClass = hasAuth ? studentClass : document.getElementById('fallback-class').value.trim();
+            let finalNo = hasAuth ? studentNo : document.getElementById('fallback-no').value.trim();
+            let finalName = hasAuth ? realName : document.getElementById('fallback-name').value.trim();
+
+            if (!finalClass || !finalNo || !finalName) {
+                alert('請填寫完整資訊！');
+                return;
+            }
+
+            let score = 0;
+            const formData = new FormData(form);
+            const reviewDiv = document.getElementById('answer-review');
+            reviewDiv.innerHTML = "";
+
+            for (let key in answerKey) {
+                const userAns = formData.get(key);
+                const isCorrect = userAns === answerKey[key];
+                if (isCorrect) score += 25;
+
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-2xl border ${isCorrect ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`;
+                div.innerHTML = `<p class="font-bold text-sm mb-1">${questionsData[key].text}</p>
+                                 <p class="text-xs">您的選擇：<span class="font-bold ${isCorrect ? 'text-emerald-700' : 'text-red-700'}">${userAns || '未選擇'}</span></p>
+                                 <p class="text-xs">正確答案：<span class="font-bold text-slate-600">${answerKey[key]}</span></p>`;
+                reviewDiv.appendChild(div);
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "儲存中...";
+
+            fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    quiz_name: CONFIG.quizName,
+                    class: finalClass,
+                    class_no: Number(finalNo),
+                    real_name: finalName,
+                    big_topic: CONFIG.bigTopic,
+                    small_topic: CONFIG.smallTopic,
+                    score: score,
+                    fullmarks: 100
+                })
+            })
+            .then(() => {
+                form.classList.add('hidden');
+                document.getElementById('user-score').innerText = score;
+                document.getElementById('result-modal').classList.remove('hidden');
+            })
+            .catch(() => { alert("儲存失敗，請檢查網路後重試"); submitBtn.disabled = false; });
+        });
+    </script>
+</body>
+</html>
