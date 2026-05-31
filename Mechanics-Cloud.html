@@ -191,14 +191,36 @@
 
         /* Markdown Reader Elements */
         .markdown-reader-container { display: none;
-            width: 50%; height: 100%; background: #fef9c3; border-right: 1px solid #e2e8f0; position: relative; flex-direction: column; overflow: visible;
+            width: 50%; height: 100%; background: #fffdf5; border-right: 1px solid #eee6d3; position: relative; flex-direction: column; overflow: visible; color: #3f3324;
         }
-        .dark .markdown-reader-container { background: #422006; border-color: #713f12; color: #fef9c3;
+        .dark .markdown-reader-container { background: #1f1a14; border-color: #3d3326; color: #f4ead8;
         }
-        .markdown-header { height: 50px; background: rgba(250, 204, 21, 0.2);
-            border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
+        .markdown-header { height: 50px; background: #fbf3df;
+            border-bottom: 1px solid #eee1c8; display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
         }
-        .markdown-body { flex: 1; padding: 30px; overflow-y: auto;
+        .dark .markdown-header { background: #2a2118; border-bottom-color: #3d3326;
+        }
+        .reader-split-controls { display: none;
+        }
+        .reader-split-btn { width: 34px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #8a6f46; background: rgba(255,255,255,0.55); border: 1px solid rgba(138,111,70,0.16); transition: 0.2s;
+        }
+        .reader-split-btn:hover, .reader-split-btn.active { background: #ffffff; color: #10b981; border-color: rgba(16,185,129,0.35);
+        }
+        .dark .reader-split-btn { color: #d7c6ac; background: rgba(255,255,255,0.06); border-color: rgba(244,234,216,0.12);
+        }
+        .dark .reader-split-btn:hover, .dark .reader-split-btn.active { background: rgba(16,185,129,0.18); color: #6ee7b7; border-color: rgba(110,231,183,0.35);
+        }
+        .markdown-body { flex: 1; padding: 30px; overflow-y: auto; scroll-behavior: smooth; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: #d8cbb6 transparent;
+        }
+        .markdown-body::-webkit-scrollbar { width: 8px;
+        }
+        .markdown-body::-webkit-scrollbar-track { background: transparent;
+        }
+        .markdown-body::-webkit-scrollbar-thumb { background: #d8cbb6; border-radius: 999px; border: 2px solid transparent; background-clip: content-box;
+        }
+        .dark .markdown-body { scrollbar-color: #6b5a43 transparent;
+        }
+        .dark .markdown-body::-webkit-scrollbar-thumb { background: #6b5a43; border: 2px solid transparent; background-clip: content-box;
         }
 
         /* Markdown 解析排版優化 */
@@ -322,7 +344,11 @@
                 padding: 10px 16px; background: var(--bg-header); color: var(--text-dim); border-radius: 12px; font-size: 11px; font-weight: 800; margin-bottom: 20px; border: 1px solid var(--border-color);
             }
             .markdown-reader-container { width: 100% !important; height: 50%;
-                border-bottom: 2px solid #facc15; }
+                border-bottom: 2px solid #eee1c8; }
+            .dark .markdown-reader-container { border-bottom-color: #3d3326;
+            }
+            .reader-split-controls { display: flex; align-items: center; gap: 6px;
+            }
             .resizer-handle { display: none;
             }
         }
@@ -430,6 +456,24 @@
                 }
             }
             return cleaned;
+        }
+
+        // 智慧 URL 提取器：若輸入值包含 Markdown 或 HTML 格式圖片，將其網址過濾還原為純直鏈
+        function extractUrlFromString(str) {
+            if (!str) return '';
+            const mdMatch = str.match(/!\[.*?\]\((.*?)\)/);
+            if (mdMatch && mdMatch[1]) {
+                return mdMatch[1].trim();
+            }
+            const htmlMatch = str.match(/<img\s+[^>]*src=["'](.*?)["']/i);
+            if (htmlMatch && htmlMatch[1]) {
+                return htmlMatch[1].trim();
+            }
+            const urlMatch = str.match(/(https?:\/\/[^\s"'()<>]+)/);
+            if (urlMatch && urlMatch[1]) {
+                return urlMatch[1].trim();
+            }
+            return str.trim();
         }
 
         // Night Mode Logic
@@ -540,6 +584,53 @@
             }
         }
 
+        async function verifyStoredToken() {
+            const savedToken = localStorage.getItem('LUMINA_JWT');
+            if (!savedToken) return false;
+
+            const startBtn = document.getElementById('btn-start');
+            const loadingEl = document.getElementById('auth-loading');
+            if (startBtn) {
+                startBtn.innerText = "WAITING...";
+                startBtn.disabled = true;
+            }
+            if (loadingEl) loadingEl.style.display = 'flex';
+
+            try {
+                const tokenRes = await fetch(AUTH_GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        token: savedToken
+                    })
+                });
+
+                const tokenData = await tokenRes.json();
+                if (tokenData.success === true) {
+                    if (tokenData.identity_tag) {
+                        localStorage.setItem('LUMINA_IDENTITY', JSON.stringify(tokenData.identity_tag));
+                    }
+                    openHomeFolder();
+                    return true;
+                }
+            } catch (e) {
+                localStorage.removeItem('LUMINA_JWT');
+                localStorage.removeItem('LUMINA_IDENTITY');
+            } finally {
+                if (startBtn) {
+                    startBtn.innerText = "START LEARNING";
+                    startBtn.disabled = false;
+                }
+                if (loadingEl) loadingEl.style.display = 'none';
+            }
+
+            localStorage.removeItem('LUMINA_JWT');
+            localStorage.removeItem('LUMINA_IDENTITY');
+            return false;
+        }
+
         async function handleAuth() {
             const user = document.getElementById('auth-username').value.trim();
             const pass = document.getElementById('auth-password').value.trim();
@@ -592,6 +683,7 @@
             }
         }
 
+        // 開啟首頁 (目錄)
         function openHomeFolder() { 
             openTab("Course Catalog", "FOLDER");
         }
@@ -720,8 +812,9 @@
                     
                     // 欄 B 為種類, 欄 C 為項目id, 欄 D 為 subid, 欄 E 為title, 欄 F 為 md code (或description), 欄 G 為youtube link
                     let itemType = colB_raw.toLowerCase();
-                    // 支援：當欄 E（Title）為 'pic' 時，也自動視為 'pic' 種類
-                    if (colE_raw.toLowerCase() === 'pic') {
+                    
+                    // 支援：當欄 E（Title）為 'pic' 時，自動視為 'pic' 種類 (若 B 欄本就為 'ebook'，則排除此劫持，以免相片與電子書主體割裂)
+                    if (itemType !== 'ebook' && colE_raw.toLowerCase() === 'pic') {
                         itemType = 'pic';
                     }
 
@@ -767,7 +860,8 @@
                             subId: subId,
                             mdCode: itemDesc,     // 欄 F (Description / md code / pic url)
                             title: itemTitle,     // 欄 E (Title)
-                            content: itemUrl      // 欄 G (YouTube Link 或其他非影片連結)
+                            content: itemUrl,     // 欄 G (YouTube Link 或其他非影片連結)
+                            originalType: colB_raw.toLowerCase() // 記錄原始 B 欄種類以利後續特判
                         });
                     }
                 });
@@ -776,28 +870,18 @@
                 itemIdsInOrder.forEach(itemId => {
                     const item = itemsMap[itemId];
                     
-                    // 處理所有非影片子群組 (如 ebook, mc, pic 等)，依 subid 排序並按順序完美拼接 Markdown 代碼
-                    // 此處已依需求移除任何圖片檢索、自動加載以及 ![圖片](網址) 嵌入邏輯，以便重新構建。
+                    // 處理所有非影片子群組 (如 ebook, mc, pic 等)，依 subid 排序並按順序完美拼接
                     const processedGroups = {};
                     for (const type in item.subitemsGroup) {
                         const subList = item.subitemsGroup[type];
-                        // 依照 subId 由小到大排序 (例如 subid1, subid2, subid3...)
+                        
+                        // 依照 subId 由小到大排序 (D欄為內容順序)
                         subList.sort((a, b) => a.subId - b.subId);
                         
-                        // 僅輸出純文字和 md code（F 欄），不在此自動進行圖片轉換或嵌入
-                        const combinedMd = subList.map(sub => {
-                            let textDesc = sub.mdCode ? sub.mdCode.toString().trim() : ''; // 欄 F (內容 / md code)
-                            
-                            // 前置清理 F 欄，防止有看不見的零寬度字元 (Zero Width Character)
-                            textDesc = textDesc.replace(/^[\s\u200B-\u200D\uFEFF]+|[\s\u200B-\u200D\uFEFF]+$/g, '');
-                            
-                            return textDesc;
-                        }).filter(text => text !== '').join('\n\n');
-                        
                         processedGroups[type] = {
-                            combinedMd: combinedMd,
-                            title: subList[0].title || item.topic,
-                            firstUrl: subList[0].content
+                            subitems: subList, // 扁平排列子清單，供閱讀器一口氣循序展示
+                            title: subList[0]?.title || item.topic,
+                            firstUrl: subList[0]?.content
                         };
                     }
                     
@@ -808,8 +892,8 @@
                         
                         // 當此項目同時擁有影片與其他電子書/測驗/圖片教材時，優雅找出可用於「平行閱讀」的教材內容
                         let hasEbook = false;
-                        let ebookContent = '';
                         let ebookTypeLabel = '電子書';
+                        let subitems = [];
 
                         // 優先選擇 ebook，如果沒有則選擇 mc (精選測驗)，再沒有就選 pic (圖片教材)，最後為其他
                         const preferredDocType = Object.keys(processedGroups).find(t => t === 'ebook') || 
@@ -819,7 +903,7 @@
                         
                         if (preferredDocType) {
                             hasEbook = true;
-                            ebookContent = processedGroups[preferredDocType].combinedMd;
+                            subitems = processedGroups[preferredDocType].subitems;
                             if (preferredDocType === 'mc') ebookTypeLabel = '精選測驗';
                             else if (preferredDocType === 'pic') ebookTypeLabel = '圖片';
                             else ebookTypeLabel = '電子書';
@@ -833,7 +917,7 @@
                             description: item.videoDesc,
                             content: item.videoUrl,
                             hasEbook: hasEbook,
-                            ebookContent: ebookContent,
+                            subitems: subitems,
                             ebookTypeLabel: ebookTypeLabel
                         });
                     } else {
@@ -851,10 +935,10 @@
                                 itemId: item.itemId,
                                 type: type, // ebook, mc, pic, etc.
                                 topic: group.title,
-                                description: `${type === 'pic' ? '圖片' : type.toUpperCase()} 教材（包含 ${item.subitemsGroup[type].length} 個子頁面）。`,
-                                content: group.combinedMd || group.firstUrl,
+                                description: `${type === 'pic' ? '圖片' : type.toUpperCase()} 教材（包含 ${group.subitems.length} 個子頁面）。`,
+                                content: type, // 將型態寫入為內容佔位符
                                 hasEbook: true,
-                                ebookContent: group.combinedMd,
+                                subitems: group.subitems,
                                 ebookTypeLabel: type === 'mc' ? '精選測驗' : (type === 'pic' ? '圖片' : '電子書')
                             });
                         }
@@ -877,7 +961,7 @@
                             type: item.type,
                             content: item.content,
                             description: item.description,
-                            ebookContent: item.ebookContent || '',
+                            subitems: item.subitems || [],
                             ebookTypeLabel: item.ebookTypeLabel || ''
                         };
 
@@ -921,13 +1005,15 @@
                 container.innerHTML = `<div class="lms-classic-layout">
                     <div class="lms-sidebar" id="sidebar-${tid}"><div class="lms-sidebar-header"><div class="flex justify-between items-center mb-1"><div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">${tid}</div><div class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 font-black">${vFilter}學年版本</div></div><div class="text-lg font-black text-slate-800">${title}</div></div><div class="flex-1">${sidebarHtml}</div><div class="p-4 border-t"><button onclick="renderVersionSelector('${tid}', '${title}', '${cid}')" class="w-full py-2 text-[10px] font-black text-slate-400 uppercase bg-slate-50 rounded-lg">Switch Selection</button></div></div>
                     <div id="md-reader-${tid}" class="markdown-reader-container">
-                      <div class="markdown-header"><div class="flex items-center gap-2"><i class="fas fa-book text-yellow-600"></i><span class="text-[10px] font-black uppercase tracking-widest opacity-60">Reading Mode</span></div><button onclick="closeMarkdownReader('${tid}')" class="w-8 h-8 flex items-center justify-center hover:bg-yellow-200 rounded-full transition-colors"><i class="fas fa-chevron-left text-xs"></i></button></div>
+                      <div class="markdown-header"><div class="flex items-center gap-2"><i class="fas fa-book text-yellow-600"></i><span class="text-[10px] font-black uppercase tracking-widest opacity-60">Reading Mode</span></div><div class="flex items-center gap-2"><div class="reader-split-controls"><button class="reader-split-btn" onclick="setReaderSplit('${tid}', 1/3, this)">1/3</button><button class="reader-split-btn active" onclick="setReaderSplit('${tid}', 1/2, this)">1/2</button><button class="reader-split-btn" onclick="setReaderSplit('${tid}', 2/3, this)">2/3</button></div><button onclick="closeMarkdownReader('${tid}')" class="w-8 h-8 flex items-center justify-center hover:bg-yellow-200 rounded-full transition-colors"><i class="fas fa-chevron-left text-xs"></i></button></div></div>
+                        <!-- 智慧 Session 頁籤切換器 (一口氣渲染模式中不顯示，保留結構與原本一致) -->
+                        <div id="md-tabs-${tid}" class="flex gap-2 px-4 py-2 bg-yellow-100/60 dark:bg-yellow-950/20 border-b border-black/5 overflow-x-auto scrollbar-none" style="display:none;"></div>
                         <div class="markdown-body"><div class="flex flex-col items-center justify-center h-full text-yellow-800/40 uppercase tracking-[0.2em] font-black"><i class="fas fa-file-alt text-4xl mb-4"></i><span>Markdown Content Loader</span><div class="mt-2 text-[8px]" id="md-tag-display-${tid}"></div></div></div>
                         <div class="resizer-handle"><div class="resizer-knob" onmousedown="initMdResize(event, '${tid}')"><i class="fas fa-arrows-alt-h"></i></div></div>
                     </div>
                     <div class="lms-stage" id="stage-${tid}"></div>
                 </div>`;
-                if (firstItem) updateLMSStage(tid, firstItem.section, firstItem.topic, firstItem.type, firstItem.content, firstItem.id, true, firstItem.description);
+                if (firstItem) updateLMSStage(tid, firstItem.section, firstItem.topic, firstItem.type, firstItem.content, firstItem.id, true, firstItem.description, firstItem.registryKey);
             } catch (e) { 
                 container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">ERROR LOADING COURSE: ${tid}</div>`;
             }
@@ -937,31 +1023,92 @@
         function handleLmsItemClick(tid, section, registryKey, itemId) {
             const item = window.lmsItemsRegistry[registryKey];
             if (!item) return;
-            updateLMSStage(tid, section, item.topic, item.type, item.content, itemId, false, item.description);
+            updateLMSStage(tid, section, item.topic, item.type, item.content, itemId, false, item.description, registryKey);
         }
 
         // 登錄表調用：平行閱讀模式的開啟邏輯（不干擾右側已載入/播放中的 YouTube 舞台）
         function openMarkdownReaderParallelFromRegistry(tid, registryKey) {
+            openMarkdownReaderParallel(tid, registryKey);
+        }
+
+        // 重構後的閱讀模式核心渲染邏輯 (一口氣順序演示)
+        function openMarkdownReader(tid, registryKey) {
+            const sidebar = document.getElementById(`sidebar-${tid}`);
+            const reader = document.getElementById(`md-reader-${tid}`);
+            const tagDisplay = document.getElementById(`md-tag-display-${tid}`);
             const item = window.lmsItemsRegistry[registryKey];
             if (!item) return;
-            openMarkdownReaderParallel(tid, item.ebookContent, item.topic);
-        }
 
-        // 開啟閱讀器，渲染 Markdown 與 LaTeX Mathjax
-        function openMarkdownReader(tid, mdContent) {
-            const sidebar = document.getElementById(`sidebar-${tid}`);
-            const reader = document.getElementById(`md-reader-${tid}`);
-            const tagDisplay = document.getElementById(`md-tag-display-${tid}`);
             if (sidebar) sidebar.style.width = '0px'; 
             if (reader) { 
                 reader.style.display = 'flex';
-                if (tagDisplay) tagDisplay.innerText = `電子書閱讀模式`; 
+                if (tagDisplay) tagDisplay.innerText = `${item.ebookTypeLabel || '電子書'} - ${item.topic}`; 
                 
+                // 隱藏分頁頁籤
+                const tabsContainer = document.getElementById(`md-tabs-${tid}`);
+                if (tabsContainer) tabsContainer.style.display = 'none';
+
                 const body = reader.querySelector('.markdown-body');
                 if (body) {
-                    // 使用 marked 渲染 Markdown
-                    body.innerHTML = typeof marked !== 'undefined' ? marked.parse(mdContent) : `<pre style="white-space: pre-wrap;">${mdContent}</pre>`;
-                    // 執行 MathJax 排版 LaTeX
+                    let htmlContent = '';
+                    const subitems = item.subitems || [];
+                    
+                    // 已在載入處按 D 欄 (subId 順序) 進行排序，此處依序連續渲染
+                    subitems.forEach((sub, idx) => {
+                        const colE = sub.title ? sub.title.toString().trim().toLowerCase() : '';
+                        
+                        // 判斷是否為圖片展示（當 E 欄為 pic / 圖片 / image / photo 等變體時）
+                        const isPicType = (colE === 'pic' || colE === '圖片' || colE === 'image' || colE === 'photo' || colE === 'img' || colE === 'picture' || colE.includes('pic') || colE.includes('img') || colE.includes('圖片'));
+                        
+                        if (isPicType) {
+                            let rawUrl = '';
+                            const fCode = sub.mdCode ? sub.mdCode.toString().trim() : '';
+                            const gContent = sub.content ? sub.content.toString().trim() : '';
+
+                            if (fCode.includes('http')) {
+                                rawUrl = extractUrlFromString(fCode);
+                            } else if (gContent.includes('http')) {
+                                rawUrl = extractUrlFromString(gContent);
+                            } else {
+                                rawUrl = extractUrlFromString(fCode || gContent);
+                            }
+
+                            const imgUrl = convertDriveUrl(rawUrl);
+
+                            // 判斷 F 欄是否包含說明文字 (若 F 欄不為純 URL，則過濾 URL 及圖片語法後作為圖說渲染)
+                            let cleanDescText = fCode;
+                            cleanDescText = cleanDescText.replace(/!\[.*?\]\(.*?\)/g, '');
+                            cleanDescText = cleanDescText.replace(/<img[^>]*>/ig, '');
+                            cleanDescText = cleanDescText.replace(/https?:\/\/[^\s"'()<>]+/g, '');
+                            cleanDescText = cleanDescText.trim();
+
+                            const hasDescText = cleanDescText.length > 0;
+                            const descHtml = hasDescText ? `<div class="mt-4 p-3 bg-black/5 dark:bg-white/5 rounded-lg text-sm">${typeof marked !== 'undefined' ? marked.parse(cleanDescText) : cleanDescText}</div>` : '';
+
+                            htmlContent += `
+                                <div class="pic-render-session mb-6 flex flex-col items-center justify-center p-4 bg-white/40 dark:bg-black/10 rounded-2xl border border-black/5 shadow-inner w-full">
+                                    <img src="${imgUrl}" class="max-w-full h-auto rounded-xl shadow-lg border border-black/10 hover:scale-[1.01] transition-transform duration-300" 
+                                         onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800'; this.onerror=null;" />
+                                    ${descHtml}
+                                </div>
+                            `;
+                        } else {
+                            // 當 E 欄為 md（或預設其他非圖片文字）時，以 markdown 形式放入內容 (F 欄)
+                            const mdCode = sub.mdCode || '';
+                            if (mdCode) {
+                                htmlContent += `
+                                    <div class="md-render-session mb-6 w-full">
+                                        ${typeof marked !== 'undefined' ? marked.parse(mdCode) : `<pre style="white-space: pre-wrap;">${mdCode}</pre>`}
+                                    </div>
+                                `;
+                            }
+                        }
+                    });
+
+                    // 更新容器 HTML
+                    body.innerHTML = htmlContent || `<div class="text-center opacity-40 text-xs py-10">尚無教材內容</div>`;
+
+                    // 重新載入 MathJax 動態方程式
                     if (window.MathJax) {
                         MathJax.typesetPromise([body]).catch((err) => console.log("MathJax Error: ", err));
                     }
@@ -969,27 +1116,9 @@
             }
         }
 
-        // 專門用於平行閱讀模式的開啟邏輯
-        function openMarkdownReaderParallel(tid, mdContent, topic) {
-            const sidebar = document.getElementById(`sidebar-${tid}`);
-            const reader = document.getElementById(`md-reader-${tid}`);
-            const tagDisplay = document.getElementById(`md-tag-display-${tid}`);
-            
-            // 將 left sidebar 設為 0px 進行隱藏
-            if (sidebar) sidebar.style.width = '0px'; 
-            
-            if (reader) { 
-                reader.style.display = 'flex';
-                if (tagDisplay) tagDisplay.innerText = `電子書閱讀模式 - ${topic}`; 
-                
-                const body = reader.querySelector('.markdown-body');
-                if (body) {
-                    body.innerHTML = typeof marked !== 'undefined' ? marked.parse(mdContent) : `<pre style="white-space: pre-wrap;">${mdContent}</pre>`;
-                    if (window.MathJax) {
-                        MathJax.typesetPromise([body]).catch((err) => console.log("MathJax Error: ", err));
-                    }
-                }
-            }
+        // 專門用於平行閱讀模式的開啟邏輯 (復用 openMarkdownReader)
+        function openMarkdownReaderParallel(tid, registryKey) {
+            openMarkdownReader(tid, registryKey);
         }
 
         function closeMarkdownReader(tid) {
@@ -997,6 +1126,14 @@
             const reader = document.getElementById(`md-reader-${tid}`);
             if (sidebar) sidebar.style.width = '320px';
             if (reader) reader.style.display = 'none';
+        }
+
+        function setReaderSplit(tid, ratio, btn) {
+            const reader = document.getElementById(`md-reader-${tid}`);
+            if (!reader || window.innerWidth > 768) return;
+            reader.style.height = `${ratio * 100}%`;
+            reader.querySelectorAll('.reader-split-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
         }
 
         function initMdResize(e, tid) {
@@ -1017,6 +1154,7 @@
             window.addEventListener('mouseup', stopDrag);
         }
 
+        // 狀態指示燈
         function setStatusIcon(success) {
             const h = document.getElementById('hero-cloud-icon');
             const w = document.getElementById('window-cloud-icon');
@@ -1065,7 +1203,7 @@
             setTimeout(() => { document.getElementById('main-browser-window').style.display = 'none'; document.getElementById('browser-window-body').innerHTML = ''; }, 800);
         }
 
-        function updateLMSStage(tid, section, topic, type, content, itemId, isInitialLoad = false, description = '') {
+        function updateLMSStage(tid, section, topic, type, content, itemId, isInitialLoad = false, description = '', registryKey = '') {
             const stage = document.getElementById(`stage-${tid}`);
             document.querySelectorAll(`.lms-item-link`).forEach(b => b.classList.remove('active'));
             const activeBtn = document.getElementById(`btn-${itemId}`);
@@ -1075,7 +1213,7 @@
             
             // 對於獨立無影片關聯的 ebook/mc/pic，一鍵展開左側黃色閱讀器
             if (type === 'ebook' || type === 'mc' || type === 'pic') {
-                openMarkdownReader(tid, content);
+                openMarkdownReader(tid, registryKey);
                 
                 // 右側主顯示區展示一個優美的導引介面
                 stage.innerHTML = `
@@ -1111,7 +1249,11 @@
         }
         function refreshCurrentView() { openTabs.forEach(tab => { if (tab.type === 'FOLDER') renderGrid(`canvas-${tab.id}`); });
         }
-        window.onload = () => loadSheetData(false);
+        async function initializeApp() {
+            await loadSheetData(false);
+            await verifyStoredToken();
+        }
+        window.onload = () => initializeApp();
     </script>
 </body>
 </html>
