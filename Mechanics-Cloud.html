@@ -372,7 +372,7 @@
                 </div>
                 <div class="toolbar-item" id="sidebar-toggle-btn" style="display: none;" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
                 <div class="toolbar-item" onclick="openHomeFolder()"><i class="fas fa-th-list"></i></div>
-                <div class="toolbar-item" onclick="closeAllTabs()"><i class="fas fa-times"></i></div>
+                <div class="toolbar-item" onclick="exitToHome()"><i class="fas fa-times"></i></div>
             </div>
         </div>
         <div id="browser-window-body" class="window-body"></div>
@@ -412,9 +412,11 @@
     <script>
         // 目標試算表 ID
         const SPREADSHEET_ID = '1hEVxH23xd7dlxizftifdqvxS0mtpnGonL_G8hjkCaXQ';
+        const HOME_SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         
         // 密碼驗證中心 GS 網址（保持不變）
         const AUTH_GAS_URL = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';
+        const HOME_URL = 'https://phyuaaphysics.github.io/phyustudio/home.html';
         
         let openTabs = [];
         let activeTabId = null;
@@ -502,8 +504,8 @@
          * 核心：直接從公開 Google 試算表載入特定分頁的純資料 (免 Apps Script 代理)
          * 完美相容：優先讀取格式化顯示值（cell.f），確保如 "2425" 等儲存格內容 100% 正確還原。
          */
-        async function fetchSheetRows(sheetName) {
-            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+        async function fetchSheetRows(sheetName, spreadsheetId = SPREADSHEET_ID) {
+            const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
             const response = await fetch(url);
             const text = await response.text();
             // 解析 Google GViz API 的 JSONP 回傳格式
@@ -535,13 +537,16 @@
             try {
                 // 直接讀取 menu 分頁
                 const rows = await fetchSheetRows('menu');
+                let homeRows = rows;
+                try {
+                    homeRows = await fetchSheetRows('MECH', HOME_SPREADSHEET_ID);
+                } catch (e) {}
                 courseList = [];
-                rows.forEach(row => {
+                homeRows.forEach(row => {
                     if (!row || row.length === 0) return;
                     
                     const colA = row[0] ? row[0].toString().trim() : '';
                     const colB = row[1] ? row[1].toString().trim() : '';
-                    const colC = row[2] ? row[2].toString().trim() : '';
                     const colD = row[3] ? row[3].toString().trim() : '';
                     const colE = row[4] ? row[4].toString().trim() : '';
 
@@ -551,6 +556,16 @@
                         if (colB === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = val;
                         if (colB === 'PHOTO') document.getElementById('hero-bg').src = convertDriveUrl(val);
                     }
+                });
+                rows.forEach(row => {
+                    if (!row || row.length === 0) return;
+                    
+                    const colA = row[0] ? row[0].toString().trim() : '';
+                    const colB = row[1] ? row[1].toString().trim() : '';
+                    const colC = row[2] ? row[2].toString().trim() : '';
+                    const colD = row[3] ? row[3].toString().trim() : '';
+                    const colE = row[4] ? row[4].toString().trim() : '';
+
                     if (colA.toUpperCase() === 'CATALOG_BG') { 
                         catalogBgUrl = convertDriveUrl(colE || colD); 
                     }
@@ -603,14 +618,22 @@
                         'Content-Type': 'text/plain;charset=utf-8'
                     },
                     body: JSON.stringify({
+                        action: 'verifyToken',
+                        mode: 'token',
                         token: savedToken
                     })
                 });
 
                 const tokenData = await tokenRes.json();
-                if (tokenData.success === true) {
+                const tokenIsValid = tokenData.success === true || tokenData.success === 'true' || tokenData.valid === true || tokenData.valid === 'true' || tokenData.isValid === true || tokenData.isValid === 'true' || tokenData.verified === true || tokenData.verified === 'true' || tokenData.status === 'valid';
+                if (tokenIsValid) {
+                    if (tokenData.token) {
+                        localStorage.setItem('LUMINA_JWT', tokenData.token);
+                    }
                     if (tokenData.identity_tag) {
                         localStorage.setItem('LUMINA_IDENTITY', JSON.stringify(tokenData.identity_tag));
+                    } else if (tokenData.identity) {
+                        localStorage.setItem('LUMINA_IDENTITY', JSON.stringify(tokenData.identity));
                     }
                     openHomeFolder();
                     return true;
@@ -1201,6 +1224,20 @@
             document.getElementById('main-browser-window').classList.remove('open');
             document.getElementById('hero-main-content').classList.remove('fade-exit-up');
             setTimeout(() => { document.getElementById('main-browser-window').style.display = 'none'; document.getElementById('browser-window-body').innerHTML = ''; }, 800);
+        }
+
+        function exitToHome() {
+            openTabs = [];
+            activeTabId = null;
+            const win = document.getElementById('main-browser-window');
+            if (win) {
+                win.animate([
+                    { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0px)' },
+                    { opacity: 0.98, transform: 'translateY(8px) scale(0.985)', filter: 'blur(0px)' },
+                    { opacity: 0, transform: 'translateY(110vh) scale(0.94)', filter: 'blur(18px)' }
+                ], { duration: 720, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+            }
+            setTimeout(() => { window.location.href = HOME_URL; }, 720);
         }
 
         function updateLMSStage(tid, section, topic, type, content, itemId, isInitialLoad = false, description = '', registryKey = '') {
