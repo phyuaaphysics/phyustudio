@@ -6,10 +6,26 @@
     <title>Fundamental Exercise - Lumina Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- 引入 Markdown 渲染庫 & LaTeX 渲染引擎 (MathJax) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         /* 保持原有的 UI 視覺設計與動畫 */
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-
         :root {
             --mint-deep: #064e3b;
             --mint-primary: #10b981;
@@ -17,7 +33,6 @@
             --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1);
             --anim-slow: 1.6s cubic-bezier(0.4, 0, 0.2, 1);
             --tab-anim: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            
             /* Light Mode Variables */
             --bg-main: #f8fafc;
             --bg-window: #ffffff;
@@ -49,79 +64,184 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden; z-index: 100; }
-        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow), filter 0.8s; }
-        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); z-index: 5; }
-        .dark .hero-overlay { background: linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(15,23,42,0.3) 100%); }
+        .hero-full { position: absolute; inset: 0; width: 100%; height: 100dvh; overflow: hidden;
+            z-index: 100; }
+        #hero-bg { position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; filter: saturate(1.2) brightness(1.05); transition: transform var(--anim-slow), filter 0.8s;
+        }
+        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
+            z-index: 5; }
+        .dark .hero-overlay { background: linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(15,23,42,0.3) 100%);
+        }
         
-        .hero-glass-panel { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center; transition: opacity var(--anim-os), transform var(--anim-os); z-index: 20; }
-        .dark .hero-glass-panel { background: rgba(30, 41, 59, 0.4); border-color: rgba(255, 255, 255, 0.1); }
+        .hero-glass-panel { background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 40px; padding: 3.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); max-width: 90%; width: 540px; display: flex; flex-direction: column; align-items: center;
+            transition: opacity var(--anim-os), transform var(--anim-os); z-index: 20; }
+        .dark .hero-glass-panel { background: rgba(30, 41, 59, 0.4);
+            border-color: rgba(255, 255, 255, 0.1); }
         
-        .hero-content-wrapper { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; padding-top: env(safe-area-inset-top); }
-        .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden; }
+        .hero-content-wrapper { position: absolute;
+            inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; padding-top: env(safe-area-inset-top);
+        }
+        .fade-exit-up { opacity: 0; transform: translateY(-150px) scale(0.9); visibility: hidden;
+        }
 
         /* Security UI Elements */
-        .auth-input { width: 100%; background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; outline: none; font-size: 14px; transition: 0.3s; color: #1e293b; }
-        .dark .auth-input { background: rgba(15, 23, 42, 0.3); color: #fff; border-color: rgba(255,255,255,0.1); }
-        .auth-input:focus { background: rgba(255, 255, 255, 0.6); border-color: #10b981; }
-        .dark .auth-input:focus { background: rgba(15, 23, 42, 0.6); }
-        .error-msg { color: #ef4444; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: none; }
+        .auth-input { width: 100%;
+            background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px;
+            outline: none; font-size: 14px; transition: 0.3s; color: #1e293b; }
+        .dark .auth-input { background: rgba(15, 23, 42, 0.3);
+            color: #fff; border-color: rgba(255,255,255,0.1); }
+        .auth-input:focus { background: rgba(255, 255, 255, 0.6);
+            border-color: #10b981; }
+        .dark .auth-input:focus { background: rgba(15, 23, 42, 0.6);
+        }
+        .error-msg { color: #ef4444; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: none;
+        }
         
         /* Auth Loading Indicator */
-        #auth-loading { display: none; align-items: center; gap: 8px; margin-top: 15px; color: #10b981; font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
+        #auth-loading { display: none;
+            align-items: center; gap: 8px; margin-top: 15px; color: #10b981; font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
+        }
 
         /* Window & LMS Layouts */
-        .modal-window { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: var(--bg-window); transform: translateY(110vh); z-index: 310; display: none; opacity: 0; overflow: hidden; transition: opacity var(--anim-os), transform var(--anim-os), background-color 0.3s; }
-        .modal-window.open { display: flex; flex-direction: column; opacity: 1; transform: translateY(0); }
-        .window-header { padding: 0 12px; display: flex; align-items: center; background: var(--bg-header); border-bottom: 1px solid var(--border-color); height: 54px; gap: 8px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box; transition: background-color 0.3s, border-color 0.3s; }
-        .tab-strip { display: flex; align-items: flex-end; gap: 4px; flex: 1; overflow-x: auto; height: 100%; scrollbar-width: none; }
-        .browser-tab { height: 38px; min-width: 100px; max-width: 180px; background: #e2e8f0; border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; transition: all var(--tab-anim); position: relative; margin-bottom: -1px; border: 1px solid transparent; }
-        .dark .browser-tab { background: #334155; }
-        .browser-tab.active { background: var(--bg-window); z-index: 2; transform: scale(1.02); box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
-        .tab-title { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim); }
-        .browser-tab.active .tab-title { color: var(--text-main); }
-        .tab-close { font-size: 10px; opacity: 0.4; padding: 4px; transition: 0.2s; color: var(--text-dim); }
-        .window-body { flex: 1; width: 100%; background: var(--bg-main); position: relative; overflow: hidden; padding-bottom: env(safe-area-inset-bottom); transition: background-color 0.3s; }
-        .win-content-page { display: none; width: 100%; height: 100%; opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease; }
-        .win-content-page.active { display: block; opacity: 1; transform: translateY(0); }
-        .toolbar-item { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 14px; transition: 0.3s; cursor: pointer; }
-        .toolbar-item:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
-        .dark .toolbar-item:hover { background: rgba(255,255,255,0.1); }
+        .modal-window { position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100dvh; background: var(--bg-window); transform: translateY(110vh); z-index: 310; display: none; opacity: 0; overflow: hidden;
+            transition: opacity var(--anim-os), transform var(--anim-os), background-color 0.3s; }
+        .modal-window.open { display: flex;
+            flex-direction: column; opacity: 1; transform: translateY(0); }
+        .window-header { padding: 0 12px;
+            display: flex; align-items: center; background: var(--bg-header); border-bottom: 1px solid var(--border-color); height: 54px; gap: 8px; flex-shrink: 0; padding-top: env(safe-area-inset-top); box-sizing: content-box;
+            transition: background-color 0.3s, border-color 0.3s; }
+        .tab-strip { display: flex; align-items: flex-end;
+            gap: 4px; flex: 1; overflow-x: auto; height: 100%; scrollbar-width: none;
+        }
+        .browser-tab { height: 38px; min-width: 100px; max-width: 180px; background: #e2e8f0;
+            border-radius: 12px 12px 0 0; display: flex; align-items: center; padding: 0 15px; gap: 8px; cursor: pointer; transition: all var(--tab-anim);
+            position: relative; margin-bottom: -1px; border: 1px solid transparent; }
+        .dark .browser-tab { background: #334155;
+        }
+        .browser-tab.active { background: var(--bg-window); z-index: 2; transform: scale(1.02);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
+        .tab-title { font-size: 11px; font-weight: 700;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim); }
+        .browser-tab.active .tab-title { color: var(--text-main);
+        }
+        .tab-close { font-size: 10px; opacity: 0.4; padding: 4px; transition: 0.2s; color: var(--text-dim);
+        }
+        .window-body { flex: 1; width: 100%; background: var(--bg-main); position: relative; overflow: hidden;
+            padding-bottom: env(safe-area-inset-bottom); transition: background-color 0.3s; }
+        .win-content-page { display: none; width: 100%;
+            height: 100%; opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .win-content-page.active { display: block; opacity: 1; transform: translateY(0);
+        }
+        .toolbar-item { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; color: var(--text-dim); font-size: 14px; transition: 0.3s; cursor: pointer;
+        }
+        .toolbar-item:hover { background: rgba(0,0,0,0.05); color: var(--text-main);
+        }
+        .dark .toolbar-item:hover { background: rgba(255,255,255,0.1);
+        }
 
         /* LMS Elements */
-        .lms-classic-layout { display: flex; height: 100%; width: 100%; overflow: hidden; background: var(--bg-window); position: relative; }
-        .lms-sidebar { width: 320px; flex-shrink: 0; border-right: 1px solid var(--border-color); background: var(--bg-sidebar); overflow-y: auto; display: flex; flex-direction: column; transition: width 0.3s ease, background-color 0.3s, border-color 0.3s; }
-        .lms-sidebar-header { padding: 24px; border-bottom: 1px solid var(--border-color); }
-        .lms-section-title { padding: 12px 24px; background: var(--bg-header); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; border-bottom: 1px solid var(--border-color); }
-        .lms-item-link { padding: 16px 24px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid var(--border-color); position: relative; color: var(--text-dim); }
-        .lms-item-link:hover { background: rgba(0,0,0,0.02); }
-        .dark .lms-item-link:hover { background: rgba(255,255,255,0.02); }
-        .lms-item-link.active { background: #ecfdf5; color: #059669; }
-        .dark .lms-item-link.active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-        .lms-item-link.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #10b981; }
-        .lms-item-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; background: #f1f5f9; }
-        .dark .lms-item-icon { background: #334155; }
-        .lms-item-link.active .lms-item-icon { background: #10b981; color: white; }
-        .lms-stage { flex: 1; background: var(--bg-window); overflow-y: auto; display: flex; flex-direction: column; position: relative; transition: background-color 0.3s; }
-        .lms-stage-content { max-width: 1100px; margin: 0 auto; width: 100%; padding: 40px; }
-        .media-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        .lms-stage-title { font-size: 28px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+        .lms-classic-layout { display: flex;
+            height: 100%; width: 100%; overflow: hidden; background: var(--bg-window); position: relative;
+        }
+        .lms-sidebar { width: 320px; flex-shrink: 0; border-right: 1px solid var(--border-color); background: var(--bg-sidebar);
+            overflow-y: auto; display: flex; flex-direction: column; transition: width 0.3s ease, background-color 0.3s, border-color 0.3s;
+        }
+        .lms-sidebar-header { padding: 24px; border-bottom: 1px solid var(--border-color);
+        }
+        .lms-sidebar-header-title { font-size: 18px; font-weight: 800; color: var(--text-main);
+        }
+        .lms-section-title { padding: 12px 24px; background: var(--bg-header); font-size: 11px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; border-bottom: 1px solid var(--border-color);
+        }
+        .lms-item-link { padding: 16px 24px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: 0.2s; border-bottom: 1px solid var(--border-color); position: relative; color: var(--text-dim);
+        }
+        .lms-item-link:hover { background: rgba(0,0,0,0.02);
+        }
+        .dark .lms-item-link:hover { background: rgba(255,255,255,0.02);
+        }
+        .lms-item-link.active { background: #ecfdf5; color: #059669;
+        }
+        .dark .lms-item-link.active { background: rgba(16, 185, 129, 0.1); color: #10b981;
+        }
+        .lms-item-link.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 4px; background: #10b981; }
+        .lms-item-icon { width: 28px; height: 28px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 12px; background: #f1f5f9;
+        }
+        .dark .lms-item-icon { background: #334155;
+        }
+        .lms-item-link.active .lms-item-icon { background: #10b981; color: white;
+        }
+        .lms-stage { flex: 1; background: var(--bg-window); overflow-y: auto; display: flex; flex-direction: column;
+            position: relative; transition: background-color 0.3s; }
+        .lms-stage-content { max-width: 1100px; margin: 0 auto;
+            width: 100%; padding: 40px; }
+        .media-box { width: 100%; aspect-ratio: 16/9; background: #000;
+            border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); margin-bottom: 30px;
+        }
+        .lms-stage-title { font-size: 28px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;
+        }
 
         /* Markdown Reader Elements */
-        .markdown-reader-container { display: none; width: 50%; height: 100%; background: #fef9c3; border-right: 1px solid #e2e8f0; position: relative; flex-direction: column; overflow: visible; }
-        .dark .markdown-reader-container { background: #422006; border-color: #713f12; color: #fef9c3; }
-        .markdown-header { height: 50px; background: rgba(250, 204, 21, 0.2); border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; }
-        .markdown-body { flex: 1; padding: 30px; overflow-y: auto; }
+        .markdown-reader-container { display: none;
+            width: 50%; height: 100%; background: #fef9c3; border-right: 1px solid #e2e8f0; position: relative; flex-direction: column; overflow: visible;
+        }
+        .dark .markdown-reader-container { background: #422006; border-color: #713f12; color: #fef9c3;
+        }
+        .markdown-header { height: 50px; background: rgba(250, 204, 21, 0.2);
+            border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
+        }
+        .markdown-body { flex: 1; padding: 30px; overflow-y: auto;
+        }
+
+        /* Markdown 解析排版優化 */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-weight: 800;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body h1 { font-size: 1.5rem; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 0.25rem; }
+        .markdown-body h2 { font-size: 1.25rem; }
+        .markdown-body h3 { font-size: 1.1rem; }
+        .markdown-body p { margin-bottom: 1rem; line-height: 1.6; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .markdown-body ul { list-style-type: disc; }
+        .markdown-body ol { list-style-type: decimal; }
+        .markdown-body code { background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+        .dark .markdown-body code { background: rgba(255,255,255,0.1); }
+        .markdown-body pre { background: rgba(0,0,0,0.05); padding: 1rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1rem; }
+        .dark .markdown-body pre { background: rgba(255,255,255,0.05); }
+        .markdown-body blockquote { border-left: 4px solid #10b981; padding-left: 1rem; color: #64748b; margin-bottom: 1rem; }
+        .dark .markdown-body blockquote { color: #94a3b8; }
         
+        /* 圖片自適應渲染排版 */
+        .markdown-body img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
         /* Updated Resizer: Guaranteed visibility over both layers */
         .resizer-handle { 
-            width: 8px; height: 100%; cursor: col-resize; background: transparent; 
+            width: 8px;
+            height: 100%; cursor: col-resize; background: transparent; 
             position: absolute; right: -4px; top: 0; z-index: 999;
-            display: flex; align-items: flex-end; justify-content: center; 
+            display: flex; align-items: flex-end; justify-content: center;
             padding-bottom: 60px; pointer-events: none;
         }
         .resizer-knob {
-            width: 48px; height: 48px; 
+            width: 48px;
+            height: 48px; 
             background: rgba(120, 130, 150, 0.7);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -143,36 +263,68 @@
         }
 
         /* Grid & Cards */
-        .catalog-container { position: relative; width: 100%; height: 100%; overflow-y: auto; }
-        .page-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.15; pointer-events: none; z-index: 0; }
-        .dark .page-bg-img { opacity: 0.1; }
-        .lms-grid { position: relative; z-index: 10; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 40px; background: transparent; }
-        .lms-card { position: relative; height: 200px; border-radius: 25px; overflow: hidden; cursor: pointer; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.05); background: var(--bg-window); border: 1px solid var(--border-color); }
-        .lms-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px rgba(0,0,0,0.1); }
-        .lms-card-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
-        .lms-card:hover .lms-card-bg { transform: scale(1.05); }
-        .lms-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; color: white; }
+        .catalog-container { position: relative;
+            width: 100%; height: 100%; overflow-y: auto; }
+        .page-bg-img { position: absolute; inset: 0;
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.15; pointer-events: none; z-index: 0;
+        }
+        .dark .page-bg-img { opacity: 0.1;
+        }
+        .lms-grid { position: relative; z-index: 10; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px; padding: 40px; background: transparent; }
+        .lms-card { position: relative; height: 200px;
+            border-radius: 25px; overflow: hidden; cursor: pointer; transition: 0.4s; box-shadow: 0 10px 20px rgba(0,0,0,0.05); background: var(--bg-window); border: 1px solid var(--border-color);
+        }
+        .lms-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+        }
+        .lms-card-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            transition: 0.8s; }
+        .lms-card:hover .lms-card-bg { transform: scale(1.05);
+        }
+        .lms-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; color: white;
+        }
 
         /* Loader */
-        #page-loader { position: fixed; inset: 0; background-color: var(--bg-window); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: background-color 0.3s; }
-        .sync-spinning { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        #page-loader { position: fixed;
+            inset: 0; background-color: var(--bg-window); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: background-color 0.3s;
+        }
+        .sync-spinning { animation: spin 1s linear infinite;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);
+        } }
 
         /* Version Selector */
-        .version-selector-container { position: relative; height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: transparent; }
-        .version-card { position: relative; z-index: 10; background: var(--bg-window); border-radius: 30px; padding: 40px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
-        .version-btn { width: 100%; padding: 18px; margin-top: 12px; border-radius: 16px; background: var(--bg-header); border: 1px solid var(--border-color); font-weight: 700; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; cursor: pointer; color: var(--text-main); }
-        .version-btn:hover { background: #10b981; color: #fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16,185,129,0.2); }
-        .version-btn .badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; background: rgba(0,0,0,0.05); }
+        .version-selector-container { position: relative;
+            height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: transparent;
+        }
+        .version-card { position: relative; z-index: 10; background: var(--bg-window); border-radius: 30px; padding: 40px;
+            width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid var(--border-color); transition: background-color 0.3s, border-color 0.3s;
+        }
+        .version-btn { width: 100%; padding: 18px; margin-top: 12px; border-radius: 16px; background: var(--bg-header);
+            border: 1px solid var(--border-color); font-weight: 700; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; cursor: pointer; color: var(--text-main);
+        }
+        .version-btn:hover { background: #10b981; color: #fff; transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16,185,129,0.2); }
+        .version-btn .badge { font-size: 10px;
+            padding: 2px 8px; border-radius: 100px; background: rgba(0,0,0,0.05); }
 
         @media (max-width: 768px) {
-            .lms-classic-layout { flex-direction: column; }
-            .lms-sidebar { width: 100%; height: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
-            .lms-sidebar.collapsed-mobile { height: 60px; overflow: hidden; }
-            .lms-stage-content { padding: 20px; }
-            .mobile-back-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--bg-header); color: var(--text-dim); border-radius: 12px; font-size: 11px; font-weight: 800; margin-bottom: 20px; border: 1px solid var(--border-color); }
-            .markdown-reader-container { width: 100% !important; height: 50%; border-bottom: 2px solid #facc15; }
-            .resizer-handle { display: none; }
+            .lms-classic-layout { flex-direction: column;
+            }
+            .lms-sidebar { width: 100%; height: 100%; border-right: none;
+                border-bottom: 1px solid var(--border-color); }
+            .lms-sidebar.collapsed-mobile { height: 60px;
+                overflow: hidden; }
+            .lms-stage-content { padding: 20px;
+            }
+            .mobile-back-btn { display: flex; align-items: center; gap: 8px;
+                padding: 10px 16px; background: var(--bg-header); color: var(--text-dim); border-radius: 12px; font-size: 11px; font-weight: 800; margin-bottom: 20px; border: 1px solid var(--border-color);
+            }
+            .markdown-reader-container { width: 100% !important; height: 50%;
+                border-bottom: 2px solid #facc15; }
+            .resizer-handle { display: none;
+            }
         }
     </style>
 </head>
@@ -187,7 +339,7 @@
         <div class="window-header">
             <div id="browser-tab-strip" class="tab-strip"></div>
             <div class="flex items-center gap-3 px-4">
-                <div class="toolbar-item" onclick="manualRefresh()"><i id="window-cloud-icon" class="fas fa-cloud"></i></div>
+                 <div class="toolbar-item" onclick="manualRefresh()"><i id="window-cloud-icon" class="fas fa-cloud"></i></div>
                 <!-- Night Mode Toggle Button -->
                 <div class="toolbar-item" onclick="toggleNightMode()">
                     <i id="night-mode-icon" class="fas fa-moon"></i>
@@ -208,11 +360,13 @@
                 <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="h-14 w-14 mb-6">
                 <h1 id="hero-title" class="text-3xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;">Lumina</h1>
                 <p id="hero-subtitle" class="text-xl font-bold tracking-[1em] mb-8 uppercase opacity-80"></p>
+          
                 <div class="w-full mb-2">
                     <input type="text" id="auth-username" class="auth-input" placeholder="USERNAME">
                     <input type="password" id="auth-password" class="auth-input" placeholder="PASSWORD">
                     <div id="auth-error" class="error-msg text-center">Unauthorized Access</div>
                 </div>
+    
                 <button id="btn-start" onclick="handleAuth()" class="px-12 py-4 rounded-full text-[10px] tracking-[0.5em] font-black uppercase bg-white/20 backdrop-blur-md border border-white/40 shadow-xl active:scale-95 transition-all">
                     START LEARNING
                 </button>
@@ -224,18 +378,59 @@
                     <button onclick="manualRefresh()" class="text-emerald-600/60 hover:text-emerald-600 transition-colors">
                         <i id="hero-cloud-icon" class="fas fa-cloud"></i>
                     </button>
-                    <!-- Night mode toggle also visible in Hero if needed, or keeping it strictly in top bar as requested -->
                 </div>
             </div>
         </div>
     </section>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw7tpjyEH-gwzBdBjbitfxN4chAF-hm7JAk79ySE_kiywi2uR5m4KQQ9r7oxN0nt8A/exec';
+        // 目標試算表 ID
+        const SPREADSHEET_ID = '1hEVxH23xd7dlxizftifdqvxS0mtpnGonL_G8hjkCaXQ';
+        
+        // 密碼驗證中心 GS 網址（保持不變）
+        const AUTH_GAS_URL = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';
+        
         let openTabs = [];
         let activeTabId = null;
-        let courseList = [];
+        
+        // 優先從本地快取載入舊資料，確保載入期間畫面不會空白
+        const cachedData = localStorage.getItem('LUMINA_DATA');
+        let courseList = cachedData ? JSON.parse(cachedData) : [];
         let catalogBgUrl = "";
+        
+        // 輔助函式：逸出單引號防止屬性報錯
+        function escapeQuote(str) {
+            return str ? str.replace(/\\/g, '\\\\').replace(/'/g, "\\'") : '';
+        }
+
+        // 強固型字串清理器：徹底移除一切零寬度空白 (BOM, Zero-width space) 與前後空白，確保 url 判定不會因隱形字元而失敗
+        function cleanUrlString(str) {
+            if (!str) return '';
+            return str.toString()
+                .replace(/[\u200B-\u200D\uFEFF]/g, '')
+                .trim();
+        }
+
+        // 轉換 Google Drive 分享連結為直接可外鏈的影像下載連結
+        // （此處保留供 courseList 等其他元件使用）
+        function convertDriveUrl(url) {
+            const cleaned = cleanUrlString(url);
+            if (!cleaned) return '';
+            if (cleaned.includes('drive.google.com')) {
+                let id = '';
+                const fileDMatch = cleaned.match(/\/file\/d\/([^\/]+)/);
+                const idParamMatch = cleaned.match(/[?&]id=([^&]+)/);
+                if (fileDMatch) {
+                    id = fileDMatch[1];
+                } else if (idParamMatch) {
+                    id = idParamMatch[1];
+                }
+                if (id) {
+                    return `https://docs.google.com/uc?export=download&id=${id}`;
+                }
+            }
+            return cleaned;
+        }
 
         // Night Mode Logic
         function toggleNightMode() {
@@ -259,6 +454,32 @@
             updateNightModeUI();
         }
 
+        /**
+         * 核心：直接從公開 Google 試算表載入特定分頁的純資料 (免 Apps Script 代理)
+         * 完美相容：優先讀取格式化顯示值（cell.f），確保如 "2425" 等儲存格內容 100% 正確還原。
+         */
+        async function fetchSheetRows(sheetName) {
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+            const response = await fetch(url);
+            const text = await response.text();
+            // 解析 Google GViz API 的 JSONP 回傳格式
+            const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
+            if (!match) throw new Error("無法解析試算表格式");
+            const json = JSON.parse(match[1]);
+            
+            // 將結構化 JSON 轉換為一維陣列
+            return json.table.rows.map(row => {
+                if (!row || !row.c) return [];
+                return row.c.map(cell => {
+                    if (!cell) return '';
+                    // 優先使用顯示的格式化值 (cell.f)，若無則使用原始值 (cell.v)
+                    if (cell.f !== null && cell.f !== undefined) return cell.f.toString().trim();
+                    if (cell.v !== null && cell.v !== undefined) return cell.v.toString().trim();
+                    return '';
+                });
+            });
+        }
+
         async function loadSheetData(isManual = false) {
             const heroCloudIcon = document.getElementById('hero-cloud-icon');
             const windowCloudIcon = document.getElementById('window-cloud-icon');
@@ -268,27 +489,51 @@
                 if(windowCloudIcon) windowCloudIcon.className = spinClasses;
             }
             try {
-                const response = await fetch(`${GAS_URL}?action=getLand`);
-                const result = await response.json();
-                if (result.result === 'success') {
-                    const rows = result.data;
-                    courseList = [];
-                    rows.forEach(row => {
-                        if (row[0] === 'HEROSECTION') {
-                            if (row[1] === 'CONTENT_1') document.getElementById('hero-title').innerText = row[4];
-                            if (row[1] === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = row[4];
-                            if (row[1] === 'PHOTO') document.getElementById('hero-bg').src = row[4];
+                // 直接讀取 menu 分頁
+                const rows = await fetchSheetRows('menu');
+                courseList = [];
+                rows.forEach(row => {
+                    if (!row || row.length === 0) return;
+                    
+                    const colA = row[0] ? row[0].toString().trim() : '';
+                    const colB = row[1] ? row[1].toString().trim() : '';
+                    const colC = row[2] ? row[2].toString().trim() : '';
+                    const colD = row[3] ? row[3].toString().trim() : '';
+                    const colE = row[4] ? row[4].toString().trim() : '';
+
+                    if (colA.toUpperCase() === 'HEROSECTION') {
+                        const val = colE || colD;
+                        if (colB === 'CONTENT_1') document.getElementById('hero-title').innerText = val;
+                        if (colB === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = val;
+                        if (colB === 'PHOTO') document.getElementById('hero-bg').src = convertDriveUrl(val);
+                    }
+                    if (colA.toUpperCase() === 'CATALOG_BG') { 
+                        catalogBgUrl = convertDriveUrl(colE || colD); 
+                    }
+     
+                    if (colA.toUpperCase() === 'MECHANICS') {
+                        let imgUrl = colD;
+                        if (colE && colE.startsWith('http')) {
+                            imgUrl = colE;
+                        } else if (colD && colD.startsWith('http')) {
+                            imgUrl = colD;
+                        } else {
+                            imgUrl = colE || colD;
                         }
-                        if (row[0] === 'CATALOG_BG') { catalogBgUrl = row[4]; }
-                        if (row[0] && row[0].toString().startsWith('TOPIC')) {
-                            courseList.push({ id: row[0], title: row[1], image: row[4] });
-                        }
-                    });
-                    localStorage.setItem('LUMINA_DATA', JSON.stringify(courseList));
-                    if (isManual) refreshCurrentView();
-                    setStatusIcon(true);
-                }
-            } catch (e) { setStatusIcon(false); }
+
+                        courseList.push({ 
+                            id: colB,      // 欄 B: courseid 
+                            title: colC,   // 欄 C: topic
+                            image: convertDriveUrl(imgUrl)  // 圖片網址
+                        });
+                    }
+                });
+                localStorage.setItem('LUMINA_DATA', JSON.stringify(courseList));
+                if (isManual) refreshCurrentView();
+                setStatusIcon(true);
+            } catch (e) { 
+                setStatusIcon(false);
+            }
             finally {
                 document.getElementById('page-loader').style.opacity = '0';
                 setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; }, 800);
@@ -302,18 +547,44 @@
             const startBtn = document.getElementById('btn-start');
             const loadingEl = document.getElementById('auth-loading');
             if (!user || !pass) return;
+            
             startBtn.innerText = "WAITING...";
             startBtn.disabled = true;
             errorEl.style.display = 'none';
             loadingEl.style.display = 'flex';
+            
             try {
-                const loginRes = await fetch(`${GAS_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+                const loginRes = await fetch(AUTH_GAS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        username: user,
+                        password: pass
+                    })
+                });
+                
                 const loginData = await loginRes.json();
-                if (loginData.result === 'success') { openHomeFolder(); }
-                else { throw new Error("Invalid"); }
+                
+                if (loginData.success === true) { 
+                    localStorage.setItem('LUMINA_JWT', loginData.token);
+                    if (loginData.identity_tag) {
+                        localStorage.setItem('LUMINA_IDENTITY', JSON.stringify(loginData.identity_tag));
+                    }
+                    openHomeFolder();
+                } else { 
+                    errorEl.innerText = loginData.message || "Unauthorized Access";
+                    throw new Error(loginData.message || "Invalid credentials");
+                }
             } catch (e) {
                 errorEl.style.display = 'block';
-                document.getElementById('hero-main-content').animate([{ transform: 'translateX(0px)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(0px)' }], { duration: 300 });
+                document.getElementById('hero-main-content').animate([
+                    { transform: 'translateX(0px)' }, 
+                    { transform: 'translateX(-10px)' }, 
+                    { transform: 'translateX(10px)' }, 
+                    { transform: 'translateX(0px)' }
+                ], { duration: 300 });
             } finally {
                 startBtn.innerText = "START LEARNING";
                 startBtn.disabled = false;
@@ -321,11 +592,14 @@
             }
         }
 
-        function openHomeFolder() { openTab("Course Catalog", "FOLDER"); }
+        function openHomeFolder() { 
+            openTab("Course Catalog", "FOLDER");
+        }
 
         function openTab(title, type, topicId = null) {
             const id = topicId || `TAB_${title.replace(/\s/g, '_')}`;
-            if (openTabs.find(t => t.id === id)) { switchTab(id); return; }
+            if (openTabs.find(t => t.id === id)) { switchTab(id); return;
+            }
             const tab = { id, title, type, topicId };
             openTabs.push(tab);
             const page = document.createElement('div');
@@ -341,6 +615,7 @@
             setTimeout(() => document.getElementById('main-browser-window').classList.add('open'), 50);
         }
 
+        // 切換頁籤
         function switchTab(id) {
             activeTabId = id;
             document.querySelectorAll('.win-content-page').forEach(p => {
@@ -348,7 +623,7 @@
                     p.style.display = 'block';
                     setTimeout(() => p.classList.add('active'), 10);
                 } else {
-                    p.classList.remove('active');
+                     p.classList.remove('active');
                     setTimeout(() => { if (!p.classList.contains('active')) p.style.display = 'none'; }, 500);
                 }
             });
@@ -363,7 +638,7 @@
             let html = `<div class="catalog-container">${bgHtml}<div class="lms-grid">`;
             courseList.forEach(c => {
                 html += `<div class="lms-card" onclick="openTab('${c.title}', 'SELECTOR', '${c.id}')">
-                    <img src="${c.image}" class="lms-card-bg">
+                    <img src="${c.image}" class="lms-card-bg" onerror="this.style.display='none';">
                     <div class="lms-card-overlay">
                         <span class="text-[9px] font-black tracking-widest opacity-60">${c.id}</span>
                         <h3 class="font-bold text-lg">${c.title}</h3>
@@ -379,56 +654,342 @@
             const course = courseList.find(c => c.id === tid);
             const bgHtml = course ? `<img src="${course.image}" class="page-bg-img">` : '';
             try {
-                const res = await fetch(`${GAS_URL}?action=getTopic&topicId=${tid}`);
-                const result = await res.json();
-                const versions = [...new Set(result.data.slice(1).map(r => r[0]).filter(v => v && v !== 'VERSION'))].sort();
+                // 直接讀取對應的單獨 CourseID 分頁 (如 MECH01)
+                const rows = await fetchSheetRows(tid);
+                
+                // 分析欄 A (r[0]) 的年份版本，過濾掉標頭和無效空列
+                const versions = [...new Set(
+                    rows.map(r => r[0] ? r[0].toString().trim() : '')
+                        .filter(v => v && v !== 'VERSION' && v !== '年份版本' && v !== 'A' && v !== 'version')
+                )].sort();
+                
                 let versionBtns = '';
-                versions.forEach(v => { versionBtns += `<div class="version-btn" onclick="renderLMS('${tid}', '${title}', '${cid}', '${v}')"><span>${v}</span><span class="badge">Open</span></div>`; });
+                versions.forEach(v => { 
+                    // 前端匯出顯示時加上「學年版本」後綴
+                    versionBtns += `<div class="version-btn" onclick="renderLMS('${tid}', '${title}', '${cid}', '${v}')"><span>${v}學年版本</span><span class="badge">Open</span></div>`; 
+                });
+                
                 container.innerHTML = `<div class="version-selector-container">${bgHtml}<div class="version-card"><div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fas fa-layer-group"></i></div><h2 class="text-xl font-black text-slate-800 mb-2">${title}</h2><p class="text-xs text-slate-400 uppercase tracking-widest mb-8">Please Select to Continue</p><div class="space-y-3">${versionBtns}</div><button onclick="renderGrid('${cid}')" class="mt-8 text-[10px] font-bold text-slate-300 uppercase hover:text-slate-500 transition-colors">Back to Catalog</button></div></div>`;
-            } catch (e) { container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">COULD NOT LOCATE MODULE: ${tid}</div>`; }
+            } catch (e) { 
+                container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">COULD NOT LOCATE MODULE: ${tid}</div>`;
+            }
         }
 
         async function renderLMS(tid, title, cid, vFilter) {
             const container = document.getElementById(cid);
-            container.innerHTML = `<div class="flex items-center justify-center h-full opacity-30 animate-pulse text-xs uppercase tracking-widest">Configuring ${vFilter}...</div>`;
+            container.innerHTML = `<div class="flex items-center justify-center h-full opacity-30 animate-pulse text-xs uppercase tracking-widest">Configuring ${vFilter}學年版本...</div>`;
             try {
-                const res = await fetch(`${GAS_URL}?action=getTopic&topicId=${tid}`);
-                const result = await res.json();
+                // 直接讀取對應的單獨 CourseID 分頁 (如 MECH01)
+                const rows = await fetchSheetRows(tid);
                 const sections = {};
-                result.data.forEach((r, i) => {
-                    if (i === 0 || !r[1] || r[0] === 'VERSION' || (vFilter && r[0] !== vFilter)) return;
-                    if (!sections[r[1]]) sections[r[1]] = [];
-                    sections[r[1]].push({ version: r[0], topic: r[3], type: r[4].toLowerCase(), content: r[5], markdownTag: r[6] });
+                
+                // 新型結構：將同樣的 itemId 資料在載入時就進行整合
+                const itemsMap = {};
+                const itemIdsInOrder = []; // 保留試算表原本的項目排序
+                
+                // 智慧安全向下繼承追蹤器（防止 A 欄留白導致後續子行無法匯入）
+                let lastSeenVersion = '';
+
+                rows.forEach((r, i) => {
+                    // 安全過濾非數據行 (如標題行或極短無效行)
+                    if (!r || r.length < 3) return;
+                    
+                    const colA_raw = r[0] ? r[0].toString().trim() : '';
+                    const colB_raw = r[1] ? r[1].toString().trim() : '';
+                    const colC_raw = r[2] ? r[2].toString().trim() : '';
+                    const colE_raw = r[4] ? r[4].toString().trim() : '';
+
+                    // 檢查是否為欄位名稱列 (如果是則直接略過)
+                    if (colA_raw.toUpperCase() === 'VERSION' || 
+                        colB_raw === '種類' || colB_raw.toUpperCase() === 'TYPE' || 
+                        colC_raw === '項目id' || colC_raw.toUpperCase() === 'ITEMID' || 
+                        colA_raw === '年份版本') {
+                        return;
+                    }
+
+                    // 應用向下繼承：若當前行 A 欄為空，則沿用最近一次遇到的有效版本
+                    let rowVersion = colA_raw;
+                    if (rowVersion) {
+                        lastSeenVersion = rowVersion;
+                    } else {
+                        rowVersion = lastSeenVersion;
+                    }
+
+                    // 如果有指定版本過濾器，且不匹配，則略過該行
+                    if (vFilter && rowVersion !== vFilter) return;
+                    
+                    // 欄 B 為種類, 欄 C 為項目id, 欄 D 為 subid, 欄 E 為title, 欄 F 為 md code (或description), 欄 G 為youtube link
+                    let itemType = colB_raw.toLowerCase();
+                    // 支援：當欄 E（Title）為 'pic' 時，也自動視為 'pic' 種類
+                    if (colE_raw.toLowerCase() === 'pic') {
+                        itemType = 'pic';
+                    }
+
+                    const itemId = colC_raw; 
+                    const subId = r[3] ? parseFloat(r[3]) : 0;        
+                    const itemTitle = r[4] ? r[4].toString().trim() : itemId; 
+                    const itemDesc = r[5] ? r[5].toString().trim() : '';      
+                    const itemUrl = r[6] ? r[6].toString().trim() : '';       
+                    
+                    // 若在 Map 中尚無此項目，進行初始化
+                    if (!itemsMap[itemId]) {
+                        itemsMap[itemId] = {
+                            version: rowVersion,
+                            itemId: itemId,
+                            type: itemType, // 首選預設種類
+                            topic: itemTitle,
+                            videoUrl: '',
+                            videoDesc: '',
+                            subitemsGroup: {}, // 用於儲存各種非影片內容(如 ebook, mc, pic)的子行列表
+                            hasVideo: false,
+                            hasOther: false,
+                            otherType: '',
+                            otherUrl: '',
+                            otherDesc: ''
+                        };
+                        itemIdsInOrder.push(itemId);
+                    }
+                    
+                    const item = itemsMap[itemId];
+                    if (itemType === 'video') {
+                        item.hasVideo = true;
+                        item.videoUrl = itemUrl;
+                        item.videoDesc = itemDesc;
+                        if (itemTitle && itemTitle !== itemId) {
+                            item.topic = itemTitle;
+                        }
+                    } else {
+                        // 所有非影片種類 (如 ebook, mc, pdf, pic) 都歸類至對應種類的子群組，全面支援多個 subid 排序與拼接
+                        if (!item.subitemsGroup[itemType]) {
+                            item.subitemsGroup[itemType] = [];
+                        }
+                        item.subitemsGroup[itemType].push({
+                            subId: subId,
+                            mdCode: itemDesc,     // 欄 F (Description / md code / pic url)
+                            title: itemTitle,     // 欄 E (Title)
+                            content: itemUrl      // 欄 G (YouTube Link 或其他非影片連結)
+                        });
+                    }
                 });
+
+                // 按項目順序進行排版與分群
+                itemIdsInOrder.forEach(itemId => {
+                    const item = itemsMap[itemId];
+                    
+                    // 處理所有非影片子群組 (如 ebook, mc, pic 等)，依 subid 排序並按順序完美拼接 Markdown 代碼
+                    // 此處已依需求移除任何圖片檢索、自動加載以及 ![圖片](網址) 嵌入邏輯，以便重新構建。
+                    const processedGroups = {};
+                    for (const type in item.subitemsGroup) {
+                        const subList = item.subitemsGroup[type];
+                        // 依照 subId 由小到大排序 (例如 subid1, subid2, subid3...)
+                        subList.sort((a, b) => a.subId - b.subId);
+                        
+                        // 僅輸出純文字和 md code（F 欄），不在此自動進行圖片轉換或嵌入
+                        const combinedMd = subList.map(sub => {
+                            let textDesc = sub.mdCode ? sub.mdCode.toString().trim() : ''; // 欄 F (內容 / md code)
+                            
+                            // 前置清理 F 欄，防止有看不見的零寬度字元 (Zero Width Character)
+                            textDesc = textDesc.replace(/^[\s\u200B-\u200D\uFEFF]+|[\s\u200B-\u200D\uFEFF]+$/g, '');
+                            
+                            return textDesc;
+                        }).filter(text => text !== '').join('\n\n');
+                        
+                        processedGroups[type] = {
+                            combinedMd: combinedMd,
+                            title: subList[0].title || item.topic,
+                            firstUrl: subList[0].content
+                        };
+                    }
+                    
+                    // 決定如何將教材加入對應的側邊欄區域
+                    if (item.hasVideo) {
+                        const secName = '線上影片';
+                        if (!sections[secName]) sections[secName] = [];
+                        
+                        // 當此項目同時擁有影片與其他電子書/測驗/圖片教材時，優雅找出可用於「平行閱讀」的教材內容
+                        let hasEbook = false;
+                        let ebookContent = '';
+                        let ebookTypeLabel = '電子書';
+
+                        // 優先選擇 ebook，如果沒有則選擇 mc (精選測驗)，再沒有就選 pic (圖片教材)，最後為其他
+                        const preferredDocType = Object.keys(processedGroups).find(t => t === 'ebook') || 
+                                                 Object.keys(processedGroups).find(t => t === 'mc') || 
+                                                 Object.keys(processedGroups).find(t => t === 'pic') ||
+                                                 Object.keys(processedGroups)[0];
+                        
+                        if (preferredDocType) {
+                            hasEbook = true;
+                            ebookContent = processedGroups[preferredDocType].combinedMd;
+                            if (preferredDocType === 'mc') ebookTypeLabel = '精選測驗';
+                            else if (preferredDocType === 'pic') ebookTypeLabel = '圖片';
+                            else ebookTypeLabel = '電子書';
+                        }
+                        
+                        sections[secName].push({
+                            version: item.version,
+                            itemId: item.itemId,
+                            type: 'video',
+                            topic: item.topic,
+                            description: item.videoDesc,
+                            content: item.videoUrl,
+                            hasEbook: hasEbook,
+                            ebookContent: ebookContent,
+                            ebookTypeLabel: ebookTypeLabel
+                        });
+                    } else {
+                        // 如果此項目沒有關聯的影片，則直接按各個非影片種類在側邊欄生成對應教材單元
+                        for (const type in processedGroups) {
+                            const group = processedGroups[type];
+                            let secName = '單元項目';
+                            if (type === 'ebook') secName = '電子書教材';
+                            else if (type === 'mc') secName = '精選測驗';
+                            else if (type === 'pic') secName = '圖片教材';
+                            
+                            if (!sections[secName]) sections[secName] = [];
+                            sections[secName].push({
+                                version: item.version,
+                                itemId: item.itemId,
+                                type: type, // ebook, mc, pic, etc.
+                                topic: group.title,
+                                description: `${type === 'pic' ? '圖片' : type.toUpperCase()} 教材（包含 ${item.subitemsGroup[type].length} 個子頁面）。`,
+                                content: group.combinedMd || group.firstUrl,
+                                hasEbook: true,
+                                ebookContent: group.combinedMd,
+                                ebookTypeLabel: type === 'mc' ? '精選測驗' : (type === 'pic' ? '圖片' : '電子書')
+                            });
+                        }
+                    }
+                });
+                
                 let sidebarHtml = ''; let firstItem = null;
+                // 初始化全域數據登錄表，清空上一個分頁的資料
+                window.lmsItemsRegistry = {};
+
                 for (const sec in sections) {
                     sidebarHtml += `<div class="lms-section-title">${sec}</div>`;
                     sections[sec].forEach((item, idx) => {
                         const itemId = `item_${tid}_${sec.replace(/\s/g, '')}_${idx}`;
-                        if (!firstItem) firstItem = { ...item, id: itemId, section: sec };
-                        const bookIcon = item.markdownTag ? `<i class="fas fa-book ml-auto text-[10px] hover:text-emerald-500 p-2" onclick="event.stopPropagation(); openMarkdownReader('${tid}', '${item.markdownTag}')"></i>` : '';
-                        sidebarHtml += `<div id="btn-${itemId}" class="lms-item-link" onclick="updateLMSStage('${tid}', '${sec}', '${item.topic}', '${item.type}', '${item.content}', '${itemId}')"><div class="lms-item-icon"><i class="fas ${item.type === 'video' ? 'fa-play' : 'fa-file-alt'}"></i></div><div class="flex-1 overflow-hidden"><div class="text-[13px] font-bold leading-tight truncate">${item.topic}</div><div class="text-[9px] opacity-40 uppercase font-black mt-1">${item.type}</div></div>${bookIcon}</div>`;
+                        const registryKey = `${tid}_${sec.replace(/\s/g, '')}_${idx}`;
+                        
+                        // 註冊單元項目資料至全域物件，避開所有特殊字元或 HTML inline onClick 解析產生的語法錯誤
+                        window.lmsItemsRegistry[registryKey] = {
+                            topic: item.topic,
+                            type: item.type,
+                            content: item.content,
+                            description: item.description,
+                            ebookContent: item.ebookContent || '',
+                            ebookTypeLabel: item.ebookTypeLabel || ''
+                        };
+
+                        if (!firstItem) {
+                            firstItem = { ...item, id: itemId, section: sec, registryKey: registryKey };
+                        }
+                        
+                        // 當此項目同時擁有影片與電子書/測驗/圖片時，在側邊欄加入一鍵開啟的平行面板按鈕
+                        let ebookBtnHtml = '';
+                        if (item.hasEbook && item.type === 'video') {
+                            let iconClass = 'fa-book';
+                            if (item.ebookTypeLabel === '精選測驗') iconClass = 'fa-clipboard-list';
+                            else if (item.ebookTypeLabel === '圖片') iconClass = 'fa-image';
+
+                            ebookBtnHtml = `
+                                <button onclick="event.stopPropagation(); openMarkdownReaderParallelFromRegistry('${tid}', '${registryKey}')" 
+                                        class="ml-2 w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-500 dark:hover:text-white transition-all flex items-center justify-center flex-shrink-0"
+                                        title="閱讀${item.ebookTypeLabel}">
+                                    <i class="fas ${iconClass} text-xs"></i>
+                                </button>
+                            `;
+                        }
+                        
+                        sidebarHtml += `
+                            <div id="btn-${itemId}" class="lms-item-link flex items-center justify-between" 
+                                 onclick="handleLmsItemClick('${tid}', '${escapeQuote(sec)}', '${registryKey}', '${itemId}')">
+                                <div class="flex items-center gap-3 overflow-hidden flex-1">
+                                    <div class="lms-item-icon flex-shrink-0"><i class="fas ${item.type === 'video' ? 'fa-play' : (item.type === 'ebook' ? 'fa-book' : (item.type === 'mc' ? 'fa-clipboard-list' : (item.type === 'pic' ? 'fa-image' : 'fa-file-alt')))}"></i></div>
+                                    <div class="overflow-hidden">
+                                        <div class="text-[13px] font-bold leading-tight truncate">${item.topic}</div>
+                                        <div class="text-[9px] opacity-40 uppercase font-black mt-1">${item.itemId}</div>
+                                    </div>
+                                </div>
+                                ${ebookBtnHtml}
+                            </div>
+                        `;
                     });
                 }
+                
+                // 在頂部側邊欄標籤內顯示時也套用 formatted 樣式
                 container.innerHTML = `<div class="lms-classic-layout">
-                    <div class="lms-sidebar" id="sidebar-${tid}"><div class="lms-sidebar-header"><div class="flex justify-between items-center mb-1"><div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">${tid}</div><div class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 font-black">${vFilter}</div></div><div class="text-lg font-black text-slate-800">${title}</div></div><div class="flex-1">${sidebarHtml}</div><div class="p-4 border-t"><button onclick="renderVersionSelector('${tid}', '${title}', '${cid}')" class="w-full py-2 text-[10px] font-black text-slate-400 uppercase bg-slate-50 rounded-lg">Switch Selection</button></div></div>
+                    <div class="lms-sidebar" id="sidebar-${tid}"><div class="lms-sidebar-header"><div class="flex justify-between items-center mb-1"><div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">${tid}</div><div class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 font-black">${vFilter}學年版本</div></div><div class="text-lg font-black text-slate-800">${title}</div></div><div class="flex-1">${sidebarHtml}</div><div class="p-4 border-t"><button onclick="renderVersionSelector('${tid}', '${title}', '${cid}')" class="w-full py-2 text-[10px] font-black text-slate-400 uppercase bg-slate-50 rounded-lg">Switch Selection</button></div></div>
                     <div id="md-reader-${tid}" class="markdown-reader-container">
-                        <div class="markdown-header"><div class="flex items-center gap-2"><i class="fas fa-book text-yellow-600"></i><span class="text-[10px] font-black uppercase tracking-widest opacity-60">Reading Mode</span></div><button onclick="closeMarkdownReader('${tid}')" class="w-8 h-8 flex items-center justify-center hover:bg-yellow-200 rounded-full transition-colors"><i class="fas fa-chevron-left text-xs"></i></button></div>
+                      <div class="markdown-header"><div class="flex items-center gap-2"><i class="fas fa-book text-yellow-600"></i><span class="text-[10px] font-black uppercase tracking-widest opacity-60">Reading Mode</span></div><button onclick="closeMarkdownReader('${tid}')" class="w-8 h-8 flex items-center justify-center hover:bg-yellow-200 rounded-full transition-colors"><i class="fas fa-chevron-left text-xs"></i></button></div>
                         <div class="markdown-body"><div class="flex flex-col items-center justify-center h-full text-yellow-800/40 uppercase tracking-[0.2em] font-black"><i class="fas fa-file-alt text-4xl mb-4"></i><span>Markdown Content Loader</span><div class="mt-2 text-[8px]" id="md-tag-display-${tid}"></div></div></div>
                         <div class="resizer-handle"><div class="resizer-knob" onmousedown="initMdResize(event, '${tid}')"><i class="fas fa-arrows-alt-h"></i></div></div>
                     </div>
                     <div class="lms-stage" id="stage-${tid}"></div>
                 </div>`;
-                if (firstItem) updateLMSStage(tid, firstItem.section, firstItem.topic, firstItem.type, firstItem.content, firstItem.id, true);
-            } catch (e) { container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">ERROR LOADING COURSE: ${tid}</div>`; }
+                if (firstItem) updateLMSStage(tid, firstItem.section, firstItem.topic, firstItem.type, firstItem.content, firstItem.id, true, firstItem.description);
+            } catch (e) { 
+                container.innerHTML = `<div class="p-20 text-center text-xs opacity-40">ERROR LOADING COURSE: ${tid}</div>`;
+            }
         }
 
-        function openMarkdownReader(tid, mdTag) {
+        // 登錄表調用：處理列表項目的點擊事件
+        function handleLmsItemClick(tid, section, registryKey, itemId) {
+            const item = window.lmsItemsRegistry[registryKey];
+            if (!item) return;
+            updateLMSStage(tid, section, item.topic, item.type, item.content, itemId, false, item.description);
+        }
+
+        // 登錄表調用：平行閱讀模式的開啟邏輯（不干擾右側已載入/播放中的 YouTube 舞台）
+        function openMarkdownReaderParallelFromRegistry(tid, registryKey) {
+            const item = window.lmsItemsRegistry[registryKey];
+            if (!item) return;
+            openMarkdownReaderParallel(tid, item.ebookContent, item.topic);
+        }
+
+        // 開啟閱讀器，渲染 Markdown 與 LaTeX Mathjax
+        function openMarkdownReader(tid, mdContent) {
             const sidebar = document.getElementById(`sidebar-${tid}`);
             const reader = document.getElementById(`md-reader-${tid}`);
             const tagDisplay = document.getElementById(`md-tag-display-${tid}`);
-            if (sidebar) sidebar.style.width = '0px';
-            if (reader) { reader.style.display = 'flex'; if (tagDisplay) tagDisplay.innerText = `Source ID: ${mdTag}`; }
+            if (sidebar) sidebar.style.width = '0px'; 
+            if (reader) { 
+                reader.style.display = 'flex';
+                if (tagDisplay) tagDisplay.innerText = `電子書閱讀模式`; 
+                
+                const body = reader.querySelector('.markdown-body');
+                if (body) {
+                    // 使用 marked 渲染 Markdown
+                    body.innerHTML = typeof marked !== 'undefined' ? marked.parse(mdContent) : `<pre style="white-space: pre-wrap;">${mdContent}</pre>`;
+                    // 執行 MathJax 排版 LaTeX
+                    if (window.MathJax) {
+                        MathJax.typesetPromise([body]).catch((err) => console.log("MathJax Error: ", err));
+                    }
+                }
+            }
+        }
+
+        // 專門用於平行閱讀模式的開啟邏輯
+        function openMarkdownReaderParallel(tid, mdContent, topic) {
+            const sidebar = document.getElementById(`sidebar-${tid}`);
+            const reader = document.getElementById(`md-reader-${tid}`);
+            const tagDisplay = document.getElementById(`md-tag-display-${tid}`);
+            
+            // 將 left sidebar 設為 0px 進行隱藏
+            if (sidebar) sidebar.style.width = '0px'; 
+            
+            if (reader) { 
+                reader.style.display = 'flex';
+                if (tagDisplay) tagDisplay.innerText = `電子書閱讀模式 - ${topic}`; 
+                
+                const body = reader.querySelector('.markdown-body');
+                if (body) {
+                    body.innerHTML = typeof marked !== 'undefined' ? marked.parse(mdContent) : `<pre style="white-space: pre-wrap;">${mdContent}</pre>`;
+                    if (window.MathJax) {
+                        MathJax.typesetPromise([body]).catch((err) => console.log("MathJax Error: ", err));
+                    }
+                }
+            }
         }
 
         function closeMarkdownReader(tid) {
@@ -447,9 +1008,11 @@
             function doDrag(ev) {
                 const newWidth = startWidth + (ev.clientX - startX);
                 const containerWidth = reader.parentElement.offsetWidth;
-                if (newWidth > 150 && newWidth < containerWidth - 100) { reader.style.width = newWidth + 'px'; }
+                if (newWidth > 150 && newWidth < containerWidth - 100) { reader.style.width = newWidth + 'px';
+                }
             }
-            function stopDrag() { document.body.style.cursor = ''; window.removeEventListener('mousemove', doDrag); window.removeEventListener('mouseup', stopDrag); }
+            function stopDrag() { document.body.style.cursor = '';
+            window.removeEventListener('mousemove', doDrag); window.removeEventListener('mouseup', stopDrag); }
             window.addEventListener('mousemove', doDrag);
             window.addEventListener('mouseup', stopDrag);
         }
@@ -467,9 +1030,11 @@
             const activePage = document.querySelector('.win-content-page.active');
             if (!activePage) return;
             const sidebar = activePage.querySelector('.lms-sidebar');
-            if (sidebar) { if (forceShow) sidebar.classList.remove('collapsed-mobile'); else sidebar.classList.toggle('collapsed-mobile'); }
+            if (sidebar) { if (forceShow) sidebar.classList.remove('collapsed-mobile'); else sidebar.classList.toggle('collapsed-mobile');
+            }
         }
 
+        // 渲染頂部標籤頁
         function renderTabs() {
             const strip = document.getElementById('browser-tab-strip');
             strip.innerHTML = '';
@@ -485,34 +1050,67 @@
         function closeTab(id) {
             const idx = openTabs.findIndex(t => t.id === id);
             const targetPage = document.getElementById(`page-${id}`);
-            if (targetPage) { targetPage.classList.remove('active'); setTimeout(() => targetPage.remove(), 500); }
+            if (targetPage) { targetPage.classList.remove('active'); setTimeout(() => targetPage.remove(), 500);
+            }
             openTabs.splice(idx, 1);
             if (openTabs.length === 0) closeAllTabs();
             else switchTab(openTabs[Math.max(0, idx - 1)].id);
         }
 
         function closeAllTabs() {
-            openTabs = []; activeTabId = null;
+            openTabs = [];
+            activeTabId = null;
             document.getElementById('main-browser-window').classList.remove('open');
             document.getElementById('hero-main-content').classList.remove('fade-exit-up');
             setTimeout(() => { document.getElementById('main-browser-window').style.display = 'none'; document.getElementById('browser-window-body').innerHTML = ''; }, 800);
         }
 
-        function updateLMSStage(tid, section, topic, type, content, itemId, isInitialLoad = false) {
+        function updateLMSStage(tid, section, topic, type, content, itemId, isInitialLoad = false, description = '') {
             const stage = document.getElementById(`stage-${tid}`);
             document.querySelectorAll(`.lms-item-link`).forEach(b => b.classList.remove('active'));
             const activeBtn = document.getElementById(`btn-${itemId}`);
             if (activeBtn) activeBtn.classList.add('active');
-            if (window.innerWidth <= 768 && !isInitialLoad) { document.getElementById(`sidebar-${tid}`)?.classList.add('collapsed-mobile'); }
-            let mediaHtml = type === 'video' ? `<div class="media-box"><iframe src="https://www.youtube.com/embed/${extractYoutubeId(content)}?autoplay=${isInitialLoad ? '0' : '1'}" class="w-full h-full" frameborder="0" allow="autoplay; fullscreen"></iframe></div>` : `<div class="media-box bg-white"><img src="${content}" class="w-full h-full object-contain"></div>`;
-            let externalButton = type === 'video' ? `<button onclick="window.open('${content}', '_blank')" class="px-3 py-1 rounded bg-slate-100 text-slate-600 hover:bg-emerald-500 hover:text-white transition-all text-[11px] font-black flex items-center gap-1.5"><i class="fas fa-mobile-alt"></i> OPEN IN APP</button>` : '';
-            stage.innerHTML = `<div class="lms-stage-content"><button class="mobile-back-btn" onclick="toggleSidebar(true)"><i class="fas fa-chevron-left"></i> 返回資源選單</button>${mediaHtml}<div class="flex items-center justify-between mb-4"><div class="flex items-center gap-2"><span class="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded text-slate-500 uppercase">${section}</span><span class="text-[10px] font-black bg-emerald-100 px-2 py-0.5 rounded text-emerald-600 uppercase">${type}</span></div>${externalButton}</div><h2 class="lms-stage-title">${topic}</h2><p class="lms-stage-subtitle">Focus on the key concepts presented in this session.</p></div>`;
+            if (window.innerWidth <= 768 && !isInitialLoad) { document.getElementById(`sidebar-${tid}`)?.classList.add('collapsed-mobile');
+            }
+            
+            // 對於獨立無影片關聯的 ebook/mc/pic，一鍵展開左側黃色閱讀器
+            if (type === 'ebook' || type === 'mc' || type === 'pic') {
+                openMarkdownReader(tid, content);
+                
+                // 右側主顯示區展示一個優美的導引介面
+                stage.innerHTML = `
+                    <div class="lms-stage-content">
+                        <button class="mobile-back-btn" onclick="toggleSidebar(true)"><i class="fas fa-chevron-left"></i> 返回資源選單</button>
+                        <div class="flex flex-col items-center justify-center p-12 bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100/50 dark:border-emerald-900/30 rounded-3xl text-center">
+                            <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mb-4 text-xl">
+                                <i class="fas ${type === 'mc' ? 'fa-clipboard-list' : (type === 'pic' ? 'fa-image' : 'fa-book')}"></i>
+                            </div>
+                            <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">${topic}</h2>
+                            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest mb-4">${type === 'mc' ? '測驗' : (type === 'pic' ? '圖片' : '電子書')}閱讀模式已開啟</p>
+                            <p class="text-sm text-slate-400 max-w-md">請閱讀左側的黃色電子書面板。您可以拖曳面板間距以調整至最適合您的字體與版面寬度。</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 若點擊的是單純的影片/或非電子書，自動關閉 Markdown 閱讀器，並還原雙欄
+                closeMarkdownReader(tid);
+                
+                let mediaHtml = type === 'video' ?
+                `<div class="media-box"><iframe src="https://www.youtube.com/embed/${extractYoutubeId(content)}?autoplay=${isInitialLoad ? '0' : '1'}" class="w-full h-full" frameborder="0" allow="autoplay; fullscreen"></iframe></div>` : `<div class="media-box bg-white"><img src="${content}" class="w-full h-full object-contain"></div>`;
+                let externalButton = type === 'video' ? `<button onclick="window.open('${content}', '_blank')" class="px-3 py-1 rounded bg-slate-100 text-slate-600 hover:bg-emerald-500 hover:text-white transition-all text-[11px] font-black flex items-center gap-1.5"><i class="fas fa-mobile-alt"></i> OPEN IN APP</button>` : '';
+                stage.innerHTML = `<div class="lms-stage-content"><button class="mobile-back-btn" onclick="toggleSidebar(true)"><i class="fas fa-chevron-left"></i> 返回資源選單</button>${mediaHtml}<div class="flex items-center justify-between mb-4"><div class="flex items-center gap-2"><span class="text-[10px] font-black bg-slate-100 px-2 py-0.5 rounded text-slate-500 uppercase">${section}</span><span class="text-[10px] font-black bg-emerald-100 px-2 py-0.5 rounded text-emerald-600 uppercase">${type}</span></div>${externalButton}</div><h2 class="lms-stage-title">${topic}</h2><p class="lms-stage-subtitle">${description || 'Focus on the key concepts presented in this session.'}</p></div>`;
+            }
+            
             stage.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function extractYoutubeId(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/); return (match && match[2].length === 11) ? match[2] : null; }
-        function manualRefresh() { loadSheetData(true); }
-        function refreshCurrentView() { openTabs.forEach(tab => { if (tab.type === 'FOLDER') renderGrid(`canvas-${tab.id}`); }); }
+        function extractYoutubeId(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+        function manualRefresh() { loadSheetData(true);
+        }
+        function refreshCurrentView() { openTabs.forEach(tab => { if (tab.type === 'FOLDER') renderGrid(`canvas-${tab.id}`); });
+        }
         window.onload = () => loadSheetData(false);
     </script>
 </body>
