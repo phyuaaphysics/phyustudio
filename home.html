@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -5,13 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Lumina Studio</title>
     
-    <!-- iOS PWA 狀態列修正 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 引入 jsQR 解析庫 -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
@@ -464,43 +463,31 @@
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
                 
-                <!-- 控制按鈕與日夜切換開關 -->
                 <div class="flex items-center gap-4 md:gap-6">
                     
-                    <!-- 日夜切換開關 -->
                     <div class="flex items-center">
                         <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
                             <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
   
-                            <!-- Pill Track -->
                             <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
                                
-                                <!-- 星空背景 (夜間模式專用) -->
                                 <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
                       
-                                    <!-- Tiny Star 1 -->
                                     <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                        
-                                    <!-- Tiny Star 2 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                         
-                                    <!-- Tiny Star 3 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                          
-                                    <!-- Tiny Star 4 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                                 </div>
 
-                                <!-- 太陽/月亮滑塊 -->
                                 <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
           
-                                    <!-- 太陽 (日間模式) -->
                                     <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
                      
-                                    <!-- 月亮 (夜間模式) -->
                                     <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
                              
-                                        <!-- 月面隕石坑 -->
                                         <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
                                       
                                         <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
@@ -509,7 +496,6 @@
                                     </div>
                                 </div>
 
-                                <!-- 雲朵 (日間模式背景裝飾) -->
                                 <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
                                     <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
@@ -520,7 +506,6 @@
                         </label>
                     </div>
 
-                    <!-- 格狀排版切換 Icon：已更換為 fa-border-all (放置於開關與搜尋放大鏡之間) -->
                     <div class="flex items-center text-sky-800 opacity-60 hover:opacity-100 transition-opacity">
                         <i id="grid-view-toggle" class="fas fa-border-all text-xl cursor-pointer" onclick="toggleGridView()"></i>
                     </div>
@@ -533,7 +518,6 @@
         </div>
         
         <div class="filter-bar px-6" id="filter-bar">
-            <!-- 搜尋面板，包含輸入框與清除按鈕 -->
             <div id="search-panel" class="max-w-screen-2xl mx-auto px-1">
                 <div class="relative w-full">
                     <input type="text" id="tag-search-input" oninput="handleSearch(this.value)" placeholder="輸入關鍵字以標籤 (Tag) 篩選相關卡片..." class="w-full bg-white/60 dark:bg-slate-800/60 border border-sky-400/30 rounded-full py-2 px-10 text-sm focus:outline-none focus:border-sky-500 transition-colors dark:text-slate-200">
@@ -554,14 +538,12 @@
     </header>
 
     <div id="page-content">
-        <!-- 錄影庫首頁 -->
         <div id="view-home">
             <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
                 <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
                     <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
                     <div class="hero-gradient-overlay"></div>
                     
-                    <!-- 手動同步按鈕 -->
                     <button id="sync-button" onclick="manualSync()" class="sync-btn">
                         <i class="fas fa-sync-alt"></i>
                         <span>與雲端同步</span>
@@ -578,7 +560,6 @@
             </section>
 
             <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
-                <!-- 動態生成的內容將放在這裡 -->
                 <div class="loader">正在從數據庫獲取內容...</div>
             </main>
 
@@ -605,10 +586,8 @@
         </div>
     </div>
 
-    <!-- QR Scanner Modal Overlay -->
     <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
         <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
-            <!-- Close Scanner -->
             <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -616,18 +595,14 @@
                 <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
             </h3>
  
-            <!-- Video / Canvas viewport wrapper -->
             <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
                 <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
                 <canvas id="qr-canvas" class="hidden"></canvas>
-                <!-- Scanner Overlay Target Area -->
                 <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
-                    <!-- Scanner Laser Line -->
                     <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
                 </div>
             </div>
             
-            <!-- File Upload Fallback Button -->
             <div class="mt-4 w-full flex justify-center">
                 <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
                     <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
@@ -703,7 +678,7 @@
         let qrStream = null;
         let qrAnimationId = null;
         
-        // フィルタおよび検索ステータス
+        // フィルターおよび検索ステータス
         let currentFilter = 'all';
         let searchQuery = '';
         
@@ -913,7 +888,7 @@
             `).join('');
         }
 
-        // 切換格狀網格排版 (Grid View) 狀態
+        // 關閉/開啟格狀網格排版 (Grid View) 狀態
         function toggleGridView() {
             isGridView = !isGridView;
             const btn = document.getElementById('grid-view-toggle');
@@ -965,14 +940,14 @@
                     return;
                 }
 
-                // 手機每行 2 張 (grid-cols-2)，iPad以上/中型螢幕每行 6 張 (md:grid-cols-6)
+                // iPhone 手機版修正為每行 3 張 (grid-cols-3)，iPad以上桌面版每行 6 張 (md:grid-cols-6)
                 // 完全不包含任何文字與標題
                 // 套用漸進式瀑布流登場動畫。在此透過 JS 動態算出卡片落在哪一列（Row），使同列卡片能完全同步登場，大幅節省時間
                 const gridHtml = `
                     <section class="max-w-screen-2xl mx-auto py-4">
-                        <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                        <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
                             ${processedItems.map((item, index) => {
-                                const rowMobile = Math.floor(index / 2);
+                                const rowMobile = Math.floor(index / 3); // 配合每行 3 個卡片同步
                                 const rowDesktop = Math.floor(index / 6);
                                 return `
                                 <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="handleNavigation('${item.url}')">
@@ -1161,7 +1136,7 @@
                 qrAnimationId = requestAnimationFrame(tickQRScanner);
             } catch (err) {
                 console.error("Camera access failed:", err);
-                errMsg.innerText = "相機不可用（可能被瀏覽器安全政策限制、未授權，或未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按碼。";
+                errMsg.innerText = "相機不可用（可能被瀏覽器安全政策限制、未授權， or 未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按碼。";
                 errMsg.classList.remove('hidden');
             }
         }
@@ -1292,3 +1267,6 @@
     </script>
 </body>
 </html>
+
+
+
