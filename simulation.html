@@ -134,54 +134,6 @@
             border-top: 1px solid rgba(16, 185, 129, 0.05);
         }
 
-        .lucky-dock {
-            position: absolute;
-            right: 24px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(210, 252, 230, 0.7); 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 6px 14px;
-            border-radius: 16px;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 10;
-        }
-
-        .lucky-dock:hover {
-            background: rgba(16, 185, 129, 0.15);
-            transform: translateY(-50%) scale(1.05);
-        }
-
-        .lucky-dock i { font-size: 14px; color: var(--mint-primary); }
-        .lucky-dock span { font-size: 11px; font-weight: 700; color: var(--mint-deep); letter-spacing: 0.05em; }
-
-        .filter-toggle-trigger {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 20px;
-            background: rgba(240, 253, 244, 0.85);
-            backdrop-filter: blur(20px);
-            border-radius: 0 0 14px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 1px solid rgba(16, 185, 129, 0.05);
-            border-top: none;
-            color: var(--mint-primary);
-            transition: all 0.3s;
-        }
-
         #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
 
         /* 網格系統佈局 */
@@ -293,13 +245,13 @@
         .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
 
         .dock-nav {
-            background-color: rgba(190, 232, 208, 0.45); /* 再次提升透明度：不透明度自 0.75 調降至 0.45，實現極致輕盈 */
+            background-color: rgba(190, 232, 208, 0.45); 
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
-            border: 1.5px solid rgba(255, 255, 255, 0.5); /* 強化高光邊框增添剔透感 */
+            border: 1.5px solid rgba(255, 255, 255, 0.5); 
             padding: 12px 14px;
             border-radius: 42px;
-            box-shadow: 0 12px 36px rgba(4, 47, 31, 0.12); /* 柔和深綠投影 */
+            box-shadow: 0 12px 36px rgba(4, 47, 31, 0.12); 
             display: flex; align-items: center; justify-content: center; gap: 14px;
         }
 
@@ -316,7 +268,7 @@
         .dock-item {
             display: flex;
             flex-direction: column; align-items: center; gap: 5px;
-            color: rgba(6, 78, 59, 0.45); /* 調整文字墨綠透明度 */
+            color: rgba(6, 78, 59, 0.45); 
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); min-width: 58px;
             background: transparent; border: none; cursor: pointer;
         }
@@ -349,8 +301,6 @@
             .hero-container-framed { border-radius: 0; }
             .dock-wrapper { width: 92%; max-width: 400px; }
             #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 160px); }
-            .lucky-dock { right: 12px; padding: 5px 10px; }
-            .lucky-dock span { display: none; }
         }
 
         /* ================= Day/Night UI 核心美術動畫 ================= */
@@ -411,14 +361,6 @@
             border-color: rgba(52, 211, 153, 0.05);
             color: var(--mint-primary);
         }
-        body.dark-mode .lucky-dock {
-            background: rgba(6, 78, 59, 0.4);
-            border-color: rgba(52, 211, 153, 0.2);
-            color: #e2e8f0;
-        }
-        body.dark-mode .lucky-dock span {
-            color: #e2e8f0;
-        }
         body.dark-mode .poster-card {
             background: #112217;
             border-color: rgba(255, 255, 255, 0.05);
@@ -448,7 +390,7 @@
 
         /* 暗色模式下的 Docking Glassmorphism 自動適配修正 */
         body.dark-mode .dock-nav {
-            background-color: rgba(22, 45, 35, 0.3); /* 暗色模式同步優化透明度：不透明度調降至 0.3 */
+            background-color: rgba(22, 45, 35, 0.3); 
             border: 1.5px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
         }
@@ -485,7 +427,9 @@
                     <span class="text-xl font-black text-emerald-900 tracking-tighter">Simulation Lab</span>
                 </div>
                 <div class="flex items-center gap-6 text-emerald-800">
-                    <i class="fas fa-search text-xl opacity-60 cursor-pointer"></i>
+                    <!-- 好手氣（骰子按鈕）：配置在放大鏡圖示的左側 -->
+                    <i class="fas fa-dice text-2xl opacity-60 hover:opacity-100 cursor-pointer transition-opacity" onclick="handleIAmLucky()" title="好手氣"></i>
+                    <i class="fas fa-search text-xl opacity-60 hover:opacity-100 cursor-pointer transition-opacity"></i>
                 </div>
             </div>
         </div>
@@ -497,10 +441,6 @@
             
             <div id="sub-filter-bar" class="sub-filter-container hide-scrollbar overflow-x-auto">
                 <div id="sub-filter-items" class="flex items-center gap-3"></div>
-                <div class="lucky-dock" onclick="handleIAmLucky()">
-                    <i class="fas fa-dice"></i>
-                    <span>好手氣</span>
-                </div>
             </div>
 
             <div class="filter-toggle-trigger" onclick="toggleFilter()">
@@ -867,9 +807,10 @@
             document.getElementById('modal-play-trigger').onclick = () => { closeModal(); openIframe(item.url); };
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'auto';
         }
 
+        // 關閉預覽視窗
         function closeModal() {
             const modal = document.getElementById('sim-preview-modal');
             modal.classList.remove('active');
