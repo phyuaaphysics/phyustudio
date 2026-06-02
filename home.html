@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -16,7 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
-        
         :root {
             --glacier-deep: #0f172a;
             --glacier-primary: #0284c7; 
@@ -26,7 +24,7 @@
             --glacier-nav-glass: rgba(255, 255, 255, 0.75);
         }
 
-        /* Dark Mode Theme Variable Overrides */
+        /* ダークモード時の変数定義 */
         body.dark-mode {
             --glacier-deep: #f8fafc;
             --glacier-primary: #38bdf8; 
@@ -37,7 +35,7 @@
             color: #cbd5e1;
         }
 
-        /* Day/Night Toggle Switch Transitions */
+        /* テーマ切り替え用のトグルスイッチアニメーション */
         #dark-mode-toggle:checked + .theme-track {
             background-color: #1e293b;
             border-color: #0f172a;
@@ -59,12 +57,12 @@
             opacity: 0 !important;
         }
 
-        /* Smooth Transition for Theme Toggling */
+        /* スムーズなテーマ移行用トランジション */
         body, .logo-bar, .filter-bar, .hero-container-framed, #page-content, .dock-nav, .filter-capsule, .nav-btn, .sync-btn {
             transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
         }
 
-        /* Dark Mode Styling Fixes */
+        /* ダークモード用スタイル修正 */
         body.dark-mode .hero-container-framed {
             background-color: #1e293b;
             border-color: rgba(255, 255, 255, 0.1);
@@ -125,8 +123,10 @@
             padding-top: 0;
         }
 
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none;
+        }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none;
+        }
 
         .logo-bar {
             position: fixed;
@@ -149,7 +149,8 @@
             will-change: transform;
         }
 
-        .scrolled #main-logo { transform: scale(0.75); }
+        .scrolled #main-logo { transform: scale(0.75);
+        }
 
         .filter-bar {
             position: fixed;
@@ -213,16 +214,29 @@
             transform: rotate(180deg);
         }
 
-        /* 頁面內容容器 */
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
+        /* 検索パネル関連スタイル */
+        #search-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease;
+        }
+        #search-panel.open {
+            max-height: 80px;
+            padding-bottom: 12px;
+        }
 
-        .slider-wrapper { position: relative; width: 100%; }
+        /* メインコンテンツ配置 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px);
+        }
+
+        .slider-wrapper { position: relative; width: 100%;
+        }
 
         .slider-container { 
             display: flex;
             overflow-x: auto; 
             scroll-snap-type: x mandatory; 
-            gap: 2px; 
+            gap: 6px; /* 原為 12px / 調整為 6px，使欄與欄的空間更緊密 */
             padding-bottom: 20px;
             scroll-behavior: smooth;
         }
@@ -246,15 +260,19 @@
             border: 1px solid rgba(0,0,0,0.03);
         }
         
-        .slider-wrapper:hover .nav-btn { opacity: 1; }
-        .nav-btn.prev { left: -12px; }
-        .nav-btn.next { right: -12px; }
+        .slider-wrapper:hover .nav-btn { opacity: 1;
+        }
+        .nav-btn.prev { left: -12px;
+        }
+        .nav-btn.next { right: -12px;
+        }
 
-        .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
+        .slider-item { scroll-snap-align: start; flex: 0 0 auto;
+        }
 
         .poster-card { 
             aspect-ratio: 2/3;
-            border-radius: 4px; overflow: hidden; background: #cbd5e1; 
+            border-radius: 6px; overflow: hidden; background: #cbd5e1; 
             position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
             border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
             will-change: transform;
@@ -280,7 +298,8 @@
             pointer-events: none;
         }
 
-        .section-hidden { display: none !important; }
+        .section-hidden { display: none !important;
+        }
 
         .dock-wrapper {
             position: fixed;
@@ -293,7 +312,8 @@
             min-width: 340px;
         }
 
-        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
+        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0;
+        }
 
         .dock-nav {
             background-color: var(--glacier-nav-glass);
@@ -312,7 +332,8 @@
             color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
         }
 
-        .dock-content { display: flex; align-items: center; gap: 14px; }
+        .dock-content { display: flex; align-items: center; gap: 14px;
+        }
 
         .dock-item {
             display: flex;
@@ -320,9 +341,12 @@
             color: #94a3b8; transition: all 0.3s; min-width: 58px;
         }
 
-        .dock-item i { font-size: 1.6rem; }
-        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
-        .dock-item.active { color: var(--glacier-primary); }
+        .dock-item i { font-size: 1.6rem;
+        }
+        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7;
+        }
+        .dock-item.active { color: var(--glacier-primary);
+        }
 
         .dock-trigger-bar {
             position: fixed;
@@ -334,11 +358,13 @@
             border-radius: 10px;
             z-index: 199; cursor: pointer; display: none;
         }
-        .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
+        .dock-wrapper.collapsed + .dock-trigger-bar { display: block;
+        }
 
-        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px; }
+        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px;
+        }
 
-        /* 同步按鈕樣式 */
+        /* 同期ボタンのスタイリング */
         .sync-btn {
             position: absolute;
             right: 24px;
@@ -361,13 +387,17 @@
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .sync-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
-        .sync-btn:active { transform: scale(0.95); }
-        .sync-btn.loading i { animation: spin 1s linear infinite; }
+        .sync-btn:hover { background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px); }
+        .sync-btn:active { transform: scale(0.95);
+        }
+        .sync-btn.loading i { animation: spin 1s linear infinite;
+        }
 
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);
+        } }
 
-        /* Loading Animation */
+        /* ロードアニメーション */
         .loader {
             display: flex;
             justify-content: center;
@@ -379,19 +409,27 @@
             text-transform: uppercase;
         }
 
-        /* QR Scanner Animation keyframes */
+        /* QRスキャナーエフェクト */
         @keyframes qr-scan-line {
-            0% { transform: translateY(-130px); }
-            50% { transform: translateY(130px); }
-            100% { transform: translateY(-130px); }
+            0% { transform: translateY(-130px);
+            }
+            50% { transform: translateY(130px);
+            }
+            100% { transform: translateY(-130px);
+            }
         }
 
         @media (max-width: 768px) {
-            .hero-container-framed { border-radius: 0; }
-            .dock-wrapper { width: 92%; max-width: 400px; }
-            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
-            .nav-btn { display: none !important; }
-            .sync-btn { right: 16px; bottom: 16px; padding: 8px 14px; }
+            .hero-container-framed { border-radius: 0;
+            }
+            .dock-wrapper { width: 92%; max-width: 400px;
+            }
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px);
+            }
+            .nav-btn { display: none !important;
+            }
+            .sync-btn { right: 16px; bottom: 16px;
+            padding: 8px 14px; }
         }
     </style>
 </head>
@@ -404,43 +442,52 @@
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
                 
-                <!-- Header Control Elements including Day/Night Toggle -->
+                <!-- 控制按鈕與日夜切換開關 -->
                 <div class="flex items-center gap-4 md:gap-6">
                     
-                    <!-- Day/Night Switch Button -->
+                    <!-- 日夜切換開關 -->
                     <div class="flex items-center">
                         <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
                             <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
+  
                             <!-- Pill Track -->
                             <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
-                                
-                                <!-- Stars Background (Night Mode Only) -->
+                               
+                                <!-- 星空背景 (夜間模式專用) -->
                                 <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
+                      
                                     <!-- Tiny Star 1 -->
                                     <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                       
                                     <!-- Tiny Star 2 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                        
                                     <!-- Tiny Star 3 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                         
                                     <!-- Tiny Star 4 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                                 </div>
 
-                                <!-- Knob (Sun / Moon) -->
+                                <!-- 太陽/月亮滑塊 -->
                                 <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
-                                    <!-- Sun (Visible in Light Mode) -->
+          
+                                    <!-- 太陽 (日間模式) -->
                                     <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
-                                    <!-- Moon (Visible in Dark Mode) -->
+                     
+                                    <!-- 月亮 (夜間模式) -->
                                     <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
-                                        <!-- Moon craters -->
+                             
+                                        <!-- 月面隕石坑 -->
                                         <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
+                                      
                                         <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
                                         <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
                                         <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
                                     </div>
                                 </div>
 
-                                <!-- Cloud (Light Mode Foreground Decoration) -->
+                                <!-- 雲朵 (日間模式背景裝飾) -->
                                 <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
                                     <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
@@ -451,14 +498,30 @@
                         </label>
                     </div>
 
+                    <!-- 格狀排版切換 Icon：已更換為 fa-border-all (放置於開關與搜尋放大鏡之間) -->
+                    <div class="flex items-center text-sky-800 opacity-60 hover:opacity-100 transition-opacity">
+                        <i id="grid-view-toggle" class="fas fa-border-all text-xl cursor-pointer" onclick="toggleGridView()"></i>
+                    </div>
+
                     <div class="flex items-center gap-6 text-sky-800 opacity-60">
-                        <i class="fas fa-search text-xl cursor-pointer"></i>
+                        <i class="fas fa-search text-xl cursor-pointer" onclick="toggleSearchInput()"></i>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="filter-bar px-6" id="filter-bar">
+            <!-- 搜尋面板，包含輸入框與清除按鈕 -->
+            <div id="search-panel" class="max-w-screen-2xl mx-auto px-1">
+                <div class="relative w-full">
+                    <input type="text" id="tag-search-input" oninput="handleSearch(this.value)" placeholder="輸入關鍵字以標籤 (Tag) 篩選相關卡片..." class="w-full bg-white/60 dark:bg-slate-800/60 border border-sky-400/30 rounded-full py-2 px-10 text-sm focus:outline-none focus:border-sky-500 transition-colors dark:text-slate-200">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <button onclick="clearSearch()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+
             <div id="filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
                 <button class="filter-capsule active" onclick="setFilter('all')">載入中...</button>
             </div>
@@ -501,12 +564,13 @@
                 <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
                     <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
-                    
+            
                     <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
                         <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
                             Pastpaper Archive
                         </h2>
                         <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+        
                         <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
                             Detailed Examination Resource Collections
                         </p>
@@ -529,6 +593,7 @@
             <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
                 <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
             </h3>
+ 
             <!-- Video / Canvas viewport wrapper -->
             <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
                 <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
@@ -578,31 +643,70 @@
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
     <script>
-        // Google Sheet CSV URL
-        const SPREADSHEET_ID = '1QIwkfmUZPRWMLrDVHYe-bUtUMSmkU2Ad6PlZnYIij_M';
-        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&cachebust=${Date.now()}`;
+        // 安全 LocalStorage 沙盒防禦封裝物件
+        const storage = {
+            getItem(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("Storage read blocked:", e);
+                    return null;
+                }
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn("Storage write blocked:", e);
+                }
+            },
+            removeItem(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn("Storage remove blocked:", e);
+                }
+            }
+        };
+
+        // Google Sheet CSV URL (針對 FRONT 分頁)
+        const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
+        // FRONT 核心分頁預設 GID
+        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=966779417`;
 
         let rawData = [];
         let lastScrollY = window.scrollY;
-
-        // QR Code variables
+        
+        // QRスキャナー関連の変数
         let qrStream = null;
         let qrAnimationId = null;
+        
+        // フィルタおよび検索ステータス
+        let currentFilter = 'all';
+        let searchQuery = '';
+        
+        // 全域網格排版 (Grid View) 狀態旗標
+        let isGridView = false;
 
-        // Day/Night Theme Toggling
+        // 日夜モード切り替え処理
         function toggleTheme(isDark) {
             if (isDark) {
                 document.body.classList.add('dark-mode');
-                localStorage.setItem('theme', 'dark');
+                storage.setItem('theme', 'dark');
             } else {
                 document.body.classList.remove('dark-mode');
-                localStorage.setItem('theme', 'light');
+                storage.setItem('theme', 'light');
             }
         }
 
-        // Apply theme immediately on load
+        // 読み込み時に初期テーマを適用 (安全沙盒相容)
         (function() {
-            const savedTheme = localStorage.getItem('theme');
+            let savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (e) {
+                console.warn("Theme storage access denied", e);
+            }
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
             
@@ -615,27 +719,101 @@
             }
         })();
 
-        // 初始化與數據抓取
+        // 初期化および高速ローカルキャッシュロジック (LocalStorage + Ver確認) + 雙重後備連線防禦
         async function initData() {
             try {
-                // 每次抓取都加上 timestamp 防止快取
-                const currentUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
-                const response = await fetch(currentUrl);
-                const csvText = await response.text();
-                rawData = parseCSV(csvText);
+                let csvText = '';
+                let response;
+                
+                // 第一嘗試階段：使用預設標準 GID 連結
+                try {
+                    response = await fetch(`${SHEET_CSV_URL}&cachebust=${Date.now()}&t=${Date.now()}`);
+                    csvText = await response.text();
+                    
+                    // 偵測是否返回 HTML 登入牆 or 404 (Google Sheets 常見拒絕連線網頁)
+                    if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
+                        throw new Error("返回格式非 CSV (可能是 GID 無效或需要權限設定)");
+                    }
+                } catch (firstErr) {
+                    console.warn("標準 GID 導出失敗，啟動備用分頁名稱解析器 (FRONT):", firstErr);
+                    
+                    // 第二後備階段：使用 Google Visualization API 依「分頁名稱」拉取，防禦 GID 被使用者重建變更
+                    const fallbackUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=FRONT&cachebust=${Date.now()}`;
+                    response = await fetch(fallbackUrl);
+                    csvText = await response.text();
+                    
+                    if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
+                        throw new Error("備用管道仍返回網頁 HTML (請確定試算表權限已設定為『知道連結的任何人均可檢視』)");
+                    }
+                }
+                
+                const lines = parseCSVRows(csvText);
+                
+                if (lines.length > 0) {
+                    const firstRow = lines[0];
+                    // A1が 'ver' であるかをチェック
+                    if (firstRow[0] && firstRow[0].toLowerCase() === 'ver') {
+                        const currentOnlineVer = firstRow[1] || ''; // B1からバージョン番号を取得
+                        const cachedVer = storage.getItem('lumina_data_ver');
+                        const cachedData = storage.getItem('lumina_data_payload');
+                        
+                        // バージョン番号が不変かつキャッシュがある場合は高速ローカル復元
+                        if (cachedVer === currentOnlineVer && cachedData) {
+                            try {
+                                rawData = JSON.parse(cachedData);
+                                if (rawData && rawData.length > 0) {
+                                    console.log("快取版本相符，使用 LocalStorage 載入，版本號:", cachedVer);
+                                    renderFilters();
+                                    renderContent();
+                                    return;
+                                }
+                            } catch (jsonErr) {
+                                console.warn("快取解析受損，清理重設:", jsonErr);
+                                storage.removeItem('lumina_data_ver');
+                                storage.removeItem('lumina_data_payload');
+                            }
+                        }
+                        
+                        // そうでない場合は最新データを再構築してストレージを更新
+                        console.log("版本號不相符或無快取，進行全新讀取...");
+                        rawData = processRawRows(lines);
+                        
+                        storage.setItem('lumina_data_ver', currentOnlineVer);
+                        storage.setItem('lumina_data_payload', JSON.stringify(rawData));
+                    } else {
+                        rawData = processRawRows(lines);
+                    }
+                }
+                
                 renderFilters();
                 renderContent();
             } catch (error) {
                 console.error("Fetch error:", error);
-                document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請檢查網路連線。</div>`;
+                const cachedData = storage.getItem('lumina_data_payload');
+                if (cachedData) {
+                    try {
+                        console.log("網路載入失敗，降級從快取讀取數據");
+                        rawData = JSON.parse(cachedData);
+                        renderFilters();
+                        renderContent();
+                    } catch (jsonErr) {
+                        console.error("安全降級快取也失效");
+                        document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請確認試算表分享權限。</div>`;
+                    }
+                } else {
+                    document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請檢查網路連線。</div>`;
+                }
             }
         }
 
-        // 手動同步邏輯
+        // 手動同期ボタン用
         async function manualSync() {
             const btn = document.getElementById('sync-button');
             btn.classList.add('loading');
             btn.querySelector('span').innerText = '同步中...';
+            
+            storage.removeItem('lumina_data_ver');
+            storage.removeItem('lumina_data_payload');
             
             await initData();
             
@@ -645,30 +823,67 @@
             }, 800);
         }
 
-        // CSV 解析
-        function parseCSV(text) {
-            const rows = text.split('\n').map(row => {
-                const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
-                return row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim());
-            });
-            
-            return rows.slice(1) 
-                .filter(row => row[1]) 
-                .map(row => ({
-                    filter: row[0],
-                    section: row[1],
-                    order: parseInt(row[2]) || 0,
-                    img: row[3],
-                    url: row[4]
-                }));
+        // CSV 行分割パーサー
+        function parseCSVRows(text) {
+            const lines = [];
+            let row = [""];
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                let next = text[i+1];
+                if (c === '"') {
+                    if (inQuotes && next === '"') { row[row.length - 1] += '"'; i++; }
+                    else { inQuotes = !inQuotes; }
+                } else if (c === ',' && !inQuotes) {
+                    row.push('');
+                } else if ((c === '\r' || c === '\n') && !inQuotes) {
+                    if (c === '\r' && next === '\n') { i++; }
+                    lines.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += c;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') {
+                lines.push(row);
+            }
+            return lines;
         }
 
-        // 渲染 Filter Bar
+        // 試算表データからアイテム配列へのマッピング (新レイアウト対応)
+        function processRawRows(lines) {
+            return lines
+                .filter((row, idx) => {
+                    if (idx === 0) return false;
+                    return row[1] && row[0] !== 'ver' && row[0] !== 'filter';
+                })
+                .map(row => {
+                    // 欄 A (row[0]): filter
+                    // 欄 B (row[1]): section
+                    // 欄 C (row[2]): order
+                    // 欄 D (row[3]): tag (原來的D欄位為tag)
+                    // 欄 E (row[4]): img (使用 欄E 作為卡片海報圖路徑)
+                    // 欄 F (row[5]): url (使用 欄F 作為跳轉連接)
+                    // 欄 G (row[6]): gridOrder (用於 Grid View 排序)
+                    return {
+                        filter: (row[0] || '').trim(),
+                        section: (row[1] || '').trim(),
+                        order: parseInt(row[2]) || 0,
+                        tag: (row[3] || '').trim(),
+                        img: (row[4] || '').trim(),
+                        url: (row[5] || '').trim(),
+                        gridOrder: parseInt(row[6]) || 0
+                    };
+                });
+        }
+
+        // フィルターボタンレンダリング
         function renderFilters() {
             const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
             const container = document.getElementById('filter-container');
             container.innerHTML = filters.map(f => `
-                <button class="filter-capsule ${f === 'all' ? 'active' : ''}" 
+                <button class="filter-capsule ${f === currentFilter ? 'active' : ''}" 
                         data-filter="${f}" 
                         onclick="setFilter('${f}')">
                     ${f === 'all' ? '全部' : f}
@@ -676,51 +891,171 @@
             `).join('');
         }
 
-        // 渲染主要內容
+        // 切換格狀網格排版 (Grid View) 狀態
+        function toggleGridView() {
+            isGridView = !isGridView;
+            const btn = document.getElementById('grid-view-toggle');
+            if (isGridView) {
+                btn.classList.add('text-sky-500');
+                btn.classList.remove('opacity-60');
+            } else {
+                btn.classList.remove('text-sky-500');
+                btn.classList.add('opacity-60');
+            }
+            renderContent();
+        }
+
+        // コンテンツレンダリング (不顯示卡片下方的任何文字/標籤，保持完美的卡片排版)
         function renderContent() {
             const mainArea = document.getElementById('main-content-area');
             mainArea.innerHTML = '';
+            
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
 
-            const sections = [...new Set(rawData.map(d => d.section))];
+            // 1. 先獲取並過濾符合當前條件的卡片
+            let processedItems = [...rawData];
 
-            sections.forEach(secName => {
-                const itemsInSec = rawData
-                    .filter(d => d.section === secName)
-                    .sort((a, b) => a.order - b.order);
+            // 分類篩選
+            if (currentFilter !== 'all') {
+                processedItems = processedItems.filter(item => item.filter === currentFilter);
+            }
 
-                if (itemsInSec.length === 0) return;
+            // 標籤篩選
+            if (searchQuery.trim() !== '') {
+                const query = searchQuery.toLowerCase().trim();
+                processedItems = processedItems.filter(item => {
+                    return item.tag && item.tag.toLowerCase().includes(query);
+                });
+            }
 
-                const filterTag = itemsInSec[0].filter;
-                const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
-                const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+            // 2. 根據是否開啟 Grid View 渲染不同的版面
+            if (isGridView) {
+                // Grid View時以欄G的順序排位 (gridOrder)
+                processedItems.sort((a, b) => a.gridOrder - b.gridOrder);
 
-                const sectionHtml = `
-                    <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
-                        <h2 class="section-title">${secName}</h2>
-                        <div class="slider-wrapper">
-                            <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
-                                <i class="fas fa-chevron-left text-xs text-slate-400"></i>
-                            </button>
-                            <div class="slider-container hide-scrollbar" id="${sliderId}">
-                                ${itemsInSec.map(item => `
-                                    <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
-                                        <div class="poster-card">
-                                            <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
-                                        </div>
+                // 格狀網格排版模式：隱藏海報輪播 Hero 與底部的 Pastpaper Section
+                heroSection.classList.add('section-hidden');
+                archiveSection.classList.add('section-hidden');
+
+                if (processedItems.length === 0) {
+                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
+                    return;
+                }
+
+                // 手機每行 2 張 (grid-cols-2)，iPad以上/中型螢幕每行 6 張 (md:grid-cols-6)
+                // 完全不包含任何文字與標題
+                const gridHtml = `
+                    <section class="max-w-screen-2xl mx-auto py-4">
+                        <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                            ${processedItems.map(item => `
+                                <div class="cursor-pointer" onclick="handleNavigation('${item.url}')">
+                                    <div class="poster-card" title="Tags: ${item.tag || '無'}">
+                                        <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
                                     </div>
-                                `).join('')}
-                            </div>
-                            <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
-                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
-                            </button>
+                                </div>
+                            `).join('')}
                         </div>
                     </section>
                 `;
-                mainArea.insertAdjacentHTML('beforeend', sectionHtml);
-            });
+                mainArea.innerHTML = gridHtml;
+
+            } else {
+                // 原貌 Slider 分區排版模式
+                if (currentFilter === 'all') {
+                    heroSection.classList.remove('section-hidden');
+                    archiveSection.classList.remove('section-hidden');
+                } else {
+                    heroSection.classList.add('section-hidden');
+                    archiveSection.classList.add('section-hidden');
+                }
+
+                const sections = [...new Set(rawData.map(d => d.section))];
+                let hasVisibleCards = false;
+
+                sections.forEach(secName => {
+                    let itemsInSec = rawData
+                        .filter(d => d.section === secName)
+                        .sort((a, b) => a.order - b.order); // Slider 模式下以 欄C (order) 排位
+
+                    // 分類篩選
+                    if (currentFilter !== 'all') {
+                        itemsInSec = itemsInSec.filter(item => item.filter === currentFilter);
+                    }
+
+                    // 標籤篩選
+                    if (searchQuery.trim() !== '') {
+                        const query = searchQuery.toLowerCase().trim();
+                        itemsInSec = itemsInSec.filter(item => {
+                            return item.tag && item.tag.toLowerCase().includes(query);
+                        });
+                    }
+
+                    if (itemsInSec.length === 0) return;
+                    hasVisibleCards = true;
+
+                    const filterTag = itemsInSec[0].filter;
+                    const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
+                    const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+
+                    const sectionHtml = `
+                        <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
+                            <h2 class="section-title">${secName}</h2>
+                            <div class="slider-wrapper">
+                                <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
+                                    <i class="fas fa-chevron-left text-xs text-slate-400"></i>
+                                </button>
+                                <div class="slider-container hide-scrollbar" id="${sliderId}">
+                                    ${itemsInSec.map(item => `
+                                        <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
+                                            <div class="poster-card" title="Tags: ${item.tag || '無'}">
+                                                <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
+                                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                                </button>
+                            </div>
+                        </section>
+                    `;
+                    mainArea.insertAdjacentHTML('beforeend', sectionHtml);
+                });
+
+                if (!hasVisibleCards) {
+                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
+                }
+            }
         }
 
-        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        // 検索窓トグル処理
+        function toggleSearchInput() {
+            const panel = document.getElementById('search-panel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                document.getElementById('tag-search-input').focus();
+            } else {
+                clearSearch();
+            }
+        }
+
+        // 検索文字入力処理
+        function handleSearch(val) {
+            searchQuery = val;
+            renderContent();
+        }
+
+        // 検索クリア処理
+        function clearSearch() {
+            const input = document.getElementById('tag-search-input');
+            if (input) input.value = '';
+            searchQuery = '';
+            renderContent();
+        }
+
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed');
+        }
         
         function toggleFilter() {
             const bar = document.getElementById('filter-bar');
@@ -732,8 +1067,14 @@
             if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
         }
 
+        // ホームスクロールとフィルターの完全初期化
         function scrollToHome() {
             setFilter('all');
+            clearSearch();
+            // 還原為預設 slider 排版
+            if (isGridView) {
+                toggleGridView();
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -743,31 +1084,30 @@
         }
 
         function setFilter(filterType) {
+            currentFilter = filterType;
             const buttons = document.querySelectorAll('.filter-capsule');
             buttons.forEach(btn => {
                 if(btn.dataset.filter === filterType) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
-
+            
             const heroSection = document.getElementById('hero-section');
             const archiveSection = document.getElementById('sec-archive');
-            const sections = document.querySelectorAll('.dynamic-section');
-
-            if (filterType === 'all') {
-                heroSection.classList.remove('section-hidden');
-                archiveSection.classList.remove('section-hidden');
-                sections.forEach(sec => sec.classList.remove('section-hidden'));
-            } else {
-                heroSection.classList.add('section-hidden');
-                archiveSection.classList.add('section-hidden');
-                sections.forEach(sec => {
-                    if (sec.getAttribute('data-group') === filterType) sec.classList.remove('section-hidden');
-                    else sec.classList.add('section-hidden');
-                });
+            
+            // 只有在非 Grid View 的狀態下，才依照 filterType 隱藏/顯示 Hero
+            if (!isGridView) {
+                if (filterType === 'all') {
+                    heroSection.classList.remove('section-hidden');
+                    archiveSection.classList.remove('section-hidden');
+                } else {
+                    heroSection.classList.add('section-hidden');
+                    archiveSection.classList.add('section-hidden');
+                }
             }
+            renderContent();
         }
 
-        // QR Code Scanner Core Operations
+        // QRコードスキャナーコントロール
         async function openQRScanner() {
             const modal = document.getElementById('qr-scanner-modal');
             const video = document.getElementById('qr-video');
@@ -775,8 +1115,6 @@
             
             errMsg.classList.add('hidden');
             errMsg.innerText = "";
-            
-            // Show Scanner window with smooth fade
             modal.classList.remove('pointer-events-none', 'opacity-0');
             modal.classList.add('opacity-100');
 
@@ -784,7 +1122,7 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 qrStream = stream;
                 video.srcObject = stream;
-                video.setAttribute("playsinline", true); // Required for iOS
+                video.setAttribute("playsinline", true);
                 
                 try {
                     await video.play();
@@ -814,7 +1152,6 @@
                 qrAnimationId = null;
             }
             
-            // Clear input
             document.getElementById('qr-file-input').value = "";
         }
 
@@ -823,7 +1160,6 @@
             const canvasElement = document.getElementById('qr-canvas');
             if (!video || !canvasElement) return;
             const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
-
             if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
                 canvasElement.height = video.videoHeight;
                 canvasElement.width = video.videoWidth;
@@ -834,23 +1170,19 @@
                     const code = jsQR(imageData.data, imageData.width, imageData.height, {
                         inversionAttempts: "attemptBoth",
                     });
-
                     if (code) {
                         let resultText = code.data.trim();
                         let finalUrl = '';
 
-                        // Resolve string like 'yyy/xxx.html' to target domain
                         if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
                             finalUrl = resultText;
                         } else {
-                            // Strip leading slash if exists
                             if (resultText.startsWith('/')) {
                                 resultText = resultText.substring(1);
                             }
                             finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
                         }
 
-                        // Scan successfully completed - Direct redirection (PWA seamless workflow)
                         closeQRScanner();
                         window.location.href = finalUrl;
                         return;
@@ -864,7 +1196,7 @@
             }
         }
 
-        // Handle uploaded/taken image containing QR Code
+        // アップロード画像によるQRコードデコード
         function handleQRFile(input) {
             const file = input.files[0];
             if (!file) return;
@@ -881,13 +1213,11 @@
                     canvasElement.width = img.width;
                     canvasElement.height = img.height;
                     canvas.drawImage(img, 0, 0);
-
                     try {
                         const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
                         const code = jsQR(imageData.data, imageData.width, imageData.height, {
                             inversionAttempts: "attemptBoth",
                         });
-
                         if (code) {
                             let resultText = code.data.trim();
                             let finalUrl = '';
@@ -899,7 +1229,6 @@
                                 }
                                 finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
                             }
-                            // Scan successfully completed - Direct redirection
                             closeQRScanner();
                             window.location.href = finalUrl;
                         } else {
@@ -935,5 +1264,3 @@
     </script>
 </body>
 </html>
-
-
