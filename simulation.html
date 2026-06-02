@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -5,13 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Simulation Lab - Lumina Studio</title>
     
-    <!-- iOS PWA 狀態列修正 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 引入高相容性 HTML5 QR 掃描函式庫 -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <style>
@@ -279,6 +278,7 @@
             cursor: pointer; border: 1px solid rgba(255,255,255,0.2);
         }
 
+        /* 底部導覽列 UI 升級：淡草綠高透明毛玻璃特效 (Pale Green Glassmorphism) */
         .dock-wrapper {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
@@ -293,34 +293,43 @@
         .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
 
         .dock-nav {
-            background-color: rgba(60, 75, 68, 0.85);
-            backdrop-filter: blur(28px);
-            -webkit-backdrop-filter: blur(28px);
-            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(190, 232, 208, 0.45); /* 再次提升透明度：不透明度自 0.75 調降至 0.45，實現極致輕盈 */
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1.5px solid rgba(255, 255, 255, 0.5); /* 強化高光邊框增添剔透感 */
             padding: 12px 14px;
             border-radius: 42px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 12px 36px rgba(4, 47, 31, 0.12); /* 柔和深綠投影 */
             display: flex; align-items: center; justify-content: center; gap: 14px;
         }
 
         .dock-toggle-btn {
             width: 32px;
             height: 32px; display: flex; align-items: center; justify-content: center;
-            color: rgba(255,255,255,0.4); cursor: pointer; font-size: 14px;
+            color: rgba(6, 78, 59, 0.4); cursor: pointer; font-size: 14px;
+            transition: color 0.3s;
         }
+        .dock-toggle-btn:hover { color: rgba(6, 78, 59, 0.8); }
 
         .dock-content { display: flex; align-items: center; gap: 14px; }
 
         .dock-item {
             display: flex;
             flex-direction: column; align-items: center; gap: 5px;
-            color: var(--sage-muted); transition: all 0.3s; min-width: 58px;
+            color: rgba(6, 78, 59, 0.45); /* 調整文字墨綠透明度 */
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); min-width: 58px;
             background: transparent; border: none; cursor: pointer;
         }
 
-        .dock-item i { font-size: 1.6rem; }
-        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
-        .dock-item.active { color: white; }
+        .dock-item i { font-size: 1.6rem; transition: transform 0.3s; }
+        .dock-item span { font-size: 9px; font-weight: 700; opacity: 0.8; letter-spacing: 0.05em; }
+        
+        /* 懸浮微動效 */
+        .dock-item:hover i { transform: translateY(-2px); }
+        
+        /* 淺色模式下的 Active 狀態：深邃翠綠 */
+        .dock-item.active { color: #047857; }
+        .dock-item.active span { opacity: 1; }
 
         .dock-trigger-bar {
             position: fixed;
@@ -328,7 +337,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 60px; height: 5px;
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(6, 78, 59, 0.15);
             border-radius: 10px;
             z-index: 199; cursor: pointer; display: none;
         }
@@ -437,6 +446,17 @@
             background: rgba(0, 0, 0, 0.8);
         }
 
+        /* 暗色模式下的 Docking Glassmorphism 自動適配修正 */
+        body.dark-mode .dock-nav {
+            background-color: rgba(22, 45, 35, 0.3); /* 暗色模式同步優化透明度：不透明度調降至 0.3 */
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+        }
+        body.dark-mode .dock-item { color: rgba(240, 253, 244, 0.45); }
+        body.dark-mode .dock-item.active { color: #34d399; }
+        body.dark-mode .dock-toggle-btn { color: rgba(240, 253, 244, 0.4); }
+        body.dark-mode .dock-toggle-btn:hover { color: rgba(240, 253, 244, 0.8); }
+
         /* QR Scanner 動態動畫與樣式 */
         @keyframes scan-line {
             0% { top: 5%; }
@@ -450,7 +470,6 @@
 </head>
 <body class="pb-40 hide-scrollbar">
 
-    <!-- 隱藏的 Loader 元件：透過 CSS (display: none !important) 確保絕不顯示與阻擋使用者，但保留元素以維持程式碼穩定性 -->
     <div id="page-loader">
         <div class="flex flex-col items-center">
             <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-12 h-12 mb-4">
@@ -465,7 +484,6 @@
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                     <span class="text-xl font-black text-emerald-900 tracking-tighter">Simulation Lab</span>
                 </div>
-                <!-- 包含搜尋按鈕的區塊 -->
                 <div class="flex items-center gap-6 text-emerald-800">
                     <i class="fas fa-search text-xl opacity-60 cursor-pointer"></i>
                 </div>
@@ -520,15 +538,12 @@
         </div>
     </div>
 
-    <!-- QR 碼相機掃描模擬視窗 (帶有緩慢淡出淡入動畫) -->
     <div id="qr-scanner-modal" class="fixed inset-0 z-[500] bg-black/85 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-700 ease-in-out">
         <div class="relative bg-[#111d15] dark:bg-[#070b08] border border-[#10b981]/30 text-white rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl p-6 flex flex-col items-center transform scale-95 transition-all duration-700 ease-in-out" id="qr-modal-body">
-            <!-- 右上角關閉按鈕 -->
             <button onclick="closeQRScanner()" class="absolute top-4 right-4 text-emerald-400 hover:text-white transition-colors text-xl w-10 h-10 flex items-center justify-center rounded-full bg-black/40 border border-emerald-500/20 active:scale-90 transform transition-transform">
                 <i class="fas fa-times"></i>
             </button>
             
-            <!-- 標題欄 -->
             <div class="text-center mb-6 mt-2">
                 <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-emerald-500/20">
                     <i class="fas fa-qrcode text-2xl text-emerald-400 animate-pulse"></i>
@@ -537,26 +552,21 @@
                 <p class="text-xs text-emerald-500/70 mt-1">請將鏡頭對準條碼以開啟對應模擬</p>
             </div>
 
-            <!-- 取景框與相機渲染區域 -->
             <div class="relative w-full aspect-square max-w-[280px] bg-black rounded-3xl overflow-hidden border border-emerald-500/40 shadow-inner flex flex-col items-center justify-center mb-6">
-                <!-- HTML5 相機流元件 -->
                 <div id="qr-reader" class="w-full h-full"></div>
                 
-                <!-- 動態光線掃描效果 -->
                 <div class="scanner-laser absolute inset-x-4 h-0.5 bg-emerald-400 shadow-[0_0_10px_#34d399] top-0 pointer-events-none"></div>
                 
-                <!-- 相機四角網格指示線 -->
                 <div class="absolute top-4 left-4 w-5 h-5 border-t-[3px] border-l-[3px] border-emerald-400 pointer-events-none"></div>
                 <div class="absolute top-4 right-4 w-5 h-5 border-t-[3px] border-r-[3px] border-emerald-400 pointer-events-none"></div>
                 <div class="absolute bottom-4 left-4 w-5 h-5 border-b-[3px] border-l-[3px] border-emerald-400 pointer-events-none"></div>
                 <div class="absolute bottom-4 right-4 w-5 h-5 border-b-[3px] border-r-[3px] border-emerald-400 pointer-events-none"></div>
             </div>
 
-            <!-- 權限不足與模擬測試輔助輸入框 (避免在無相機權限的嵌套 Iframe 下失效) -->
             <div class="w-full px-2 text-center">
                 <p class="text-[10px] text-emerald-600/80 mb-2">相機無法使用時，可在下方輸入測試路徑：</p>
                 <div class="flex gap-2">
-                    <input type="text" id="mock-qr-input" placeholder="例如: mechanics/projectile.html" class="flex-1 bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2 text-xs text-emerald-300 focus:outline-none focus:border-emerald-400 transition-colors">
+                    <input type="text" id="mock-qr-input" placeholder="example: mechanics/projectile.html" class="flex-1 bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2 text-xs text-emerald-300 focus:outline-none focus:border-emerald-400 transition-colors">
                     <button onclick="handleMockQRScan()" class="bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold px-4 py-2 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-500/20">傳送</button>
                 </div>
             </div>
@@ -584,7 +594,6 @@
         </div>
     </div>
 
-    <!-- 全螢幕模擬器 Iframe 容器 (供 QR 掃描跳轉 & 模擬預覽使用) -->
     <div id="iframe-container">
         <div class="iframe-close-btn" onclick="closeIframe()"><i class="fas fa-times"></i></div>
         <iframe id="sim-frame" src="" class="w-full h-full border-none"></iframe>
@@ -603,7 +612,6 @@
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html', false)" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
-                <!-- 已將原本郵箱按鈕替換為 QR Code 掃描觸發按鈕，且圖示顏色與其他按鈕同步 -->
                 <button onclick="openQRScanner()" class="dock-item">
                     <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
                 </button>
@@ -1048,3 +1056,5 @@
     </script>
 </body>
 </html>
+
+
