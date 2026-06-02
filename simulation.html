@@ -446,23 +446,6 @@
         .scanner-laser {
             animation: scan-line 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
-
-        @keyframes os-fade-in {
-            0% {
-                opacity: 0;
-                transform: translateY(24px) scale(0.97);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        
-        .animate-os-fade {
-            animation: os-fade-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            will-change: transform, opacity;
-        }
     </style>
 </head>
 <body class="pb-40 hide-scrollbar">
@@ -510,7 +493,7 @@
 
     <div id="page-content">
         <div id="view-sim">
-            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12 animate-os-fade">
+            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
                 <div class="hero-container-framed relative w-full h-[50vh] md:h-[60vh]">
                     <img id="hero-bg" src="https://phyuaaphysics.github.io/phyustudio/virtuallab.png" class="absolute inset-0 w-full h-full object-cover filter saturate-125">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
@@ -886,6 +869,7 @@
             document.body.style.overflow = 'auto';
         }
 
+        // 開啟模擬
         function openIframe(url) {
             const container = document.getElementById('iframe-container');
             const frame = document.getElementById('sim-frame');
@@ -1009,15 +993,9 @@
 
                 const grid = document.getElementById(`${cat.id}-grid`);
                 
-                let cardIndex = 0;
                 filteredData.forEach(item => {
                     const div = document.createElement('div');
-                    div.className = `grid-item-card flex flex-col group animate-os-fade`;
-                    
-                    // 使用群組分流延遲 (每10張卡片循環 Stagger)，確保有節奏感又不會因卡片過多導致載入過慢
-                    div.style.animationDelay = `${(cardIndex % 10) * 40}ms`;
-                    cardIndex++;
-                    
+                    div.className = `grid-item-card flex flex-col group`;
                     div.dataset.topic = item.topic;
                     div.innerHTML = `
                         <div class="poster-card"><img src="${item.img}" class="w-full h-full object-cover"></div>
