@@ -1,10 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PH Studio - 學生登入系統</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons for responsive elements -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     /* 引入 Cinzel (優雅古典襯線體) 與 Inter (極簡現代無襯線體) */
@@ -74,24 +77,32 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 relative">
 
+  <!-- 頂部磨砂背景裝飾，確保邊角美觀 -->
   <div class="absolute inset-0 bg-black/5 pointer-events-none"></div>
 
+  <!-- Header Brand (置頂，在登入狀態下顯現，非登入時隱性融入) -->
   <header class="w-full max-w-4xl flex justify-end items-center py-2 z-10 shrink-0">
     <div id="secure-badge" class="text-[10px] tracking-widest text-slate-800/80 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-sm">
       SECURE CHANNEL
     </div>
   </header>
 
+  <!-- Main Portal Section (置頂排版，極大化空間利用率) -->
   <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
 
+    <!-- ========================================== -->
+    <!-- SECTION 1: 極致美學登入面板 (預設隱藏以防 token 驗證時閃爍) -->
+    <!-- ========================================== -->
     <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl hidden">
       
+      <!-- 官方 APP ICON (直角矩形置中，不使用圓角) -->
       <div class="flex justify-center mb-8">
         <div class="w-14 h-14 bg-white/30 p-0.5 border border-white/40 shadow-inner flex items-center justify-center">
           <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="PH Logo" class="w-full h-full">
         </div>
       </div>
 
+      <!-- 標題：Cinzel 古典襯線字型與優雅寬字距 -->
       <div class="mb-10">
         <h2 class="text-2xl md:text-[2rem] font-semibold tracking-[0.15em] text-slate-900 cinzel-title leading-tight">
           ONLINE CLASSROOM
@@ -103,13 +114,16 @@
         <div class="w-6 h-[1px] bg-white/30 mx-auto mt-4"></div>
       </div>
 
+      <!-- 登入表單 -->
       <form id="login-form" class="space-y-5">
         
+        <!-- 帳號輸入膠囊 -->
         <div class="relative">
           <input type="text" id="username" required placeholder="Username"
                  class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide">
         </div>
 
+        <!-- 密碼輸入膠囊 -->
         <div class="relative">
           <input type="password" id="password" required placeholder="Password"
                  class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide">
@@ -118,11 +132,13 @@
           </button>
         </div>
 
+        <!-- 錯誤訊息提示區 -->
         <div id="error-msg" class="hidden bg-rose-50/70 border border-rose-300 text-rose-800 p-3.5 rounded-2xl text-xs text-left flex items-start space-x-2 animate-fadeIn shadow-sm">
           <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-rose-400"></i>
           <span id="error-text" class="leading-relaxed font-medium"></span>
         </div>
 
+        <!-- 登入按鈕膠囊 (對稱高質感深色對比按鈕) -->
         <button type="submit" id="submit-btn"
                 class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-[0.25em] uppercase py-4 rounded-full shadow-md hover:shadow-lg transition duration-300 transform active:scale-98 flex items-center justify-center space-x-2">
           <span>Login & Verify</span>
@@ -130,6 +146,7 @@
 
       </form>
 
+      <!-- 底部安全圖示 -->
       <div class="flex justify-center mt-10">
         <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-400/20 flex items-center justify-center text-emerald-600 shadow-sm">
           <i data-lucide="cloud" class="w-4 h-4"></i>
@@ -138,35 +155,48 @@
 
     </div>
 
+    <!-- ========================================== -->
+    <!-- SECTION 2: 學生學籍資料卡片 & 課室版面 (登入成功) -->
+    <!-- ========================================== -->
     <div id="card-section" class="w-full hidden animate-fade-in space-y-4">
       
+      <!-- 頂部高質感導航工具列 -->
       <div class="flex justify-end items-center px-1">
+        <!-- 右側：功能快捷按鈕 (淡色主題優化) -->
         <div class="flex items-center space-x-2">
+          <!-- 綠色 S4 圓章 -->
           <span class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-md shadow-emerald-500/20">
             S4
           </span>
           
+          <!-- 選單清單按鈕 -->
           <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
             <i data-lucide="list" class="w-3.5 h-3.5"></i>
           </button>
 
+          <!-- 雲端連線狀態按鈕 -->
           <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
             <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
           </button>
 
+          <!-- 登出/返回系統按鈕 -->
           <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-rose-500/20 hover:border-rose-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-rose-600 transition" title="登出系統">
             <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
           </button>
 
+          <!-- 系統關機符號 -->
           <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
             <i data-lucide="power" class="w-3.5 h-3.5"></i>
           </button>
         </div>
       </div>
 
+      <!-- 核心面板一：學生帳戶資訊卡 -->
       <div class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center gap-4">
         
+        <!-- 左側：帳戶名稱與身份標誌 -->
         <div class="flex items-center space-x-4">
+          <!-- 薄荷綠圓形學士帽圖示 -->
           <div class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
             <i data-lucide="graduation-cap" class="w-5 h-5"></i>
           </div>
@@ -176,14 +206,18 @@
           </div>
         </div>
 
+        <!-- 右側：班級與學號對稱卡區 -->
         <div class="flex items-center gap-8 text-right pr-1 shrink-0">
+          <!-- 班別 -->
           <div>
             <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
             <p id="card-class" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
           </div>
 
+          <!-- 垂直精細分割線 -->
           <div class="w-[1px] h-6 bg-slate-900/10"></div>
 
+          <!-- 學號 -->
           <div>
             <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
             <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
@@ -192,7 +226,9 @@
 
       </div>
 
+      <!-- 核心面板二：動態學業課程列表 -->
       <div id="topics-container" class="crystal-panel rounded-2xl overflow-hidden divide-y divide-slate-900/[0.05]">
+        <!-- 這裡將透過 JS 依據試算表與身分權限動態載入課程 -->
         <div class="p-8 text-center text-sm text-slate-500/80">
           <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -202,6 +238,7 @@
         </div>
       </div>
 
+      <!-- 底層資料註腳標記 -->
       <div class="flex justify-between items-center px-4 text-[10px] text-slate-500/70 uppercase tracking-widest">
         <span>學員代碼識別: <span id="card-student-id" class="font-mono bg-white/40 px-2 py-0.5 rounded ml-1 text-slate-800 border border-white/50">--</span></span>
         <span>Verified Secure Node</span>
@@ -211,7 +248,11 @@
 
   </main>
 
+  <!-- ========================================== -->
+  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂) -->
+  <!-- ========================================== -->
   <div id="video-overlay" class="fixed inset-0 z-50 hidden bg-white/75 backdrop-blur-2xl flex flex-col justify-between animate-fade-in text-slate-900">
+    <!-- 播放器置頂控制列 -->
     <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm">
       <div class="flex items-center space-x-3">
         <span class="text-xs tracking-widest text-emerald-700 font-bold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-400/20 shadow-sm">ONLINE STREAM</span>
@@ -222,12 +263,16 @@
       </button>
     </header>
 
-    <main class="w-full max-w-4xl aspect-video relative flex items-center justify-center p-4 space-y-4">
+    <!-- 影音核心顯示與自訂操作區 -->
+    <main class="flex-1 w-full flex flex-col items-center justify-center p-4 space-y-4">
       <div class="w-full max-w-4xl aspect-video relative flex items-center justify-center">
+        <!-- YouTube API 專屬容器 -->
         <div id="video-overlay-player" class="w-full h-full rounded-2xl shadow-2xl border border-slate-300 bg-black"></div>
       </div>
 
+      <!-- 自訂播放與簽到按鈕 -->
       <div class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+        <!-- 播放與暫停獨立按鈕 -->
         <div class="flex items-center space-x-3">
           <button id="custom-play-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md transition duration-200 transform active:scale-95">
             <i data-lucide="play-circle" class="w-4 h-4"></i>
@@ -239,6 +284,7 @@
           </button>
         </div>
 
+        <!-- 完成簽到按鈕 -->
         <button id="attendance-btn" class="hidden px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse">
           <i data-lucide="check-circle" class="w-4 h-4"></i>
           <span>完成簽到 (Finish & Take Attendance)</span>
@@ -246,21 +292,26 @@
       </div>
     </main>
 
+    <!-- 播放器底部宣告 -->
     <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50">
       &copy; 2026 PH Studio. All rights reserved.
     </footer>
   </div>
 
+  <!-- Footer Info (極簡低對比) -->
   <footer class="w-full max-w-6xl text-center py-2 text-[10px] tracking-[0.2em] uppercase text-slate-500/60 z-10 shrink-0">
     <p>&copy; 2026 PH Studio. All rights reserved.</p>
   </footer>
 
   <script>
     // =======================================================
-    // ⚙️ Google Apps Script 部署正式網址
+    // ⚙️ Google Apps Script 部署正式網址 (分流管理)
     // =======================================================
+    // 擁有學生帳密驗證資料庫的原 Auth 端點：
     const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
+    // 指向 Loader 載入課程端點：
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
+    // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
     const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbyNWqspNXwi4Rj6EpFYNwg5mgtUAOXR_1lKpxjDK62JIaJohQ0h-jPcVQDV2YyDiQ/exec";
 
     // DOM Elements
@@ -286,7 +337,7 @@
     // 當前播放影音資訊追蹤
     let currentSession = "";
     let currentTitle = "";
-    let currentVideoWatched = false; 
+    let currentVideoWatched = false; // 🚀 追蹤目前點開的影片是否為「已看過」
 
     // 非同步加載 YouTube Iframe API 
     (function() {
@@ -296,20 +347,44 @@
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     })();
 
+    // API Ready 回呼
     window.onYouTubeIframeAPIReady = function() {
       isYtApiReady = true;
     };
 
-    // Page Load Setup: 兼容驗證來自 Index Portal 或是本頁原生的 Token 機制
+    // Page Load Setup: Verify Cache in localStorage with GAS Loader URL first
     document.addEventListener("DOMContentLoaded", async () => {
+      // Initialize Lucide icons
       lucide.createIcons();
+
+      // =======================================================
+      // 🚀 對接相容橋樑：自動解析並校正自 Index.html 登入頁傳遞的 Token 與使用者資訊
+      // =======================================================
+      const jwtToken = localStorage.getItem("jwt_token");
+      if (jwtToken) {
+        if (!localStorage.getItem("userToken")) {
+          localStorage.setItem("userToken", jwtToken);
+        }
+        if (!localStorage.getItem("userRole")) {
+          localStorage.setItem("userRole", localStorage.getItem("user_role") || "student");
+        }
+        if (!localStorage.getItem("userInfo")) {
+          const indexUserInfo = {
+            real_name: localStorage.getItem("user_real_name") || "無名氏",
+            class: localStorage.getItem("user_class") || "N/A",
+            class_no: localStorage.getItem("user_class_no") || "N/A",
+            student_id: localStorage.getItem("user_username") || "無ID資料"
+          };
+          localStorage.setItem("userInfo", JSON.stringify(indexUserInfo));
+        }
+      }
       
       const savedUser = localStorage.getItem("userInfo");
       const savedToken = localStorage.getItem("userToken");
       const savedRole = localStorage.getItem("userRole");
       
-      if (savedToken) {
-        // 建立安全驗證載入狀態
+      if (savedUser && savedToken) {
+        // 建立優雅的臨時安全驗證載入狀態
         const tempLoader = document.createElement('div');
         tempLoader.id = 'temp-loader';
         tempLoader.className = 'crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl flex flex-col items-center justify-center';
@@ -323,7 +398,7 @@
         document.querySelector('main').appendChild(tempLoader);
 
         try {
-          // 透過 loader Web App 驗證傳遞進來的 Token
+          // 透過 loader gs 驗證 Token 是否仍然有效
           const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(savedToken)}`;
           const response = await fetch(url, {
             method: "GET",
@@ -332,18 +407,14 @@
           const resData = await response.json();
 
           if (resData.result === 'success') {
+            // 驗證成功，移除載入狀態，顯示學生卡片與課程清單
             tempLoader.remove();
-            
-            // 🚀 核心相容性修復：如果來自 Index Portal，userInfo 物件欄位可能有些許結構差異，此處進行安全解構防禦
-            let parsedUser = {};
-            if (savedUser) {
-              try { parsedUser = JSON.parse(savedUser); } catch(e) { parsedUser = {}; }
-            }
-            showStudentCard(parsedUser, savedRole);
+            showStudentCard(JSON.parse(savedUser), savedRole);
           } else {
             throw new Error("Token 驗證失效");
           }
         } catch (e) {
+          // 驗證失敗，清除快取，移除載入器，要求登入
           localStorage.clear();
           tempLoader.remove();
           loginSection.classList.remove('hidden');
@@ -351,10 +422,12 @@
           showError("驗證已過期或失效，請重新登入！");
         }
       } else {
+        // 沒有 token，直接顯示登入畫面
         loginSection.classList.remove('hidden');
       }
     });
 
+    // Toggle password field visibility
     togglePwBtn.addEventListener('click', () => {
       if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
@@ -363,11 +436,14 @@
         passwordInput.type = 'password';
         pwIcon.setAttribute('data-lucide', 'eye');
       }
-      lucide.createIcons(); 
+      lucide.createIcons(); // redraw icon
     });
 
+    // Form Submission & Request Authentication
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      // Reset UI feedback
       errorMsg.classList.add('hidden');
       submitBtn.disabled = true;
       submitBtn.innerHTML = `
@@ -385,17 +461,21 @@
         const response = await fetch(GAS_AUTH_URL, {
           method: "POST",
           mode: "cors",
-          redirect: "follow",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          redirect: "follow", // 確保跟隨 GAS 的 302 重新導向
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
           body: JSON.stringify({ username, password })
         });
         const data = await response.json();
 
         if (data.success) {
+          // Commit to localStorage
           localStorage.setItem("userToken", data.token);
           localStorage.setItem("userRole", data.role);
           localStorage.setItem("userInfo", JSON.stringify(data.local_storage_data));
 
+          // Load success view UI
           showStudentCard(data.local_storage_data, data.role);
           loginForm.reset();
         } else {
@@ -409,6 +489,7 @@
       }
     });
 
+    // Reset login button status
     function resetSubmitBtn() {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `
@@ -417,6 +498,7 @@
       lucide.createIcons();
     }
 
+    // Handle session logging out (使用 clear 確保兩種登入欄位一併清除)
     document.getElementById('logout-btn').addEventListener('click', () => {
       localStorage.clear();
       cardSection.classList.add('hidden');
@@ -424,27 +506,25 @@
       if (secureBadge) secureBadge.classList.remove('hidden');
     });
 
-    // 渲染學生學籍面板與多欄位Fallback機制相容
+    // Update and draw the beautiful Student Card interface
     function showStudentCard(userInfo, role) {
-      // 🚀 兼容彈性處理：Index 與 Classroom 的名稱儲存欄位可能為 real_name 或 username / name 
-      const realName = userInfo.real_name || userInfo.username || userInfo.name || '已驗證學員';
-      const studentClass = userInfo.class || 'S4';
-      const classNo = userInfo.class_no || '--';
-      const studentId = userInfo.student_id || 'PH-USER';
+      document.getElementById('card-real-name').innerText = userInfo.real_name || '無名氏';
+      document.getElementById('card-class').innerText = userInfo.class || 'N/A';
+      document.getElementById('card-class-no').innerText = userInfo.class_no || 'N/A';
+      document.getElementById('card-student-id').innerText = userInfo.student_id || '無ID資料';
 
-      document.getElementById('card-real-name').innerText = realName;
-      document.getElementById('card-class').innerText = studentClass;
-      document.getElementById('card-class-no').innerText = classNo;
-      document.getElementById('card-student-id').innerText = studentId;
-
+      // Switch panels gracefully
       loginSection.classList.add('hidden');
       cardSection.classList.remove('hidden');
       if (secureBadge) secureBadge.classList.add('hidden');
 
+      // 動態加載課程列表
       fetchTopics();
     }
 
-    // 動態課程載入與權限比對 (GS Loader Integration)
+    // =======================================================
+    // 🚀 動態課程載入與權限比對 (GS Loader Integration)
+    // =======================================================
     async function fetchTopics() {
       const token = localStorage.getItem("userToken");
       const userRole = (localStorage.getItem("userRole") || "student").toLowerCase();
@@ -473,6 +553,7 @@
         const resData = await response.json();
 
         if (resData.result === 'success') {
+          // 🚀 安全解構：偵測回傳的數據結構，分別讀取課程列表與觀看紀錄
           let topicRows = [];
           let records = [];
 
@@ -488,6 +569,7 @@
             }
           }
 
+          // 備用方案：如根節點也存在紀錄則採用之
           if (records.length === 0) {
             records = resData.records || resData.record || [];
           }
@@ -510,7 +592,9 @@
       }
     }
 
+    // 渲染課室排版
     function renderTopics(rows, userRole, records = []) {
+      // 🚀 安全防禦：確保 rows 是一個陣列，防止 rows.slice 發生錯誤
       let finalRows = rows;
       if (rows && !Array.isArray(rows) && Array.isArray(rows.front)) {
         finalRows = rows.front;
@@ -527,12 +611,16 @@
         return;
       }
 
+      // 排除第 0 列 (標題列：A: ROLE, B: session, C: Title, D: youtube link, E: status)
       const dataRows = finalRows.slice(1);
+
+      // 過濾使用者權限
       const allowedRows = dataRows.filter(row => {
         const rowRole = String(row[0] || "").trim().toLowerCase();
-        return (userRole === "teacher" || userRole === "admin" || (rowRole === userRole));
+        return (userRole === "teacher" || userRole === "admin" || (userRole === userRole && rowRole === userRole));
       });
 
+      // 按照 B 欄 (Session 順序) 進行排序
       allowedRows.sort((a, b) => {
         const numA = parseFloat(a[1]) || 0;
         const numB = parseFloat(b[1]) || 0;
@@ -544,9 +632,9 @@
         return;
       }
 
-      // 🚀 兼容彈性比對觀看紀錄
+      // 🚀 比對已觀看紀錄 (欄E: NAME (index 4), 欄F: Session (index 5))
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      const currentStudentName = (userInfo.real_name || userInfo.username || userInfo.name || "").trim();
+      const currentStudentName = (userInfo.real_name || "").trim();
       const watchedSessions = new Set();
 
       let finalRecords = records;
@@ -556,9 +644,9 @@
 
       if (Array.isArray(finalRecords)) {
         finalRecords.forEach((row, idx) => {
-          if (idx === 0) return; 
-          const rowName = String(row[4] || "").trim(); 
-          const rowSession = String(row[5] || "").trim(); 
+          if (idx === 0) return; // 略過標題
+          const rowName = String(row[4] || "").trim(); // Col E (NAME)
+          const rowSession = String(row[5] || "").trim(); // Col F (Session)
           if (rowName === currentStudentName && rowSession) {
             watchedSessions.add(rowSession);
           }
@@ -567,16 +655,18 @@
 
       topicsContainer.innerHTML = "";
 
+      // 遍歷渲染符合權限的課程列
       allowedRows.forEach(row => {
         const session = String(row[1] || "").trim();
         const title = String(row[2] || "").trim();
         const ytLink = String(row[3] || "").trim();
-        const status = String(row[4] || "").trim().toLowerCase(); 
+        const status = String(row[4] || "").trim().toLowerCase(); // active / inactive
 
         const isActive = (status === "active");
         const isWatched = watchedSessions.has(session);
         const isClickable = isActive || isWatched;
 
+        // 🚀 動態調整背景與指標 (已看過者配以淡綠色高質感顯示)
         let rowBgClass = "";
         if (isWatched) {
           rowBgClass = "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer";
@@ -589,6 +679,7 @@
         const rowEl = document.createElement("div");
         rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
 
+        // 🚀 動態調整圖示
         let iconName = "lock";
         let iconCircleClass = "border-slate-400/20 text-slate-500 bg-slate-400/10";
         if (isWatched) {
@@ -599,6 +690,7 @@
           iconCircleClass = "border-emerald-500/20 text-emerald-700 bg-emerald-500/10";
         }
 
+        // 🚀 右側文字與圖示
         let statusText = "LOCKED";
         let rightIcon = "lock";
         let textClass = "text-slate-500";
@@ -620,18 +712,22 @@
             <div class="flex items-center space-x-3 flex-1 min-w-0">
               <span class="text-sm font-bold text-emerald-800 tracking-wide shrink-0 min-w-[55px]">${session}</span>
               <span class="text-slate-400/30 select-none text-xs shrink-0">|</span>
-              <span class="text-sm text-slate-800 font-medium truncate flex-1">${title}</span>
+              <span class="text-sm text-slate-800 font-semibold truncate">${title}</span>
             </div>
           </div>
-          <div class="flex items-center space-x-2 shrink-0 ml-4">
-            <span class="text-[10px] font-bold tracking-widest ${textClass} hidden sm:inline">${statusText}</span>
-            <i data-lucide="${rightIcon}" class="w-4 h-4 ${isWatched ? 'text-emerald-600' : 'text-slate-400'} group-hover:translate-x-0.5 transition-transform"></i>
+          <div class="flex items-center space-x-1 ${textClass} text-xs font-bold tracking-widest ${isClickable ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
+            <span>${statusText}</span>
+            <i data-lucide="${rightIcon}" class="w-3 h-3"></i>
           </div>
         `;
 
         if (isClickable) {
           rowEl.addEventListener("click", () => {
-            openVideoWindow(session, title, ytLink, isWatched);
+            if (ytLink) {
+              openVideoWindow(session, title, ytLink, isWatched);
+            } else {
+              alert("本堂課程尚未配置影片網址。");
+            }
           });
         }
 
@@ -641,10 +737,14 @@
       lucide.createIcons();
     }
 
+    // =======================================================
+    // 🎬 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
+    // =======================================================
     function openVideoWindow(session, title, url, isWatched) {
+      // 紀錄當前播放課程細節
       currentSession = session;
       currentTitle = title;
-      currentVideoWatched = isWatched;
+      currentVideoWatched = isWatched; // 🚀 設定全域變數，供播放控制邏輯讀取
 
       let videoId = "";
       try {
@@ -661,17 +761,19 @@
 
       document.getElementById('video-overlay-title').innerText = title;
       document.getElementById('video-overlay').classList.remove('hidden');
-
+      
       const btn = document.getElementById('attendance-btn');
       const playBtnSpan = document.querySelector('#custom-play-btn span');
       if (playBtnSpan) {
         playBtnSpan.innerText = "播放 (Play)";
       }
-
+      
+      // 重設安全播放機制
       maxWatchedTime = 0;
       if (timeCheckInterval) clearInterval(timeCheckInterval);
       if (attendanceTimer) clearInterval(attendanceTimer);
-
+      
+      // 🚀 若已完成報到，直接顯示已完成報到狀態，不隱藏，亦無倒數計時
       if (isWatched) {
         btn.classList.remove('hidden');
         btn.disabled = true;
@@ -680,46 +782,60 @@
       } else {
         btn.classList.add('hidden');
       }
-
+      
       if (isYtApiReady) {
         if (ytPlayer) {
-          try { ytPlayer.destroy(); } catch(e) { console.error("Destroy failed", e); }
+          try {
+            ytPlayer.destroy();
+          } catch(e) {
+            console.error("Destroy failed", e);
+          }
         }
+        
         ytPlayer = new YT.Player('video-overlay-player', {
           height: '100%',
           width: '100%',
           videoId: videoId,
           playerVars: {
             autoplay: 1,
-            controls: 1, 
-            disablekb: 1, 
+            controls: 1,  
+            // 允許全螢幕，開啟 YouTube 原生控制列
+            disablekb: 1,       // 禁用鍵盤快進
             rel: 0,
             modestbranding: 1,
-            fs: 1 
+            fs: 1               // 啟用原生全螢幕按鈕
           },
           events: {
             'onStateChange': onPlayerStateChange
           }
         });
+      } else {
+        console.warn("YouTube API 尚未就緒。");
       }
 
-      setTimeout(() => { lucide.createIcons(); }, 50);
+      setTimeout(() => {
+        lucide.createIcons();
+      }, 50);
     }
 
+    // 影片安全偵測定時器
     function startTimeTracking() {
       if (timeCheckInterval) clearInterval(timeCheckInterval);
       timeCheckInterval = setInterval(() => {
         if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
           const currentTime = ytPlayer.getCurrentTime();
-
+          
+          // 🚀 若此影片為「已觀看完成」狀態，則直接退出定時器，完全解鎖進度條與播放速度限制
           if (currentVideoWatched) {
-            return;
+            return; 
           }
-
+          
+          // 鎖定播放速度：如果播放速度不為 1倍速，強制重設回 1 倍速
           if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
             ytPlayer.setPlaybackRate(1);
           }
-
+          
+          // 鎖定進度條快進：防止向前跳轉超過已觀看時間
           if (currentTime > maxWatchedTime + 2.5) {
             ytPlayer.seekTo(maxWatchedTime, true);
           } else {
@@ -729,6 +845,7 @@
       }, 500);
     }
 
+    // 影片安全偵測定時器停止
     function stopTimeTracking() {
       if (timeCheckInterval) {
         clearInterval(timeCheckInterval);
@@ -740,20 +857,23 @@
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.PLAYING) {
         startTimeTracking();
-      } else if (event.data === YT.PlayerState.ENDED) {
+      } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
         stopTimeTracking();
+      }
+
+      // YT.PlayerState.ENDED 代表影片完全播放結束
+      if (event.data === YT.PlayerState.ENDED) {
+        // 🚀 只有在尚未觀看過該影片時，才需要啟動 2 分鐘簽到倒數機制
         if (!currentVideoWatched) {
-          triggerAttendanceCountdown();
+          startAttendanceCountdown();
         }
-      } else {
-        stopTimeTracking();
       }
     }
 
-    function triggerAttendanceCountdown() {
-      let timeLeft = 120; 
+    // 啟動簽到限時倒數 (2分鐘)
+    function startAttendanceCountdown() {
+      let timeLeft = 120; // 2 分鐘，共 120 秒
       const btn = document.getElementById('attendance-btn');
-      
       btn.classList.remove('hidden');
       btn.disabled = false;
       btn.className = "px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse";
@@ -763,14 +883,15 @@
       if (attendanceTimer) clearInterval(attendanceTimer);
       attendanceTimer = setInterval(() => {
         timeLeft--;
-
         if (timeLeft <= 0) {
           clearInterval(attendanceTimer);
+          // 超時鎖定簽到按鈕
           btn.disabled = true;
           btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>超時，請勿掛機，請重新播放</span>`;
           lucide.createIcons();
-
+          
+          // 變更播放按鈕文字為「重新播放」
           const playBtnSpan = document.querySelector('#custom-play-btn span');
           if (playBtnSpan) {
             playBtnSpan.innerText = "重新播放";
@@ -785,13 +906,16 @@
       }, 1000);
     }
 
+    // 自訂 Play 按鈕事件
     document.getElementById('custom-play-btn').addEventListener('click', () => {
       if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
         const playBtnSpan = document.querySelector('#custom-play-btn span');
         if (playBtnSpan && playBtnSpan.innerText === "重新播放") {
+          // 重設簽到機制與觀看紀錄，重新回到 0 秒開始
           maxWatchedTime = 0;
           if (attendanceTimer) clearInterval(attendanceTimer);
-
+          
+          // 🚀 重新播放時，若是已觀看完成之課程，保持其已簽到樣式，不隱藏按鈕
           if (currentVideoWatched) {
             const btn = document.getElementById('attendance-btn');
             btn.classList.remove('hidden');
@@ -801,6 +925,7 @@
           } else {
             document.getElementById('attendance-btn').classList.add('hidden');
           }
+          
           playBtnSpan.innerText = "播放 (Play)";
           ytPlayer.seekTo(0, true);
         }
@@ -808,43 +933,42 @@
       }
     });
 
+    // 自訂 Pause 按鈕事件
     document.getElementById('custom-pause-btn').addEventListener('click', () => {
       if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
         ytPlayer.pauseVideo();
       }
     });
 
+    // 關閉同頁播放器監聽
     document.getElementById('close-video-btn').addEventListener('click', () => {
-      if (ytPlayer) {
-        try {
-          ytPlayer.stopVideo();
-          ytPlayer.destroy();
-          ytPlayer = null;
-        } catch(e) { console.error("Stop/Destroy failed on close", e); }
-      }
+      document.getElementById('video-overlay').classList.add('hidden');
       stopTimeTracking();
       if (attendanceTimer) clearInterval(attendanceTimer);
-      document.getElementById('video-overlay').classList.add('hidden');
+      if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+        ytPlayer.stopVideo();
+      }
     });
 
-    // 提交簽到數據紀錄 (GAS Attendance Integration)
+    // 完成簽到按鈕點擊監聽 (對接 Google GAS 並儲存到 Record 分頁)
     document.getElementById('attendance-btn').addEventListener('click', async () => {
       if (attendanceTimer) clearInterval(attendanceTimer);
-
+      
       const btn = document.getElementById('attendance-btn');
       btn.disabled = true;
       btn.className = "px-6 py-2.5 bg-slate-400 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
       btn.innerHTML = `
-        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>正在儲存紀錄 (Saving...)</span>
+        <span>正在提交簽到紀錄...</span>
       `;
+      lucide.createIcons();
 
       const token = localStorage.getItem("userToken");
-      const userRole = localStorage.getItem("userRole") || "student";
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const userRole = localStorage.getItem("userRole") || "student";
 
       if (!token) {
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：未登入</span>`;
@@ -853,26 +977,24 @@
         return;
       }
 
-      // 🚀 簽到欄位與對接相容性回退防禦
-      const finalRealName = userInfo.real_name || userInfo.username || userInfo.name || '已驗證學員';
-
       try {
+        // 將簽到資料發送給最新的專屬簽到端點 (GAS_ATTENDANCE_URL)
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
           redirect: "follow",
           headers: {
-            "Content-Type": "text/plain" // 標準 Text/plain 簡單請求繞過預檢 CORS 阻擋
+            "Content-Type": "text/plain;charset=utf-8"
           },
           body: JSON.stringify({
             action: "submitAttendance",
             token: token,
             session: currentSession,
             title: currentTitle,
-            student_id: userInfo.student_id || 'PH-USER',
-            real_name: finalRealName,
-            class: userInfo.class || 'S4',
-            class_no: userInfo.class_no || '--',
+            student_id: userInfo.student_id,
+            real_name: userInfo.real_name,
+            class: userInfo.class,
+            class_no: userInfo.class_no,
             role: userRole
           })
         });
@@ -880,12 +1002,14 @@
         const resData = await response.json();
 
         if (resData.success) {
+          // 顯示簽到成功狀態
           btn.innerHTML = `
             <i data-lucide="check-circle-2" class="w-4 h-4"></i>
             <span>簽到紀錄已提交 (Saved)</span>
           `;
           btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           
+          // 🚀 簽到成功後，自動重新加載課程清單以即時更新選單上的已完成綠色效果與狀態
           fetchTopics();
         } else {
           btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
@@ -894,11 +1018,14 @@
       } catch (err) {
         console.error("Attendance submission error:", err);
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路連線錯誤，請重試</span>`;
-        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
+        btn.disabled = false; // 網路錯誤允許重試
+      } finally {
+        lucide.createIcons();
       }
-      lucide.createIcons();
     });
 
+    // Display formatted errors
     function showError(msg) {
       errorText.innerText = msg;
       errorMsg.classList.remove('hidden');
@@ -907,3 +1034,5 @@
   </script>
 </body>
 </html>
+
+
