@@ -304,10 +304,16 @@
 
   <script>
     // =======================================================
-    // ⚙️ Google Apps Script 部署正式網址 (守衛與載入模組)
+    // ⚙️ Google Apps Script 部署正式網址 (分流管理)
     // =======================================================
+    // 恢復指向擁有學生帳密驗證資料庫的原 Auth 端點：
     const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
+    
+    // 指向 Loader 載入課程端點：
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbxYWLs22DosabEX35RtOQppHJ2X_av2FPWEbhvflSGOmUnJqQGwSBWki5HZgHVRSQA/exec";
+    
+    // 指向您全新部署用來寫入簽到 Record 的專屬端點：
+    const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbwzeSZ297-OTfQvhQPX8EWZ7HiNuJNW-tXml6ly3H6JrpUBptcKqtBixG6R2-kdURJx/exec";
 
     // DOM Elements
     const loginSection = document.getElementById('login-section');
@@ -328,6 +334,10 @@
     let maxWatchedTime = 0;
     let timeCheckInterval = null;
     let attendanceTimer = null;
+
+    // 當前播放影音資訊追蹤
+    let currentSession = "";
+    let currentTitle = "";
 
     // 非同步加載 YouTube Iframe API 
     (function() {
@@ -573,7 +583,7 @@
         if (isActive) {
           rowEl.addEventListener("click", () => {
             if (ytLink) {
-              openVideoWindow(title, ytLink);
+              openVideoWindow(session, title, ytLink);
             } else {
               alert("本堂課程尚未配置影片網址。");
             }
@@ -589,7 +599,11 @@
     // =======================================================
     // 🎬 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
     // =======================================================
-    function openVideoWindow(title, url) {
+    function openVideoWindow(session, title, url) {
+      // 紀錄當前播放課程細節
+      currentSession = session;
+      currentTitle = title;
+
       let videoId = "";
       try {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -670,6 +684,7 @@
       }, 500);
     }
 
+    // 影片安全偵測定時器停止
     function stopTimeTracking() {
       if (timeCheckInterval) {
         clearInterval(timeCheckInterval);
@@ -760,18 +775,68 @@
       }
     });
 
-    // 完成簽到按鈕點擊監聽 (未來對接 Google GAS)
-    document.getElementById('attendance-btn').addEventListener('click', () => {
+    // 完成簽到按鈕點擊監聽 (對接 Google GAS 並儲存到 Record 分頁)
+    document.getElementById('attendance-btn').addEventListener('click', async () => {
       if (attendanceTimer) clearInterval(attendanceTimer);
-      // 顯示簽到成功狀態
+      
       const btn = document.getElementById('attendance-btn');
-      btn.innerHTML = `
-        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-        <span>簽到紀錄已提交 (Saved)</span>
-      `;
       btn.disabled = true;
-      btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+      btn.className = "px-6 py-2.5 bg-slate-400 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+      btn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>正在提交簽到紀錄...</span>
+      `;
       lucide.createIcons();
+
+      const token = localStorage.getItem("userToken");
+      if (!token) {
+        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：未登入</span>`;
+        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
+        lucide.createIcons();
+        return;
+      }
+
+      try {
+        // 將簽到資料發送給全新的專屬簽到端點 (GAS_ATTENDANCE_URL)
+        const response = await fetch(GAS_ATTENDANCE_URL, {
+          method: "POST",
+          mode: "cors",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: "submitAttendance",
+            token: token,
+            session: currentSession,
+            title: currentTitle
+          })
+        });
+
+        const resData = await response.json();
+
+        if (resData.success) {
+          // 顯示簽到成功狀態
+          btn.innerHTML = `
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            <span>簽到紀錄已提交 (Saved)</span>
+          `;
+          btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+        } else {
+          btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
+          btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+        }
+      } catch (err) {
+        console.error("Attendance submission error:", err);
+        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路連線錯誤，請重試</span>`;
+        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
+        btn.disabled = false; // 網路錯誤允許重試
+      } finally {
+        lucide.createIcons();
+      }
     });
 
     // Display formatted errors
