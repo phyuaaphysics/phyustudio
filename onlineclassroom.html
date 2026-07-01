@@ -257,13 +257,10 @@
 
   <script>
     // =======================================================
-    // ⚙️ Google Apps Script 部署正式網址 (分流管理)
+    // ⚙️ Google Apps Script 部署正式網址
     // =======================================================
-    // 擁有學生帳密驗證資料庫的原 Auth 端點：
     const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
-    // 指向 Loader 載入課程端點：
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
-    // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
     const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbyNWqspNXwi4Rj6EpFYNwg5mgtUAOXR_1lKpxjDK62JIaJohQ0h-jPcVQDV2YyDiQ/exec";
 
     // DOM Elements
@@ -289,7 +286,7 @@
     // 當前播放影音資訊追蹤
     let currentSession = "";
     let currentTitle = "";
-    let currentVideoWatched = false; // 🚀 追蹤目前點開的影片是否為「已看過」
+    let currentVideoWatched = false; 
 
     // 非同步加載 YouTube Iframe API 
     (function() {
@@ -299,22 +296,20 @@
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     })();
 
-    // API Ready 回呼
     window.onYouTubeIframeAPIReady = function() {
       isYtApiReady = true;
     };
 
-    // Page Load Setup: Verify Cache in localStorage with GAS Loader URL first
+    // Page Load Setup: 兼容驗證來自 Index Portal 或是本頁原生的 Token 機制
     document.addEventListener("DOMContentLoaded", async () => {
-      // Initialize Lucide icons
       lucide.createIcons();
       
       const savedUser = localStorage.getItem("userInfo");
       const savedToken = localStorage.getItem("userToken");
       const savedRole = localStorage.getItem("userRole");
       
-      if (savedUser && savedToken) {
-        // 建立優雅的臨時安全驗證載入狀態
+      if (savedToken) {
+        // 建立安全驗證載入狀態
         const tempLoader = document.createElement('div');
         tempLoader.id = 'temp-loader';
         tempLoader.className = 'crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl flex flex-col items-center justify-center';
@@ -328,7 +323,7 @@
         document.querySelector('main').appendChild(tempLoader);
 
         try {
-          // 透過 loader gs 驗證 Token 是否仍然有效
+          // 透過 loader Web App 驗證傳遞進來的 Token
           const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(savedToken)}`;
           const response = await fetch(url, {
             method: "GET",
@@ -337,14 +332,18 @@
           const resData = await response.json();
 
           if (resData.result === 'success') {
-            // 驗證成功，移除載入狀態，顯示學生卡片與課程清單
             tempLoader.remove();
-            showStudentCard(JSON.parse(savedUser), savedRole);
+            
+            // 🚀 核心相容性修復：如果來自 Index Portal，userInfo 物件欄位可能有些許結構差異，此處進行安全解構防禦
+            let parsedUser = {};
+            if (savedUser) {
+              try { parsedUser = JSON.parse(savedUser); } catch(e) { parsedUser = {}; }
+            }
+            showStudentCard(parsedUser, savedRole);
           } else {
             throw new Error("Token 驗證失效");
           }
         } catch (e) {
-          // 驗證失敗，清除快取，移除載入器，要求登入
           localStorage.clear();
           tempLoader.remove();
           loginSection.classList.remove('hidden');
@@ -352,12 +351,10 @@
           showError("驗證已過期或失效，請重新登入！");
         }
       } else {
-        // 沒有 token，直接顯示登入畫面
         loginSection.classList.remove('hidden');
       }
     });
 
-    // Toggle password field visibility
     togglePwBtn.addEventListener('click', () => {
       if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
@@ -366,14 +363,11 @@
         passwordInput.type = 'password';
         pwIcon.setAttribute('data-lucide', 'eye');
       }
-      lucide.createIcons(); // redraw icon
+      lucide.createIcons(); 
     });
 
-    // Form Submission & Request Authentication
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
-      // Reset UI feedback
       errorMsg.classList.add('hidden');
       submitBtn.disabled = true;
       submitBtn.innerHTML = `
@@ -391,21 +385,17 @@
         const response = await fetch(GAS_AUTH_URL, {
           method: "POST",
           mode: "cors",
-          redirect: "follow", // 確保跟隨 GAS 的 302 重新導向
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ username, password })
         });
         const data = await response.json();
 
         if (data.success) {
-          // Commit to localStorage
           localStorage.setItem("userToken", data.token);
           localStorage.setItem("userRole", data.role);
           localStorage.setItem("userInfo", JSON.stringify(data.local_storage_data));
 
-          // Load success view UI
           showStudentCard(data.local_storage_data, data.role);
           loginForm.reset();
         } else {
@@ -419,7 +409,6 @@
       }
     });
 
-    // Reset login button status
     function resetSubmitBtn() {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `
@@ -428,7 +417,6 @@
       lucide.createIcons();
     }
 
-    // Handle session logging out
     document.getElementById('logout-btn').addEventListener('click', () => {
       localStorage.clear();
       cardSection.classList.add('hidden');
@@ -436,25 +424,27 @@
       if (secureBadge) secureBadge.classList.remove('hidden');
     });
 
-    // Update and draw the beautiful Student Card interface
+    // 渲染學生學籍面板與多欄位Fallback機制相容
     function showStudentCard(userInfo, role) {
-      document.getElementById('card-real-name').innerText = userInfo.real_name || '無名氏';
-      document.getElementById('card-class').innerText = userInfo.class || 'N/A';
-      document.getElementById('card-class-no').innerText = userInfo.class_no || 'N/A';
-      document.getElementById('card-student-id').innerText = userInfo.student_id || '無ID資料';
+      // 🚀 兼容彈性處理：Index 與 Classroom 的名稱儲存欄位可能為 real_name 或 username / name 
+      const realName = userInfo.real_name || userInfo.username || userInfo.name || '已驗證學員';
+      const studentClass = userInfo.class || 'S4';
+      const classNo = userInfo.class_no || '--';
+      const studentId = userInfo.student_id || 'PH-USER';
 
-      // Switch panels gracefully
+      document.getElementById('card-real-name').innerText = realName;
+      document.getElementById('card-class').innerText = studentClass;
+      document.getElementById('card-class-no').innerText = classNo;
+      document.getElementById('card-student-id').innerText = studentId;
+
       loginSection.classList.add('hidden');
       cardSection.classList.remove('hidden');
       if (secureBadge) secureBadge.classList.add('hidden');
 
-      // 動態加載課程列表
       fetchTopics();
     }
 
-    // =======================================================
-    // 🚀 動態課程載入與權限比對 (GS Loader Integration)
-    // =======================================================
+    // 動態課程載入與權限比對 (GS Loader Integration)
     async function fetchTopics() {
       const token = localStorage.getItem("userToken");
       const userRole = (localStorage.getItem("userRole") || "student").toLowerCase();
@@ -483,7 +473,6 @@
         const resData = await response.json();
 
         if (resData.result === 'success') {
-          // 🚀 安全解構：偵測回傳的數據結構，分別讀取課程列表與觀看紀錄
           let topicRows = [];
           let records = [];
 
@@ -499,7 +488,6 @@
             }
           }
 
-          // 備用方案：如根節點也存在紀錄則採用之
           if (records.length === 0) {
             records = resData.records || resData.record || [];
           }
@@ -522,9 +510,7 @@
       }
     }
 
-    // 渲染課室排版
     function renderTopics(rows, userRole, records = []) {
-      // 🚀 安全防禦：確保 rows 是一個陣列，防止 rows.slice 發生錯誤
       let finalRows = rows;
       if (rows && !Array.isArray(rows) && Array.isArray(rows.front)) {
         finalRows = rows.front;
@@ -541,16 +527,12 @@
         return;
       }
 
-      // 排除第 0 列 (標題列：A: ROLE, B: session, C: Title, D: youtube link, E: status)
       const dataRows = finalRows.slice(1);
-
-      // 過濾使用者權限
       const allowedRows = dataRows.filter(row => {
         const rowRole = String(row[0] || "").trim().toLowerCase();
         return (userRole === "teacher" || userRole === "admin" || (rowRole === userRole));
       });
 
-      // 按照 B 欄 (Session 順序) 進行排序
       allowedRows.sort((a, b) => {
         const numA = parseFloat(a[1]) || 0;
         const numB = parseFloat(b[1]) || 0;
@@ -562,9 +544,9 @@
         return;
       }
 
-      // 🚀 比對已觀看紀錄 (欄E: NAME (index 4), 欄F: Session (index 5))
+      // 🚀 兼容彈性比對觀看紀錄
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      const currentStudentName = (userInfo.real_name || "").trim();
+      const currentStudentName = (userInfo.real_name || userInfo.username || userInfo.name || "").trim();
       const watchedSessions = new Set();
 
       let finalRecords = records;
@@ -574,9 +556,9 @@
 
       if (Array.isArray(finalRecords)) {
         finalRecords.forEach((row, idx) => {
-          if (idx === 0) return; // 略過標題
-          const rowName = String(row[4] || "").trim(); // Col E (NAME)
-          const rowSession = String(row[5] || "").trim(); // Col F (Session)
+          if (idx === 0) return; 
+          const rowName = String(row[4] || "").trim(); 
+          const rowSession = String(row[5] || "").trim(); 
           if (rowName === currentStudentName && rowSession) {
             watchedSessions.add(rowSession);
           }
@@ -585,18 +567,16 @@
 
       topicsContainer.innerHTML = "";
 
-      // 遍歷渲染符合權限的課程列
       allowedRows.forEach(row => {
         const session = String(row[1] || "").trim();
         const title = String(row[2] || "").trim();
         const ytLink = String(row[3] || "").trim();
-        const status = String(row[4] || "").trim().toLowerCase(); // active / inactive
+        const status = String(row[4] || "").trim().toLowerCase(); 
 
         const isActive = (status === "active");
         const isWatched = watchedSessions.has(session);
         const isClickable = isActive || isWatched;
 
-        // 🚀 動態調整背景與指標 (已看過者配以淡綠色高質感顯示)
         let rowBgClass = "";
         if (isWatched) {
           rowBgClass = "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer";
@@ -609,7 +589,6 @@
         const rowEl = document.createElement("div");
         rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
 
-        // 🚀 動態調整圖示
         let iconName = "lock";
         let iconCircleClass = "border-slate-400/20 text-slate-500 bg-slate-400/10";
         if (isWatched) {
@@ -620,7 +599,6 @@
           iconCircleClass = "border-emerald-500/20 text-emerald-700 bg-emerald-500/10";
         }
 
-        // 🚀 右側文字與圖示
         let statusText = "LOCKED";
         let rightIcon = "lock";
         let textClass = "text-slate-500";
@@ -663,16 +641,11 @@
       lucide.createIcons();
     }
 
-    // =======================================================
-    // 📺 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
-    // =======================================================
     function openVideoWindow(session, title, url, isWatched) {
-      // 紀錄當前播放課程細節
       currentSession = session;
       currentTitle = title;
       currentVideoWatched = isWatched;
 
-      // 🚀 設定全域變數，供播放控制邏輯讀取
       let videoId = "";
       try {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -695,12 +668,10 @@
         playBtnSpan.innerText = "播放 (Play)";
       }
 
-      // 重設安全播放機制
       maxWatchedTime = 0;
       if (timeCheckInterval) clearInterval(timeCheckInterval);
       if (attendanceTimer) clearInterval(attendanceTimer);
 
-      // 🚀 若已完成報到，直接顯示已完成報到狀態，不隱藏，亦無倒數計時
       if (isWatched) {
         btn.classList.remove('hidden');
         btn.disabled = true;
@@ -712,11 +683,7 @@
 
       if (isYtApiReady) {
         if (ytPlayer) {
-          try {
-            ytPlayer.destroy();
-          } catch(e) {
-            console.error("Destroy failed", e);
-          }
+          try { ytPlayer.destroy(); } catch(e) { console.error("Destroy failed", e); }
         }
         ytPlayer = new YT.Player('video-overlay-player', {
           height: '100%',
@@ -724,43 +691,35 @@
           videoId: videoId,
           playerVars: {
             autoplay: 1,
-            controls: 1, // 允許全螢幕，開啟 YouTube 原生控制列
-            disablekb: 1, // 禁用鍵盤快進
+            controls: 1, 
+            disablekb: 1, 
             rel: 0,
             modestbranding: 1,
-            fs: 1 // 啟用原生全螢幕按鈕
+            fs: 1 
           },
           events: {
             'onStateChange': onPlayerStateChange
           }
         });
-      } else {
-        console.warn("YouTube API 尚未就緒。");
       }
 
-      setTimeout(() => {
-        lucide.createIcons();
-      }, 50);
+      setTimeout(() => { lucide.createIcons(); }, 50);
     }
 
-    // 影片安全偵測定時器
     function startTimeTracking() {
       if (timeCheckInterval) clearInterval(timeCheckInterval);
       timeCheckInterval = setInterval(() => {
         if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
           const currentTime = ytPlayer.getCurrentTime();
 
-          // 🚀 若此影片為「已觀看完成」狀態，則直接退出定時器，完全解鎖進度條與播放速度限制
           if (currentVideoWatched) {
             return;
           }
 
-          // 鎖定播放速度：如果播放速度不為 1倍速，強制重設回 1 倍速
           if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
             ytPlayer.setPlaybackRate(1);
           }
 
-          // 鎖定進度條快進：防止向前跳轉超過已觀看時間
           if (currentTime > maxWatchedTime + 2.5) {
             ytPlayer.seekTo(maxWatchedTime, true);
           } else {
@@ -770,7 +729,6 @@
       }, 500);
     }
 
-    // 影片安全偵測定時器停止
     function stopTimeTracking() {
       if (timeCheckInterval) {
         clearInterval(timeCheckInterval);
@@ -784,7 +742,6 @@
         startTimeTracking();
       } else if (event.data === YT.PlayerState.ENDED) {
         stopTimeTracking();
-        // 🚀 若此影片原本就是「已觀看完成」狀態，播放完畢不重啟簽到計時器與覆蓋按鈕狀態
         if (!currentVideoWatched) {
           triggerAttendanceCountdown();
         }
@@ -793,9 +750,8 @@
       }
     }
 
-    // 啟動完成簽到 2 分鐘倒數計時按鈕
     function triggerAttendanceCountdown() {
-      let timeLeft = 120; // 2 分鐘 (120 秒)
+      let timeLeft = 120; 
       const btn = document.getElementById('attendance-btn');
       
       btn.classList.remove('hidden');
@@ -810,13 +766,11 @@
 
         if (timeLeft <= 0) {
           clearInterval(attendanceTimer);
-          // 超時鎖定簽到按鈕
           btn.disabled = true;
           btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>超時，請勿掛機，請重新播放</span>`;
           lucide.createIcons();
 
-          // 變更播放按鈕文字為「重新播放」
           const playBtnSpan = document.querySelector('#custom-play-btn span');
           if (playBtnSpan) {
             playBtnSpan.innerText = "重新播放";
@@ -831,16 +785,13 @@
       }, 1000);
     }
 
-    // 自訂 Play 按鈕事件
     document.getElementById('custom-play-btn').addEventListener('click', () => {
       if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
         const playBtnSpan = document.querySelector('#custom-play-btn span');
         if (playBtnSpan && playBtnSpan.innerText === "重新播放") {
-          // 重設簽到機制與觀看紀錄，重新回到 0 秒開始
           maxWatchedTime = 0;
           if (attendanceTimer) clearInterval(attendanceTimer);
 
-          // 🚀 重新播放時，若是已觀看完成之課程，保持其已簽到樣式，不隱藏按鈕
           if (currentVideoWatched) {
             const btn = document.getElementById('attendance-btn');
             btn.classList.remove('hidden');
@@ -857,32 +808,26 @@
       }
     });
 
-    // 自訂 Pause 按鈕事件
     document.getElementById('custom-pause-btn').addEventListener('click', () => {
       if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
         ytPlayer.pauseVideo();
       }
     });
 
-    // 關閉滿版播放器事件
     document.getElementById('close-video-btn').addEventListener('click', () => {
       if (ytPlayer) {
         try {
           ytPlayer.stopVideo();
           ytPlayer.destroy();
           ytPlayer = null;
-        } catch(e) {
-          console.error("Stop/Destroy failed on close", e);
-        }
+        } catch(e) { console.error("Stop/Destroy failed on close", e); }
       }
       stopTimeTracking();
       if (attendanceTimer) clearInterval(attendanceTimer);
       document.getElementById('video-overlay').classList.add('hidden');
     });
 
-    // =======================================================
-    // 🚀 核心功能：提交簽到數據紀錄 (GAS Attendance Integration)
-    // =======================================================
+    // 提交簽到數據紀錄 (GAS Attendance Integration)
     document.getElementById('attendance-btn').addEventListener('click', async () => {
       if (attendanceTimer) clearInterval(attendanceTimer);
 
@@ -908,25 +853,26 @@
         return;
       }
 
+      // 🚀 簽到欄位與對接相容性回退防禦
+      const finalRealName = userInfo.real_name || userInfo.username || userInfo.name || '已驗證學員';
+
       try {
-        // 將簽到資料發送給最新的專屬簽到端點 (GAS_ATTENDANCE_URL)
-        // 💡 修正處：將 Content-Type 簡化為 "text/plain" 以防止瀏覽器發送 OPTIONS 預檢請求而導致網路異常 (CORS 阻擋)
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
           redirect: "follow",
           headers: {
-            "Content-Type": "text/plain"
+            "Content-Type": "text/plain" // 標準 Text/plain 簡單請求繞過預檢 CORS 阻擋
           },
           body: JSON.stringify({
             action: "submitAttendance",
             token: token,
             session: currentSession,
             title: currentTitle,
-            student_id: userInfo.student_id,
-            real_name: userInfo.real_name,
-            class: userInfo.class,
-            class_no: userInfo.class_no,
+            student_id: userInfo.student_id || 'PH-USER',
+            real_name: finalRealName,
+            class: userInfo.class || 'S4',
+            class_no: userInfo.class_no || '--',
             role: userRole
           })
         });
@@ -934,14 +880,12 @@
         const resData = await response.json();
 
         if (resData.success) {
-          // 顯示簽到成功狀態
           btn.innerHTML = `
             <i data-lucide="check-circle-2" class="w-4 h-4"></i>
             <span>簽到紀錄已提交 (Saved)</span>
           `;
           btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           
-          // 🚀 簽到成功後，自動重新加載課程清單以即時更新選單上的已完成綠色效果與狀態
           fetchTopics();
         } else {
           btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
@@ -955,7 +899,6 @@
       lucide.createIcons();
     });
 
-    // 印出全域錯誤訊息工具
     function showError(msg) {
       errorText.innerText = msg;
       errorMsg.classList.remove('hidden');
