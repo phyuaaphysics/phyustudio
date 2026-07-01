@@ -306,14 +306,14 @@
     // =======================================================
     // ⚙️ Google Apps Script 部署正式網址 (分流管理)
     // =======================================================
-    // 恢復指向擁有學生帳密驗證資料庫的原 Auth 端點：
+    // 擁有學生帳密驗證資料庫的原 Auth 端點：
     const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
     
     // 指向 Loader 載入課程端點：
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbxYWLs22DosabEX35RtOQppHJ2X_av2FPWEbhvflSGOmUnJqQGwSBWki5HZgHVRSQA/exec";
     
-    // 指向您全新部署用來寫入簽到 Record 的專屬端點：
-    const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbwzeSZ297-OTfQvhQPX8EWZ7HiNuJNW-tXml6ly3H6JrpUBptcKqtBixG6R2-kdURJx/exec";
+    // 🚀 已更新：指向您全新指定的專屬簽到 Record 儲存端點：
+    const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbyTjDnpHtL-Cy3r5nrVrJMGiT-qyXqD69ZdMZyIepg3uGov8T3zYtTJMITsGDf-nvrM/exec";
 
     // DOM Elements
     const loginSection = document.getElementById('login-section');
@@ -792,6 +792,9 @@
       lucide.createIcons();
 
       const token = localStorage.getItem("userToken");
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const userRole = localStorage.getItem("userRole") || "student";
+
       if (!token) {
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：未登入</span>`;
         btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
@@ -801,6 +804,7 @@
 
       try {
         // 將簽到資料發送給全新的專屬簽到端點 (GAS_ATTENDANCE_URL)
+        // 並將儲存在 local storage 中的學生識別資料一併發送
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
@@ -812,7 +816,12 @@
             action: "submitAttendance",
             token: token,
             session: currentSession,
-            title: currentTitle
+            title: currentTitle,
+            student_id: userInfo.student_id || "",
+            real_name: userInfo.real_name || "",
+            class: userInfo.class || "",
+            class_no: userInfo.class_no || "",
+            role: userRole
           })
         });
 
