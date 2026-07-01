@@ -65,7 +65,7 @@
         transform: translateY(10px); 
       }
       to { 
-        opacity: 1; 
+        opacity: 1;
         transform: translateY(0);
       }
     }
@@ -90,9 +90,9 @@
   <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
 
     <!-- ========================================== -->
-    <!-- SECTION 1: 極致美學登入面板 -->
+    <!-- SECTION 1: 極致美學登入面板 (預設隱藏以防 token 驗證時閃爍) -->
     <!-- ========================================== -->
-    <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl">
+    <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl hidden">
       
       <!-- 官方 APP ICON (直角矩形置中，不使用圓角) -->
       <div class="flex justify-center mb-8">
@@ -308,10 +308,8 @@
     // =======================================================
     // 擁有學生帳密驗證資料庫的原 Auth 端點：
     const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
-    
     // 指向 Loader 載入課程端點：
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
-    
     // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
     const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbyNWqspNXwi4Rj6EpFYNwg5mgtUAOXR_1lKpxjDK62JIaJohQ0h-jPcVQDV2YyDiQ/exec";
 
@@ -353,8 +351,8 @@
       isYtApiReady = true;
     };
 
-    // Page Load Setup: Verify Cache in localStorage
-    document.addEventListener("DOMContentLoaded", () => {
+    // Page Load Setup: Verify Cache in localStorage with GAS Loader URL first
+    document.addEventListener("DOMContentLoaded", async () => {
       // Initialize Lucide icons
       lucide.createIcons();
       
@@ -363,11 +361,46 @@
       const savedRole = localStorage.getItem("userRole");
       
       if (savedUser && savedToken) {
+        // 建立優雅的臨時安全驗證載入狀態
+        const tempLoader = document.createElement('div');
+        tempLoader.id = 'temp-loader';
+        tempLoader.className = 'crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl flex flex-col items-center justify-center';
+        tempLoader.innerHTML = `
+          <svg class="animate-spin h-10 w-10 text-emerald-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-slate-800 font-medium text-sm tracking-wider">安全驗證中，請稍候...</span>
+        `;
+        document.querySelector('main').appendChild(tempLoader);
+
         try {
-          showStudentCard(JSON.parse(savedUser), savedRole);
+          // 透過 loader gs 驗證 Token 是否仍然有效
+          const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(savedToken)}`;
+          const response = await fetch(url, {
+            method: "GET",
+            mode: "cors"
+          });
+          const resData = await response.json();
+
+          if (resData.result === 'success') {
+            // 驗證成功，移除載入狀態，顯示學生卡片與課程清單
+            tempLoader.remove();
+            showStudentCard(JSON.parse(savedUser), savedRole);
+          } else {
+            throw new Error("Token 驗證失效");
+          }
         } catch (e) {
+          // 驗證失敗，清除快取，移除載入器，要求登入
           localStorage.clear();
+          tempLoader.remove();
+          loginSection.classList.remove('hidden');
+          if (secureBadge) secureBadge.classList.remove('hidden');
+          showError("驗證已過期或失效，請重新登入！");
         }
+      } else {
+        // 沒有 token，直接顯示登入畫面
+        loginSection.classList.remove('hidden');
       }
     });
 
@@ -411,7 +444,6 @@
           },
           body: JSON.stringify({ username, password })
         });
-
         const data = await response.json();
 
         if (data.success) {
@@ -457,12 +489,12 @@
       document.getElementById('card-class').innerText = userInfo.class || 'N/A';
       document.getElementById('card-class-no').innerText = userInfo.class_no || 'N/A';
       document.getElementById('card-student-id').innerText = userInfo.student_id || '無ID資料';
-      
+
       // Switch panels gracefully
       loginSection.classList.add('hidden');
       cardSection.classList.remove('hidden');
       if (secureBadge) secureBadge.classList.add('hidden');
-      
+
       // 動態加載課程列表
       fetchTopics();
     }
@@ -488,6 +520,7 @@
           <span>安全通道建立中，正在為您構建個人專屬課堂清單...</span>
         </div>
       `;
+
       try {
         const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(token)}`;
         const response = await fetch(url, {
@@ -497,9 +530,28 @@
         const resData = await response.json();
 
         if (resData.result === 'success') {
-          // 🚀 提取 Record 資料中，該使用者已觀看過的所有 Session
-          const records = resData.records || resData.record || [];
-          renderTopics(resData.data, userRole, records);
+          // 🚀 安全解構：偵測回傳的數據結構，分別讀取課程列表與觀看紀錄
+          let topicRows = [];
+          let records = [];
+
+          if (resData.data) {
+            if (Array.isArray(resData.data)) {
+              topicRows = resData.data;
+            } else if (resData.data.front && Array.isArray(resData.data.front)) {
+              topicRows = resData.data.front;
+            }
+
+            if (resData.data.record && Array.isArray(resData.data.record)) {
+              records = resData.data.record;
+            }
+          }
+
+          // 備用方案：如根節點也存在紀錄則採用之
+          if (records.length === 0) {
+            records = resData.records || resData.record || [];
+          }
+
+          renderTopics(topicRows, userRole, records);
         } else {
           if (resData.requireLogin) {
             localStorage.clear();
@@ -519,20 +571,32 @@
 
     // 渲染課室排版
     function renderTopics(rows, userRole, records = []) {
-      if (!rows || rows.length <= 1) {
+      // 🚀 安全防禦：確保 rows 是一個陣列，防止 rows.slice 發生錯誤
+      let finalRows = rows;
+      if (rows && !Array.isArray(rows) && Array.isArray(rows.front)) {
+        finalRows = rows.front;
+      }
+
+      if (!Array.isArray(finalRows)) {
+        console.error("rows is not an array:", rows);
+        topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">課程資料讀取異常，請重新登入或聯繫管理員。</div>`;
+        return;
+      }
+
+      if (finalRows.length <= 1) {
         topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
         return;
       }
 
       // 排除第 0 列 (標題列：A: ROLE, B: session, C: Title, D: youtube link, E: status)
-      const dataRows = rows.slice(1);
-      
+      const dataRows = finalRows.slice(1);
+
       // 過濾使用者權限
       const allowedRows = dataRows.filter(row => {
         const rowRole = String(row[0] || "").trim().toLowerCase();
-        return (userRole === "teacher" || userRole === "admin" || userRole === userRole && rowRole === userRole);
+        return (userRole === "teacher" || userRole === "admin" || (userRole === userRole && rowRole === userRole));
       });
-      
+
       // 按照 B 欄 (Session 順序) 進行排序
       allowedRows.sort((a, b) => {
         const numA = parseFloat(a[1]) || 0;
@@ -549,9 +613,14 @@
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
       const currentStudentName = (userInfo.real_name || "").trim();
       const watchedSessions = new Set();
-      
-      if (Array.isArray(records)) {
-        records.forEach((row, idx) => {
+
+      let finalRecords = records;
+      if (records && !Array.isArray(records) && Array.isArray(records.record)) {
+        finalRecords = records.record;
+      }
+
+      if (Array.isArray(finalRecords)) {
+        finalRecords.forEach((row, idx) => {
           if (idx === 0) return; // 略過標題
           const rowName = String(row[4] || "").trim(); // Col E (NAME)
           const rowSession = String(row[5] || "").trim(); // Col F (Session)
@@ -706,7 +775,8 @@
           videoId: videoId,
           playerVars: {
             autoplay: 1,
-            controls: 1,        // 允許全螢幕，開啟 YouTube 原生控制列
+            controls: 1,  
+            // 允許全螢幕，開啟 YouTube 原生控制列
             disablekb: 1,       // 禁用鍵盤快進
             rel: 0,
             modestbranding: 1,
@@ -737,7 +807,7 @@
             return; 
           }
           
-          // 鎖定播放速度：如果播放速度不為 1 倍速，強制重設回 1 倍速
+          // 鎖定播放速度：如果播放速度不為 1倍速，強制重設回 1 倍速
           if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
             ytPlayer.setPlaybackRate(1);
           }
