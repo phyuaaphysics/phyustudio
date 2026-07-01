@@ -26,7 +26,8 @@
 
     /* 極致輕盈的淡白色磨砂卡片（高度還原物理高光質感） */
     .crystal-panel {
-      background: rgba(255, 255, 255, 0.45); /* 淡白色重度磨砂 */
+      background: rgba(255, 255, 255, 0.45);
+      /* 淡白色重度磨砂 */
       backdrop-filter: blur(40px) saturate(160%);
       -webkit-backdrop-filter: blur(40px) saturate(160%);
       border: 1px solid rgba(255, 255, 255, 0.45);
@@ -59,8 +60,14 @@
 
     /* 漸進式淡入動畫 */
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { 
+        opacity: 0;
+        transform: translateY(10px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0);
+      }
     }
     .animate-fade-in {
       animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -83,7 +90,7 @@
   <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
 
     <!-- ========================================== -->
-    <!-- SECTION 1: 極致美學登入面板                 -->
+    <!-- SECTION 1: 極致美學登入面板 -->
     <!-- ========================================== -->
     <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl">
       
@@ -102,6 +109,7 @@
         <h3 class="text-xs tracking-[0.4em] text-slate-300/70 cinzel-title mt-3.5 uppercase">
           Student Portal
         </h3>
+        
         <div class="w-6 h-[1px] bg-white/30 mx-auto mt-4"></div>
       </div>
 
@@ -151,7 +159,7 @@
     <!-- ========================================== -->
     <div id="card-section" class="w-full hidden animate-fade-in space-y-4">
       
-      <!-- 頂部高質感導航工具列 (Top Control Bar - 置頂且移除 Browse ALL) -->
+      <!-- 頂部高質感導航工具列 -->
       <div class="flex justify-end items-center px-1">
         <!-- 右側：功能快捷按鈕 (淡色主題優化) -->
         <div class="flex items-center space-x-2">
@@ -182,7 +190,7 @@
         </div>
       </div>
 
-      <!-- 核心面板一：學生帳戶資訊卡 (Student Profile Banner Card - 已優化至高度精簡且為淡色磨砂) -->
+      <!-- 核心面板一：學生帳戶資訊卡 -->
       <div class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center gap-4">
         
         <!-- 左側：帳戶名稱與身份標誌 -->
@@ -217,7 +225,7 @@
 
       </div>
 
-      <!-- 核心面板二：動態學業課程列表 (Classroom Activity Panel - 緊湊版淡色磨砂) -->
+      <!-- 核心面板二：動態學業課程列表 -->
       <div id="topics-container" class="crystal-panel rounded-2xl overflow-hidden divide-y divide-slate-900/[0.05]">
         <!-- 這裡將透過 JS 依據試算表與身分權限動態載入課程 -->
         <div class="p-8 text-center text-sm text-slate-500/80">
@@ -240,16 +248,15 @@
   </main>
 
   <!-- ========================================== -->
-  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂)  -->
+  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂) -->
   <!-- ========================================== -->
   <div id="video-overlay" class="fixed inset-0 z-50 hidden bg-white/75 backdrop-blur-2xl flex flex-col justify-between animate-fade-in text-slate-900">
-    <!-- 播放器置頂控制列 (已將關閉按鈕簡化為僅有✕) -->
+    <!-- 播放器置頂控制列 -->
     <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm">
       <div class="flex items-center space-x-3">
         <span class="text-xs tracking-widest text-emerald-700 font-bold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-400/20 shadow-sm">ONLINE STREAM</span>
         <h1 id="video-overlay-title" class="text-sm font-bold tracking-wide text-slate-950 truncate max-w-xs sm:max-w-md">--</h1>
       </div>
-      <!-- 僅留下 ✕，移除其餘字樣 -->
       <button id="close-video-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
         ✕
       </button>
@@ -262,7 +269,7 @@
         <div id="video-overlay-player" class="w-full h-full rounded-2xl shadow-2xl border border-slate-300 bg-black"></div>
       </div>
 
-      <!-- 自訂播放與簽到按鈕（完全移除了 YouTube 內建控制） -->
+      <!-- 自訂播放與簽到按鈕 -->
       <div class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
         <!-- 播放與暫停獨立按鈕 -->
         <div class="flex items-center space-x-3">
@@ -276,7 +283,7 @@
           </button>
         </div>
 
-        <!-- 完成簽到按鈕 (預設隱藏，影片完全播畢後顯示) -->
+        <!-- 完成簽到按鈕 -->
         <button id="attendance-btn" class="hidden px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse">
           <i data-lucide="check-circle" class="w-4 h-4"></i>
           <span>完成簽到 (Finish & Take Attendance)</span>
@@ -284,7 +291,7 @@
       </div>
     </main>
 
-    <!-- 播放器底部宣告 (已移除「串流保護與安全解碼通道」) -->
+    <!-- 播放器底部宣告 -->
     <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50">
       &copy; 2026 PH Studio. All rights reserved.
     </footer>
@@ -299,9 +306,7 @@
     // =======================================================
     // ⚙️ Google Apps Script 部署正式網址 (守衛與載入模組)
     // =======================================================
-    const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec"; 
-    
-    // ⚙️ 確實綁定您提供的新 Loader GAS ID
+    const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbxYWLs22DosabEX35RtOQppHJ2X_av2FPWEbhvflSGOmUnJqQGwSBWki5HZgHVRSQA/exec";
 
     // DOM Elements
@@ -317,9 +322,12 @@
     const secureBadge = document.getElementById('secure-badge');
     const topicsContainer = document.getElementById('topics-container');
 
-    // YouTube API 播放器變數
+    // YouTube API 播放器與保安變數
     let ytPlayer = null;
     let isYtApiReady = false;
+    let maxWatchedTime = 0;
+    let timeCheckInterval = null;
+    let attendanceTimer = null;
 
     // 非同步加載 YouTube Iframe API 
     (function() {
@@ -383,7 +391,6 @@
       const password = passwordInput.value;
 
       try {
-        // Use text/plain with explicit redirect parameter to follow Google Apps Script redirects securely
         const response = await fetch(GAS_AUTH_URL, {
           method: "POST",
           mode: "cors",
@@ -438,11 +445,11 @@
       document.getElementById('card-class').innerText = userInfo.class || 'N/A';
       document.getElementById('card-class-no').innerText = userInfo.class_no || 'N/A';
       document.getElementById('card-student-id').innerText = userInfo.student_id || '無ID資料';
-
+      
       // Switch panels gracefully
       loginSection.classList.add('hidden');
       cardSection.classList.remove('hidden');
-      if (secureBadge) secureBadge.classList.add('hidden'); // 隱藏多餘的 header badge
+      if (secureBadge) secureBadge.classList.add('hidden');
       
       // 動態加載課程列表
       fetchTopics();
@@ -469,21 +476,17 @@
           <span>安全通道建立中，正在為您構建個人專屬課堂清單...</span>
         </div>
       `;
-
       try {
-        // 利用 GET 動態拉取 loader.gs 的 getTopic 動作
         const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(token)}`;
         const response = await fetch(url, {
           method: "GET",
           mode: "cors"
         });
-
         const resData = await response.json();
 
         if (resData.result === 'success') {
           renderTopics(resData.data, userRole);
         } else {
-          // 如果 Token 過期、失效或驗證不合，強制踢回登入頁
           if (resData.requireLogin) {
             localStorage.clear();
             cardSection.classList.add('hidden');
@@ -500,7 +503,7 @@
       }
     }
 
-    // 渲染課室排版 (ROLE 比對及 active/inactive 鎖定邏輯 - 已調成緊湊平行結構)
+    // 渲染課室排版
     function renderTopics(rows, userRole) {
       if (!rows || rows.length <= 1) {
         topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
@@ -515,7 +518,7 @@
         const rowRole = String(row[0] || "").trim().toLowerCase();
         return (userRole === "teacher" || userRole === "admin" || userRole === userRole && rowRole === userRole);
       });
-
+      
       // 按照 B 欄 (Session 順序) 進行排序
       allowedRows.sort((a, b) => {
         const numA = parseFloat(a[1]) || 0;
@@ -528,7 +531,7 @@
         return;
       }
 
-      topicsContainer.innerHTML = ""; // 清空
+      topicsContainer.innerHTML = "";
 
       // 遍歷渲染符合權限的課程列
       allowedRows.forEach(row => {
@@ -539,7 +542,6 @@
 
         const isActive = (status === "active");
 
-        // 建立單列 DOM 元素 (優化高度至 py-3，極大化空間利用率)
         const rowEl = document.createElement("div");
         rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${
           isActive 
@@ -547,7 +549,6 @@
             : "opacity-40 cursor-not-allowed bg-slate-900/[0.04] text-slate-500"
         }`;
 
-        // 拼接內容 (Session 與 Title 保持水平平行排列，優雅呈現)
         rowEl.innerHTML = `
           <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
             <span class="w-8 h-8 rounded-lg bg-emerald-500/10 border ${
@@ -569,7 +570,6 @@
           </div>
         `;
 
-        // 點擊事件：如果為 active，打開 YouTube 播放視窗
         if (isActive) {
           rowEl.addEventListener("click", () => {
             if (ytLink) {
@@ -590,7 +590,6 @@
     // 🎬 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
     // =======================================================
     function openVideoWindow(title, url) {
-      // 解析 YouTube Video ID
       let videoId = "";
       try {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -607,10 +606,18 @@
       document.getElementById('video-overlay-title').innerText = title;
       document.getElementById('video-overlay').classList.remove('hidden');
       
-      // 初始化簽到按鈕為隱藏狀態
+      // 初始化簽到按鈕與自訂按鈕狀態
       document.getElementById('attendance-btn').classList.add('hidden');
-
-      // 初始化 YouTube Player (使用 API 動態構建)
+      const playBtnSpan = document.querySelector('#custom-play-btn span');
+      if (playBtnSpan) {
+        playBtnSpan.innerText = "播放 (Play)";
+      }
+      
+      // 重設安全播放機制
+      maxWatchedTime = 0;
+      if (timeCheckInterval) clearInterval(timeCheckInterval);
+      if (attendanceTimer) clearInterval(attendanceTimer);
+      
       if (isYtApiReady) {
         if (ytPlayer) {
           try {
@@ -626,11 +633,11 @@
           videoId: videoId,
           playerVars: {
             autoplay: 1,
-            controls: 0,        // 🚨 徹底移去 YouTube 內建播放控制列
-            disablekb: 1,       // 🚨 禁用鍵盤快捷鍵以防快進
+            controls: 1,        // 允許全螢幕，開啟 YouTube 原生控制列
+            disablekb: 1,       // 禁用鍵盤快進
             rel: 0,
             modestbranding: 1,
-            fs: 0               // 🚨 禁用原生全螢幕按鈕，防範控制列在全螢幕下跑出來
+            fs: 1               // 啟用原生全螢幕按鈕
           },
           events: {
             'onStateChange': onPlayerStateChange
@@ -641,18 +648,97 @@
       }
     }
 
+    // 影片安全偵測定時器
+    function startTimeTracking() {
+      if (timeCheckInterval) clearInterval(timeCheckInterval);
+      timeCheckInterval = setInterval(() => {
+        if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+          const currentTime = ytPlayer.getCurrentTime();
+          
+          // 鎖定播放速度：如果播放速度不為 1 倍速，強制重設回 1 倍速
+          if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
+            ytPlayer.setPlaybackRate(1);
+          }
+          
+          // 鎖定進度條快進：防止向前跳轉超過已觀看時間
+          if (currentTime > maxWatchedTime + 2.5) {
+            ytPlayer.seekTo(maxWatchedTime, true);
+          } else {
+            maxWatchedTime = Math.max(maxWatchedTime, currentTime);
+          }
+        }
+      }, 500);
+    }
+
+    function stopTimeTracking() {
+      if (timeCheckInterval) {
+        clearInterval(timeCheckInterval);
+        timeCheckInterval = null;
+      }
+    }
+
     // YouTube 播放狀態偵測
     function onPlayerStateChange(event) {
-      // YT.PlayerState.ENDED (為 0) 代表影片完全播放結束
-      if (event.data === YT.PlayerState.ENDED) {
-        document.getElementById('attendance-btn').classList.remove('hidden');
-        lucide.createIcons();
+      if (event.data === YT.PlayerState.PLAYING) {
+        startTimeTracking();
+      } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+        stopTimeTracking();
       }
+
+      // YT.PlayerState.ENDED 代表影片完全播放結束
+      if (event.data === YT.PlayerState.ENDED) {
+        startAttendanceCountdown();
+      }
+    }
+
+    // 啟動簽到限時倒數 (2分鐘)
+    function startAttendanceCountdown() {
+      let timeLeft = 120; // 2 分鐘，共 120 秒
+      const btn = document.getElementById('attendance-btn');
+      btn.classList.remove('hidden');
+      btn.disabled = false;
+      btn.className = "px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse";
+      btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>完成簽到 (剩餘 2分00秒)</span>`;
+      lucide.createIcons();
+
+      if (attendanceTimer) clearInterval(attendanceTimer);
+      attendanceTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(attendanceTimer);
+          // 超時鎖定簽到按鈕
+          btn.disabled = true;
+          btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+          btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>超時，請勿掛機，請重新播放</span>`;
+          lucide.createIcons();
+          
+          // 變更播放按鈕文字為「重新播放」
+          const playBtnSpan = document.querySelector('#custom-play-btn span');
+          if (playBtnSpan) {
+            playBtnSpan.innerText = "重新播放";
+          }
+        } else {
+          const minutes = Math.floor(timeLeft / 60);
+          const seconds = timeLeft % 60;
+          const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
+          btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>完成簽到 (剩餘 ${minutes}分${paddedSeconds}秒)</span>`;
+          lucide.createIcons();
+        }
+      }, 1000);
     }
 
     // 自訂 Play 按鈕事件
     document.getElementById('custom-play-btn').addEventListener('click', () => {
       if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+        const playBtnSpan = document.querySelector('#custom-play-btn span');
+        if (playBtnSpan && playBtnSpan.innerText === "重新播放") {
+          // 重設簽到機制與觀看紀錄，重新回到 0 秒開始
+          maxWatchedTime = 0;
+          if (attendanceTimer) clearInterval(attendanceTimer);
+          document.getElementById('attendance-btn').classList.add('hidden');
+          playBtnSpan.innerText = "播放 (Play)";
+          ytPlayer.seekTo(0, true);
+        }
         ytPlayer.playVideo();
       }
     });
@@ -667,6 +753,8 @@
     // 關閉同頁播放器監聽
     document.getElementById('close-video-btn').addEventListener('click', () => {
       document.getElementById('video-overlay').classList.add('hidden');
+      stopTimeTracking();
+      if (attendanceTimer) clearInterval(attendanceTimer);
       if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
         ytPlayer.stopVideo();
       }
@@ -674,6 +762,7 @@
 
     // 完成簽到按鈕點擊監聽 (未來對接 Google GAS)
     document.getElementById('attendance-btn').addEventListener('click', () => {
+      if (attendanceTimer) clearInterval(attendanceTimer);
       // 顯示簽到成功狀態
       const btn = document.getElementById('attendance-btn');
       btn.innerHTML = `
