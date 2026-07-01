@@ -1,1209 +1,696 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Fundamental Exercise - Lumina Studio</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PH Studio - 學生登入系統</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons for responsive elements -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* 引入 Cinzel (優雅古典襯線體) 與 Inter (極簡現代無襯線體) */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
     
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Lumina">
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      background-image: url('https://i.ibb.co/bgLYLMKs/image.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    .cinzel-title {
+      font-family: 'Cinzel', serif;
+    }
+
+    /* 極致輕盈的淡白色磨砂卡片（高度還原物理高光質感） */
+    .crystal-panel {
+      background: rgba(255, 255, 255, 0.45); /* 淡白色重度磨砂 */
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.1), 
+                  inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    /* 對稱淺色膠囊型輸入框 */
+    .pill-input {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    .pill-input:focus {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(16, 185, 129, 0.5); /* 薄荷綠邊框 */
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+      outline: none;
+    }
 
-        :root {
-            --mint-deep: #064e3b;
-            --mint-primary: #10b981; 
-            --mint-bg: #f0fdf4;
-            --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1); 
-            --anim-slow: 1.6s cubic-bezier(0.4, 0, 0.2, 1);
-            --anim-item: 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    .pill-input::placeholder {
+      color: rgba(15, 23, 42, 0.5);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
 
-        html, body { 
-            height: 100dvh;
-            width: 100%;
-            margin: 0;
-            overflow: hidden; 
-            position: fixed; 
-            font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-color: #f8fafc;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        }
-
-        .hero-full {
-            position: absolute;
-            inset: 0; 
-            width: 100%;
-            height: 100dvh;
-            overflow: hidden;
-            z-index: 100;
-        }
-
-        #hero-bg {
-            position: absolute;
-            inset: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            filter: saturate(1.2) brightness(1.05);
-            transition: transform var(--anim-slow), filter 0.8s;
-        }
-
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
-            z-index: 5;
-        }
-
-        .hero-glass-panel {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 40px;
-            padding: 3.5rem 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-            max-width: 90%;
-            width: 540px;
-            display: flex; flex-direction: column; align-items: center;
-            transition: opacity var(--anim-os), transform var(--anim-os), visibility var(--anim-os);
-            z-index: 20;
-        }
-
-        .hero-content-wrapper {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            padding-top: env(safe-area-inset-top);
-        }
-
-        .fade-exit-up { 
-            opacity: 0;
-            transform: translateY(-150px) scale(0.9);
-            visibility: hidden; 
-        }
-
-        .uniform-list-container {
-            display: flex;
-            flex-direction: column;
-            max-width: 1024px;
-            margin: 0 auto;
-            width: 100%;
-            padding-bottom: 80px;
-        }
-
-        .list-item-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 24px;
-            background: rgba(255, 255, 255, 0.5);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .list-item-row:active {
-            background: rgba(16, 185, 129, 0.08);
-        }
-
-        .list-item-row.is-locked {
-            opacity: 0.6;
-            cursor: not-allowed !important;
-            background: rgba(241, 245, 249, 0.5);
-        }
-
-        .resource-drawer {
-            max-height: 0;
-            overflow: hidden;
-            background: #f1f5f9;
-            transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-            opacity: 0;
-            position: relative;
-        }
-        .resource-drawer.expanded {
-            max-height: 2000px;
-            opacity: 1;
-        }
-        .resource-content-container {
-            width: 100%;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .resource-iframe {
-            width: 100%;
-            height: 70vh;
-            border: none;
-        }
-        .resource-img {
-            width: 100%;
-            max-height: 85vh;
-            object-fit: contain;
-        }
-        .resource-collapse-bar {
-            width: 100%;
-            height: 48px;
-            background: #1e293b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s;
-        }
-        .resource-collapse-bar:hover { background: #0f172a;
-        }
-        .resource-collapse-bar span {
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.8);
-            text-transform: uppercase;
-        }
-        .resource-collapse-bar i {
-            font-size: 10px;
-            color: #10b981;
-            margin-right: 8px;
-            animation: bounceUp 1.5s infinite;
-        }
-
-        @keyframes bounceUp {
-            0%, 100% { transform: translateY(0);
-            }
-            50% { transform: translateY(-3px);
-            }
-        }
-
-        #page-loader {
-            position: fixed;
-            inset: 0; background-color: #ffffff; z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 1s ease;
-        }
-
-        #shutdown-overlay {
-            position: fixed;
-            inset: 0; background-color: #000; z-index: 9999;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.8s ease;
-        }
-
-        .sync-spinning { animation: spin 1s linear infinite;
-        }
-        .sync-success { color: #10b981 !important; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);
-        } }
-        @keyframes bounceIn {
-            0% { transform: scale(0.5);
-            opacity: 0; }
-            70% { transform: scale(1.2); opacity: 1;
-            }
-            100% { transform: scale(1); opacity: 1;
-            }
-        }
-
-        .modal-window {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100dvh;
-            background: rgba(255, 255, 255, 0.65); 
-            backdrop-filter: blur(60px); 
-            -webkit-backdrop-filter: blur(60px);
-            transform: translateY(110vh);
-            z-index: 310;
-            display: none; opacity: 0; overflow: hidden;
-            transition: opacity var(--anim-os), transform var(--anim-os);
-        }
-
-        .modal-window.open { 
-            display: flex;
-            flex-direction: column; 
-            opacity: 1; 
-            transform: translateY(0);
-        }
-
-        .window-header {
-            padding: 0 12px;
-            display: flex; 
-            align-items: center;
-            background: rgba(255, 255, 255, 0.4); 
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            height: 54px;
-            gap: 8px;
-            flex-shrink: 0;
-            padding-top: env(safe-area-inset-top);
-            box-sizing: content-box;
-        }
-
-        .tab-strip {
-            display: flex;
-            align-items: flex-end;
-            gap: 4px;
-            flex: 1;
-            overflow-x: auto;
-            height: 100%;
-            scrollbar-width: none;
-        }
-        .tab-strip::-webkit-scrollbar { display: none;
-        }
-
-        .browser-tab {
-            height: 38px;
-            min-width: 100px;
-            max-width: 180px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 12px 12px 0 0;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            gap: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            margin-bottom: -1px;
-            border: 1px solid transparent;
-            border-bottom: none;
-        }
-
-        @media (max-width: 640px) {
-            .browser-tab {
-                min-width: 45px;
-                padding: 0 12px;
-                justify-content: center;
-            }
-            .tab-title {
-                display: none;
-            }
-        }
-
-        .browser-tab.active {
-            background: rgba(255, 255, 255, 0.7);
-            border-color: rgba(0, 0, 0, 0.05);
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.02);
-            z-index: 2;
-        }
-
-        .tab-title {
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #4b5563;
-        }
-
-        .tab-close {
-            font-size: 10px;
-            opacity: 0.4;
-            transition: 0.2s;
-            padding: 4px;
-        }
-        .tab-close:hover { opacity: 1; color: #ef4444;
-        }
-        
-        .window-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 8px;
-        }
-
-        .toolbar-item {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: #4b5563;
-            font-size: 14px;
-            transition: 0.3s;
-            cursor: pointer;
-            background: rgba(0,0,0,0.03);
-        }
-        .toolbar-item:hover { background: rgba(0,0,0,0.08); transform: scale(1.1);
-        }
-        .toolbar-item.btn-shutdown:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444;
-        }
-        .toolbar-item.btn-logout:hover { background: rgba(59, 130, 246, 0.1); color: #3b82f6;
-        }
-
-        .grade-badge {
-            background: #10b981;
-            color: white;
-            font-size: 10px;
-            font-weight: 900;
-            padding: 4px 10px;
-            border-radius: 20px;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
-            display: none;
-        }
-
-        .window-body { 
-            flex: 1;
-            width: 100%; 
-            background: transparent; 
-            position: relative; 
-            overflow-y: auto;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .win-content-page {
-            display: none;
-            width: 100%;
-            height: 100%;
-        }
-        .win-content-page.active { display: block;
-        }
-
-        #custom-alert {
-            position: fixed;
-            top: calc(100px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-200px);
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px);
-            padding: 14px 28px;
-            border-radius: 40px;
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); z-index: 2000;
-            display: flex; align-items: center; gap: 12px;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #custom-alert.show { transform: translateX(-50%) translateY(0);
-        }
-
-        /* 磨砂玻璃驗證視窗：完美維持與 .hero-glass-panel 相同之尺寸與磨砂外觀 */
-        #auth-overlay {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(1);
-            background: rgba(255, 255, 255, 0.25); 
-            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); 
-            padding: 3.5rem 2.5rem;
-            border-radius: 40px; 
-            border: 1px solid rgba(255, 255, 255, 0.5); 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08); 
-            z-index: 2100;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            gap: 24px;
-            opacity: 0;
-            max-width: 90%;
-            width: 540px;
-            height: 480px; /* 完美符合原本 Login Panel 之高度結構 */
-            box-sizing: border-box;
-            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.3, 1), transform 1.2s cubic-bezier(0.25, 1, 0.3, 1);
-            pointer-events: none;
-        }
-        #auth-overlay.show { opacity: 1; transform: translate(-50%, -50%) scale(1); display: flex;
-        }
-        
-        /* Native OS Slide Up Fade Out 效果 */
-        #auth-overlay.exit-up {
-            opacity: 0;
-            transform: translate(-50%, -100%) scale(0.95);
-            visibility: hidden;
-        }
-        
-        #auth-icon-container {
-            width: 72px;
-            height: 72px; 
-            border-radius: 50%;
-            display: flex;
-            align-items: center; justify-content: center;
-            font-size: 32px;
-            transition: 0.4s;
-            flex-shrink: 0;
-        }
-        .auth-loading-icon { color: #10b981;
-        animation: spin 1.2s linear infinite; }
-        .auth-success-icon { background: #10b981; color: white;
-        animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        .login-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 12px 20px;
-            font-size: 13px;
-            color: #374151;
-            outline: none;
-            transition: 0.3s;
-            margin-bottom: 12px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .login-input::placeholder { color: #9ca3af; font-weight: 400; text-transform: uppercase; letter-spacing: 0.1em;
-        }
-        .login-input:focus { background: rgba(255, 255, 255, 0.5); border-color: #10b981;
-        }
-    </style>
+    /* 漸進式淡入動畫 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 relative">
 
-    <div id="shutdown-overlay">
-        <i class="fas fa-spinner sync-spinning text-white text-4xl mb-6"></i>
-        <p class="text-white text-xs tracking-[0.4em] font-medium uppercase animate-pulse">系統正在關機中...</p>
+  <!-- 頂部磨砂背景裝飾，確保邊角美觀 -->
+  <div class="absolute inset-0 bg-black/5 pointer-events-none"></div>
+
+  <!-- Header Brand (置頂，在登入狀態下顯現，非登入時隱性融入) -->
+  <header class="w-full max-w-4xl flex justify-end items-center py-2 z-10 shrink-0">
+    <div id="secure-badge" class="text-[10px] tracking-widest text-slate-800/80 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-sm">
+      SECURE CHANNEL
     </div>
+  </header>
 
-    <!-- 白色預載遮罩：加載完背景後會立即淡出，確保背景露出 -->
-    <div id="page-loader">
-        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
-        <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在與雲端同步數據...</p>
-    </div>
+  <!-- Main Portal Section (置頂排版，極大化空間利用率) -->
+  <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
 
-    <div id="auth-overlay">
-        <div id="auth-icon-container">
-            <i id="auth-main-icon" class="fas fa-spinner auth-loading-icon"></i>
+    <!-- ========================================== -->
+    <!-- SECTION 1: 極致美學登入面板                 -->
+    <!-- ========================================== -->
+    <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl">
+      
+      <!-- 官方 APP ICON (直角矩形置中，不使用圓角) -->
+      <div class="flex justify-center mb-8">
+        <div class="w-14 h-14 bg-white/30 p-0.5 border border-white/40 shadow-inner flex items-center justify-center">
+          <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="PH Logo" class="w-full h-full">
         </div>
-        <div class="text-center">
-            <h2 id="auth-title" class="text-lg font-bold text-gray-800 tracking-widest uppercase mb-1">正在驗證</h2>
-            <p id="auth-subtitle" class="text-[10px] font-medium text-gray-400 uppercase tracking-[0.3em]">請稍候片刻</p>
+      </div>
+
+      <!-- 標題：Cinzel 古典襯線字型與優雅寬字距 -->
+      <div class="mb-10">
+        <h2 class="text-2xl md:text-[2rem] font-semibold tracking-[0.15em] text-slate-900 cinzel-title leading-tight">
+          ONLINE CLASSROOM
+        </h2>
+        <h3 class="text-xs tracking-[0.4em] text-slate-300/70 cinzel-title mt-3.5 uppercase">
+          Student Portal
+        </h3>
+        <div class="w-6 h-[1px] bg-white/30 mx-auto mt-4"></div>
+      </div>
+
+      <!-- 登入表單 -->
+      <form id="login-form" class="space-y-5">
+        
+        <!-- 帳號輸入膠囊 -->
+        <div class="relative">
+          <input type="text" id="username" required placeholder="Username"
+                 class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide">
         </div>
+
+        <!-- 密碼輸入膠囊 -->
+        <div class="relative">
+          <input type="password" id="password" required placeholder="Password"
+                 class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide">
+          <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-800/45 hover:text-slate-900 transition">
+            <i data-lucide="eye" id="pw-icon" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- 錯誤訊息提示區 -->
+        <div id="error-msg" class="hidden bg-rose-50/70 border border-rose-300 text-rose-800 p-3.5 rounded-2xl text-xs text-left flex items-start space-x-2 animate-fadeIn shadow-sm">
+          <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-rose-400"></i>
+          <span id="error-text" class="leading-relaxed font-medium"></span>
+        </div>
+
+        <!-- 登入按鈕膠囊 (對稱高質感深色對比按鈕) -->
+        <button type="submit" id="submit-btn"
+                class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-[0.25em] uppercase py-4 rounded-full shadow-md hover:shadow-lg transition duration-300 transform active:scale-98 flex items-center justify-center space-x-2">
+          <span>Login & Verify</span>
+        </button>
+
+      </form>
+
+      <!-- 底部安全圖示 -->
+      <div class="flex justify-center mt-10">
+        <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-400/20 flex items-center justify-center text-emerald-600 shadow-sm">
+          <i data-lucide="cloud" class="w-4 h-4"></i>
+        </div>
+      </div>
+
     </div>
 
-    <div id="custom-alert">
-        <i class="fas fa-info-circle text-emerald-500"></i>
-        <span id="alert-text" class="text-xs font-bold text-gray-600 uppercase tracking-widest"></span>
+    <!-- ========================================== -->
+    <!-- SECTION 2: 學生學籍資料卡片 & 課室版面 (登入成功) -->
+    <!-- ========================================== -->
+    <div id="card-section" class="w-full hidden animate-fade-in space-y-4">
+      
+      <!-- 頂部高質感導航工具列 (Top Control Bar - 置頂且移除 Browse ALL) -->
+      <div class="flex justify-end items-center px-1">
+        <!-- 右側：功能快捷按鈕 (淡色主題優化) -->
+        <div class="flex items-center space-x-2">
+          <!-- 綠色 S4 圓章 -->
+          <span class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-md shadow-emerald-500/20">
+            S4
+          </span>
+          
+          <!-- 選單清單按鈕 -->
+          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- 雲端連線狀態按鈕 -->
+          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
+            <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- 登出/返回系統按鈕 -->
+          <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-rose-500/20 hover:border-rose-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-rose-600 transition" title="登出系統">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- 系統關機符號 -->
+          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+            <i data-lucide="power" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 核心面板一：學生帳戶資訊卡 (Student Profile Banner Card - 已優化至高度精簡且為淡色磨砂) -->
+      <div class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center gap-4">
+        
+        <!-- 左側：帳戶名稱與身份標誌 -->
+        <div class="flex items-center space-x-4">
+          <!-- 薄荷綠圓形學士帽圖示 -->
+          <div class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
+            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 cinzel-title">--</h3>
+            <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
+          </div>
+        </div>
+
+        <!-- 右側：班級與學號對稱卡區 -->
+        <div class="flex items-center gap-8 text-right pr-1 shrink-0">
+          <!-- 班別 -->
+          <div>
+            <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
+            <p id="card-class" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+          </div>
+
+          <!-- 垂直精細分割線 -->
+          <div class="w-[1px] h-6 bg-slate-900/10"></div>
+
+          <!-- 學號 -->
+          <div>
+            <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
+            <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 核心面板二：動態學業課程列表 (Classroom Activity Panel - 緊湊版淡色磨砂) -->
+      <div id="topics-container" class="crystal-panel rounded-2xl overflow-hidden divide-y divide-slate-900/[0.05]">
+        <!-- 這裡將透過 JS 依據試算表與身分權限動態載入課程 -->
+        <div class="p-8 text-center text-sm text-slate-500/80">
+          <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>正在為您構建個人專屬課堂清單...</span>
+        </div>
+      </div>
+
+      <!-- 底層資料註腳標記 -->
+      <div class="flex justify-between items-center px-4 text-[10px] text-slate-500/70 uppercase tracking-widest">
+        <span>學員代碼識別: <span id="card-student-id" class="font-mono bg-white/40 px-2 py-0.5 rounded ml-1 text-slate-800 border border-white/50">--</span></span>
+        <span>Verified Secure Node</span>
+      </div>
+
     </div>
 
-    <div id="main-browser-window" class="modal-window">
-        <div class="window-header">
-            <div id="browser-tab-strip" class="tab-strip"></div>
-            <div class="window-toolbar">
-                <div id="user-grade-display" class="grade-badge">GRADUATED</div>
-                <div class="toolbar-item" onclick="openHomeFolder()"><i class="fas fa-th-list"></i></div>
-                <div class="toolbar-item" onclick="manualRefresh()"><i id="win-cloud-icon" class="fas fa-cloud"></i></div>
-                <div class="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                <div class="toolbar-item btn-logout" onclick="handleLogout()" title="登出"><i class="fas fa-sign-out-alt"></i></div>
-                <div class="toolbar-item btn-shutdown" onclick="handleSystemShutdown()" title="關機"><i class="fas fa-power-off"></i></div>
-            </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂)  -->
+  <!-- ========================================== -->
+  <div id="video-overlay" class="fixed inset-0 z-50 hidden bg-white/75 backdrop-blur-2xl flex flex-col justify-between animate-fade-in text-slate-900">
+    <!-- 播放器置頂控制列 (已將關閉按鈕簡化為僅有✕) -->
+    <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm">
+      <div class="flex items-center space-x-3">
+        <span class="text-xs tracking-widest text-emerald-700 font-bold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-400/20 shadow-sm">ONLINE STREAM</span>
+        <h1 id="video-overlay-title" class="text-sm font-bold tracking-wide text-slate-950 truncate max-w-xs sm:max-w-md">--</h1>
+      </div>
+      <!-- 僅留下 ✕，移除其餘字樣 -->
+      <button id="close-video-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
+        ✕
+      </button>
+    </header>
+
+    <!-- 影音核心顯示與自訂操作區 -->
+    <main class="flex-1 w-full flex flex-col items-center justify-center p-4 space-y-4">
+      <div class="w-full max-w-4xl aspect-video relative flex items-center justify-center">
+        <!-- YouTube API 專屬容器 -->
+        <div id="video-overlay-player" class="w-full h-full rounded-2xl shadow-2xl border border-slate-300 bg-black"></div>
+      </div>
+
+      <!-- 自訂播放與簽到按鈕（完全移除了 YouTube 內建控制） -->
+      <div class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+        <!-- 播放與暫停獨立按鈕 -->
+        <div class="flex items-center space-x-3">
+          <button id="custom-play-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md transition duration-200 transform active:scale-95">
+            <i data-lucide="play-circle" class="w-4 h-4"></i>
+            <span>播放 (Play)</span>
+          </button>
+          <button id="custom-pause-btn" class="px-5 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md transition duration-200 transform active:scale-95">
+            <i data-lucide="pause-circle" class="w-4 h-4"></i>
+            <span>暫停 (Pause)</span>
+          </button>
         </div>
-        <div id="browser-window-body" class="window-body"></div>
-    </div>
 
-    <section class="hero-full">
-        <img id="hero-bg" src="">
-        <div class="hero-overlay"></div>
-        <div class="hero-content-wrapper text-center">
-            <div id="hero-main-content" class="hero-glass-panel">
-                <div class="mb-8 flex flex-col items-center gap-4">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-14 w-14 drop-shadow-sm">
-                    <div class="h-[1px] w-10 bg-emerald-500/20"></div>
-                </div>
-                <h1 id="hero-title" class="text-3xl md:text-4xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;"></h1>
-                <p id="hero-subtitle" class="text-xl md:text-xl font-bold tracking-[1em] mb-6 uppercase pl-[1em] opacity-80"></p>
-                
-                <div class="w-full max-w-[320px] mb-6">
-                    <input type="text" id="login-username" class="login-input" placeholder="Username" autocomplete="off">
-                    <input type="password" id="login-password" class="login-input" placeholder="Password" autocomplete="new-password">
-                </div>
+        <!-- 完成簽到按鈕 (預設隱藏，影片完全播畢後顯示) -->
+        <button id="attendance-btn" class="hidden px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span>完成簽到 (Finish & Take Attendance)</span>
+        </button>
+      </div>
+    </main>
 
-                <div class="flex flex-col gap-4">
-                    <button onclick="handleLoginAndBrowse()" class="px-16 py-4 font-black rounded-full text-[10px] tracking-[0.5em] uppercase shadow-sm transition-all transform active:scale-95 bg-white/20 backdrop-blur-md border border-white/40">
-                        Login & Browse
-                    </button>
-                    <div class="flex items-center justify-center gap-2 mt-2">
-                        <button onclick="manualRefresh()" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-lg border border-white/30 text-emerald-600/80 hover:bg-white/20 transition-all active:scale-90">
-                            <i id="hero-cloud-icon" class="fas fa-cloud"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- 播放器底部宣告 (已移除「串流保護與安全解碼通道」) -->
+    <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50">
+      &copy; 2026 PH Studio. All rights reserved.
+    </footer>
+  </div>
 
-    <script>
-        // ==========================================
-        // 雙端服務端 Google Apps Script 佈署配置
-        // ==========================================
-        const LOADER_GAS_URL = 'https://script.google.com/macros/s/AKfycbzUiNsuc9uW4-qXeP1TuPDkFldg6PMwyRPeHQBl5F2MksLiQqVc7UHcIaHSGNiSwufK/exec';
-        const GUARD_GAS_URL = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';
+  <!-- Footer Info (極簡低對比) -->
+  <footer class="w-full max-w-6xl text-center py-2 text-[10px] tracking-[0.2em] uppercase text-slate-500/60 z-10 shrink-0">
+    <p>&copy; 2026 PH Studio. All rights reserved.</p>
+  </footer>
 
-        const SPREADSHEET_ID_HERO = '1-JB2srNidbjg3Kf15rzaGmSwRp5O6SnR_xoWmuYY0Mg';
-        const HERO_DATA_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID_HERO}/gviz/tq?tqx=out:csv&sheet=VOL10`;
+  <script>
+    // =======================================================
+    // ⚙️ Google Apps Script 部署正式網址 (守衛與載入模組)
+    // =======================================================
+    const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec"; 
+    
+    // ⚙️ 確實綁定您提供的新 Loader GAS ID
+    const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbxYWLs22DosabEX35RtOQppHJ2X_av2FPWEbhvflSGOmUnJqQGwSBWki5HZgHVRSQA/exec";
 
-        let rawDataRows = [];
-        let hwList = [];
-        let isSyncing = false;
-        let openTabs = [];
-        let activeTabId = null;
-        let currentUserGrade = null;
+    // DOM Elements
+    const loginSection = document.getElementById('login-section');
+    const cardSection = document.getElementById('card-section');
+    const loginForm = document.getElementById('login-form');
+    const errorMsg = document.getElementById('error-msg');
+    const errorText = document.getElementById('error-text');
+    const submitBtn = document.getElementById('submit-btn');
+    const togglePwBtn = document.getElementById('toggle-pw');
+    const passwordInput = document.getElementById('password');
+    const pwIcon = document.getElementById('pw-icon');
+    const secureBadge = document.getElementById('secure-badge');
+    const topicsContainer = document.getElementById('topics-container');
 
-        function parseCSV(text) {
-            const rows = [];
-            let currentRow = [];
-            let currentField = '';
-            let inQuotes = false;
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                const nextChar = text[i+1];
-                if (inQuotes) {
-                    if (char === '"' && nextChar === '"') { currentField += '"'; i++; }
-                    else if (char === '"') { inQuotes = false; }
-                    else { currentField += char; }
-                } else {
-                    if (char === '"') { inQuotes = true; }
-                    else if (char === ',') { currentRow.push(currentField); currentField = ''; }
-                    else if (char === '\r' || char === '\n') {
-                        currentRow.push(currentField);
-                        if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) rows.push(currentRow);
-                        currentRow = []; currentField = '';
-                        if (char === '\r' && nextChar === '\n') i++;
-                    } else { currentField += char; }
-                }
-            }
-            if (currentField || currentRow.length > 0) { currentRow.push(currentField); rows.push(currentRow); }
-            return rows;
+    // YouTube API 播放器變數
+    let ytPlayer = null;
+    let isYtApiReady = false;
+
+    // 非同步加載 YouTube Iframe API 
+    (function() {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    })();
+
+    // API Ready 回呼
+    window.onYouTubeIframeAPIReady = function() {
+      isYtApiReady = true;
+    };
+
+    // Page Load Setup: Verify Cache in localStorage
+    document.addEventListener("DOMContentLoaded", () => {
+      // Initialize Lucide icons
+      lucide.createIcons();
+      
+      const savedUser = localStorage.getItem("userInfo");
+      const savedToken = localStorage.getItem("userToken");
+      const savedRole = localStorage.getItem("userRole");
+      
+      if (savedUser && savedToken) {
+        try {
+          showStudentCard(JSON.parse(savedUser), savedRole);
+        } catch (e) {
+          localStorage.clear();
         }
+      }
+    });
 
-        function checkAppleDevice() {
-            const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || /Macintosh/.test(navigator.userAgent);
-            if (isApple) document.body.classList.add('is-ios');
-        }
+    // Toggle password field visibility
+    togglePwBtn.addEventListener('click', () => {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        pwIcon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        passwordInput.type = 'password';
+        pwIcon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons(); // redraw icon
+    });
 
-        /**
-         * 健全化處理學生個人資料保存邏輯
-         * 遵循 CSV 的實際格式：欄 C (2) 班別，欄 D (3) 學號，欄 E (4) 姓名
-         */
-        function saveStudentData(userObj) {
-            if (!userObj) return;
-            
-            let cls = '';
-            let no = '';
-            let name = '';
+    // Form Submission & Request Authentication
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Reset UI feedback
+      errorMsg.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Checking Credentials...</span>
+      `;
 
-            if (Array.isArray(userObj)) {
-                // 如果是 CSV 回傳的陣列列：
-                // 欄 C 為班別 (index 2)，欄 D 為學號 (index 3)，欄 E 為姓名 (index 4)
-                cls = userObj[2];
-                no = userObj[3];
-                name = userObj[4];
-            } else {
-                // 如果是物件格式，先比對陣列索引之 Key，再比對常見屬性名：
-                cls = userObj['2'] || userObj['C'] || userObj['c'] || userObj.class || userObj.className || userObj.class_name || userObj.classname || userObj['班級'] || userObj['班別'];
-                no = userObj['3'] || userObj['D'] || userObj['d'] || userObj.class_no || userObj.classNo || userObj.classno || userObj.seat_no || userObj.seatNo || userObj.seatno || userObj.number || userObj.no || userObj.student_no || userObj.studentNo || userObj['學號'] || userObj['座號'];
-                name = userObj['4'] || userObj['E'] || userObj['e'] || userObj.real_name || userObj.realName || userObj.realname || userObj.user_real_name || userObj.userRealName || userObj.student_name || userObj.studentName || userObj.studentname || userObj.name || userObj['姓名'] || userObj['學生姓名'] || userObj['真實姓名'];
-            }
+      const username = document.getElementById('username').value.trim();
+      const password = passwordInput.value;
 
-            if (name && name !== 'undefined' && name !== 'null' && name.toString().trim() !== '') {
-                localStorage.setItem('user_real_name', name.toString().trim());
-            }
-            if (cls && cls !== 'undefined' && cls !== 'null' && cls.toString().trim() !== '') {
-                localStorage.setItem('user_class', cls.toString().trim());
-            }
-            if (no && no !== 'undefined' && no !== 'null' && no.toString().trim() !== '') {
-                localStorage.setItem('user_class_no', no.toString().trim());
-            }
-            
-            // 備份 username
-            const uname = userObj.username || userObj.user || userObj.account || userObj['帳號'] || (Array.isArray(userObj) ? userObj[0] : '');
-            if (uname && uname !== 'undefined' && uname !== 'null' && uname.toString().trim() !== '') {
-                localStorage.setItem('user_username', uname.toString().trim());
-            }
-        }
-
-        /**
-         * 系統初始化：優先加載背景並檢查由新共享機制 AuthStorage 所發放的憑證資料作自動登入
-         */
-        async function loadSheetData(isManual = false) {
-            if (isSyncing) return;
-            isSyncing = true;
-            const cloudIcons = [document.getElementById('hero-cloud-icon'), document.getElementById('win-cloud-icon')];
-            if (isManual) cloudIcons.forEach(i => { if(i) i.className = 'fas fa-spinner sync-spinning'; });
-            try {
-                // 1. ⚡ 性能優化點：非同步發起 Hero 數據加載，減少網絡堵塞
-                const heroPromise = fetch(HERO_DATA_URL)
-                    .then(res => res.text())
-                    .then(text => applyHeroData(parseCSV(text)))
-                    .catch(e => console.error("Hero background load failed:", e));
-
-                // 2. 檢索共享來源以接收 Token
-                const urlParams = new URLSearchParams(window.location.search);
-                let savedToken = urlParams.get('token') || 
-                                 urlParams.get('jwt') || 
-                                 localStorage.getItem('jwt_token') || 
-                                 localStorage.getItem('lumina_token') || 
-                                 localStorage.getItem('token') || 
-                                 localStorage.getItem('jwt') || 
-                                 localStorage.getItem('accessToken');
-
-                // 確保封面背景載入 Promise 完成
-                await heroPromise;
-
-                // 💡 預載遮罩在背景就緒後直接淡出
-                if (!isManual) {
-                    const pageLoader = document.getElementById('page-loader');
-                    if (pageLoader) {
-                        pageLoader.style.opacity = '0';
-                        setTimeout(() => { pageLoader.style.display = 'none'; }, 1000);
-                    }
-                }
-                                 
-                let tokenValid = false;
-                
-                if (savedToken) {
-                    // 💡 登入面板保持隱藏，防止閃爍
-                    const loginPanel = document.getElementById('hero-main-content');
-                    if (loginPanel) {
-                        loginPanel.style.opacity = '0';
-                        loginPanel.style.visibility = 'hidden';
-                    }
-
-                    // 立即拉起磨砂玻璃驗證窗，美觀地浮在封面背景之上
-                    const authOverlay = document.getElementById('auth-overlay');
-                    const authIcon = document.getElementById('auth-main-icon');
-                    const authIconContainer = document.getElementById('auth-icon-container');
-                    const authTitle = document.getElementById('auth-title');
-                    const authSubtitle = document.getElementById('auth-subtitle');
-                    
-                    authIcon.className = "fas fa-spinner auth-loading-icon";
-                    authIconContainer.className = "w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500";
-                    authTitle.innerText = "讀取憑證中";
-                    authSubtitle.innerText = "Securing Connection";
-                    authOverlay.style.display = 'flex';
-                    setTimeout(() => authOverlay.classList.add('show'), 10);
-
-                    // ⚡ 同步執行後端驗證（毫無人工多餘等待）
-                    tokenValid = await fetchHwDataWithToken(savedToken);
-
-                    if (tokenValid) {
-                        // 自動登入成功：寫入共享 Session
-                        localStorage.setItem('jwt_token', savedToken);
-                        localStorage.setItem('user_role', currentUserGrade);
-                        
-                        // 清除 URL Token 參數防洩露
-                        if (urlParams.has('token') || urlParams.has('jwt')) {
-                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
-                        }
-
-                        // 動態點亮等級徽章
-                        const badge = document.getElementById('user-grade-display');
-                        badge.innerText = currentUserGrade;
-                        badge.style.display = 'block';
-
-                        // 💡 究極加速：一旦驗證過，立刻以 1.2 秒的慢速漂移動畫淡出並加載資料夾，完全省略中間的 success 字樣 and 延遲
-                        authOverlay.classList.add('exit-up');
-                        setTimeout(() => { 
-                            authOverlay.classList.remove('show', 'exit-up');
-                            authOverlay.style.display = 'none';
-                            openHomeFolder(); 
-                        }, 1200); 
-
-                    } else {
-                        // 憑證失效：迅速還原並清理
-                        authOverlay.classList.remove('show');
-                        setTimeout(() => { authOverlay.style.display = 'none'; }, 600);
-                        localStorage.removeItem('jwt_token');
-                        localStorage.removeItem('lumina_token');
-
-                        if (loginPanel) {
-                            loginPanel.style.opacity = '1';
-                            loginPanel.style.visibility = 'visible';
-                            loginPanel.style.transition = 'opacity 0.8s ease';
-                        }
-                    }
-                }
-
-                if (isManual) {
-                    cloudIcons.forEach(i => { if(i) i.className = 'fas fa-check sync-success'; });
-                    setTimeout(() => { cloudIcons.forEach(i => { if(i) i.className = 'fas fa-cloud'; }); isSyncing = false; }, 2000);
-                } else {
-                    isSyncing = false;
-                }
-            } catch (error) { 
-                console.error(error);
-                isSyncing = false;
-                showAlert("同步失敗，請檢查網路連線");
-            }
-        }
-
-        async function fetchHwDataWithToken(token) {
-            try {
-                const response = await fetch(`${LOADER_GAS_URL}?action=getTopic&topicId=VOL10&token=${encodeURIComponent(token)}`);
-                const result = await response.json();
-                
-                if (result.result === 'success') {
-                    // 將角色等級寫入全局
-                    currentUserGrade = (result.user && result.user.role) ? result.user.role : (localStorage.getItem('user_role') || 'guest');
-                    if (result.user) {
-                        saveStudentData(result.user);
-                    }
-                    rawDataRows = result.data;
-                    updateHwList();
-                    return true;
-                } else {
-                    console.warn("Token 無效或已過期：", result.msg || result.details);
-                    return false;
-                }
-            } catch (e) {
-                console.error("安全鏈接失敗 (Loader-Side):", e);
-                return false;
-            }
-        }
-
-        function applyHeroData(heroRows) {
-            heroRows.forEach(row => {
-                if (row[0] === 'HEROSECTION') {
-                    if (row[1] === 'CONTENT_1') document.getElementById('hero-title').innerText = row[4];
-                    if (row[1] === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = row[4];
-                    if (row[1] === 'PHOTO') document.getElementById('hero-bg').src = row[4];
-                }
-            });
-        }
-
-        function updateHwList() {
-            const tempHW = [];
-            const seen = new Set();
-            rawDataRows.forEach(row => {
-                if (row[0] && row[0].toString().startsWith('HW') && !seen.has(row[0])) {
-                    seen.add(row[0]);
-                    const permission = (row[3] || '').toString().trim().toUpperCase();
-                    tempHW.push({ id: row[0], permission: permission });
-                }
-            });
-            hwList = tempHW.sort((a, b) => a.id.localeCompare(b.id));
-        }
-
-        function hasHwPermission(permission) {
-            if (!currentUserGrade) return false;
-            const p = (permission || '').trim().toUpperCase();
-            const u = currentUserGrade.toUpperCase();
-            if (u === 'TEACHER') return true;
-            if (p === 'ACTIVE' || p === '' || p === 'GUEST') return true;
-            if (p === 'NIL') return false;
-            const allowedGrades = p.split(',').map(g => g.trim().toUpperCase());
-            return allowedGrades.includes(u);
-        }
-
-        async function handleLoginAndBrowse() {
-            const userIn = document.getElementById('login-username').value.trim();
-            const passIn = document.getElementById('login-password').value; 
-            if (!userIn || !passIn) { showAlert("請輸入帳號與密碼"); return; }
-            
-            const authOverlay = document.getElementById('auth-overlay');
-            const authIcon = document.getElementById('auth-main-icon');
-            const authIconContainer = document.getElementById('auth-icon-container');
-            const authTitle = document.getElementById('auth-title');
-            const authSubtitle = document.getElementById('auth-subtitle');
-            
-            authIcon.className = "fas fa-spinner auth-loading-icon";
-            authIconContainer.className = "w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-500";
-            authTitle.innerText = "正在驗證";
-            authSubtitle.innerText = "請稍候片刻";
-            authOverlay.style.display = 'flex';
-            setTimeout(() => authOverlay.classList.add('show'), 10);
-            
-            try {
-                const guardResponse = await fetch(GUARD_GAS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8'
-                    },
-                    body: JSON.stringify({
-                        username: userIn,
-                        password: passIn
-                    })
-                });
-                
-                const guardResult = await guardResponse.json();
-                
-                if (guardResult.success && guardResult.token) {
-                    const freshToken = guardResult.token;
-                    
-                    saveStudentData(guardResult);
-                    if (guardResult.user) {
-                        saveStudentData(guardResult.user);
-                    }
-                    
-                    const loaderSuccess = await fetchHwDataWithToken(freshToken);
-                    
-                    if (loaderSuccess) {
-                        // 雙關卡全數通過！完整寫入 AuthStorage 所需的多組身分快取欄位
-                        localStorage.setItem('jwt_token', freshToken);
-                        localStorage.setItem('user_role', currentUserGrade);
-                        localStorage.setItem('user_username', userIn);
-                        
-                        authIcon.className = "fas fa-check";
-                        authIconContainer.classList.add('auth-success-icon', 'shadow-xl');
-                        authTitle.innerText = "驗證成功";
-                        authSubtitle.innerText = `歡迎進入 (${currentUserGrade})`;
-
-                        const badge = document.getElementById('user-grade-display');
-                        badge.innerText = currentUserGrade;
-                        badge.style.display = 'block';
-
-                        // 手動登入成功後同樣執行優雅的 Native Upward Slide 效果
-                        setTimeout(() => {
-                            authOverlay.classList.add('exit-up');
-                            setTimeout(() => { 
-                                authOverlay.classList.remove('show', 'exit-up');
-                                authOverlay.style.display = 'none';
-                                openHomeFolder(); 
-                            }, 1200);
-                        }, 1000);
-                    } else {
-                        authOverlay.classList.remove('show');
-                        setTimeout(() => { 
-                            authOverlay.style.display = 'none';
-                            showAlert("資料同步失敗，憑證無法被接收");
-                        }, 600);
-                    }
-                } else {
-                    authOverlay.classList.remove('show');
-                    setTimeout(() => { 
-                        authOverlay.style.display = 'none';
-                        showAlert(guardResult.message || "帳號或密碼錯誤");
-                    }, 600);
-                }
-            } catch (e) {
-                console.error("雙重驗證通道發生異常：", e);
-                authOverlay.classList.remove('show');
-                setTimeout(() => { 
-                    authOverlay.style.display = 'none';
-                    showAlert("登入連線失敗");
-                }, 600);
-            }
-        }
-
-        function handleLogout() {
-            currentUserGrade = null;
-            // 配合 AuthStorage 機制，徹底清除所有對應的共享快取欄位
-            localStorage.removeItem('jwt_token');
-            localStorage.removeItem('user_role');
-            localStorage.removeItem('user_username');
-            localStorage.removeItem('user_real_name');
-            localStorage.removeItem('user_class');
-            localStorage.removeItem('user_class_no');
-            localStorage.removeItem('lumina_token'); 
-            
-            document.getElementById('login-username').value = "";
-            document.getElementById('login-password').value = "";
-            document.getElementById('user-grade-display').style.display = 'none';
-            
-            // 恢復 Login panel 的顯示
-            const loginPanel = document.getElementById('hero-main-content');
-            if (loginPanel) {
-                loginPanel.style.opacity = '1';
-                loginPanel.style.visibility = 'visible';
-            }
-            
-            closeAllTabs();
-        }
-
-        function handleSystemShutdown() {
-            const overlay = document.getElementById('shutdown-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
-            setTimeout(() => { window.location.href = "https://phyuaaphysics.github.io/phyustudio/home.html"; }, 2500);
-        }
-
-        function manualRefresh() { loadSheetData(true); }
-        function openHomeFolder() { openTab("Browse ALL", "FOLDER"); }
-
-        function renderHomeFolder(containerId) {
-            const body = document.getElementById(containerId);
-            body.innerHTML = '';
-            
-            // 讀取對應的 localStorage 學生資料
-            const studentName = localStorage.getItem('user_real_name'); 
-            const studentClass = localStorage.getItem('user_class'); 
-            const studentNo = localStorage.getItem('user_class_no');
-            const username = localStorage.getItem('user_username');
-
-            // 只要有任何登入識別資訊存在，即在分欄項目上方加入高雅的學生個人資料卡片
-            if (studentName || studentClass || studentNo || username) {
-                const hasName = studentName && studentName !== 'undefined' && studentName !== 'null' && studentName.trim() !== '';
-                const displayName = hasName ? studentName.trim() : (username || '學生');
-                
-                const hasClass = studentClass && studentClass !== 'undefined' && studentClass !== 'null' && studentClass.trim() !== '';
-                const displayClass = hasClass ? studentClass.trim() : 'N/A';
-                
-                const hasNo = studentNo && studentNo !== 'undefined' && studentNo !== 'null' && studentNo.trim() !== '';
-                const displayNo = hasNo ? studentNo.trim() : 'N/A';
-
-                const card = document.createElement('div');
-                card.className = 'max-w-[1024px] mx-auto w-full px-6 pt-6 pb-2';
-                card.innerHTML = `
-                    <div class="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-2xl p-5 flex items-center justify-between shadow-sm">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center text-lg font-bold">
-                                <i class="fas fa-user-graduate"></i>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-[15px] font-black text-gray-800 tracking-wider">${displayName}</span>
-                                <span class="text-[11px] font-medium text-gray-500 tracking-widest uppercase">學生個人帳戶</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-6">
-                            <div class="flex flex-col items-end">
-                                <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">班別</span>
-                                <span class="text-[14px] font-black text-emerald-600 tracking-wider">${displayClass}</span>
-                            </div>
-                            <div class="h-8 w-[1px] bg-gray-200"></div>
-                            <div class="flex flex-col items-end">
-                                <span class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">學號</span>
-                                <span class="text-[14px] font-black text-emerald-600 tracking-wider">${displayNo}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                body.appendChild(card);
-            }
-
-            const listWrapper = document.createElement('div');
-            listWrapper.className = 'uniform-list-container';
-            hwList.forEach(hw => {
-                const isAllowed = hasHwPermission(hw.permission);
-                const row = document.createElement('div');
-                row.className = `list-item-row ${!isAllowed ? 'is-locked' : ''}`;
-                row.onclick = () => {
-                    if (isAllowed) openTab(hw.id, 'HW');
-                    else showAlert(`權限不足 (需要: ${hw.permission})`);
-                };
-                row.innerHTML = `
-                    <div class="flex items-center gap-5">
-                        <div class="w-10 h-10 rounded-2xl ${isAllowed ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'} flex items-center justify-center">
-                            <i class="fas ${isAllowed ? 'fa-layer-group' : 'fa-lock'} text-sm"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-[13px] font-black ${isAllowed ? 'text-gray-800' : 'text-gray-400'} tracking-widest uppercase">${hw.id}</span>
-                            <span class="text-[9px] font-medium text-gray-400 tracking-wider uppercase">${isAllowed ? '練習系列' : '受限內容'}</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 ${isAllowed ? 'text-emerald-500' : 'text-gray-300'}">
-                        <span class="text-[10px] font-bold tracking-widest uppercase">${isAllowed ? 'ENTER' : 'LOCKED'}</span>
-                        <i class="fas fa-chevron-right text-[10px]"></i>
-                    </div>
-                `;
-                listWrapper.appendChild(row);
-            });
-            body.appendChild(listWrapper);
-        }
-
-        function openTab(title, type, contentUrl = null) {
-            const id = type === 'FOLDER' ? 'HOME_FOLDER' : type + "_" + title.replace(/\s+/g, '_');
-            const existing = openTabs.find(t => t.id === id);
-            if (existing) { switchTab(id); return; }
-            const newTab = { id, title, type, contentUrl };
-            openTabs.push(newTab);
-            const body = document.getElementById('browser-window-body');
-            const page = document.createElement('div');
-            page.id = `page-${id}`;
-            page.className = 'win-content-page';
-            page.innerHTML = `<div id="content-${id}" class="w-full h-full flex flex-col p-0 overflow-y-auto"></div>`;
-            
-            body.appendChild(page);
-            if (type === 'HW') renderHWContent(title, `content-${id}`);
-            if (type === 'FOLDER') renderHomeFolder(`content-${id}`);
-            renderTabs();
-            switchTab(id);
-            const win = document.getElementById('main-browser-window');
-            win.style.display = 'flex';
-            document.getElementById('hero-main-content').classList.add('fade-exit-up');
-            setTimeout(() => { win.classList.add('open'); }, 80);
-        }
-
-        function renderTabs() {
-            const strip = document.getElementById('browser-tab-strip');
-            strip.innerHTML = '';
-            openTabs.forEach(tab => {
-                const el = document.createElement('div');
-                el.className = `browser-tab ${activeTabId === tab.id ? 'active' : ''}`;
-                el.onclick = () => switchTab(tab.id);
-                let iconClass = 'fa-file-alt text-emerald-500';
-                if (tab.type === 'FOLDER') iconClass = 'fa-th-list text-emerald-500';
-                if (tab.type === 'PIC') iconClass = 'fa-image text-blue-500';
-                if (tab.type === 'PDF') iconClass = 'fa-file-pdf text-orange-500';
-                el.innerHTML = `<i class="fas ${iconClass} text-[10px]"></i><span class="tab-title">${tab.title}</span><i class="fas fa-times tab-close" onclick="event.stopPropagation(); closeTab('${tab.id}')"></i>`;
-                strip.appendChild(el);
-            });
-        }
-
-        function switchTab(id) {
-            activeTabId = id;
-            document.querySelectorAll('.win-content-page').forEach(p => p.classList.remove('active'));
-            const activePage = document.getElementById(`page-${id}`);
-            if (activePage) activePage.classList.add('active');
-            renderTabs();
-        }
-
-        function closeTab(id) {
-            const index = openTabs.findIndex(t => t.id === id);
-            if (index === -1) return;
-            openTabs.splice(index, 1);
-            const pageEl = document.getElementById(`page-${id}`);
-            if (pageEl) pageEl.remove();
-            if (openTabs.length === 0) closeAllTabs();
-            else {
-                if (activeTabId === id) switchTab(openTabs[Math.max(0, index - 1)].id);
-                else renderTabs();
-            }
-        }
-
-        function closeAllTabs() {
-            openTabs = [];
-            activeTabId = null;
-            const win = document.getElementById('main-browser-window');
-            win.classList.remove('open');
-            document.getElementById('hero-main-content').classList.remove('fade-exit-up');
-            setTimeout(() => { 
-                win.style.display = 'none'; 
-                document.getElementById('browser-window-body').innerHTML = '';
-            }, 1200);
-        }
-
-        function renderHWContent(hwName, containerId) {
-            const body = document.getElementById(containerId);
-            body.innerHTML = ''; 
-            const hwData = rawDataRows.filter(row => row[0] === hwName);
-            const hwDefaultPermission = hwData[0] ? hwData[0][3] : '';
-            if (!hwData.length) { body.innerHTML = `<div class="p-10 text-center opacity-50 uppercase tracking-widest text-xs">Waiting for Content Update</div>`; return; }
-            const list = document.createElement('div');
-            list.className = 'uniform-list-container';
-            hwData.filter(row => row[1] === 'QUESTION').forEach((row, idx) => {
-                const subType = row[2];
-                const itemPermission = row[3] || hwDefaultPermission;
-                const isAllowed = hasHwPermission(itemPermission);
-                const fileUrl = row[4] || '';
-                const safeId = (hwName + subType + idx).replace(/\s+/g, '');
-                const title = subType === 'PIC' ? '查看圖片題目' : '查看 PDF 題目';
-                const icon = subType === 'PIC' ? 'fa-image' : 'fa-file-pdf';
-                const iconColor = isAllowed ? (subType === 'PIC' ? 'text-blue-500' : 'text-orange-500') : 'text-gray-300';
-                
-                const rowContainer = document.createElement('div');
-                rowContainer.className = 'flex flex-col';
-                const rowEl = document.createElement('div');
-                rowEl.className = `list-item-row ${!isAllowed ? 'is-locked' : 'bg-emerald-50/10'}`;
-                rowEl.innerHTML = `
-                    <div class="flex items-center gap-5">
-                        <i class="fas ${isAllowed ? icon : 'fa-lock'} ${iconColor} text-lg"></i>
-                        <span class="text-[13px] font-extrabold ${isAllowed ? 'text-gray-800' : 'text-gray-400'} uppercase tracking-widest">${title}</span>
-                    </div>
-                    <div class="flex items-center gap-2 ${isAllowed ? 'text-emerald-600' : 'text-gray-300'}">
-                        <span class="text-[9px] font-bold uppercase tracking-widest">${isAllowed ? 'EXPAND' : 'LOCKED'}</span>
-                        <i class="fas ${isAllowed ? 'fa-chevron-down' : 'fa-lock'} text-[10px]"></i>
-                    </div>
-                `;
-                const drawer = document.createElement('div');
-                drawer.id = `drawer-${safeId}`;
-                drawer.className = 'resource-drawer resource-drawer-question';
-
-                const toggleResource = (e) => {
-                    if (e) e.stopPropagation();
-                    if (!isAllowed) { showAlert(`權限不足 (需要: ${itemPermission})`); return; }
-                    if (!fileUrl) { showAlert('尚未配置檔案連結'); return; }
-                    if (drawer.classList.contains('expanded')) {
-                        drawer.classList.remove('expanded');
-                        setTimeout(() => { drawer.innerHTML = ''; }, 600);
-                    } else {
-                        document.querySelectorAll('.resource-drawer-question.expanded').forEach(d => {
-                            if (d !== drawer) { d.classList.remove('expanded'); setTimeout(() => { d.innerHTML = ''; }, 600); }
-                        });
-                        const contentHtml = subType === 'PIC' ? `<img src="${fileUrl}" class="resource-img">` : `<iframe src="${fileUrl}" class="resource-iframe"></iframe>`;
-                        drawer.innerHTML = `
-                            <div class="resource-content-container">
-                                ${contentHtml}
-                                <div class="resource-collapse-bar" onclick="event.stopPropagation(); document.getElementById('drawer-${safeId}').classList.remove('expanded'); setTimeout(()=>document.getElementById('drawer-${safeId}').innerHTML='',600)">
-                                    <i class="fas fa-chevron-up"></i>
-                                    <span>收回資源 COLLAPSE</span>
-                                </div>
-                            </div>
-                        `;
-                        drawer.classList.add('expanded');
-                    }
-                };
-                rowEl.onclick = toggleResource;
-                rowContainer.appendChild(rowEl);
-                rowContainer.appendChild(drawer);
-                list.appendChild(rowContainer);
-            });
-            
-            hwData.filter(row => row[1] === 'VIDEOS').forEach((row, idx) => {
-                const tag = row[2] || 'UNIT';
-                const itemPermission = row[3] || hwDefaultPermission;
-                const isAllowed = hasHwPermission(itemPermission);
-                const videoUrl = row[4] || '';
-                const safeId = (hwName + 'VID' + idx).replace(/\s+/g, '');
-                
-                const rowContainer = document.createElement('div');
-                rowContainer.className = 'flex flex-col';
-                const rowEl = document.createElement('div');
-                rowEl.className = `list-item-row ${!isAllowed ? 'is-locked' : ''}`;
-                rowEl.innerHTML = `
-                    <div class="flex items-center gap-5">
-                        <i class="fas ${isAllowed ? 'fa-play-circle' : 'fa-lock'} ${isAllowed ? 'text-emerald-500/70' : 'text-gray-300'} text-lg"></i>
-                        <span class="text-[13px] font-bold ${isAllowed ? 'text-gray-700' : 'text-gray-400'} uppercase tracking-widest">${tag}</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isAllowed ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 active:scale-90' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}" id="btn-play-${safeId}">
-                            <i class="fas ${isAllowed ? 'fa-play' : 'fa-lock'} ${isAllowed ? 'ml-0.5' : ''} text-[11px]"></i>
-                        </button>
-                    </div>
-                `;
-
-                const drawer = document.createElement('div');
-                drawer.id = `drawer-${safeId}`;
-                drawer.className = 'resource-drawer resource-drawer-video'; 
-                
-                const toggleVideo = (e) => {
-                    if (e) e.stopPropagation();
-                    if (!isAllowed) { showAlert(`權限不足 (需要: ${itemPermission})`); return; }
-                    if (!videoUrl) { showAlert('健全配置連結'); return; }
-                    if (drawer.classList.contains('expanded')) {
-                        drawer.classList.remove('expanded');
-                        setTimeout(() => { drawer.innerHTML = ''; }, 600);
-                    } else {
-                        document.querySelectorAll('.resource-drawer-video.expanded').forEach(d => {
-                            if (d !== drawer) { d.classList.remove('expanded'); setTimeout(() => { d.innerHTML = ''; }, 600); }
-                        });
-                        let embed = videoUrl.includes('watch?v=') ? videoUrl.replace('watch?v=', 'embed/') : videoUrl.replace('youtu.be/', 'youtube.com/embed/');
-                        drawer.innerHTML = `
-                            <div class="resource-content-container" style="background:#000;">
-                                <div style="width:100%; aspect-ratio:16/9;">
-                                    <iframe class="w-full h-full" src="${embed}${embed.includes('?') ? '&' : '?'}playsinline=1&autoplay=1" frameborder="0" allow="autoplay; fullscreen"></iframe>
-                                </div>
-                                <div class="resource-collapse-bar" onclick="event.stopPropagation(); document.getElementById('drawer-${safeId}').classList.remove('expanded'); setTimeout(()=>document.getElementById('drawer-${safeId}').innerHTML='',600)">
-                                    <i class="fas fa-chevron-up"></i>
-                                    <span>收回影片 COLLAPSE</span>
-                                </div>
-                            </div>
-                        `;
-                        drawer.classList.add('expanded');
-                    }
-                };
-                rowEl.onclick = toggleVideo;
-                rowContainer.appendChild(rowEl);
-                rowContainer.appendChild(drawer);
-                list.appendChild(rowContainer);
-
-                setTimeout(() => {
-                    const playBtn = document.getElementById(`btn-play-${safeId}`);
-                    if (playBtn) playBtn.onclick = toggleVideo;
-                }, 0);
-            });
-            body.appendChild(list);
-        }
-
-        function showAlert(text) { 
-            const alert = document.getElementById('custom-alert');
-            document.getElementById('alert-text').innerText = text; alert.classList.add('show'); 
-            setTimeout(() => alert.classList.remove('show'), 3000); 
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAppleDevice();
-            loadSheetData(false);
+      try {
+        // Use text/plain with explicit redirect parameter to follow Google Apps Script redirects securely
+        const response = await fetch(GAS_AUTH_URL, {
+          method: "POST",
+          mode: "cors",
+          redirect: "follow", // 確保跟隨 GAS 的 302 重新導向
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({ username, password })
         });
-    </script>
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Commit to localStorage
+          localStorage.setItem("userToken", data.token);
+          localStorage.setItem("userRole", data.role);
+          localStorage.setItem("userInfo", JSON.stringify(data.local_storage_data));
+
+          // Load success view UI
+          showStudentCard(data.local_storage_data, data.role);
+          loginForm.reset();
+        } else {
+          showError(data.message || "驗證失敗，請檢查輸入帳號或密碼");
+        }
+      } catch (err) {
+        console.error("Fetch error details:", err);
+        showError("無法連線至安全性認證端點。請確認您的 GAS 專案已正確部署。");
+      } finally {
+        resetSubmitBtn();
+      }
+    });
+
+    function resetSubmitBtn() {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `
+        <span>Login & Verify</span>
+      `;
+      lucide.createIcons();
+    }
+
+    // Handle session logging out
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.clear();
+      cardSection.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      if (secureBadge) secureBadge.classList.remove('hidden');
+    });
+
+    // Update and draw the beautiful Student Card interface
+    function showStudentCard(userInfo, role) {
+      document.getElementById('card-real-name').innerText = userInfo.real_name || '無名氏';
+      document.getElementById('card-class').innerText = userInfo.class || 'N/A';
+      document.getElementById('card-class-no').innerText = userInfo.class_no || 'N/A';
+      document.getElementById('card-student-id').innerText = userInfo.student_id || '無ID資料';
+
+      // Switch panels gracefully
+      loginSection.classList.add('hidden');
+      cardSection.classList.remove('hidden');
+      if (secureBadge) secureBadge.classList.add('hidden'); // 隱藏多餘的 header badge
+      
+      // 動態加載課程列表
+      fetchTopics();
+    }
+
+    // =======================================================
+    // 🚀 動態課程載入與權限比對 (GS Loader Integration)
+    // =======================================================
+    async function fetchTopics() {
+      const token = localStorage.getItem("userToken");
+      const userRole = (localStorage.getItem("userRole") || "student").toLowerCase();
+
+      if (!token) {
+        showError("Token 遺失，請重新登入。");
+        return;
+      }
+
+      topicsContainer.innerHTML = `
+        <div class="p-8 text-center text-sm text-slate-500/80">
+          <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>安全通道建立中，正在為您構建個人專屬課堂清單...</span>
+        </div>
+      `;
+
+      try {
+        // 利用 GET 動態拉取 loader.gs 的 getTopic 動作
+        const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(token)}`;
+        const response = await fetch(url, {
+          method: "GET",
+          mode: "cors"
+        });
+
+        const resData = await response.json();
+
+        if (resData.result === 'success') {
+          renderTopics(resData.data, userRole);
+        } else {
+          // 如果 Token 過期、失效或驗證不合，強制踢回登入頁
+          if (resData.requireLogin) {
+            localStorage.clear();
+            cardSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
+            if (secureBadge) secureBadge.classList.remove('hidden');
+            showError("認證已過期，請重新登入！");
+          } else {
+            topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-rose-800 font-medium">數據加載失敗: ${resData.msg}</div>`;
+          }
+        }
+      } catch (err) {
+        console.error("Fetch topics error:", err);
+        topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-rose-800 font-medium">連線異常，無法與課室資料庫同步。</div>`;
+      }
+    }
+
+    // 渲染課室排版 (ROLE 比對及 active/inactive 鎖定邏輯 - 已調成緊湊平行結構)
+    function renderTopics(rows, userRole) {
+      if (!rows || rows.length <= 1) {
+        topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
+        return;
+      }
+
+      // 排除第 0 列 (標題列：A: ROLE, B: session, C: Title, D: youtube link, E: status)
+      const dataRows = rows.slice(1);
+      
+      // 過濾使用者權限
+      const allowedRows = dataRows.filter(row => {
+        const rowRole = String(row[0] || "").trim().toLowerCase();
+        return (userRole === "teacher" || userRole === "admin" || userRole === userRole && rowRole === userRole);
+      });
+
+      // 按照 B 欄 (Session 順序) 進行排序
+      allowedRows.sort((a, b) => {
+        const numA = parseFloat(a[1]) || 0;
+        const numB = parseFloat(b[1]) || 0;
+        return numA - numB;
+      });
+
+      if (allowedRows.length === 0) {
+        topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500 font-medium">您的權限無法存取目前的課程。</div>`;
+        return;
+      }
+
+      topicsContainer.innerHTML = ""; // 清空
+
+      // 遍歷渲染符合權限的課程列
+      allowedRows.forEach(row => {
+        const session = String(row[1] || "").trim();
+        const title = String(row[2] || "").trim();
+        const ytLink = String(row[3] || "").trim();
+        const status = String(row[4] || "").trim().toLowerCase(); // active / inactive
+
+        const isActive = (status === "active");
+
+        // 建立單列 DOM 元素 (優化高度至 py-3，極大化空間利用率)
+        const rowEl = document.createElement("div");
+        rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${
+          isActive 
+            ? "hover:bg-white/45 cursor-pointer" 
+            : "opacity-40 cursor-not-allowed bg-slate-900/[0.04] text-slate-500"
+        }`;
+
+        // 拼接內容 (Session 與 Title 保持水平平行排列，優雅呈現)
+        rowEl.innerHTML = `
+          <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
+            <span class="w-8 h-8 rounded-lg bg-emerald-500/10 border ${
+              isActive ? "border-emerald-500/20 text-emerald-700" : "border-slate-400/20 text-slate-500"
+            } flex items-center justify-center shrink-0">
+              <i data-lucide="${isActive ? "layers" : "lock"}" class="w-3.5 h-3.5"></i>
+            </span>
+            <div class="flex items-center space-x-3 flex-1 min-w-0">
+              <span class="text-sm font-bold text-emerald-800 tracking-wide shrink-0 min-w-[55px]">${session}</span>
+              <span class="text-slate-400/30 select-none text-xs shrink-0">|</span>
+              <span class="text-sm text-slate-800 font-semibold truncate">${title}</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-1 ${
+            isActive ? "text-emerald-700" : "text-slate-500"
+          } text-xs font-bold tracking-widest ${isActive ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
+            <span>${isActive ? "ENTER" : "LOCKED"}</span>
+            <i data-lucide="${isActive ? "chevron-right" : "lock"}" class="w-3 h-3"></i>
+          </div>
+        `;
+
+        // 點擊事件：如果為 active，打開 YouTube 播放視窗
+        if (isActive) {
+          rowEl.addEventListener("click", () => {
+            if (ytLink) {
+              openVideoWindow(title, ytLink);
+            } else {
+              alert("本堂課程尚未配置影片網址。");
+            }
+          });
+        }
+
+        topicsContainer.appendChild(rowEl);
+      });
+
+      lucide.createIcons();
+    }
+
+    // =======================================================
+    // 🎬 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
+    // =======================================================
+    function openVideoWindow(title, url) {
+      // 解析 YouTube Video ID
+      let videoId = "";
+      try {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[2].length === 11) {
+          videoId = match[2];
+        } else {
+          videoId = url;
+        }
+      } catch (e) {
+        videoId = url;
+      }
+
+      document.getElementById('video-overlay-title').innerText = title;
+      document.getElementById('video-overlay').classList.remove('hidden');
+      
+      // 初始化簽到按鈕為隱藏狀態
+      document.getElementById('attendance-btn').classList.add('hidden');
+
+      // 初始化 YouTube Player (使用 API 動態構建)
+      if (isYtApiReady) {
+        if (ytPlayer) {
+          try {
+            ytPlayer.destroy();
+          } catch(e) {
+            console.error("Destroy failed", e);
+          }
+        }
+        
+        ytPlayer = new YT.Player('video-overlay-player', {
+          height: '100%',
+          width: '100%',
+          videoId: videoId,
+          playerVars: {
+            autoplay: 1,
+            controls: 0,        // 🚨 徹底移去 YouTube 內建播放控制列
+            disablekb: 1,       // 🚨 禁用鍵盤快捷鍵以防快進
+            rel: 0,
+            modestbranding: 1,
+            fs: 0               // 🚨 禁用原生全螢幕按鈕，防範控制列在全螢幕下跑出來
+          },
+          events: {
+            'onStateChange': onPlayerStateChange
+          }
+        });
+      } else {
+        console.warn("YouTube API 尚未就緒。");
+      }
+    }
+
+    // YouTube 播放狀態偵測
+    function onPlayerStateChange(event) {
+      // YT.PlayerState.ENDED (為 0) 代表影片完全播放結束
+      if (event.data === YT.PlayerState.ENDED) {
+        document.getElementById('attendance-btn').classList.remove('hidden');
+        lucide.createIcons();
+      }
+    }
+
+    // 自訂 Play 按鈕事件
+    document.getElementById('custom-play-btn').addEventListener('click', () => {
+      if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+        ytPlayer.playVideo();
+      }
+    });
+
+    // 自訂 Pause 按鈕事件
+    document.getElementById('custom-pause-btn').addEventListener('click', () => {
+      if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+        ytPlayer.pauseVideo();
+      }
+    });
+
+    // 關閉同頁播放器監聽
+    document.getElementById('close-video-btn').addEventListener('click', () => {
+      document.getElementById('video-overlay').classList.add('hidden');
+      if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+        ytPlayer.stopVideo();
+      }
+    });
+
+    // 完成簽到按鈕點擊監聽 (未來對接 Google GAS)
+    document.getElementById('attendance-btn').addEventListener('click', () => {
+      // 顯示簽到成功狀態
+      const btn = document.getElementById('attendance-btn');
+      btn.innerHTML = `
+        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+        <span>簽到紀錄已提交 (Saved)</span>
+      `;
+      btn.disabled = true;
+      btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+      lucide.createIcons();
+    });
+
+    // Display formatted errors
+    function showError(msg) {
+      errorText.innerText = msg;
+      errorMsg.classList.remove('hidden');
+      lucide.createIcons();
+    }
+  </script>
 </body>
 </html>
