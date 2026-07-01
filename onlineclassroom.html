@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -355,6 +356,21 @@
     document.addEventListener("DOMContentLoaded", async () => {
       // Initialize Lucide icons
       lucide.createIcons();
+      
+      // 🚀 核心優化：建立安全通道橋接程序，完美相容由另一 index.html 登入時寫入的憑證與身分資料 🚀
+      if (!localStorage.getItem("userToken") && localStorage.getItem("jwt_token")) {
+        const savedToken = localStorage.getItem("jwt_token");
+        const savedRole = localStorage.getItem("user_role") || "student";
+        const convertedUserInfo = {
+          real_name: localStorage.getItem("user_real_name") || "",
+          class: localStorage.getItem("user_class") || "",
+          class_no: localStorage.getItem("user_class_no") || "",
+          student_id: localStorage.getItem("user_username") || ""
+        };
+        localStorage.setItem("userToken", savedToken);
+        localStorage.setItem("userRole", savedRole);
+        localStorage.setItem("userInfo", JSON.stringify(convertedUserInfo));
+      }
       
       const savedUser = localStorage.getItem("userInfo");
       const savedToken = localStorage.getItem("userToken");
@@ -1011,3 +1027,5 @@
   </script>
 </body>
 </html>
+
+
