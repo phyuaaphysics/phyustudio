@@ -312,8 +312,8 @@
     // 指向 Loader 載入課程端點：
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbxYWLs22DosabEX35RtOQppHJ2X_av2FPWEbhvflSGOmUnJqQGwSBWki5HZgHVRSQA/exec";
     
-    // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
-    const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbyNWqspNXwi4Rj6EpFYNwg5mgtUAOXR_1lKpxjDK62JIaJohQ0h-jPcVQDV2YyDiQ/exec";
+    // 指向您全新指定的專屬簽到 Record 儲存端點：
+    const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbyTjDnpHtL-Cy3r5nrVrJMGiT-qyXqD69ZdMZyIepg3uGov8T3zYtTJMITsGDf-nvrM/exec";
 
     // DOM Elements
     const loginSection = document.getElementById('login-section');
@@ -338,20 +338,6 @@
     // 當前播放影音資訊追蹤
     let currentSession = "";
     let currentTitle = "";
-    let currentVideoWatched = false; // 追蹤目前點開的影片是否為「已看過」
-
-    // 🚀 安全讀取、解析 Local Storage 學生學籍資料的輔助函式
-    function getSafeUserInfo() {
-      try {
-        const stored = localStorage.getItem("userInfo");
-        if (stored && stored !== "undefined" && stored !== "null") {
-          return JSON.parse(stored) || {};
-        }
-      } catch (e) {
-        console.error("解析本機 userInfo 快取失敗:", e);
-      }
-      return {};
-    }
 
     // 非同步加載 YouTube Iframe API 
     (function() {
@@ -375,7 +361,7 @@
       const savedToken = localStorage.getItem("userToken");
       const savedRole = localStorage.getItem("userRole");
       
-      if (savedUser && savedToken) {
+      if (savedUser && savedUser !== "null" && savedToken) {
         try {
           showStudentCard(JSON.parse(savedUser), savedRole);
         } catch (e) {
@@ -447,7 +433,6 @@
       }
     });
 
-    // Reset login button status
     function resetSubmitBtn() {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `
@@ -510,9 +495,7 @@
         const resData = await response.json();
 
         if (resData.result === 'success') {
-          // 🚀 提取 Record 資料中，該使用者已觀看過的所有 Session
-          const records = resData.records || resData.record || [];
-          renderTopics(resData.data, userRole, records);
+          renderTopics(resData.data, userRole);
         } else {
           if (resData.requireLogin) {
             localStorage.clear();
@@ -531,7 +514,7 @@
     }
 
     // 渲染課室排版
-    function renderTopics(rows, userRole, records = []) {
+    function renderTopics(rows, userRole) {
       if (!rows || rows.length <= 1) {
         topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
         return;
@@ -558,34 +541,6 @@
         return;
       }
 
-      // 🚀 比對已觀看紀錄 (支援「原始陣列」與「物件陣列」雙重解析，保證在各種回傳格式下精確對應)
-      const userInfo = getSafeUserInfo();
-      const currentStudentName = (userInfo.real_name || "").trim();
-      const watchedSessions = new Set();
-      
-      if (Array.isArray(records)) {
-        records.forEach((row, idx) => {
-          if (idx === 0 && Array.isArray(row)) return; // 略過陣列形式的第一列標題
-          
-          let rowName = "";
-          let rowSession = "";
-          
-          if (Array.isArray(row)) {
-            // 原始二維陣列解構：欄E（姓名）對應索引 4，欄F（Session）對應索引 5
-            rowName = String(row[4] || "").trim();
-            rowSession = String(row[5] || "").trim();
-          } else if (typeof row === 'object' && row !== null) {
-            // 物件陣列解構：適應各種鍵名命名方式
-            rowName = String(row.NAME || row.name || row["姓名"] || "").trim();
-            rowSession = String(row.Session || row.session || row.SESSION || "").trim();
-          }
-          
-          if (rowName === currentStudentName && rowSession) {
-            watchedSessions.add(rowSession);
-          }
-        });
-      }
-
       topicsContainer.innerHTML = "";
 
       // 遍歷渲染符合權限的課程列
@@ -596,51 +551,20 @@
         const status = String(row[4] || "").trim().toLowerCase(); // active / inactive
 
         const isActive = (status === "active");
-        const isWatched = watchedSessions.has(session);
-        const isClickable = isActive || isWatched;
-
-        // 🚀 優化 UI：經比對已完成觀看之課堂，配以極致質感的半透明「淡綠色磨砂」背景顯示
-        let rowBgClass = "";
-        if (isWatched) {
-          rowBgClass = "bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
-        } else if (isActive) {
-          rowBgClass = "hover:bg-white/45 bg-transparent cursor-pointer";
-        } else {
-          rowBgClass = "opacity-40 cursor-not-allowed bg-slate-900/[0.04] text-slate-500";
-        }
 
         const rowEl = document.createElement("div");
-        rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
-
-        // 動態調整圖示
-        let iconName = "lock";
-        let iconCircleClass = "border-slate-400/20 text-slate-500 bg-slate-400/10";
-        if (isWatched) {
-          iconName = "check-circle-2";
-          iconCircleClass = "border-emerald-500/30 text-emerald-600 bg-emerald-500/20";
-        } else if (isActive) {
-          iconName = "layers";
-          iconCircleClass = "border-emerald-500/20 text-emerald-700 bg-emerald-500/10";
-        }
-
-        // 右側狀態文字與圖示
-        let statusText = "LOCKED";
-        let rightIcon = "lock";
-        let textClass = "text-slate-500";
-        if (isWatched) {
-          statusText = "COMPLETED";
-          rightIcon = "check";
-          textClass = "text-emerald-700 font-bold";
-        } else if (isActive) {
-          statusText = "ENTER";
-          rightIcon = "chevron-right";
-          textClass = "text-emerald-700";
-        }
+        rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${
+          isActive 
+            ? "hover:bg-white/45 cursor-pointer" 
+            : "opacity-40 cursor-not-allowed bg-slate-900/[0.04] text-slate-500"
+        }`;
 
         rowEl.innerHTML = `
           <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
-            <span class="w-8 h-8 rounded-lg border ${iconCircleClass} flex items-center justify-center shrink-0">
-              <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
+            <span class="w-8 h-8 rounded-lg bg-emerald-500/10 border ${
+              isActive ? "border-emerald-500/20 text-emerald-700" : "border-slate-400/20 text-slate-500"
+            } flex items-center justify-center shrink-0">
+              <i data-lucide="${isActive ? "layers" : "lock"}" class="w-3.5 h-3.5"></i>
             </span>
             <div class="flex items-center space-x-3 flex-1 min-w-0">
               <span class="text-sm font-bold text-emerald-800 tracking-wide shrink-0 min-w-[55px]">${session}</span>
@@ -648,16 +572,18 @@
               <span class="text-sm text-slate-800 font-semibold truncate">${title}</span>
             </div>
           </div>
-          <div class="flex items-center space-x-1 ${textClass} text-xs font-bold tracking-widest ${isClickable ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
-            <span>${statusText}</span>
-            <i data-lucide="${rightIcon}" class="w-3 h-3"></i>
+          <div class="flex items-center space-x-1 ${
+            isActive ? "text-emerald-700" : "text-slate-500"
+          } text-xs font-bold tracking-widest ${isActive ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
+            <span>${isActive ? "ENTER" : "LOCKED"}</span>
+            <i data-lucide="${isActive ? "chevron-right" : "lock"}" class="w-3 h-3"></i>
           </div>
         `;
 
-        if (isClickable) {
+        if (isActive) {
           rowEl.addEventListener("click", () => {
             if (ytLink) {
-              openVideoWindow(session, title, ytLink, isWatched);
+              openVideoWindow(session, title, ytLink);
             } else {
               alert("本堂課程尚未配置影片網址。");
             }
@@ -673,11 +599,10 @@
     // =======================================================
     // 🎬 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
     // =======================================================
-    function openVideoWindow(session, title, url, isWatched) {
+    function openVideoWindow(session, title, url) {
       // 紀錄當前播放課程細節
       currentSession = session;
       currentTitle = title;
-      currentVideoWatched = isWatched; // 設定全域變數，供播放控制邏輯讀取
 
       let videoId = "";
       try {
@@ -695,7 +620,8 @@
       document.getElementById('video-overlay-title').innerText = title;
       document.getElementById('video-overlay').classList.remove('hidden');
       
-      const btn = document.getElementById('attendance-btn');
+      // 初始化簽到按鈕與自訂按鈕狀態
+      document.getElementById('attendance-btn').classList.add('hidden');
       const playBtnSpan = document.querySelector('#custom-play-btn span');
       if (playBtnSpan) {
         playBtnSpan.innerText = "播放 (Play)";
@@ -705,17 +631,6 @@
       maxWatchedTime = 0;
       if (timeCheckInterval) clearInterval(timeCheckInterval);
       if (attendanceTimer) clearInterval(attendanceTimer);
-      
-      // 🚀 若已完成觀看與報到，直接顯示已完成報到狀態，不隱藏，亦無倒數計時與提交限制
-      if (isWatched) {
-        btn.classList.remove('hidden');
-        btn.disabled = true;
-        btn.className = "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-        btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到</span>`;
-      } else {
-        btn.classList.add('hidden');
-        btn.disabled = false; // 未看過的影片重置為未禁用
-      }
       
       if (isYtApiReady) {
         if (ytPlayer) {
@@ -745,10 +660,6 @@
       } else {
         console.warn("YouTube API 尚未就緒。");
       }
-
-      setTimeout(() => {
-        lucide.createIcons();
-      }, 50);
     }
 
     // 影片安全偵測定時器
@@ -757,11 +668,6 @@
       timeCheckInterval = setInterval(() => {
         if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
           const currentTime = ytPlayer.getCurrentTime();
-          
-          // 🚀 若此影片為「已觀看完成」狀態，則直接退出定時器，完全解除進度條拖拽、播放速度限制
-          if (currentVideoWatched) {
-            return; 
-          }
           
           // 鎖定播放速度：如果播放速度不為 1 倍速，強制重設回 1 倍速
           if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
@@ -796,10 +702,7 @@
 
       // YT.PlayerState.ENDED 代表影片完全播放結束
       if (event.data === YT.PlayerState.ENDED) {
-        // 🚀 只有在尚未觀看過該影片時，才需要啟動 2 分鐘簽到倒數機制
-        if (!currentVideoWatched) {
-          startAttendanceCountdown();
-        }
+        startAttendanceCountdown();
       }
     }
 
@@ -847,20 +750,7 @@
           // 重設簽到機制與觀看紀錄，重新回到 0 秒開始
           maxWatchedTime = 0;
           if (attendanceTimer) clearInterval(attendanceTimer);
-          
-          // 🚀 重新播放時，若是已觀看完成之課程，保持其已簽到樣式，不隱藏按鈕
-          if (currentVideoWatched) {
-            const btn = document.getElementById('attendance-btn');
-            btn.classList.remove('hidden');
-            btn.disabled = true;
-            btn.className = "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-            btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到</span>`;
-          } else {
-            const btn = document.getElementById('attendance-btn');
-            btn.classList.add('hidden');
-            btn.disabled = false; // 未看過的影片重置為未禁用
-          }
-          
+          document.getElementById('attendance-btn').classList.add('hidden');
           playBtnSpan.innerText = "播放 (Play)";
           ytPlayer.seekTo(0, true);
         }
@@ -902,20 +792,21 @@
       lucide.createIcons();
 
       const token = localStorage.getItem("userToken");
-      const userInfo = getSafeUserInfo();
+      // 🚀 雙重安全防護機制：若 localStorage 中的 userInfo 為空、"null" 或未定義，則自動解構成空物件 {}
+      const userInfoRaw = localStorage.getItem("userInfo");
+      const userInfo = (userInfoRaw && userInfoRaw !== "null") ? JSON.parse(userInfoRaw) : {};
       const userRole = localStorage.getItem("userRole") || "student";
 
-      if (!token || token === "null" || token === "undefined") {
+      if (!token) {
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：未登入</span>`;
         btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
-        btn.disabled = false;
         lucide.createIcons();
         return;
       }
 
       try {
-        // 將簽到資料發送給最新的專屬簽到端點 (GAS_ATTENDANCE_URL)
-        // 直接將 Local Storage 取得的詳細資料與當前影片標題完整打包傳遞給後端
+        // 將簽到資料發送給全新的專屬簽到端點 (GAS_ATTENDANCE_URL)
+        // 並將儲存在 local storage 中的學生識別資料一併發送
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
@@ -936,14 +827,7 @@
           })
         });
 
-        // 🚀 採用更強健的安全文本載入與防崩潰 JSON 解析
-        const resText = await response.text();
-        let resData;
-        try {
-          resData = JSON.parse(resText);
-        } catch (e) {
-          resData = { success: false, message: "伺服器傳回格式不正確" };
-        }
+        const resData = await response.json();
 
         if (resData.success) {
           // 顯示簽到成功狀態
@@ -952,11 +836,8 @@
             <span>簽到紀錄已提交 (Saved)</span>
           `;
           btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-          
-          // 🚀 簽到成功後，自動重新加載課程清單以即時更新選單上的已完成綠色效果與狀態
-          fetchTopics();
         } else {
-          btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message || "未知錯誤"}</span>`;
+          btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
           btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
         }
       } catch (err) {
