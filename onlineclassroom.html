@@ -883,7 +883,7 @@
     });
 
     // =======================================================
-    // 🚀 送出簽到紀錄至 GAS 端點 (Attendance Submit) - 採用穩定版之整合機制
+    // 🚀 送出簽到紀錄至 GAS 端點 (Attendance Submit)
     // =======================================================
     document.getElementById('attendance-btn').addEventListener('click', async function() {
       if (currentVideoWatched) return; // 已經看過，不重複觸發
@@ -900,6 +900,7 @@
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
+          redirect: "follow", // 🚀 關鍵修復 1: 增加跟隨 GAS 的 302 重新導向，解決 CORS 導向產生的「網路連線錯誤」
           headers: {
             "Content-Type": "text/plain;charset=utf-8"
           },
@@ -907,7 +908,7 @@
             token: token,
             session: currentSession,
             title: currentTitle,
-            real_name: userInfo.real_name || "",
+            real_name: userInfo.real_name || "", // 🚀 關鍵修復 2: 依據 GAS 變數 (data.real_name)，將 name 欄位更正為 real_name
             class: userInfo.class || "",
             class_no: userInfo.class_no || "",
             role: userRole
@@ -924,16 +925,16 @@
           `;
           btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           
-          // 🚀 簽到成功後，自動重新加載課程清單以即時更新選單上的已完成綠色效果與狀態 (兼容新版動態渲染)
+          // 🚀 簽到成功後，自動重新加載課程清單以即時更新選單上的已完成綠色效果與狀態
           fetchTopics();
         } else {
-          btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
+          btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message || "未知錯誤"}</span>`;
           btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
         }
       } catch (err) {
         console.error("Attendance submission error:", err);
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路連線錯誤，請重試</span>`;
-        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
+        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
       }
     });
 
@@ -946,4 +947,5 @@
   </script>
 </body>
 </html>
+
 
