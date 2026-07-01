@@ -983,9 +983,8 @@
           method: "POST",
           mode: "cors",
           redirect: "follow",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
+          // 💡 移除不相容且易被 Google CORS 防火牆預檢阻攔的自訂 "Content-Type" 標頭
+          // 此舉確保請求能作為 "Simple Request" 直接傳送，杜絕 OPTIONS 預檢失敗導致的「網路連線錯誤」
           body: JSON.stringify({
             action: "submitAttendance",
             token: token,
