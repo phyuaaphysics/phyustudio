@@ -72,6 +72,31 @@
     .animate-fade-in {
       animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+
+    /* OS 風格擬真彈性阻尼淡入動畫 (OS Art Style Damping) */
+    @keyframes osDamping {
+      0% {
+        opacity: 0;
+        transform: translateY(60px) scale(0.95);
+        filter: blur(8px);
+      }
+      55% {
+        opacity: 0.9;
+        transform: translateY(-6px) scale(1.01);
+        filter: blur(0px);
+      }
+      75% {
+        transform: translateY(2px) scale(0.997);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+      }
+    }
+    .animate-os-damping {
+      animation: osDamping 1.1s cubic-bezier(0.25, 1, 0.2, 1) forwards;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 relative">
@@ -92,7 +117,7 @@
     <!-- ========================================== -->
     <!-- SECTION 1: 極致美學登入面板 (預設隱藏以防 token 驗證時閃爍) -->
     <!-- ========================================== -->
-    <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl hidden">
+    <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-os-damping mt-6 shadow-2xl hidden">
       
       <!-- 官方 APP ICON (直角矩形置中，不使用圓角) -->
       <div class="flex justify-center mb-8">
@@ -633,7 +658,7 @@
 
       // 🚀 比對已觀看紀錄 (欄E: NAME (index 4), 欄F: Session (index 5))
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      const currentStudentName = (userInfo.real_name || "").trim();
+      const currentStudentName = (userInfo.real_name || userInfo.realName || userInfo.name || localStorage.getItem("user_real_name") || "").trim();
       const watchedSessions = new Set();
 
       let finalRecords = records;
@@ -949,7 +974,9 @@
       }
     });
 
-    // 完成簽到按鈕點擊監聽 (對接 Google GAS 並儲存到 Record 分頁)
+    // =======================================================
+    // 🚀 重塑之簽到提交邏輯 (對接 Google GAS 並保障數據傳輸完整)
+    // =======================================================
     document.getElementById('attendance-btn').addEventListener('click', async () => {
       if (attendanceTimer) clearInterval(attendanceTimer);
       
@@ -969,15 +996,22 @@
       const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
       const userRole = localStorage.getItem("userRole") || "student";
 
-      if (!token) {
-        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：未登入</span>`;
+      // 🔍 精密提取 & 防空對策：支援多種欄位命名風格
+      const studentId = (userInfo.student_id || userInfo.studentId || userInfo.username || localStorage.getItem("user_username") || "").trim();
+      const realName = (userInfo.real_name || userInfo.realName || userInfo.name || localStorage.getItem("user_real_name") || "").trim();
+      const studentClass = (userInfo.class || localStorage.getItem("user_class") || "N/A").trim();
+      const classNo = (userInfo.class_no || userInfo.classNo || localStorage.getItem("user_class_no") || "N/A").trim();
+
+      if (!token || !studentId || !realName) {
+        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：學生資訊或 Token 不完整</span>`;
         btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
+        btn.disabled = false;
         lucide.createIcons();
         return;
       }
 
       try {
-        // 將簽到資料發送給最新的專屬簽到端點 (GAS_ATTENDANCE_URL)
+        // 發送簽到資料 (將資料打包成 JSON 字串以繞過 Preflight CORS 限制)
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
@@ -990,25 +1024,30 @@
             token: token,
             session: currentSession,
             title: currentTitle,
-            student_id: userInfo.student_id,
-            real_name: userInfo.real_name,
-            class: userInfo.class,
-            class_no: userInfo.class_no,
+            student_id: studentId,
+            real_name: realName,
+            class: studentClass,
+            class_no: classNo,
             role: userRole
           })
         });
 
-        const resData = await response.json();
+        const responseText = await response.text();
+        let resData;
+        try {
+          resData = JSON.parse(responseText);
+        } catch (e) {
+          throw new Error("伺服器回應格式不正確：" + responseText.substring(0, 100));
+        }
 
         if (resData.success) {
-          // 顯示簽到成功狀態
           btn.innerHTML = `
             <i data-lucide="check-circle-2" class="w-4 h-4"></i>
             <span>簽到紀錄已提交 (Saved)</span>
           `;
           btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           
-          // 🚀 簽到成功後，自動重新加載課程清單以即時更新選單上的已完成綠色效果與狀態
+          // 重新整理主題狀態
           fetchTopics();
         } else {
           btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
@@ -1016,9 +1055,9 @@
         }
       } catch (err) {
         console.error("Attendance submission error:", err);
-        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路連線錯誤，請重試</span>`;
+        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路或伺服器異常，請點擊重試</span>`;
         btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
-        btn.disabled = false; // 網路錯誤允許重試
+        btn.disabled = false; // 失敗允許再點擊嘗試一次
       } finally {
         lucide.createIcons();
       }
