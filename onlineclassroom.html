@@ -374,7 +374,7 @@
       return str;
     }
 
-    // 🚀 單一、明確的取值方式：完全使用 user_real_name, user_class, user_class_no 等扁平鍵作為第一物理來源
+    // 🚀 學生資料統一取值與回寫 (配合指定扁平鍵)
     function getStudentDetails() {
       let realName = cleanVal(localStorage.getItem("user_real_name"));
       let studentClass = cleanVal(localStorage.getItem("user_class"));
@@ -403,7 +403,7 @@
       if (!classNo) classNo = "N/A";
       if (!studentId) studentId = "無ID資料";
 
-      // 🚀 強制同步回寫：保障這三個 user_real_name, user_class, user_class_no 鍵在任何時候均已牢固寫入
+      // 🚀 強制同步回寫，以保障 storage keys 發揮完整功效
       localStorage.setItem("user_real_name", realName);
       localStorage.setItem("user_class", studentClass);
       localStorage.setItem("user_class_no", classNo);
@@ -499,7 +499,7 @@
             throw new Error("Token 驗證失效");
           }
         } catch (e) {
-          // 驗證失敗，清除快取，移除載入器，要求登入
+          // 驗證失敗，清除快取，要求登入
           localStorage.clear();
           tempLoader.remove();
           loginSection.classList.remove('hidden');
@@ -1063,9 +1063,9 @@
       }
     });
 
-    // =======================================================
-    // 🚀 重塑之簽到提交邏輯 (對接 Google GAS 並保障數據傳輸完整)
-    // =======================================================
+    // ====================================================================
+    // 🚀 穩定版簽到提交邏輯 (融合指定的 flat keys 進行儲存)
+    // ====================================================================
     document.getElementById('attendance-btn').addEventListener('click', async () => {
       if (attendanceTimer) clearInterval(attendanceTimer);
       
@@ -1084,110 +1084,57 @@
       const token = localStorage.getItem("userToken");
       const userRole = localStorage.getItem("userRole") || "student";
 
-      // 🔍 終極雙源提取：強制由您的 user_real_name, user_class, user_class_no 指定 flat keys 中優先提取數值
+      // 🔍 從 user_real_name, user_class, user_class_no 指定 flat keys 中完全取值
       const details = getStudentDetails();
       
-      let studentId = details.studentId;
-      let realName = details.realName;
-      let studentClass = details.studentClass;
-      let classNo = details.classNo;
-
-      // 🚀 DOM 實時保障：若卡片中顯示的值有效，直接抓取螢幕顯示的數值，做為最高優先級保障，徹底防止空傳寫入 CSV
-      const domRealName = cleanVal(document.getElementById('card-real-name').innerText);
-      const domClass = cleanVal(document.getElementById('card-class').innerText);
-      const domClassNo = cleanVal(document.getElementById('card-class-no').innerText);
-      const domStudentId = cleanVal(document.getElementById('card-student-id').innerText);
-
-      if (domRealName && domRealName !== "--") realName = domRealName;
-      if (domClass && domClass !== "--") studentClass = domClass;
-      if (domClassNo && domClassNo !== "--") classNo = domClassNo;
-      if (domStudentId && domStudentId !== "--") studentId = domStudentId;
-
-      // 🚀 極致安全防空：如果缺少任何關鍵學籍資訊，決不發送以避免寫入空 CSV
-      if (!token || !studentId || studentId === "無ID資料" || !realName || realName === "無名氏") {
-        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：學生資訊或 Token 不完整</span>`;
-        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
-        btn.disabled = false;
-        lucide.createIcons();
-        return;
-      }
-
-      // 🚀 建立傳輸對象：封裝的參數名稱 class 與 class_no 完全與 GAS 接收端 `doPost(e)` 對齊
-      const payload = {
-        action: "submitAttendance",
-        token: token,
-        session: currentSession,
-        title: currentTitle,
-        student_id: studentId,
-        real_name: realName,
-        class: studentClass,
-        class_no: classNo,
-        role: userRole
-      };
+      const studentId = details.studentId;
+      const realName = details.realName;
+      const studentClass = details.studentClass;
+      const classNo = details.classNo;
 
       try {
-        // 第一管道：嘗試標準 CORS 請求以解析精確的回應
+        // 使用與 Old Stable Ver 完全對齊的標準傳輸與 CORS 設定
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
           redirect: "follow",
           headers: {
-            "Content-Type": "text/plain"
+            "Content-Type": "text/plain;charset=utf-8"
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            action: "submitAttendance",
+            token: token,
+            session: currentSession,
+            title: currentTitle,
+            student_id: studentId,
+            real_name: realName,
+            class: studentClass,
+            class_no: classNo,
+            role: userRole
+          })
         });
 
-        const responseText = await response.text();
-        let resData;
-        try {
-          resData = JSON.parse(responseText);
-        } catch (e) {
-          throw new Error("伺服器回應格式不正確：" + responseText.substring(0, 100));
-        }
+        const resData = await response.json();
 
         if (resData.success) {
+          // 顯示簽到成功狀態
           btn.innerHTML = `
             <i data-lucide="check-circle-2" class="w-4 h-4"></i>
             <span>簽到紀錄已提交 (Saved)</span>
           `;
           btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           
-          // 重新整理主題狀態
+          // 刷新主題列表
           fetchTopics();
         } else {
           btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
           btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
         }
       } catch (err) {
-        console.warn("第一管道提交失敗（可能存在瀏覽器 CORS 或多重登入衝突），立即嘗試安全備用通道...", err);
-        
-        try {
-          // 第二管道：使用 no-cors 模式強行發送。此模式會繞過所有瀏覽器的跨網域阻擋
-          // 雖然我們無法讀取其 Response Body，但能確保 Payload 安全抵達 Google Sheet 進行追加
-          await fetch(GAS_ATTENDANCE_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-              "Content-Type": "text/plain"
-            },
-            body: JSON.stringify(payload)
-          });
-
-          // 備用通道傳輸成功 (由於 no-cors 將靜默完成，故直接視為成功提交)
-          btn.innerHTML = `
-            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-            <span>簽到紀錄已提交 (Saved via Backup)</span>
-          `;
-          btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-          
-          // 刷新主題狀態以同步列表上的已完成綠色標記
-          fetchTopics();
-        } catch (fallbackErr) {
-          console.error("備用通道發送亦告失敗：", fallbackErr);
-          btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路或伺服器異常，請點擊重試</span>`;
-          btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
-          btn.disabled = false; // 失敗允許再點擊嘗試一次
-        }
+        console.error("Attendance submission error:", err);
+        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路連線錯誤，請重試</span>`;
+        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
+        btn.disabled = false;
       } finally {
         lucide.createIcons();
       }
