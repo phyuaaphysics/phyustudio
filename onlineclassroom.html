@@ -363,6 +363,61 @@
     let currentTitle = "";
     let currentVideoWatched = false; // 🚀 追蹤目前點開的影片是否為「已看過」
 
+    // =======================================================
+    // 🔍 終極容錯數據解析與過濾方法
+    // =======================================================
+    function cleanVal(val) {
+      if (val === null || val === undefined) return "";
+      const str = String(val).trim();
+      if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料") return "";
+      return str;
+    }
+
+    function getStudentDetails() {
+      let userInfo = {};
+      try {
+        const rawInfo = localStorage.getItem("userInfo");
+        if (rawInfo && rawInfo !== "undefined" && rawInfo !== "null") {
+          userInfo = JSON.parse(rawInfo);
+        }
+      } catch (e) {
+        userInfo = {};
+      }
+
+      // 順序嘗試所有可能的命名標準 (snake_case, camelCase 等)
+      let realName = cleanVal(userInfo.real_name) || 
+                     cleanVal(userInfo.realName) || 
+                     cleanVal(userInfo.name) || 
+                     cleanVal(localStorage.getItem("user_real_name")) || 
+                     cleanVal(localStorage.getItem("real_name")) || 
+                     cleanVal(localStorage.getItem("realName"));
+      if (!realName) realName = "無名氏";
+
+      let studentClass = cleanVal(userInfo.class) || 
+                         cleanVal(userInfo.studentClass) || 
+                         cleanVal(localStorage.getItem("user_class")) || 
+                         cleanVal(localStorage.getItem("class"));
+      if (!studentClass) studentClass = "N/A";
+
+      let classNo = cleanVal(userInfo.class_no) || 
+                    cleanVal(userInfo.classNo) || 
+                    cleanVal(localStorage.getItem("user_class_no")) || 
+                    cleanVal(localStorage.getItem("class_no")) || 
+                    cleanVal(localStorage.getItem("classNo"));
+      if (!classNo) classNo = "N/A";
+
+      let studentId = cleanVal(userInfo.student_id) || 
+                      cleanVal(userInfo.studentId) || 
+                      cleanVal(userInfo.username) || 
+                      cleanVal(localStorage.getItem("user_username")) || 
+                      cleanVal(localStorage.getItem("username")) || 
+                      cleanVal(localStorage.getItem("student_id")) || 
+                      cleanVal(localStorage.getItem("studentId"));
+      if (!studentId) studentId = "無ID資料";
+
+      return { realName, studentClass, classNo, studentId };
+    }
+
     // 非同步加載 YouTube Iframe API 
     (function() {
       const tag = document.createElement('script');
@@ -403,11 +458,11 @@
         }
       }
       
-      const savedUser = localStorage.getItem("userInfo");
       const savedToken = localStorage.getItem("userToken");
       const savedRole = localStorage.getItem("userRole");
+      const details = getStudentDetails();
       
-      if (savedUser && savedToken) {
+      if (details.studentId !== "無ID資料" && savedToken) {
         // 建立優雅的臨時安全驗證載入狀態
         const tempLoader = document.createElement('div');
         tempLoader.id = 'temp-loader';
@@ -433,7 +488,7 @@
           if (resData.result === 'success') {
             // 驗證成功，移除載入狀態，顯示學生卡片與課程清單
             tempLoader.remove();
-            showStudentCard(JSON.parse(savedUser), savedRole);
+            showStudentCard({}, savedRole);
           } else {
             throw new Error("Token 驗證失效");
           }
@@ -532,10 +587,11 @@
 
     // Update and draw the beautiful Student Card interface
     function showStudentCard(userInfo, role) {
-      document.getElementById('card-real-name').innerText = userInfo.real_name || '無名氏';
-      document.getElementById('card-class').innerText = userInfo.class || 'N/A';
-      document.getElementById('card-class-no').innerText = userInfo.class_no || 'N/A';
-      document.getElementById('card-student-id').innerText = userInfo.student_id || '無ID資料';
+      const details = getStudentDetails();
+      document.getElementById('card-real-name').innerText = details.realName;
+      document.getElementById('card-class').innerText = details.studentClass;
+      document.getElementById('card-class-no').innerText = details.classNo;
+      document.getElementById('card-student-id').innerText = details.studentId;
 
       // Switch panels gracefully
       loginSection.classList.add('hidden');
@@ -657,8 +713,8 @@
       }
 
       // 🚀 比對已觀看紀錄 (欄E: NAME (index 4), 欄F: Session (index 5))
-      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      const currentStudentName = (userInfo.real_name || userInfo.realName || userInfo.name || localStorage.getItem("user_real_name") || "").trim();
+      const details = getStudentDetails();
+      const currentStudentName = details.realName.trim();
       const watchedSessions = new Set();
 
       let finalRecords = records;
@@ -993,16 +1049,16 @@
       lucide.createIcons();
 
       const token = localStorage.getItem("userToken");
-      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
       const userRole = localStorage.getItem("userRole") || "student";
 
       // 🔍 精密提取 & 防空對策：支援多種欄位命名風格
-      const studentId = (userInfo.student_id || userInfo.studentId || userInfo.username || localStorage.getItem("user_username") || "").trim();
-      const realName = (userInfo.real_name || userInfo.realName || userInfo.name || localStorage.getItem("user_real_name") || "").trim();
-      const studentClass = (userInfo.class || localStorage.getItem("user_class") || "N/A").trim();
-      const classNo = (userInfo.class_no || userInfo.classNo || localStorage.getItem("user_class_no") || "N/A").trim();
+      const details = getStudentDetails();
+      const studentId = details.studentId;
+      const realName = details.realName;
+      const studentClass = details.studentClass;
+      const classNo = details.classNo;
 
-      if (!token || !studentId || !realName) {
+      if (!token || studentId === "無ID資料" || realName === "無名氏") {
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：學生資訊或 Token 不完整</span>`;
         btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
         btn.disabled = false;
