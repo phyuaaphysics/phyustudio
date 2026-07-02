@@ -403,6 +403,25 @@
         </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- 🚀 出席數據查閱入口卡片 -->
+      <!-- ========================================== -->
+      <div id="attendance-lookup-btn" class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center cursor-pointer hover:bg-white/45 transition duration-300 shadow-sm border border-slate-200">
+        <div class="flex items-center space-x-4">
+          <div class="w-11 h-11 bg-indigo-500/10 border border-indigo-400/20 rounded-full flex items-center justify-center text-indigo-700 shadow-sm shrink-0">
+            <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <h3 class="text-lg font-bold tracking-wide text-slate-900 shippori-title">出席數據查閱</h3>
+            <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">全班出席率與課程完成進度</p>
+          </div>
+        </div>
+        <div class="flex items-center text-indigo-700 text-xs font-bold tracking-widest">
+          <span>展開查閱</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 ml-1"></i>
+        </div>
+      </div>
+
       <!-- 底層資料註腳標記 -->
       <div class="flex justify-between items-center px-4 text-[10px] text-slate-500/70 uppercase tracking-widest">
         <span>學員代碼識別: <span id="card-student-id" class="font-mono bg-white/40 px-2 py-0.5 rounded ml-1 text-slate-800 border border-white/50">--</span></span>
@@ -469,6 +488,60 @@
     </footer>
   </div>
 
+  <!-- ========================================== -->
+  <!-- 🚀 SECTION 4: 出席數據查閱滿版彈窗 (iOS 級阻尼轉場) -->
+  <!-- ========================================== -->
+  <div id="attendance-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
+    <!-- 頂部控制列 -->
+    <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shrink-0">
+      <div class="flex items-center space-x-3">
+        <span class="text-xs tracking-widest text-indigo-700 font-bold bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-400/20 shadow-sm">ATTENDANCE REPORT</span>
+        <h1 class="text-sm font-bold tracking-wide text-slate-950 shippori-title">出席數據查閱</h1>
+      </div>
+      <button id="close-attendance-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
+        ✕
+      </button>
+    </header>
+
+    <!-- 內容主區域 -->
+    <main class="flex-1 w-full overflow-hidden p-4 md:p-6 space-y-4 max-w-7xl mx-auto flex flex-col justify-start min-h-0">
+      <div class="text-left space-y-1 shrink-0">
+        <h2 class="text-xl md:text-2xl font-bold text-slate-950 shippori-title tracking-wide">全班出席狀態一覽表</h2>
+        <p class="text-xs text-slate-500">本表展示您所屬群組 (Role) 所有同學的補課完成進度。完成之課程將以綠色勾號顯示。</p>
+      </div>
+
+      <!-- 數據加載狀態 -->
+      <div id="attendance-table-loader" class="crystal-panel rounded-2xl p-12 text-center text-sm text-slate-500 flex-1 flex flex-col items-center justify-center">
+        <svg class="animate-spin h-8 w-8 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>正在從雲端調取學生名單與出席數據...</span>
+      </div>
+
+      <!-- 響應式滾動表格卡片 -->
+      <div id="attendance-table-container" class="hidden crystal-panel rounded-2xl overflow-hidden shadow-md flex-1 flex flex-col min-h-0 border border-slate-200">
+        <div class="overflow-auto flex-1">
+          <table class="w-full text-left border-collapse min-w-[700px] text-xs">
+            <thead class="bg-slate-100/90 sticky top-0 z-10 border-b border-slate-200">
+              <tr id="attendance-table-header">
+                <!-- 動態寫入表頭 -->
+              </tr>
+            </thead>
+            <tbody id="attendance-table-body" class="divide-y divide-slate-200/60 bg-white/40 font-medium">
+              <!-- 動態寫入每一列 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部宣告 -->
+    <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50 shrink-0">
+      &copy; 2026 PH Studio. All rights reserved.
+    </footer>
+  </div>
+
   <!-- Footer Info (極簡低對比) -->
   <footer class="w-full max-w-6xl text-center py-2 text-[10px] tracking-[0.2em] uppercase text-slate-500/60 z-10 shrink-0">
     <p>&copy; 2026 PH Studio. All rights reserved.</p>
@@ -484,6 +557,9 @@
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
     // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
     const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbx_TGZzwkLS2-igfam2c9NetRG9s1zNYbTd5F-HlYCD3K0ew0Q2utfvlX3q03kdtCj8/exec";
+
+    // 🚀 學生 roster 試算表 JSON 調取端點 (NAME分頁)
+    const ROSTER_JSON_URL = "https://docs.google.com/spreadsheets/d/1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU/gviz/tq?tqx=out:json&sheet=NAME";
 
     // DOM Elements
     const loginSection = document.getElementById('login-section');
@@ -531,6 +607,12 @@
       const str = String(val).trim();
       if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料" || str === "--") return "";
       return str;
+    }
+
+    // 🚀 核心優化：消除全形與半形空白、特殊不可見字元，保證比對完全一致
+    function stripAllSpaces(str) {
+      if (!str) return "";
+      return String(str).replace(/[\s\u3000]/g, ""); // 移除所有半形及日文/中文全形空白 (\u3000)
     }
 
     // 🚀 解決 Google Sheets 時區序列化偏差，將 UTC 或各式時間字串完美轉回本地 `YYYY年M月D日` (防時區位移版)
@@ -682,6 +764,24 @@
         filteredDateStr = null;
         renderCalendar();
         executeFilterRender();
+      });
+
+      // 🚀 「出席數據查閱」開啟點擊監聽
+      document.getElementById('attendance-lookup-btn').addEventListener('click', () => {
+        const overlay = document.getElementById('attendance-overlay');
+        overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
+        overlay.classList.add('animate-ios-overlay-enter');
+        fetchStudentRosterAndRender();
+      });
+
+      // 🚀 「出席數據查閱」關閉點擊監聽
+      document.getElementById('close-attendance-btn').addEventListener('click', () => {
+        const overlay = document.getElementById('attendance-overlay');
+        overlay.classList.remove('animate-ios-overlay-enter');
+        overlay.classList.add('animate-ios-overlay-exit');
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+        }, 730);
       });
 
       // =======================================================
@@ -1132,7 +1232,7 @@
           const rowName = String(row[3] || "").trim(); 
           const rowSession = String(row[4] || "").trim(); 
           
-          if (currentStudentName && rowName === currentStudentName && rowSession) {
+          if (currentStudentName && stripAllSpaces(rowName) === stripAllSpaces(currentStudentName) && rowSession) {
             watchedSessions.add(rowSession);
           }
         });
@@ -1551,6 +1651,194 @@
         lucide.createIcons();
       }
     });
+
+    // ====================================================================
+    // 🚀 出席數據查閱：獲取全班名單並與 attendance record 對比渲染表格
+    // ====================================================================
+    async function fetchStudentRosterAndRender() {
+      const loader = document.getElementById('attendance-table-loader');
+      const tableContainer = document.getElementById('attendance-table-container');
+      const headerRow = document.getElementById('attendance-table-header');
+      const tableBody = document.getElementById('attendance-table-body');
+
+      loader.classList.remove('hidden');
+      tableContainer.classList.add('hidden');
+
+      // 輔助函式：取得單元格的值，自動相容 JSON .v 或 .f 格式
+      const getCellValue = (cell) => {
+        if (!cell) return "";
+        if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
+        if (cell.f !== null && cell.f !== undefined) return String(cell.f).trim();
+        return "";
+      };
+
+      try {
+        const response = await fetch(ROSTER_JSON_URL);
+        const text = await response.text();
+
+        // 提取 Google Visualization API 回傳的 JSON payload
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}') + 1;
+        const jsonString = text.substring(jsonStart, jsonEnd);
+        const rawJsonData = JSON.parse(jsonString);
+
+        if (!rawJsonData.table || !rawJsonData.table.rows) {
+          throw new Error("試算表數據結構不正確");
+        }
+
+        const rows = rawJsonData.table.rows;
+
+        // 解析學籍名單：欄 A = role, 欄 B = class, 欄 C = class_no, 欄 D = real_name
+        const parsedStudentList = rows.map((r, index) => {
+          // 排除試算表第 0 列 (標題列) 的純文字標頭判定
+          if (index === 0) return null;
+          if (!r.c) return null;
+
+          return {
+            role: cleanVal(getCellValue(r.c[0])),
+            class: cleanVal(getCellValue(r.c[1])),
+            classNo: cleanVal(getCellValue(r.c[2])),
+            name: cleanVal(getCellValue(r.c[3]))
+          };
+        }).filter(item => item !== null && item.name !== "");
+
+        // 獲取目前登入學生的使用者群組角色 (Role)
+        const currentUserRole = (localStorage.getItem("user_role") || "student").toLowerCase();
+
+        // 過濾屬於該群組的所有同學 (Teacher / Admin 預設看全部群組，Student 只看同 Role 群組)
+        const matchingStudents = parsedStudentList.filter(student => {
+          if (currentUserRole === "teacher" || currentUserRole === "admin") return true;
+          return student.role.toLowerCase() === currentUserRole;
+        });
+
+        // 排序學生：按班級 (Class) 升序，再按座號 (Class No) 升序
+        matchingStudents.sort((a, b) => {
+          if (a.class !== b.class) {
+            return String(a.class).localeCompare(String(b.class));
+          }
+          return (parseFloat(a.classNo) || 0) - (parseFloat(b.classNo) || 0);
+        });
+
+        // 提煉出目前所有生效的課程 Session 作為表格的列
+        const sessionList = [];
+        if (globalTopicRows && globalTopicRows.length > 1) {
+          const dataRows = globalTopicRows.slice(1);
+          dataRows.forEach(row => {
+            const rowRole = String(row[0] || "").trim().toLowerCase();
+            // 只抓取該 Role 所屬，或者管理員可見的所有課程代號
+            if (rowRole === currentUserRole || currentUserRole === "teacher" || currentUserRole === "admin" || (currentUserRole !== "teacher" && currentUserRole !== "admin" && rowRole === currentUserRole)) {
+              const session = String(row[1] || "").trim();
+              if (session && !sessionList.includes(session)) {
+                sessionList.push(session);
+              }
+            }
+          });
+        }
+
+        // 列按數字大小正序排列 (S4-01, S4-02, S4-03...)
+        sessionList.sort((a, b) => {
+          const getNum = (str) => {
+            const match = String(str).match(/\d+/g);
+            if (match) return parseFloat(match[match.length - 1]) || 0;
+            return 0;
+          };
+          return getNum(a) - getNum(b);
+        });
+
+        // 渲染表頭 (Headers)
+        headerRow.innerHTML = `
+          <th class="p-3 text-left font-bold text-slate-700 tracking-wider">班別</th>
+          <th class="p-3 text-left font-bold text-slate-700 tracking-wider">座號</th>
+          <th class="p-3 text-left font-bold text-slate-700 tracking-wider">姓名</th>
+          ${sessionList.map(session => `<th class="p-3 text-center font-bold text-slate-700 tracking-wider">補課${session}</th>`).join('')}
+        `;
+
+        // 解析 attendance record 重建 watchedMatrix 映射圖
+        // 欄 D (index 3) 為姓名，欄 E (index 4) 為 session
+        const attendanceMap = {}; // Key: "姓名_Session" => true
+        
+        let recordRows = globalRecords;
+        if (globalRecords && globalRecords.record && Array.isArray(globalRecords.record)) {
+          recordRows = globalRecords.record;
+        }
+
+        if (Array.isArray(recordRows)) {
+          recordRows.forEach((row, idx) => {
+            if (idx === 0) return; // 略過標題
+            const rowName = String(row[3] || "").trim();
+            const rowSession = String(row[4] || "").trim();
+            
+            // 🚀 利用 stripAllSpaces 去除空格對齊比對
+            const cleanRowName = stripAllSpaces(rowName);
+            const cleanRowSession = stripAllSpaces(rowSession);
+            
+            if (cleanRowName && cleanRowSession) {
+              attendanceMap[`${cleanRowName}_${cleanRowSession}`] = true;
+            }
+          });
+        }
+
+        // 渲染資料列 (Rows)
+        tableBody.innerHTML = "";
+
+        if (matchingStudents.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="${3 + sessionList.length}" class="p-8 text-center text-slate-500 font-medium">該群組暫無其他學生名單資料。</td>
+            </tr>
+          `;
+        } else {
+          matchingStudents.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50/80 transition duration-150 border-b border-slate-200/40";
+            
+            // 拼接出席勾選
+            let sessionCellsHtml = "";
+            sessionList.forEach(session => {
+              const cleanStudentName = stripAllSpaces(student.name);
+              const cleanSession = stripAllSpaces(session);
+              const hasCompleted = attendanceMap[`${cleanStudentName}_${cleanSession}`] === true;
+              
+              if (hasCompleted) {
+                sessionCellsHtml += `
+                  <td class="p-3 text-center text-emerald-600 font-extrabold text-sm select-none">
+                    ✓
+                  </td>
+                `;
+              } else {
+                sessionCellsHtml += `
+                  <td class="p-3 text-center text-rose-500 font-extrabold text-sm select-none">
+                    ✕
+                  </td>
+                `;
+              }
+            });
+
+            tr.innerHTML = `
+              <td class="p-3 font-semibold text-slate-800">${student.class || '--'}</td>
+              <td class="p-3 text-slate-600 font-medium">${student.classNo || '--'}</td>
+              <td class="p-3 font-bold text-slate-900">${student.name || '--'}</td>
+              ${sessionCellsHtml}
+            `;
+            tableBody.appendChild(tr);
+          });
+        }
+
+        loader.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+
+      } catch (err) {
+        console.error("Failed to load roster matrix:", err);
+        loader.innerHTML = `
+          <div class="p-6 text-rose-800 font-semibold space-y-2">
+            <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto text-rose-500 mb-1"></i>
+            <p>調取名單與出席數據失敗</p>
+            <p class="text-xs text-slate-500">請確認您的名單試算表連結已開啟共用檢視權限！</p>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
 
     // Display formatted errors
     function showError(msg) {
