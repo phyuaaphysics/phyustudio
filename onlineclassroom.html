@@ -29,15 +29,15 @@
       font-weight: 700;
     }
 
-    /* 極致輕盈的淡白色磨砂卡片（高度還原物理高光質感） */
+    /* 減少玻璃透明度，提高遮罩實色（更清晰易讀） */
     .crystal-panel {
-      background: rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.78);
       /* 淡白色重度磨砂 */
-      backdrop-filter: blur(40px) saturate(160%);
-      -webkit-backdrop-filter: blur(40px) saturate(160%);
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.1), 
-                  inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(30px) saturate(160%);
+      -webkit-backdrop-filter: blur(30px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08), 
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     /* 對稱淺色膠囊型輸入框 */
@@ -78,7 +78,7 @@
       animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* OS 風格擬真彈性阻尼淡入動畫 (OS Art Style Damping) */
+    /* OS 風格擬真彈性阻尼進場動畫 */
     @keyframes osDamping {
       0% {
         opacity: 0;
@@ -101,6 +101,118 @@
     }
     .animate-os-damping {
       animation: osDamping 1.1s cubic-bezier(0.25, 1, 0.2, 1) forwards;
+    }
+
+    /* iOS 級別阻尼淡入動畫 (用於 Menu Card 展開) */
+    @keyframes iosMenuEntrance {
+      0% {
+        opacity: 0;
+        transform: translateY(35px) scale(0.96);
+        filter: blur(10px);
+      }
+      60% {
+        transform: translateY(-3px) scale(1.006);
+        filter: blur(0px);
+      }
+      80% {
+        transform: translateY(1px) scale(0.998);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+      }
+    }
+    .animate-ios-menu {
+      animation: iosMenuEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別阻尼淡出動畫 (用於 Login Section 退出) */
+    @keyframes iosLoginExit {
+      0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.94) translateY(-30px);
+        filter: blur(12px);
+      }
+    }
+    .animate-ios-exit {
+      animation: iosLoginExit 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別超慢阻尼影音遮罩進場動畫 (淡入與優雅縮小回彈) */
+    @keyframes iosOverlayEntrance {
+      0% {
+        opacity: 0;
+        transform: scale(1.08);
+        backdrop-filter: blur(0px) saturate(100%);
+        -webkit-backdrop-filter: blur(0px) saturate(100%);
+        background-color: rgba(255, 255, 255, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+        backdrop-filter: blur(30px) saturate(160%);
+        -webkit-backdrop-filter: blur(30px) saturate(160%);
+        background-color: rgba(255, 255, 255, 0.85);
+      }
+    }
+    .animate-ios-overlay-enter {
+      animation: iosOverlayEntrance 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別超慢阻尼影音遮罩退場動畫 (淡入與優雅放大消散) */
+    @keyframes iosOverlayExit {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+        backdrop-filter: blur(30px) saturate(160%);
+        -webkit-backdrop-filter: blur(30px) saturate(160%);
+        background-color: rgba(255, 255, 255, 0.85);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.08);
+        backdrop-filter: blur(0px) saturate(100%);
+        -webkit-backdrop-filter: blur(0px) saturate(100%);
+        background-color: rgba(255, 255, 255, 0);
+      }
+    }
+    .animate-ios-overlay-exit {
+      animation: iosOverlayExit 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別日曆展開／收合動畫 */
+    #calendar-panel {
+      transition: all 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .calendar-collapsed {
+      max-height: 0 !important;
+      transform: scale-y(0) !important;
+      opacity: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      border-top-width: 0 !important;
+      border-bottom-width: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .calendar-day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
   </style>
 </head>
@@ -187,34 +299,19 @@
     <!-- ========================================== -->
     <!-- SECTION 2: 學生學籍資料卡片 & 課室版面 (登入成功) -->
     <!-- ========================================== -->
-    <div id="card-section" class="w-full hidden animate-fade-in space-y-4">
+    <div id="card-section" class="w-full hidden space-y-4">
       
       <!-- 頂部高質感導航工具列 -->
       <div class="flex justify-end items-center px-1">
-        <!-- 右側：功能快捷按鈕 (淡色主題優化) -->
+        <!-- 右側：精簡功能快捷按鈕 (僅保留登出與關機重定向功能) -->
         <div class="flex items-center space-x-2">
-          <!-- 綠色 S4 圓章 -->
-          <span class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-md shadow-emerald-500/20">
-            S4
-          </span>
-          
-          <!-- 選單清單按鈕 -->
-          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
-            <i data-lucide="list" class="w-3.5 h-3.5"></i>
-          </button>
-
-          <!-- 雲端連線狀態按鈕 -->
-          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
-            <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
-          </button>
-
           <!-- 登出/返回系統按鈕 -->
           <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-rose-500/20 hover:border-rose-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-rose-600 transition" title="登出系統">
             <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
           </button>
 
-          <!-- 系統關機符號 -->
-          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+          <!-- 系統關機符號 (重定向回首頁) -->
+          <button id="power-btn" class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition" title="返回主頁面">
             <i data-lucide="power" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -235,8 +332,8 @@
           </div>
         </div>
 
-        <!-- 右側：班級與學號對稱卡區 -->
-        <div class="flex items-center gap-8 text-right pr-1 shrink-0">
+        <!-- 右側：班級與學號對稱卡區 + 日曆圖示按鈕 -->
+        <div class="flex items-center gap-4 text-right pr-1 shrink-0">
           <!-- 班別 -->
           <div>
             <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
@@ -251,8 +348,47 @@
             <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
             <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
           </div>
+
+          <!-- 垂直精細分割線 -->
+          <div class="w-[1px] h-6 bg-slate-900/10"></div>
+
+          <!-- 日曆展開/收合按鈕 (iOS風，帶點按縮放與自訂高亮) -->
+          <button id="calendar-toggle-btn" class="w-9 h-9 rounded-full bg-white/60 hover:bg-emerald-50/80 hover:text-emerald-700 border border-slate-900/[0.08] flex items-center justify-center text-slate-700 transition duration-300 active:scale-90 shadow-sm" title="開啟補課日曆">
+            <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
+          </button>
         </div>
 
+      </div>
+
+      <!-- ========================================== -->
+      <!-- iOS 風格折疊日曆主面板 -->
+      <!-- ========================================== -->
+      <div id="calendar-panel" class="crystal-panel rounded-2xl p-4 origin-top calendar-collapsed overflow-hidden space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-900/5 pb-2">
+          <button id="cal-prev-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <h4 id="cal-month-year" class="text-sm font-bold text-slate-800 shippori-title tracking-wide">--</h4>
+          <button id="cal-next-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+          <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+        </div>
+        <div id="calendar-days" class="grid grid-cols-7 gap-1">
+          <!-- JS 動態寫入 -->
+        </div>
+        <!-- 狀態圖例與重設按鈕 -->
+        <div class="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-900/5">
+          <span class="flex items-center gap-1.5 font-medium text-slate-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span>
+            有補課課堂日期
+          </span>
+          <button id="cal-reset-btn" class="px-3 py-1 rounded-full bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 text-[10px] font-bold transition active:scale-95 shadow-sm">
+            顯示全部課程
+          </button>
+        </div>
       </div>
 
       <!-- 核心面板二：動態學業課程列表 -->
@@ -278,9 +414,9 @@
   </main>
 
   <!-- ========================================== -->
-  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂) -->
+  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂 - 管理 iOS 阻尼轉場) -->
   <!-- ========================================== -->
-  <div id="video-overlay" class="fixed inset-0 z-50 hidden bg-white/75 backdrop-blur-2xl flex flex-col justify-between animate-fade-in text-slate-900">
+  <div id="video-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
     <!-- 播放器置頂控制列 -->
     <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm">
       <div class="flex items-center space-x-3">
@@ -294,6 +430,12 @@
 
     <!-- 影音核心顯示與自訂操作區 -->
     <main class="flex-1 w-full flex flex-col items-center justify-center p-4 space-y-4">
+      <!-- 🎬 Shippori Mincho 大字體標題區 (大字體、完美配合播放器最大寬度) -->
+      <h2 id="video-player-large-title" class="text-xl md:text-2xl lg:text-3xl font-bold text-left text-slate-950 shippori-title tracking-wide px-2 w-full max-w-4xl leading-relaxed">
+        --
+      </h2>
+
+      <!-- 🎬 還原版播放器容器 (w-full max-w-4xl) -->
       <div class="w-full max-w-4xl aspect-video relative flex items-center justify-center">
         <!-- YouTube API 專屬容器 -->
         <div id="video-overlay-player" class="w-full h-full rounded-2xl shadow-2xl border border-slate-300 bg-black"></div>
@@ -356,6 +498,10 @@
     const secureBadge = document.getElementById('secure-badge');
     const topicsContainer = document.getElementById('topics-container');
 
+    // 🚀 日曆相關 DOM 節點
+    const calendarToggleBtn = document.getElementById('calendar-toggle-btn');
+    const calendarPanel = document.getElementById('calendar-panel');
+
     // YouTube API 播放器與保安變數
     let ytPlayer = null;
     let isYtApiReady = false;
@@ -368,14 +514,91 @@
     let currentTitle = "";
     let currentVideoWatched = false; // 🚀 追蹤目前點開的影片是否為「已看過」
 
+    // 🚀 全域日曆與課程篩選器暫存數據
+    let calendarCurrentDate = new Date();
+    let activeLessonDatesSet = new Set();
+    let filteredDateStr = null; // 儲存篩選 ISO 字串 (如 "2026-03-12")
+    let isCalendarFirstLoad = true;
+    let globalTopicRows = [];
+    let globalUserRole = "";
+    let globalRecords = [];
+
     // =======================================================
-    // 🔍 終極容錯數據解析與過濾方法
+    // 🔍 終極容錯數據解析與時區偏移日期格式化方法
     // =======================================================
     function cleanVal(val) {
       if (val === null || val === undefined) return "";
       const str = String(val).trim();
       if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料" || str === "--") return "";
       return str;
+    }
+
+    // 🚀 解決 Google Sheets 時區序列化偏差，將 UTC 或各式時間字串完美轉回本地 `YYYY年M月D日` (防時區位移版)
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return "";
+      const str = String(dateStr).trim();
+      
+      // 🚀 核心修正優先：如果包含 T, Z 或冒號，說明是完整的 UTC 或是帶時間戳記的格式，必須經過本地時區轉換
+      if (str.includes("T") || str.includes("Z") || str.includes(":")) {
+        try {
+          const d = new Date(str);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            const date = d.getDate();
+            return `${year}年${month}月${date}日`;
+          }
+        } catch (e) {
+          console.error("Date formatting failed:", e);
+        }
+      }
+
+      // 如果只是單純的日期字串 (如 2026-07-02 或 2026/07/02)，直接正則提煉，防止非 ISO 格式在不同瀏覽器解析出錯
+      const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+      if (matchYMD) {
+        return `${matchYMD[1]}年${parseInt(matchYMD[2], 10)}月${parseInt(matchYMD[3], 10)}日`;
+      }
+      
+      return str;
+    }
+
+    // 🚀 將試算表或各種非標準日期格式轉換為乾淨的 "YYYY-MM-DD" 標準索引字串
+    function getIsoDateString(dateStr) {
+      if (!dateStr) return null;
+      const str = String(dateStr).trim();
+      
+      // 🚀 核心修正優先：如果是完整包含時間的 ISO 格式，優先轉換為本地時區，避免 Regex 提煉截斷導致相差一天
+      if (str.includes("T") || str.includes("Z") || str.includes(":")) {
+        try {
+          const d = new Date(str);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const date = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${date}`;
+          }
+        } catch (e) {}
+      }
+
+      // 先用正則高容錯解析 YYYY-MM-DD 或 YYYY/MM/DD 結構
+      const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+      if (matchYMD) {
+        const y = matchYMD[1];
+        const m = String(parseInt(matchYMD[2], 10)).padStart(2, '0');
+        const d = String(parseInt(matchYMD[3], 10)).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      // 解析 YYYY年M月D日 中文時間格式
+      const matchCnYMD = str.match(/(\d+)年(\d+)月(\d+)日/);
+      if (matchCnYMD) {
+        const y = matchCnYMD[1];
+        const m = String(parseInt(matchCnYMD[2], 10)).padStart(2, '0');
+        const d = String(parseInt(matchCnYMD[3], 10)).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      return null;
     }
 
     // 🚀 學生資料統一取值與回寫 (配合指定扁平鍵)
@@ -428,6 +651,39 @@
       // Initialize Lucide icons
       lucide.createIcons();
 
+      // 關機鍵重定向點擊監聽
+      document.getElementById('power-btn').addEventListener('click', () => {
+        window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
+      });
+
+      // 🚀 日曆 Panel 展開與收合控制 (iOS微回彈物理手感轉場)
+      calendarToggleBtn.addEventListener('click', () => {
+        calendarPanel.classList.toggle('calendar-collapsed');
+        calendarToggleBtn.classList.toggle('bg-emerald-100');
+        calendarToggleBtn.classList.toggle('text-emerald-700');
+        calendarToggleBtn.classList.toggle('border-emerald-200');
+      });
+
+      // 🚀 綁定日曆月份導航 clicks (阻止冒泡)
+      document.getElementById('cal-prev-month').addEventListener('click', (e) => {
+        e.stopPropagation();
+        calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+        renderCalendar();
+      });
+
+      document.getElementById('cal-next-month').addEventListener('click', (e) => {
+        e.stopPropagation();
+        calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+        renderCalendar();
+      });
+
+      document.getElementById('cal-reset-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        filteredDateStr = null;
+        renderCalendar();
+        executeFilterRender();
+      });
+
       // =======================================================
       // 🚀 對接相容橋樑：自動解析並校正自 Index.html 登入頁傳遞的 Token 與使用者資訊
       // =======================================================
@@ -471,9 +727,9 @@
           const resData = await response.json();
 
           if (resData.result === 'success') {
-            // 驗證成功，移除載入狀態，顯示學生卡片與課程清單
+            // 驗證成功，移除載入狀態，顯示學生卡片與課程清單 (不需 exit 轉場)
             tempLoader.remove();
-            showStudentCard();
+            showStudentCard(false);
           } else {
             throw new Error("Token 驗證失效");
           }
@@ -560,15 +816,15 @@
             username: username
           }));
 
-          // Load success view UI
-          showStudentCard();
+          // Load success view UI with elegant iOS transitions
+          showStudentCard(true);
           loginForm.reset();
         } else {
           showError(data.message || "驗證失敗，請檢查輸入帳號或密碼");
         }
       } catch (err) {
         console.error("Fetch error details:", err);
-        showError("無法連線至安全性認證端點。請確認您的 GAS 專案已正確部署。");
+        showError("無法連線至安全性認點。請確認您的 GAS 專案已正確部署。");
       } finally {
         resetSubmitBtn();
       }
@@ -591,8 +847,8 @@
       if (secureBadge) secureBadge.classList.remove('hidden');
     });
 
-    // Update and draw the beautiful Student Card interface
-    function showStudentCard() {
+    // Update and draw the beautiful Student Card interface (帶阻尼淡出/展開 iOS 級動畫)
+    function showStudentCard(animate = false) {
       const details = getStudentDetails();
       
       // 如果未回傳則顯示為 "--" 佔位
@@ -601,13 +857,120 @@
       document.getElementById('card-class-no').innerText = details.classNo || "--";
       document.getElementById('card-student-id').innerText = details.studentId || "--";
 
-      // Switch panels gracefully
-      loginSection.classList.add('hidden');
-      cardSection.classList.remove('hidden');
-      if (secureBadge) secureBadge.classList.add('hidden');
+      if (animate) {
+        // 先顯示正在退出的 Login 面板，進行流傳的縮小淡出 exit
+        loginSection.classList.remove('hidden');
+        loginSection.classList.add('animate-ios-exit');
+        if (secureBadge) secureBadge.classList.add('hidden');
+        
+        setTimeout(() => {
+          loginSection.classList.add('hidden');
+          loginSection.classList.remove('animate-ios-exit');
+          
+          // 展示 Card Section，並套用 iOS 物理級 Damped 阻尼淡入展開
+          cardSection.classList.remove('hidden');
+          cardSection.classList.add('animate-ios-menu');
+          
+          // 同步載入課程列表
+          fetchTopics();
+        }, 520); // 配合 CSS Exit Animation 時長
+      } else {
+        loginSection.classList.add('hidden');
+        cardSection.classList.remove('hidden');
+        cardSection.classList.add('animate-ios-menu');
+        if (secureBadge) secureBadge.classList.add('hidden');
 
-      // 動態加載課程列表
-      fetchTopics();
+        // 動態加載課程列表
+        fetchTopics();
+      }
+    }
+
+    // =======================================================
+    // 🚀 動態日曆渲染邏輯 (iOS 風格極簡版)
+    // =======================================================
+    function renderCalendar() {
+      const calendarDays = document.getElementById('calendar-days');
+      const monthYearLabel = document.getElementById('cal-month-year');
+      if (!calendarDays || !monthYearLabel) return;
+
+      const year = calendarCurrentDate.getFullYear();
+      const month = calendarCurrentDate.getMonth();
+
+      // 月份中文名
+      const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+      monthYearLabel.innerText = `${year}年 ${monthNames[month]}`;
+
+      calendarDays.innerHTML = "";
+
+      // 取得該月的第一天是星期幾、以及總天數
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      // 填充第一天前的空白格子
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = "p-1";
+        calendarDays.appendChild(emptyCell);
+      }
+
+      // 動態生成該月的所有日期
+      for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        const hasLesson = activeLessonDatesSet.has(dateStr);
+        const isSelected = (filteredDateStr === dateStr);
+
+        dayCell.className = "calendar-day-cell relative text-[11px] font-semibold h-8 w-8 mx-auto flex flex-col items-center justify-center rounded-full";
+
+        if (hasLesson) {
+          if (isSelected) {
+            // 已選中狀態（深翡翠色）
+            dayCell.className += " bg-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold scale-105";
+          } else {
+            // 未選中有課程狀態（高質感淡綠色）
+            dayCell.className += " bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300/40 cursor-pointer font-bold";
+          }
+          
+          // 加入極簡的 iOS 底下小綠點指示
+          const dot = document.createElement('span');
+          dot.className = `w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? 'bg-white' : 'bg-emerald-500'}`;
+          
+          dayCell.appendChild(document.createTextNode(day));
+          dayCell.appendChild(dot);
+
+          // 點擊事件：切換日期篩選器
+          dayCell.addEventListener('click', () => {
+            if (filteredDateStr === dateStr) {
+              filteredDateStr = null; // 點同一個日期則重設
+            } else {
+              filteredDateStr = dateStr;
+            }
+            renderCalendar();
+            executeFilterRender();
+          });
+        } else {
+          // 一般日期（無課堂）
+          dayCell.className += " text-slate-700 hover:bg-slate-200/50 cursor-pointer";
+          dayCell.appendChild(document.createTextNode(day));
+
+          // 允許點擊無網課日期來清除篩選
+          dayCell.addEventListener('click', () => {
+            if (filteredDateStr) {
+              filteredDateStr = null;
+              renderCalendar();
+              executeFilterRender();
+            }
+          });
+        }
+
+        calendarDays.appendChild(dayCell);
+      }
+    }
+
+    // 重新觸發課程篩選與列表渲染
+    function executeFilterRender() {
+      renderTopics(globalTopicRows, globalUserRole, globalRecords);
     }
 
     // =======================================================
@@ -680,8 +1043,13 @@
       }
     }
 
-    // 渲染課室排版
+    // 渲染課室排版 (淡綠與淡紅視覺特徵強化，未完成項目皆以清晰淡紅高對比顯示)
     function renderTopics(rows, userRole, records = []) {
+      // 備份參數至全域，供日曆篩選與回呼使用
+      globalTopicRows = rows;
+      globalUserRole = userRole;
+      globalRecords = records;
+
       // 🚀 安全防禦：確保 rows 是一個陣列，防止 rows.slice 發生錯誤
       let finalRows = rows;
       if (rows && !Array.isArray(rows) && Array.isArray(rows.front)) {
@@ -699,7 +1067,7 @@
         return;
       }
 
-      // 排除第 0 列 (標題列：A: ROLE, B: session, C: Title, D: youtube link, E: status)
+      // 排除第 0 列 (標題列：A: ROLE, B: SESSION, C: TITLE, D: Youtube, E: STATUS, F: Date, G: ver2)
       const dataRows = finalRows.slice(1);
 
       // 過濾使用者權限
@@ -708,12 +1076,35 @@
         return (userRole === "teacher" || userRole === "admin" || (userRole === userRole && rowRole === userRole));
       });
 
-      // 按照 B 欄 (Session 順序) 進行排序
+      // 按照 B 欄 (Session 順序) 進行排序 (降序排列：大數值排頂部)
       allowedRows.sort((a, b) => {
         const numA = parseFloat(a[1]) || 0;
         const numB = parseFloat(b[1]) || 0;
-        return numA - numB;
+        return numB - numA;
       });
+
+      // 🚀 建立並解析「所有可用課程網課日期」並同步加載到日曆的高亮指示中
+      activeLessonDatesSet.clear();
+      allowedRows.forEach(row => {
+        const rawDate = String(row[5] || "").trim();
+        const isoDate = getIsoDateString(rawDate);
+        if (isoDate) {
+          activeLessonDatesSet.add(isoDate);
+        }
+      });
+
+      // 第一次載入時，自動將日曆預設月份焦點切換到「最新一堂補課」所在的月份
+      if (isCalendarFirstLoad && activeLessonDatesSet.size > 0) {
+        const sortedDates = Array.from(activeLessonDatesSet).sort();
+        const latestIso = sortedDates[sortedDates.length - 1];
+        if (latestIso) {
+          calendarCurrentDate = new Date(latestIso);
+        }
+        isCalendarFirstLoad = false;
+      }
+
+      // 重新渲染日曆
+      renderCalendar();
 
       if (allowedRows.length === 0) {
         topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500 font-medium">您的權限無法存取目前的課程。</div>`;
@@ -747,10 +1138,24 @@
         });
       }
 
+      // 🚀 實施日曆日期篩選邏輯：若 filteredDateStr 存在，僅保留符合篩選日期的列
+      let displayRows = allowedRows;
+      if (filteredDateStr) {
+        displayRows = allowedRows.filter(row => {
+          const rawDate = String(row[5] || "").trim();
+          return getIsoDateString(rawDate) === filteredDateStr;
+        });
+      }
+
       topicsContainer.innerHTML = "";
 
-      // 遍歷渲染符合權限的課程列
-      allowedRows.forEach(row => {
+      if (displayRows.length === 0) {
+        topicsContainer.innerHTML = `<div class="p-10 text-center text-sm text-slate-500">該日期沒有排定任何補課課程。</div>`;
+        return;
+      }
+
+      // 遍歷渲染符合篩選的課程列
+      displayRows.forEach(row => {
         const session = String(row[1] || "").trim();
         const title = String(row[2] || "").trim();
         const ytLink = String(row[3] || "").trim();
@@ -760,14 +1165,14 @@
         const isWatched = watchedSessions.has(session);
         const isClickable = isActive || isWatched;
 
-        // 🚀 依據完成狀態調整背景與指標 (已看過者配以淡綠色高質感顯示，未完成者配以淡紅色)
+        // 🚀 顯著增強已完成（淡綠色）與未完成項目（淡紅色）的視覺厚度與邊框特徵
         let rowBgClass = "";
         if (isWatched) {
-          rowBgClass = "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer";
+          rowBgClass = "bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
         } else if (isActive) {
-          rowBgClass = "bg-rose-500/10 hover:bg-rose-500/20 text-rose-950 border-l-4 border-rose-400 cursor-pointer";
+          rowBgClass = "bg-rose-100/90 hover:bg-rose-200/90 text-rose-950 border-l-4 border-rose-500 cursor-pointer shadow-sm";
         } else {
-          rowBgClass = "opacity-60 bg-rose-500/5 text-rose-900/40 border-l-4 border-rose-300/30 cursor-not-allowed";
+          rowBgClass = "opacity-60 bg-rose-100/40 text-rose-900/60 border-l-4 border-rose-300/50 cursor-not-allowed";
         }
 
         const rowEl = document.createElement("div");
@@ -801,6 +1206,11 @@
           textClass = "text-rose-700";
         }
 
+        // 🚀 格式化網課日期
+        const rawDate = String(row[5] || "").trim(); 
+        const date = formatDisplayDate(rawDate);
+
+        // 🚀 核心邏輯：在 session 與 title 中間導入網課日期 (欄 F) 的小標籤
         rowEl.innerHTML = `
           <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
             <span class="w-8 h-8 rounded-lg border ${iconCircleClass} flex items-center justify-center shrink-0">
@@ -808,6 +1218,10 @@
             </span>
             <div class="flex items-center space-x-3 flex-1 min-w-0">
               <span class="text-sm font-bold text-emerald-800 tracking-wide shrink-0 min-w-[55px]">${session}</span>
+              ${date ? `
+                <span class="text-slate-400/30 select-none text-xs shrink-0">|</span>
+                <span class="text-xs text-slate-600 font-medium shrink-0 bg-white/70 px-2 py-0.5 rounded border border-slate-200/60 shadow-sm">${date}</span>
+              ` : ''}
               <span class="text-slate-400/30 select-none text-xs shrink-0">|</span>
               <span class="text-sm text-slate-800 font-semibold truncate">${title}</span>
             </div>
@@ -856,8 +1270,14 @@
         videoId = url;
       }
 
+      // 同時寫入頂部迷你與中央大 Shippori 標題
       document.getElementById('video-overlay-title').innerText = title;
-      document.getElementById('video-overlay').classList.remove('hidden');
+      document.getElementById('video-player-large-title').innerText = title;
+
+      // 🚀 執行優雅的 iOS 阻尼淡入與回彈縮放轉場
+      const overlay = document.getElementById('video-overlay');
+      overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
+      overlay.classList.add('animate-ios-overlay-enter');
       
       const btn = document.getElementById('attendance-btn');
       const playBtnSpan = document.querySelector('#custom-play-btn span');
@@ -1039,12 +1459,20 @@
 
     // 關閉同頁播放器監聽
     document.getElementById('close-video-btn').addEventListener('click', () => {
-      document.getElementById('video-overlay').classList.add('hidden');
+      // 🚀 執行優雅的 iOS 阻尼淡出退場縮放動畫
+      const overlay = document.getElementById('video-overlay');
+      overlay.classList.remove('animate-ios-overlay-enter');
+      overlay.classList.add('animate-ios-overlay-exit');
+      
       stopTimeTracking();
       if (attendanceTimer) clearInterval(attendanceTimer);
       if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
         ytPlayer.stopVideo();
       }
+      
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 730); // 配合 0.75s 的 iOS 退出動畫，確保轉場完全完成才隱藏
     });
 
     // ====================================================================
