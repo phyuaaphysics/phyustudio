@@ -374,58 +374,40 @@
       return str;
     }
 
+    // 🚀 單一、明確的取值方式：完全使用 user_real_name, user_class, user_class_no 等扁平鍵作為第一物理來源
     function getStudentDetails() {
-      // 1. 嘗試直接從 localStorage 獲取個別鍵，因為最為可靠且防衝突
-      let directRealName = cleanVal(localStorage.getItem("user_real_name")) || 
-                           cleanVal(localStorage.getItem("real_name")) || 
-                           cleanVal(localStorage.getItem("realName"));
-                           
-      let directClass = cleanVal(localStorage.getItem("user_class")) || 
-                        cleanVal(localStorage.getItem("class")) || 
-                        cleanVal(localStorage.getItem("studentClass"));
-                        
-      let directClassNo = cleanVal(localStorage.getItem("user_class_no")) || 
-                          cleanVal(localStorage.getItem("class_no")) || 
-                          cleanVal(localStorage.getItem("classNo"));
-                          
-      let directStudentId = cleanVal(localStorage.getItem("user_username")) || 
-                            cleanVal(localStorage.getItem("username")) || 
-                            cleanVal(localStorage.getItem("student_id")) || 
-                            cleanVal(localStorage.getItem("studentId"));
+      let realName = cleanVal(localStorage.getItem("user_real_name"));
+      let studentClass = cleanVal(localStorage.getItem("user_class"));
+      let classNo = cleanVal(localStorage.getItem("user_class_no"));
+      let studentId = cleanVal(localStorage.getItem("user_username"));
 
-      // 2. 嘗試解析 userInfo 物件
-      let userInfo = {};
-      try {
-        const rawInfo = localStorage.getItem("userInfo");
-        if (rawInfo && rawInfo !== "undefined" && rawInfo !== "null") {
-          userInfo = JSON.parse(rawInfo);
+      // 備份機制：如果直接鍵不存在，嘗試解鎖 userInfo 物件 (確保相容性)
+      if (!realName || !studentClass || !classNo || !studentId) {
+        try {
+          const rawInfo = localStorage.getItem("userInfo");
+          if (rawInfo && rawInfo !== "undefined" && rawInfo !== "null") {
+            const userInfo = JSON.parse(rawInfo);
+            if (!realName) realName = cleanVal(userInfo.real_name || userInfo.realName || userInfo.name);
+            if (!studentClass) studentClass = cleanVal(userInfo.class || userInfo.studentClass);
+            if (!classNo) classNo = cleanVal(userInfo.class_no || userInfo.classNo);
+            if (!studentId) studentId = cleanVal(userInfo.student_id || userInfo.studentId || userInfo.username);
+          }
+        } catch (e) {
+          console.error("解析 userInfo 失敗", e);
         }
-      } catch (e) {
-        userInfo = {};
       }
 
-      // 3. 結合與對齊所有可能的欄位
-      let realName = directRealName || 
-                     cleanVal(userInfo.real_name) || 
-                     cleanVal(userInfo.realName) || 
-                     cleanVal(userInfo.name);
+      // 如果依然沒有任何數值，賦予預設佔位文字
       if (!realName) realName = "無名氏";
-
-      let studentClass = directClass || 
-                         cleanVal(userInfo.class) || 
-                         cleanVal(userInfo.studentClass);
       if (!studentClass) studentClass = "N/A";
-
-      let classNo = directClassNo || 
-                    cleanVal(userInfo.class_no) || 
-                    cleanVal(userInfo.classNo);
       if (!classNo) classNo = "N/A";
-
-      let studentId = directStudentId || 
-                      cleanVal(userInfo.student_id) || 
-                      cleanVal(userInfo.studentId) || 
-                      cleanVal(userInfo.username);
       if (!studentId) studentId = "無ID資料";
+
+      // 🚀 強制同步回寫：保障這三個 user_real_name, user_class, user_class_no 鍵在任何時候均已牢固寫入
+      localStorage.setItem("user_real_name", realName);
+      localStorage.setItem("user_class", studentClass);
+      localStorage.setItem("user_class_no", classNo);
+      localStorage.setItem("user_username", studentId);
 
       return { realName, studentClass, classNo, studentId };
     }
@@ -460,11 +442,16 @@
           localStorage.setItem("userRole", localStorage.getItem("user_role") || "student");
         }
         
-        // 🚀 同步備份個別鍵，保證絕對不會因未執行 getStudentDetails 導致遺失
+        // 🚀 對齊傳遞資料並寫入至 user_real_name, user_class, user_class_no, user_username 
         const bridgeRealName = localStorage.getItem("user_real_name") || "無名氏";
         const bridgeClass = localStorage.getItem("user_class") || "N/A";
         const bridgeClassNo = localStorage.getItem("user_class_no") || "N/A";
         const bridgeUsername = localStorage.getItem("user_username") || "無ID資料";
+
+        localStorage.setItem("user_real_name", bridgeRealName);
+        localStorage.setItem("user_class", bridgeClass);
+        localStorage.setItem("user_class_no", bridgeClassNo);
+        localStorage.setItem("user_username", bridgeUsername);
 
         if (!localStorage.getItem("userInfo")) {
           const indexUserInfo = {
@@ -573,13 +560,18 @@
           localStorage.setItem("userRole", data.role);
           localStorage.setItem("userInfo", JSON.stringify(data.local_storage_data));
 
-          // 🚀 雙重安全保障：登入成功後也寫入單獨變數，防止 getStudentDetails 在任何瀏覽器中漏抓
+          // 🚀 核心物理優化：登入成功後直接將數值存入您所指定的 key 中
           if (data.local_storage_data) {
             const sd = data.local_storage_data;
-            if (sd.real_name || sd.realName) localStorage.setItem("user_real_name", sd.real_name || sd.realName);
-            if (sd.class || sd.studentClass) localStorage.setItem("user_class", sd.class || sd.studentClass);
-            if (sd.class_no || sd.classNo) localStorage.setItem("user_class_no", sd.class_no || sd.classNo);
-            if (sd.username || sd.student_id || sd.studentId) localStorage.setItem("user_username", sd.username || sd.student_id || sd.studentId);
+            const finalRealName = sd.real_name || sd.realName || "無名氏";
+            const finalClass = sd.class || sd.studentClass || "N/A";
+            const finalClassNo = sd.class_no || sd.classNo || "N/A";
+            const finalUsername = sd.username || sd.student_id || sd.studentId || username;
+
+            localStorage.setItem("user_real_name", finalRealName);
+            localStorage.setItem("user_class", finalClass);
+            localStorage.setItem("user_class_no", finalClassNo);
+            localStorage.setItem("user_username", finalUsername);
           }
 
           // Load success view UI
@@ -615,6 +607,19 @@
 
     // Update and draw the beautiful Student Card interface
     function showStudentCard(userInfo, role) {
+      // 🚀 將資料完全綁定，如果傳入了全新的 userInfo 則直接將其強制寫入 direct keys 之中
+      if (userInfo && Object.keys(userInfo).length > 0) {
+        const finalRealName = userInfo.real_name || userInfo.realName || userInfo.name;
+        const finalClass = userInfo.class || userInfo.studentClass;
+        const finalClassNo = userInfo.class_no || userInfo.classNo;
+        const finalUsername = userInfo.username || userInfo.student_id || userInfo.studentId;
+
+        if (finalRealName) localStorage.setItem("user_real_name", cleanVal(finalRealName));
+        if (finalClass) localStorage.setItem("user_class", cleanVal(finalClass));
+        if (finalClassNo) localStorage.setItem("user_class_no", cleanVal(finalClassNo));
+        if (finalUsername) localStorage.setItem("user_username", cleanVal(finalUsername));
+      }
+
       const details = getStudentDetails();
       document.getElementById('card-real-name').innerText = details.realName;
       document.getElementById('card-class').innerText = details.studentClass;
@@ -1079,7 +1084,7 @@
       const token = localStorage.getItem("userToken");
       const userRole = localStorage.getItem("userRole") || "student";
 
-      // 🔍 終極雙源提取：同時自 localStorage 獲取，並將「已呈現在畫面上」的 DOM 數值列為最高優先權 fallback
+      // 🔍 終極雙源提取：強制由您的 user_real_name, user_class, user_class_no 指定 flat keys 中優先提取數值
       const details = getStudentDetails();
       
       let studentId = details.studentId;
@@ -1087,7 +1092,7 @@
       let studentClass = details.studentClass;
       let classNo = details.classNo;
 
-      // 🚀 DOM 直接讀取：若卡片中顯示的名字、班級非預設空值，直接抓取螢幕顯示的字串，阻絕所有快取遺失或 key name 衝突
+      // 🚀 DOM 實時保障：若卡片中顯示的值有效，直接抓取螢幕顯示的數值，做為最高優先級保障，徹底防止空傳寫入 CSV
       const domRealName = cleanVal(document.getElementById('card-real-name').innerText);
       const domClass = cleanVal(document.getElementById('card-class').innerText);
       const domClassNo = cleanVal(document.getElementById('card-class-no').innerText);
@@ -1107,6 +1112,7 @@
         return;
       }
 
+      // 🚀 建立傳輸對象：封裝的參數名稱 class 與 class_no 完全與 GAS 接收端 `doPost(e)` 對齊
       const payload = {
         action: "submitAttendance",
         token: token,
