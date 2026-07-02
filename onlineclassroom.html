@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -10,12 +9,12 @@
   <!-- Lucide Icons for responsive elements -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* 引入 Cinzel (優雅古典襯線體) 與 Inter (極簡現代無襯線體) */
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    /* 引入 Cinzel (優雅古典襯線體)、Inter (極簡現代無襯線體) 與 Shippori Mincho (優雅日系明體 BOLD) */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&display=swap');
     
     body {
       font-family: 'Inter', 'Noto Sans TC', sans-serif;
-      background-image: url('https://i.ibb.co/bgLYLMKs/image.png');
+      background-image: url('https://i.ibb.co/yn7JJ8yy/classroom.jpg');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
@@ -23,6 +22,11 @@
 
     .cinzel-title {
       font-family: 'Cinzel', serif;
+    }
+
+    .shippori-title {
+      font-family: 'Shippori Mincho', serif;
+      font-weight: 700;
     }
 
     /* 極致輕盈的淡白色磨砂卡片（高度還原物理高光質感） */
@@ -127,10 +131,10 @@
         </div>
       </div>
 
-      <!-- 標題：Cinzel 古典襯線字型與優雅寬字距 -->
+      <!-- 標題：Shippori Mincho 襯線字型與優雅寬字距 -->
       <div class="mb-10">
-        <h2 class="text-2xl md:text-[2rem] font-semibold tracking-[0.15em] text-slate-900 cinzel-title leading-tight">
-          ONLINE CLASSROOM
+        <h2 class="text-2xl md:text-[2rem] font-bold tracking-[0.15em] text-slate-900 shippori-title leading-tight">
+          線上補課系統
         </h2>
         <h3 class="text-xs tracking-[0.4em] text-slate-300/70 cinzel-title mt-3.5 uppercase">
           Student Portal
@@ -226,7 +230,7 @@
             <i data-lucide="graduation-cap" class="w-5 h-5"></i>
           </div>
           <div class="text-left">
-            <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 cinzel-title">--</h3>
+            <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 shippori-title">--</h3>
             <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
           </div>
         </div>
@@ -333,7 +337,7 @@
     // ⚙️ Google Apps Script 部署正式網址 (分流管理)
     // =======================================================
     // 擁有學生帳密驗證資料庫的原 Auth 端點：
-    const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
+    const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
     // 指向 Loader 載入課程端點：
     const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
     // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
@@ -397,17 +401,11 @@
         }
       }
 
-      // 如果依然沒有任何數值，賦予預設佔位文字
-      if (!realName) realName = "無名氏";
-      if (!studentClass) studentClass = "N/A";
-      if (!classNo) classNo = "N/A";
+      // 如果依然沒有任何數值，賦予預設空字串
+      if (!realName) realName = "";
+      if (!studentClass) studentClass = "";
+      if (!classNo) classNo = "";
       if (!studentId) studentId = "無ID資料";
-
-      // 🚀 強制同步回寫，以保障 storage keys 發揮完整功效
-      localStorage.setItem("user_real_name", realName);
-      localStorage.setItem("user_class", studentClass);
-      localStorage.setItem("user_class_no", classNo);
-      localStorage.setItem("user_username", studentId);
 
       return { realName, studentClass, classNo, studentId };
     }
@@ -433,39 +431,20 @@
       // =======================================================
       // 🚀 對接相容橋樑：自動解析並校正自 Index.html 登入頁傳遞的 Token 與使用者資訊
       // =======================================================
-      const jwtToken = localStorage.getItem("jwt_token");
+      const jwtToken = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+      const userRole = localStorage.getItem("user_role") || localStorage.getItem("userRole");
+
       if (jwtToken) {
-        if (!localStorage.getItem("userToken")) {
-          localStorage.setItem("userToken", jwtToken);
-        }
-        if (!localStorage.getItem("userRole")) {
-          localStorage.setItem("userRole", localStorage.getItem("user_role") || "student");
-        }
-        
-        // 🚀 對齊傳遞資料並寫入至 user_real_name, user_class, user_class_no, user_username 
-        const bridgeRealName = localStorage.getItem("user_real_name") || "無名氏";
-        const bridgeClass = localStorage.getItem("user_class") || "N/A";
-        const bridgeClassNo = localStorage.getItem("user_class_no") || "N/A";
-        const bridgeUsername = localStorage.getItem("user_username") || "無ID資料";
-
-        localStorage.setItem("user_real_name", bridgeRealName);
-        localStorage.setItem("user_class", bridgeClass);
-        localStorage.setItem("user_class_no", bridgeClassNo);
-        localStorage.setItem("user_username", bridgeUsername);
-
-        if (!localStorage.getItem("userInfo")) {
-          const indexUserInfo = {
-            real_name: bridgeRealName,
-            class: bridgeClass,
-            class_no: bridgeClassNo,
-            student_id: bridgeUsername
-          };
-          localStorage.setItem("userInfo", JSON.stringify(indexUserInfo));
-        }
+        localStorage.setItem("jwt_token", jwtToken);
+        localStorage.setItem("userToken", jwtToken);
+      }
+      if (userRole) {
+        localStorage.setItem("user_role", userRole);
+        localStorage.setItem("userRole", userRole);
       }
       
-      const savedToken = localStorage.getItem("userToken");
-      const savedRole = localStorage.getItem("userRole");
+      const savedToken = localStorage.getItem("jwt_token");
+      const savedRole = localStorage.getItem("user_role");
       const details = getStudentDetails();
       
       if (details.studentId !== "無ID資料" && savedToken) {
@@ -494,7 +473,7 @@
           if (resData.result === 'success') {
             // 驗證成功，移除載入狀態，顯示學生卡片與課程清單
             tempLoader.remove();
-            showStudentCard({}, savedRole);
+            showStudentCard();
           } else {
             throw new Error("Token 驗證失效");
           }
@@ -555,27 +534,34 @@
         const data = await response.json();
 
         if (data.success) {
-          // Commit to localStorage
-          localStorage.setItem("userToken", data.token);
-          localStorage.setItem("userRole", data.role);
-          localStorage.setItem("userInfo", JSON.stringify(data.local_storage_data));
+          // 🚀 完全按照新版對接規範進行 localStorage 寫入與儲存
+          localStorage.setItem("jwt_token", data.token || "");
+          localStorage.setItem("user_role", data.role || "student");
+          localStorage.setItem("user_username", username);
 
-          // 🚀 核心物理優化：登入成功後直接將數值存入您所指定的 key 中
-          if (data.local_storage_data) {
-            const sd = data.local_storage_data;
-            const finalRealName = sd.real_name || sd.realName || "無名氏";
-            const finalClass = sd.class || sd.studentClass || "N/A";
-            const finalClassNo = sd.class_no || sd.classNo || "N/A";
-            const finalUsername = sd.username || sd.student_id || sd.studentId || username;
-
-            localStorage.setItem("user_real_name", finalRealName);
-            localStorage.setItem("user_class", finalClass);
-            localStorage.setItem("user_class_no", finalClassNo);
-            localStorage.setItem("user_username", finalUsername);
+          // 解鎖與初始化身份標籤詳細欄位 (Identity Tags)
+          if (data.identity_tag) {
+            localStorage.setItem("user_class", cleanVal(data.identity_tag.class));
+            localStorage.setItem("user_class_no", cleanVal(data.identity_tag.class_no));
+            localStorage.setItem("user_real_name", cleanVal(data.identity_tag.real_name));
+          } else {
+            localStorage.setItem("user_class", "");
+            localStorage.setItem("user_class_no", "");
+            localStorage.setItem("user_real_name", "");
           }
 
+          // 對齊備用相容 key，避免其他函數因命名規則斷軌
+          localStorage.setItem("userToken", data.token || "");
+          localStorage.setItem("userRole", data.role || "student");
+          localStorage.setItem("userInfo", JSON.stringify({
+            real_name: localStorage.getItem("user_real_name"),
+            class: localStorage.getItem("user_class"),
+            class_no: localStorage.getItem("user_class_no"),
+            username: username
+          }));
+
           // Load success view UI
-          showStudentCard(data.local_storage_data, data.role);
+          showStudentCard();
           loginForm.reset();
         } else {
           showError(data.message || "驗證失敗，請檢查輸入帳號或密碼");
@@ -606,25 +592,14 @@
     });
 
     // Update and draw the beautiful Student Card interface
-    function showStudentCard(userInfo, role) {
-      // 🚀 將資料完全綁定，如果傳入了全新的 userInfo 則直接將其強制寫入 direct keys 之中
-      if (userInfo && Object.keys(userInfo).length > 0) {
-        const finalRealName = userInfo.real_name || userInfo.realName || userInfo.name;
-        const finalClass = userInfo.class || userInfo.studentClass;
-        const finalClassNo = userInfo.class_no || userInfo.classNo;
-        const finalUsername = userInfo.username || userInfo.student_id || userInfo.studentId;
-
-        if (finalRealName) localStorage.setItem("user_real_name", cleanVal(finalRealName));
-        if (finalClass) localStorage.setItem("user_class", cleanVal(finalClass));
-        if (finalClassNo) localStorage.setItem("user_class_no", cleanVal(finalClassNo));
-        if (finalUsername) localStorage.setItem("user_username", cleanVal(finalUsername));
-      }
-
+    function showStudentCard() {
       const details = getStudentDetails();
-      document.getElementById('card-real-name').innerText = details.realName;
-      document.getElementById('card-class').innerText = details.studentClass;
-      document.getElementById('card-class-no').innerText = details.classNo;
-      document.getElementById('card-student-id').innerText = details.studentId;
+      
+      // 如果未回傳則顯示為 "--" 佔位
+      document.getElementById('card-real-name').innerText = details.realName || "--";
+      document.getElementById('card-class').innerText = details.studentClass || "--";
+      document.getElementById('card-class-no').innerText = details.classNo || "--";
+      document.getElementById('card-student-id').innerText = details.studentId || "--";
 
       // Switch panels gracefully
       loginSection.classList.add('hidden');
@@ -639,8 +614,8 @@
     // 🚀 動態課程載入與權限比對 (GS Loader Integration)
     // =======================================================
     async function fetchTopics() {
-      const token = localStorage.getItem("userToken");
-      const userRole = (localStorage.getItem("userRole") || "student").toLowerCase();
+      const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+      const userRole = (localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student").toLowerCase();
 
       if (!token) {
         showError("Token 遺失，請重新登入。");
@@ -760,7 +735,7 @@
           if (idx === 0) return; // 略過標題
           const rowName = String(row[4] || "").trim(); // Col E (NAME)
           const rowSession = String(row[5] || "").trim(); // Col F (Session)
-          if (rowName === currentStudentName && rowSession) {
+          if (currentStudentName && rowName === currentStudentName && rowSession) {
             watchedSessions.add(rowSession);
           }
         });
@@ -1081,8 +1056,8 @@
       `;
       lucide.createIcons();
 
-      const token = localStorage.getItem("userToken");
-      const userRole = localStorage.getItem("userRole") || "student";
+      const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+      const userRole = localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student";
 
       // 🔍 從 user_real_name, user_class, user_class_no 指定 flat keys 中完全取值
       const details = getStudentDetails();
@@ -1149,5 +1124,3 @@
   </script>
 </body>
 </html>
-
-
