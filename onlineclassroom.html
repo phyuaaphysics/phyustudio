@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -374,6 +375,25 @@
     }
 
     function getStudentDetails() {
+      // 1. 嘗試直接從 localStorage 獲取個別鍵，因為最為可靠且防衝突
+      let directRealName = cleanVal(localStorage.getItem("user_real_name")) || 
+                           cleanVal(localStorage.getItem("real_name")) || 
+                           cleanVal(localStorage.getItem("realName"));
+                           
+      let directClass = cleanVal(localStorage.getItem("user_class")) || 
+                        cleanVal(localStorage.getItem("class")) || 
+                        cleanVal(localStorage.getItem("studentClass"));
+                        
+      let directClassNo = cleanVal(localStorage.getItem("user_class_no")) || 
+                          cleanVal(localStorage.getItem("class_no")) || 
+                          cleanVal(localStorage.getItem("classNo"));
+                          
+      let directStudentId = cleanVal(localStorage.getItem("user_username")) || 
+                            cleanVal(localStorage.getItem("username")) || 
+                            cleanVal(localStorage.getItem("student_id")) || 
+                            cleanVal(localStorage.getItem("studentId"));
+
+      // 2. 嘗試解析 userInfo 物件
       let userInfo = {};
       try {
         const rawInfo = localStorage.getItem("userInfo");
@@ -384,35 +404,27 @@
         userInfo = {};
       }
 
-      // 順序嘗試所有可能的命名標準 (snake_case, camelCase 等)
-      let realName = cleanVal(userInfo.real_name) || 
+      // 3. 結合與對齊所有可能的欄位
+      let realName = directRealName || 
+                     cleanVal(userInfo.real_name) || 
                      cleanVal(userInfo.realName) || 
-                     cleanVal(userInfo.name) || 
-                     cleanVal(localStorage.getItem("user_real_name")) || 
-                     cleanVal(localStorage.getItem("real_name")) || 
-                     cleanVal(localStorage.getItem("realName"));
+                     cleanVal(userInfo.name);
       if (!realName) realName = "無名氏";
 
-      let studentClass = cleanVal(userInfo.class) || 
-                         cleanVal(userInfo.studentClass) || 
-                         cleanVal(localStorage.getItem("user_class")) || 
-                         cleanVal(localStorage.getItem("class"));
+      let studentClass = directClass || 
+                         cleanVal(userInfo.class) || 
+                         cleanVal(userInfo.studentClass);
       if (!studentClass) studentClass = "N/A";
 
-      let classNo = cleanVal(userInfo.class_no) || 
-                    cleanVal(userInfo.classNo) || 
-                    cleanVal(localStorage.getItem("user_class_no")) || 
-                    cleanVal(localStorage.getItem("class_no")) || 
-                    cleanVal(localStorage.getItem("classNo"));
+      let classNo = directClassNo || 
+                    cleanVal(userInfo.class_no) || 
+                    cleanVal(userInfo.classNo);
       if (!classNo) classNo = "N/A";
 
-      let studentId = cleanVal(userInfo.student_id) || 
+      let studentId = directStudentId || 
+                      cleanVal(userInfo.student_id) || 
                       cleanVal(userInfo.studentId) || 
-                      cleanVal(userInfo.username) || 
-                      cleanVal(localStorage.getItem("user_username")) || 
-                      cleanVal(localStorage.getItem("username")) || 
-                      cleanVal(localStorage.getItem("student_id")) || 
-                      cleanVal(localStorage.getItem("studentId"));
+                      cleanVal(userInfo.username);
       if (!studentId) studentId = "無ID資料";
 
       return { realName, studentClass, classNo, studentId };
@@ -447,12 +459,19 @@
         if (!localStorage.getItem("userRole")) {
           localStorage.setItem("userRole", localStorage.getItem("user_role") || "student");
         }
+        
+        // 🚀 同步備份個別鍵，保證絕對不會因未執行 getStudentDetails 導致遺失
+        const bridgeRealName = localStorage.getItem("user_real_name") || "無名氏";
+        const bridgeClass = localStorage.getItem("user_class") || "N/A";
+        const bridgeClassNo = localStorage.getItem("user_class_no") || "N/A";
+        const bridgeUsername = localStorage.getItem("user_username") || "無ID資料";
+
         if (!localStorage.getItem("userInfo")) {
           const indexUserInfo = {
-            real_name: localStorage.getItem("user_real_name") || "無名氏",
-            class: localStorage.getItem("user_class") || "N/A",
-            class_no: localStorage.getItem("user_class_no") || "N/A",
-            student_id: localStorage.getItem("user_username") || "無ID資料"
+            real_name: bridgeRealName,
+            class: bridgeClass,
+            class_no: bridgeClassNo,
+            student_id: bridgeUsername
           };
           localStorage.setItem("userInfo", JSON.stringify(indexUserInfo));
         }
@@ -553,6 +572,15 @@
           localStorage.setItem("userToken", data.token);
           localStorage.setItem("userRole", data.role);
           localStorage.setItem("userInfo", JSON.stringify(data.local_storage_data));
+
+          // 🚀 雙重安全保障：登入成功後也寫入單獨變數，防止 getStudentDetails 在任何瀏覽器中漏抓
+          if (data.local_storage_data) {
+            const sd = data.local_storage_data;
+            if (sd.real_name || sd.realName) localStorage.setItem("user_real_name", sd.real_name || sd.realName);
+            if (sd.class || sd.studentClass) localStorage.setItem("user_class", sd.class || sd.studentClass);
+            if (sd.class_no || sd.classNo) localStorage.setItem("user_class_no", sd.class_no || sd.classNo);
+            if (sd.username || sd.student_id || sd.studentId) localStorage.setItem("user_username", sd.username || sd.student_id || sd.studentId);
+          }
 
           // Load success view UI
           showStudentCard(data.local_storage_data, data.role);
@@ -1058,7 +1086,8 @@
       const studentClass = details.studentClass;
       const classNo = details.classNo;
 
-      if (!token || studentId === "無ID資料" || realName === "無名氏") {
+      // 🚀 極致安全防空：如果缺少任何關鍵學籍資訊，決不發送以避免寫入空 CSV
+      if (!token || !studentId || studentId === "無ID資料" || !realName || realName === "無名氏") {
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：學生資訊或 Token 不完整</span>`;
         btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
         btn.disabled = false;
@@ -1155,3 +1184,4 @@
   </script>
 </body>
 </html>
+
