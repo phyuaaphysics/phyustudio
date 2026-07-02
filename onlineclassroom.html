@@ -370,7 +370,7 @@
     function cleanVal(val) {
       if (val === null || val === undefined) return "";
       const str = String(val).trim();
-      if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料") return "";
+      if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料" || str === "--") return "";
       return str;
     }
 
@@ -1079,12 +1079,24 @@
       const token = localStorage.getItem("userToken");
       const userRole = localStorage.getItem("userRole") || "student";
 
-      // 🔍 精密提取 & 防空對策：支援多種欄位命名風格
+      // 🔍 終極雙源提取：同時自 localStorage 獲取，並將「已呈現在畫面上」的 DOM 數值列為最高優先權 fallback
       const details = getStudentDetails();
-      const studentId = details.studentId;
-      const realName = details.realName;
-      const studentClass = details.studentClass;
-      const classNo = details.classNo;
+      
+      let studentId = details.studentId;
+      let realName = details.realName;
+      let studentClass = details.studentClass;
+      let classNo = details.classNo;
+
+      // 🚀 DOM 直接讀取：若卡片中顯示的名字、班級非預設空值，直接抓取螢幕顯示的字串，阻絕所有快取遺失或 key name 衝突
+      const domRealName = cleanVal(document.getElementById('card-real-name').innerText);
+      const domClass = cleanVal(document.getElementById('card-class').innerText);
+      const domClassNo = cleanVal(document.getElementById('card-class-no').innerText);
+      const domStudentId = cleanVal(document.getElementById('card-student-id').innerText);
+
+      if (domRealName && domRealName !== "--") realName = domRealName;
+      if (domClass && domClass !== "--") studentClass = domClass;
+      if (domClassNo && domClassNo !== "--") classNo = domClassNo;
+      if (domStudentId && domStudentId !== "--") studentId = domStudentId;
 
       // 🚀 極致安全防空：如果缺少任何關鍵學籍資訊，決不發送以避免寫入空 CSV
       if (!token || !studentId || studentId === "無ID資料" || !realName || realName === "無名氏") {
@@ -1184,4 +1196,5 @@
   </script>
 </body>
 </html>
+
 
