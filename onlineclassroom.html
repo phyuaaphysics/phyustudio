@@ -720,7 +720,9 @@
         return;
       }
 
-      // 🚀 比對已觀看紀錄 (欄E: NAME (index 4), 欄F: Session (index 5))
+      // =======================================================
+      // 🚀 精準解鎖與比對：讀取 RECORD 分頁，當 欄 D 出現與 user_real_name 相符時，讀取 欄 E 進行判定
+      // =======================================================
       const details = getStudentDetails();
       const currentStudentName = details.realName.trim();
       const watchedSessions = new Set();
@@ -733,8 +735,12 @@
       if (Array.isArray(finalRecords)) {
         finalRecords.forEach((row, idx) => {
           if (idx === 0) return; // 略過標題
-          const rowName = String(row[4] || "").trim(); // Col E (NAME)
-          const rowSession = String(row[5] || "").trim(); // Col F (Session)
+          
+          // 欄 D: user_real_name (index 3)
+          // 欄 E: session (index 4)
+          const rowName = String(row[3] || "").trim(); 
+          const rowSession = String(row[4] || "").trim(); 
+          
           if (currentStudentName && rowName === currentStudentName && rowSession) {
             watchedSessions.add(rowSession);
           }
@@ -754,20 +760,20 @@
         const isWatched = watchedSessions.has(session);
         const isClickable = isActive || isWatched;
 
-        // 🚀 動態調整背景與指標 (已看過者配以淡綠色高質感顯示)
+        // 🚀 依據完成狀態調整背景與指標 (已看過者配以淡綠色高質感顯示，未完成者配以淡紅色)
         let rowBgClass = "";
         if (isWatched) {
           rowBgClass = "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer";
         } else if (isActive) {
-          rowBgClass = "hover:bg-white/45 bg-transparent cursor-pointer";
+          rowBgClass = "bg-rose-500/10 hover:bg-rose-500/20 text-rose-950 border-l-4 border-rose-400 cursor-pointer";
         } else {
-          rowBgClass = "opacity-40 cursor-not-allowed bg-slate-900/[0.04] text-slate-500";
+          rowBgClass = "opacity-60 bg-rose-500/5 text-rose-900/40 border-l-4 border-rose-300/30 cursor-not-allowed";
         }
 
         const rowEl = document.createElement("div");
         rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
 
-        // 🚀 動態調整圖示
+        // 🚀 依據完成狀態調整左側圓形圖示風格
         let iconName = "lock";
         let iconCircleClass = "border-slate-400/20 text-slate-500 bg-slate-400/10";
         if (isWatched) {
@@ -775,13 +781,16 @@
           iconCircleClass = "border-emerald-500/30 text-emerald-600 bg-emerald-500/20";
         } else if (isActive) {
           iconName = "layers";
-          iconCircleClass = "border-emerald-500/20 text-emerald-700 bg-emerald-500/10";
+          iconCircleClass = "border-rose-400/20 text-rose-700 bg-rose-500/10";
+        } else {
+          iconName = "lock";
+          iconCircleClass = "border-rose-300/20 text-rose-400/50 bg-rose-500/5";
         }
 
-        // 🚀 右側文字與圖示
+        // 🚀 依據完成狀態調整右側文字與指示圖示
         let statusText = "LOCKED";
         let rightIcon = "lock";
-        let textClass = "text-slate-500";
+        let textClass = "text-rose-900/40";
         if (isWatched) {
           statusText = "COMPLETED";
           rightIcon = "check";
@@ -789,7 +798,7 @@
         } else if (isActive) {
           statusText = "ENTER";
           rightIcon = "chevron-right";
-          textClass = "text-emerald-700";
+          textClass = "text-rose-700";
         }
 
         rowEl.innerHTML = `
