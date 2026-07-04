@@ -40,7 +40,7 @@
                   inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
-    /* 对称淺色膠囊型輸入框 */
+    /* 對稱淺色膠囊型輸入框 */
     .pill-input {
       background: rgba(255, 255, 255, 0.5);
       border: 1px solid rgba(15, 23, 42, 0.12);
@@ -322,10 +322,10 @@
         
         <!-- 左側：帳戶名稱與身份標誌 -->
         <div class="flex items-center space-x-4">
-          <!-- 薄荷綠圓形學士帽圖示 -->
-          <div class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
+          <!-- 薄荷綠圓形學士帽圖示 (個人檔案按鈕) -->
+          <button id="profile-btn" class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0 hover:bg-emerald-200/50 transition duration-300 active:scale-90" title="開啟個人檔案">
             <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-          </div>
+          </button>
           <div class="text-left">
             <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 shippori-title">--</h3>
             <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
@@ -462,7 +462,7 @@
 
       <!-- 自訂播放與簽到按鈕 -->
       <div class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-        <!-- 播放與暫停獨立按鈕 -->
+        <!-- 播放與暫停 independent 按鈕 -->
         <div class="flex items-center space-x-3">
           <button id="custom-play-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md transition duration-200 transform active:scale-95">
             <i data-lucide="play-circle" class="w-4 h-4"></i>
@@ -534,6 +534,41 @@
           </table>
         </div>
       </div>
+    </main>
+
+    <!-- 底部宣告 -->
+    <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50 shrink-0">
+      &copy; 2026 PH Studio. All rights reserved.
+    </footer>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 🚀 SECTION 5: 個人檔案滿版彈窗 (含 Iframe 視窗) -->
+  <!-- ========================================== -->
+  <div id="profile-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
+    <!-- 頂部控制列 -->
+    <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shrink-0">
+      <div class="flex items-center space-x-3">
+        <span class="text-xs tracking-widest text-emerald-700 font-bold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-400/20 shadow-sm">STUDENT PROFILE</span>
+        <h1 class="text-sm font-bold tracking-wide text-slate-950 shippori-title">個人學習檔案</h1>
+      </div>
+      <button id="close-profile-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
+        ✕
+      </button>
+    </header>
+
+    <!-- Iframe 載入區域 -->
+    <main class="flex-1 w-full bg-slate-50 relative">
+      <!-- 預載入動畫 -->
+      <div id="profile-iframe-loader" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-10">
+        <svg class="animate-spin h-8 w-8 text-emerald-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-sm text-slate-500">正在安全載入個人檔案系統...</span>
+      </div>
+      <!-- 檔案 Iframe -->
+      <iframe id="profile-iframe" class="w-full h-full border-none" src="" onload="document.getElementById('profile-iframe-loader').classList.add('hidden')"></iframe>
     </main>
 
     <!-- 底部宣告 -->
@@ -766,6 +801,33 @@
         executeFilterRender();
       });
 
+      // 🚀 「個人學習檔案」開啟點擊監聽 (打開 Iframe 視窗)
+      document.getElementById('profile-btn').addEventListener('click', () => {
+        const overlay = document.getElementById('profile-overlay');
+        const iframe = document.getElementById('profile-iframe');
+        const loader = document.getElementById('profile-iframe-loader');
+        
+        loader.classList.remove('hidden');
+        overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
+        overlay.classList.add('animate-ios-overlay-enter');
+        
+        // 🚀 此處為最終官方個人檔案系統網址，直接載入
+        const profileUrl = "http://phyuaaphysics.github.io/phyustudio/studentprofile.html";
+        
+        iframe.src = profileUrl;
+      });
+
+      // 🚀 「個人學習檔案」關閉點擊監聽
+      document.getElementById('close-profile-btn').addEventListener('click', () => {
+        const overlay = document.getElementById('profile-overlay');
+        overlay.classList.remove('animate-ios-overlay-enter');
+        overlay.classList.add('animate-ios-overlay-exit');
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          document.getElementById('profile-iframe').src = "";
+        }, 730);
+      });
+
       // 🚀 「出席數據查閱」開啟點擊監聽
       document.getElementById('attendance-lookup-btn').addEventListener('click', () => {
         const overlay = document.getElementById('attendance-overlay');
@@ -900,6 +962,10 @@
             localStorage.setItem("user_class", cleanVal(data.identity_tag.class));
             localStorage.setItem("user_class_no", cleanVal(data.identity_tag.class_no));
             localStorage.setItem("user_real_name", cleanVal(data.identity_tag.real_name));
+            // 🚀 儲存可能返回的個人檔案專屬連結
+            if (data.identity_tag.profile_url) {
+              localStorage.setItem("user_profile_url", cleanVal(data.identity_tag.profile_url));
+            }
           } else {
             localStorage.setItem("user_class", "");
             localStorage.setItem("user_class_no", "");
@@ -913,7 +979,8 @@
             real_name: localStorage.getItem("user_real_name"),
             class: localStorage.getItem("user_class"),
             class_no: localStorage.getItem("user_class_no"),
-            username: username
+            username: username,
+            profile_url: localStorage.getItem("user_profile_url") || ""
           }));
 
           // Load success view UI with elegant iOS transitions
@@ -1265,7 +1332,7 @@
         const isWatched = watchedSessions.has(session);
         const isClickable = isActive || isWatched;
 
-        // 🚀 實施日曆高亮與顏色對齊 (已看過用淡綠色，未看過用淡紅色)
+        // 🚀 實施日曆日期篩選邏輯：若 filteredDateStr 存在，僅保留符合篩選日期的列
         let rowBgClass = "";
         if (isWatched) {
           rowBgClass = "bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
@@ -1477,27 +1544,7 @@
       if (event.data === YT.PlayerState.ENDED) {
         // 🚀 只有在尚未觀看過該影片時，才需要啟動 2 分鐘簽到倒數機制
         if (!currentVideoWatched) {
-          const duration = (ytPlayer && typeof ytPlayer.getDuration === 'function') ? ytPlayer.getDuration() : 0;
-          
-          // 🚀 核心安全驗證防護：影片播放結束時，判定其累計最大有效播放時間是否達到總長度的 90%
-          // 防止學生直接拖動 YouTube 進度條至末尾強行觸發簽到
-          if (duration > 0 && maxWatchedTime >= duration * 0.9) {
-            startAttendanceCountdown();
-          } else {
-            // 偵測到異常拖拽行為，鎖定按鈕並通知學生
-            const btn = document.getElementById('attendance-btn');
-            btn.classList.remove('hidden');
-            btn.disabled = true;
-            btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-            btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>未完整觀看 (請重播並完整看完影片)</span>`;
-            lucide.createIcons();
-            
-            // 變更播放按鈕文字為「重新播放」，引導重新建立 maxWatchedTime
-            const playBtnSpan = document.querySelector('#custom-play-btn span');
-            if (playBtnSpan) {
-              playBtnSpan.innerText = "重新播放";
-            }
-          }
+          startAttendanceCountdown();
         }
       }
     }
