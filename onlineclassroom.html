@@ -40,7 +40,7 @@
                   inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
-    /* 對稱淺色膠囊型輸入框 */
+    /* 对称淺色膠囊型輸入框 */
     .pill-input {
       background: rgba(255, 255, 255, 0.5);
       border: 1px solid rgba(15, 23, 42, 0.12);
@@ -1265,7 +1265,7 @@
         const isWatched = watchedSessions.has(session);
         const isClickable = isActive || isWatched;
 
-        // 🚀 顯著增強已完成（淡綠色）與未完成項目（淡紅色）的視覺厚度與邊框特徵
+        // 🚀 實施日曆高亮與顏色對齊 (已看過用淡綠色，未看過用淡紅色)
         let rowBgClass = "";
         if (isWatched) {
           rowBgClass = "bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
@@ -1477,7 +1477,27 @@
       if (event.data === YT.PlayerState.ENDED) {
         // 🚀 只有在尚未觀看過該影片時，才需要啟動 2 分鐘簽到倒數機制
         if (!currentVideoWatched) {
-          startAttendanceCountdown();
+          const duration = (ytPlayer && typeof ytPlayer.getDuration === 'function') ? ytPlayer.getDuration() : 0;
+          
+          // 🚀 核心安全驗證防護：影片播放結束時，判定其累計最大有效播放時間是否達到總長度的 90%
+          // 防止學生直接拖動 YouTube 進度條至末尾強行觸發簽到
+          if (duration > 0 && maxWatchedTime >= duration * 0.9) {
+            startAttendanceCountdown();
+          } else {
+            // 偵測到異常拖拽行為，鎖定按鈕並通知學生
+            const btn = document.getElementById('attendance-btn');
+            btn.classList.remove('hidden');
+            btn.disabled = true;
+            btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+            btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>未完整觀看 (請重播並完整看完影片)</span>`;
+            lucide.createIcons();
+            
+            // 變更播放按鈕文字為「重新播放」，引導重新建立 maxWatchedTime
+            const playBtnSpan = document.querySelector('#custom-play-btn span');
+            if (playBtnSpan) {
+              playBtnSpan.innerText = "重新播放";
+            }
+          }
         }
       }
     }
