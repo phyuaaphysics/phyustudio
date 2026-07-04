@@ -554,29 +554,15 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 🆕 SECTION 5: 學生個人檔案 iframe 滿版彈窗 (iOS 級阻尼轉場) -->
+    <!-- 🆕 SECTION 5: 學生個人檔案 iframe 滿版彈窗 (純iframe + 關閉按鈕) -->
     <!-- ========================================== -->
-    <div id="profile-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
-        <!-- 頂部控制列 -->
-        <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shrink-0">
-            <div class="flex items-center space-x-3">
-                <span class="text-xs tracking-widest text-emerald-700 font-bold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-400/20 shadow-sm">STUDENT PROFILE</span>
-                <h1 class="text-sm font-bold tracking-wide text-slate-950 shippori-title">學生個人檔案</h1>
-            </div>
-            <button id="close-profile-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
-                ✕
-            </button>
-        </header>
-
-        <!-- iframe 內容區 -->
-        <main class="flex-1 w-full overflow-hidden p-4 md:p-6 max-w-7xl mx-auto flex flex-col min-h-0">
-            <iframe id="profile-iframe" src="http://phyuaaphysics.github.io/phyustudio/studentprofile.html" allowfullscreen loading="lazy"></iframe>
-        </main>
-
-        <!-- 底部宣告 -->
-        <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50 shrink-0">
-            &copy; 2026 PH Studio. All rights reserved.
-        </footer>
+    <div id="profile-overlay" class="fixed inset-0 z-50 hidden bg-white">
+        <!-- 僅保留關閉按鈕，絕對定位於右上角 -->
+        <button id="close-profile-btn" class="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
+            ✕
+        </button>
+        <!-- iframe 滿版 -->
+        <iframe id="profile-iframe" src="http://phyuaaphysics.github.io/phyustudio/studentprofile.html" allowfullscreen loading="lazy" class="w-full h-full border-0"></iframe>
     </div>
 
     <!-- Footer Info (極簡低對比) -->
@@ -823,7 +809,7 @@
             });
 
             // =======================================================
-            // 🆕 學生個人檔案 iframe — 開啟 / 關閉
+            // 🆕 學生個人檔案 iframe — 開啟 / 關閉 (純iframe + 關閉按鈕)
             // =======================================================
             const profileTrigger = document.getElementById('student-profile-trigger');
             const profileOverlay = document.getElementById('profile-overlay');
@@ -836,18 +822,13 @@
                     if (iframe) {
                         iframe.src = iframe.src; // 觸發重新載入
                     }
-                    profileOverlay.classList.remove('hidden', 'animate-ios-overlay-exit');
-                    profileOverlay.classList.add('animate-ios-overlay-enter');
+                    profileOverlay.classList.remove('hidden');
                 });
             }
 
             if (closeProfileBtn) {
                 closeProfileBtn.addEventListener('click', () => {
-                    profileOverlay.classList.remove('animate-ios-overlay-enter');
-                    profileOverlay.classList.add('animate-ios-overlay-exit');
-                    setTimeout(() => {
-                        profileOverlay.classList.add('hidden');
-                    }, 730);
+                    profileOverlay.classList.add('hidden');
                 });
             }
 
