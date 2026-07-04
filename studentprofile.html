@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>學習歷程系統 · 登入</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest">
+    </script>
+
+    <style>
+        /* 字體 */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&display=swap');
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            /* 淡奶白書院底色 */
+            background: #fdf8f3;
+            min-height: 100vh;
+        }
+
+        .cinzel-title {
+            font-family: 'Cinzel', serif;
+        }
+        .shippori-title {
+            font-family: 'Shippori Mincho', serif;
+            font-weight: 700;
+        }
+
+        /* 玻璃面板 (保留磨砂质感，配合奶白底色更显温润) */
+        .crystal-panel {
+            background: rgba(255, 252, 248, 0.82);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%);
+            border: 1px solid rgba(255, 245, 235, 0.7);
+            box-shadow: 0 20px 50px rgba(160, 120, 80, 0.08),
+                inset 0 1px 0 rgba(255, 255, 240, 0.9);
+        }
+
+        /* 胶输入框 */
+        .pill-input {
+            background: rgba(255, 248, 242, 0.6);
+            border: 1px solid rgba(180, 150, 120, 0.18);
+            color: #3d2c1b;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .pill-input:focus {
+            background: rgba(255, 248, 242, 0.9);
+            border-color: rgba(180, 130, 80, 0.4);
+            box-shadow: 0 0 0 3px rgba(180, 130, 80, 0.1);
+            outline: none;
+        }
+        .pill-input::placeholder {
+            color: rgba(100, 75, 55, 0.45);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes osDamping {
+            0% {
+                opacity: 0;
+                transform: translateY(60px) scale(0.95);
+                filter: blur(8px);
+            }
+            55% {
+                opacity: 0.9;
+                transform: translateY(-6px) scale(1.01);
+                filter: blur(0px);
+            }
+            75% {
+                transform: translateY(2px) scale(0.997);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+        .animate-os-damping {
+            animation: osDamping 1.1s cubic-bezier(0.25, 1, 0.2, 1) forwards;
+        }
+
+        @keyframes iosMenuEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(35px) scale(0.96);
+                filter: blur(10px);
+            }
+            60% {
+                transform: translateY(-3px) scale(1.006);
+                filter: blur(0px);
+            }
+            80% {
+                transform: translateY(1px) scale(0.998);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+        .animate-ios-menu {
+            animation: iosMenuEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes iosLoginExit {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.94) translateY(-30px);
+                filter: blur(12px);
+            }
+        }
+        .animate-ios-exit {
+            animation: iosLoginExit 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .active\:scale-98:active {
+            transform: scale(0.98);
+        }
+
+        /* 像素头像网格辅助（用于绘制） */
+        .pixel-avatar-canvas {
+            display: block;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 头像选择器弹出 */
+        #avatar-picker {
+            transform-origin: top left;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        #avatar-picker:not(.hidden) {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        #avatar-picker.hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+
+        /* 功能卡片悬浮效果 */
+        .feature-card {
+            transition: all 0.25s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(160, 120, 80, 0.12);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-start p-4 md:p-6 text-slate-800">
+
+    <!-- 顶部安全标识 -->
+    <header class="w-full max-w-4xl flex justify-end items-center py-2 z-10 shrink-0">
+        <div id="secure-badge" class="text-[10px] tracking-widest text-slate-700/70 bg-white/50 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-white/60 shadow-sm">
+            SECURE CHANNEL
+        </div>
+    </header>
+
+    <!-- 主区域 -->
+    <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
+
+        <!-- ========================================== -->
+        <!--  SECTION 1 : 登入面板                       -->
+        <!-- ========================================== -->
+        <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-os-damping mt-6 shadow-2xl hidden">
+
+            <!-- App Icon -->
+            <div class="flex justify-center mb-8">
+                <div class="w-14 h-14 bg-white/40 p-0.5 border border-white/60 shadow-inner flex items-center justify-center rounded-xl">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="PH Logo" class="w-full h-full" />
+                </div>
+            </div>
+
+            <!-- 标题：學習歷程系統 -->
+            <div class="mb-10">
+                <h2 class="text-2xl md:text-[2rem] font-bold tracking-[0.15em] text-slate-800 shippori-title leading-tight">
+                    學習歷程系統
+                </h2>
+                <h3 class="text-xs tracking-[0.4em] text-slate-400/70 cinzel-title mt-3.5 uppercase">
+                    Student Portfolio
+                </h3>
+                <div class="w-6 h-[1px] bg-slate-300/30 mx-auto mt-4"></div>
+            </div>
+
+            <!-- 登录表单 -->
+            <form id="login-form" class="space-y-5">
+                <div class="relative">
+                    <input type="text" id="username" required placeholder="Username"
+                    class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide" />
+                </div>
+                <div class="relative">
+                    <input type="password" id="password" required placeholder="Password"
+                    class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide" />
+                    <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-600/50 hover:text-slate-800 transition">
+                        <i data-lucide="eye" id="pw-icon" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- 错误信息 -->
+                <div id="error-msg" class="hidden bg-rose-50/80 border border-rose-200 text-rose-700 p-3.5 rounded-2xl text-xs text-left flex items-start space-x-2 animate-fade-in shadow-sm">
+                    <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-rose-400"></i>
+                    <span id="error-text" class="leading-relaxed font-medium"></span>
+                </div>
+
+                <!-- 登录按钮 -->
+                <button type="submit" id="submit-btn"
+                class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs tracking-[0.25em] uppercase py-4 rounded-full shadow-md hover:shadow-lg transition duration-300 transform active:scale-98 flex items-center justify-center space-x-2">
+                <span>Login &amp; Verify</span>
+            </button>
+        </form>
+
+        <!-- 底部装饰 -->
+        <div class="flex justify-center mt-10">
+            <div class="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-400/20 flex items-center justify-center text-amber-600 shadow-sm">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!--  SECTION 2 : 学生卡片 + 功能板块            -->
+    <!-- ========================================== -->
+    <div id="card-section" class="w-full hidden space-y-4">
+
+        <!-- 顶部导航 -->
+        <div class="flex justify-end items-center px-1">
+            <div class="flex items-center space-x-2">
+                <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/60 hover:bg-rose-100/80 hover:border-rose-300 border border-slate-200/60 flex items-center justify-center text-slate-600 hover:text-rose-600 transition" title="登出系統">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                </button>
+                <button id="power-btn" class="w-7 h-7 rounded-full bg-white/60 hover:bg-white/80 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-700 transition" title="返回主頁面">
+                    <i data-lucide="power" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 学生信息卡片 (含頭像) - 新增 relative z-40 確保整體層級凌駕於下方功能卡片 -->
+        <div class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center gap-4 relative z-40">
+
+            <!-- 左侧：头像 + 姓名 -->
+            <div class="flex items-center space-x-4">
+                <!-- 頭像容器（點擊彈出選擇器） - 確保 z-30 高於卡片層級 -->
+                <div id="avatar-container" class="relative z-30 cursor-pointer shrink-0">
+                    <img id="avatar-img" src="" alt="avatar" class="w-12 h-12 rounded-full border-2 border-white/80 shadow-md object-cover bg-white" />
+                    <!-- 頭像選擇器浮層 - 增加至 z-50 確保在最頂層呈現，寬度略拓寬為 170px 並改為 4 欄以容納 8 個頭像 -->
+                    <div id="avatar-picker" class="hidden absolute top-full left-0 mt-2.5 p-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/80 grid grid-cols-4 gap-2 z-50 w-[170px] origin-top-left">
+                        <!-- 由 JS 动态生成可愛人物選項 -->
+                    </div>
+                </div>
+
+                <div class="text-left">
+                    <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-800 shippori-title">--</h3>
+                    <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
+                </div>
+            </div>
+
+            <!-- 右侧：班级 + 学号 -->
+            <div class="flex items-center gap-4 text-right pr-1 shrink-0">
+                <div>
+                    <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
+                    <p id="card-class" class="text-base font-extrabold text-amber-700 tracking-wide">--</p>
+                </div>
+                <div class="w-[1px] h-6 bg-slate-300/40"></div>
+                <div>
+                    <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
+                    <p id="card-class-no" class="text-base font-extrabold text-amber-700 tracking-wide">--</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!--  功能板块 (功課公告1張 + 四個卡片)          -->
+        <!-- ========================================== -->
+        <div id="feature-grid" class="grid grid-cols-2 gap-3 mt-1">
+
+            <!-- 優先第一功能: 功課及公告欄 (Span 2 滿版展現優先權) -->
+            <div class="feature-card crystal-panel rounded-2xl p-4 col-span-2 flex flex-col items-center justify-center cursor-pointer hover:bg-white/60 transition border border-transparent hover:border-indigo-300/50 bg-gradient-to-r from-indigo-50/20 to-purple-50/20" data-feature="功課及公告欄">
+                <div class="relative">
+                    <i data-lucide="megaphone" class="w-8 h-8 text-indigo-600 mb-2"></i>
+                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                    </span>
+                </div>
+                <span class="text-sm font-extrabold text-slate-800 tracking-wider">功課及公告欄</span>
+            </div>
+
+            <!-- 功能1: 校内成绩预览系统 -->
+            <div class="feature-card crystal-panel rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-white/60 transition border border-transparent hover:border-amber-200/50" data-feature="成绩预览">
+                <i data-lucide="bar-chart-2" class="w-8 h-8 text-emerald-600 mb-2"></i>
+                <span class="text-sm font-bold text-slate-700">校內成績預覽系統</span>
+            </div>
+
+            <!-- 功能2: 线上补课时数 -->
+            <div class="feature-card crystal-panel rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-white/60 transition border border-transparent hover:border-amber-200/50" data-feature="补课时数">
+                <i data-lucide="clock" class="w-8 h-8 text-blue-600 mb-2"></i>
+                <span class="text-sm font-bold text-slate-700">線上補課時數</span>
+            </div>
+
+            <!-- 功能3: 能力评估系统 -->
+            <div class="feature-card crystal-panel rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-white/60 transition border border-transparent hover:border-amber-200/50" data-feature="能力评估">
+                <i data-lucide="brain" class="w-8 h-8 text-purple-600 mb-2"></i>
+                <span class="text-sm font-bold text-slate-700">能力評估系統</span>
+            </div>
+
+            <!-- 功能4: 线上评估中心成绩 -->
+            <div class="feature-card crystal-panel rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-white/60 transition border border-transparent hover:border-amber-200/50" data-feature="评估中心">
+                <i data-lucide="clipboard-list" class="w-8 h-8 text-rose-600 mb-2"></i>
+                <span class="text-sm font-bold text-slate-700">線上評估中心成績</span>
+            </div>
+
+        </div>
+
+        <!-- 底部学号识别 -->
+        <div class="flex justify-between items-center px-4 text-[10px] text-slate-500/70 uppercase tracking-widest">
+            <span>學員代碼: <span id="card-student-id" class="font-mono bg-white/50 px-2 py-0.5 rounded ml-1 text-slate-700 border border-white/60">--</span></span>
+            <span>Verified</span>
+        </div>
+
+    </div>
+
+</main>
+
+<!-- 页脚 -->
+<footer class="w-full max-w-6xl text-center py-2 text-[10px] tracking-[0.2em] uppercase text-slate-400/60 z-10 shrink-0">
+    <p>&copy; 2026 PH Studio. All rights reserved.</p>
+</footer>
+
+<!-- ============================================================ -->
+<!--  JAVASCRIPT 核心模块                                          -->
+<!-- ============================================================ -->
+<script>
+    // ============================================================
+    //  GAS 端点 (保留认证与验证)
+    // ============================================================
+    const GAS_AUTH_URL =
+        "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
+    const GAS_LOADER_URL =
+        "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
+
+    // ============================================================
+    //  DOM 参考
+    // ============================================================
+    const loginSection = document.getElementById('login-section');
+    const cardSection = document.getElementById('card-section');
+    const loginForm = document.getElementById('login-form');
+    const errorMsg = document.getElementById('error-msg');
+    const errorText = document.getElementById('error-text');
+    const submitBtn = document.getElementById('submit-btn');
+    const togglePwBtn = document.getElementById('toggle-pw');
+    const passwordInput = document.getElementById('password');
+    const pwIcon = document.getElementById('pw-icon');
+    const secureBadge = document.getElementById('secure-badge');
+    const avatarImg = document.getElementById('avatar-img');
+    const avatarPicker = document.getElementById('avatar-picker');
+    const avatarContainer = document.getElementById('avatar-container');
+
+    // ============================================================
+    //  工具函数
+    // ============================================================
+    function cleanVal(val) {
+        if (val === null || val === undefined) return "";
+        const str = String(val).trim();
+        if (["null", "undefined", "N/A", "無名氏", "無ID資料", "--"].includes(str)) return "";
+        return str;
+    }
+
+    // ============================================================
+    //  学生资料读取
+    // ============================================================
+    function getStudentDetails() {
+        let realName = cleanVal(localStorage.getItem("user_real_name"));
+        let studentClass = cleanVal(localStorage.getItem("user_class"));
+        let classNo = cleanVal(localStorage.getItem("user_class_no"));
+        let studentId = cleanVal(localStorage.getItem("user_username"));
+
+        if (!realName || !studentClass || !classNo || !studentId) {
+            try {
+                const raw = localStorage.getItem("userInfo");
+                if (raw && raw !== "undefined" && raw !== "null") {
+                    const info = JSON.parse(raw);
+                    if (!realName) realName = cleanVal(info.real_name || info.realName || info.name);
+                    if (!studentClass) studentClass = cleanVal(info.class || info.studentClass);
+                    if (!classNo) classNo = cleanVal(info.class_no || info.classNo);
+                    if (!studentId) studentId = cleanVal(info.student_id || info.studentId || info.username);
+                }
+            } catch (_) { /* ignore */ }
+        }
+
+        return {
+            realName: realName || "",
+            studentClass: studentClass || "",
+            classNo: classNo || "",
+            studentId: studentId || "無ID資料"
+        };
+    }
+
+    // ============================================================
+    //  精緻人物造型 SVG 模板庫 (設計精美，分為男 A/B、女 A/B 各有眼鏡與無眼鏡版)
+    // ============================================================
+    const characterSVGs = [
+        // 1. 男生 A (無眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ebf8ff"/>
+                    <stop offset="100%" stop-color="#bee3f8"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg1)" stroke="#e2e8f0" stroke-width="2"/>
+            <path d="M26 50 C 26 30, 74 30, 74 50 Z" fill="#2d3748"/>
+            <circle cx="50" cy="55" r="23" fill="#fbe3db"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="32" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <circle cx="68" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M24 44 C 30 32, 70 32, 76 44 C 70 36, 55 38, 50 44 C 45 38, 30 36, 24 44 Z" fill="#1a202c"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#3182ce"/>
+        </svg>`,
+        // 2. 男生 A (配戴眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ebf8ff"/>
+                    <stop offset="100%" stop-color="#bee3f8"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg2)" stroke="#e2e8f0" stroke-width="2"/>
+            <path d="M26 50 C 26 30, 74 30, 74 50 Z" fill="#2d3748"/>
+            <circle cx="50" cy="55" r="23" fill="#fbe3db"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="32" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <circle cx="68" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <!-- 潮流圓框黑眼鏡 -->
+            <circle cx="38" cy="52" r="7.5" stroke="#1a202c" stroke-width="2" fill="none"/>
+            <circle cx="62" cy="52" r="7.5" stroke="#1a202c" stroke-width="2" fill="none"/>
+            <line x1="45.5" y1="52" x2="54.5" y2="52" stroke="#1a202c" stroke-width="2"/>
+            <line x1="28" y1="52" x2="30.5" y2="52" stroke="#1a202c" stroke-width="2"/>
+            <line x1="72" y1="52" x2="69.5" y2="52" stroke="#1a202c" stroke-width="2"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M24 44 C 30 32, 70 32, 76 44 C 70 36, 55 38, 50 44 C 45 38, 30 36, 24 44 Z" fill="#1a202c"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#3182ce"/>
+        </svg>`,
+        // 3. 男生 B (無眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#e6fffa"/>
+                    <stop offset="100%" stop-color="#b2f5ea"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg3)" stroke="#e2e8f0" stroke-width="2"/>
+            <circle cx="34" cy="38" r="10" fill="#744210"/>
+            <circle cx="50" cy="34" r="10" fill="#744210"/>
+            <circle cx="66" cy="38" r="10" fill="#744210"/>
+            <circle cx="28" cy="48" r="8" fill="#744210"/>
+            <circle cx="72" cy="48" r="8" fill="#744210"/>
+            <circle cx="50" cy="55" r="23" fill="#fbe3db"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="32" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <circle cx="68" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="42" cy="40" r="6" fill="#5c3006"/>
+            <circle cx="50" cy="39" r="6" fill="#5c3006"/>
+            <circle cx="58" cy="40" r="6" fill="#5c3006"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#319795"/>
+        </svg>`,
+        // 4. 男生 B (配戴眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#e6fffa"/>
+                    <stop offset="100%" stop-color="#b2f5ea"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg4)" stroke="#e2e8f0" stroke-width="2"/>
+            <circle cx="34" cy="38" r="10" fill="#744210"/>
+            <circle cx="50" cy="34" r="10" fill="#744210"/>
+            <circle cx="66" cy="38" r="10" fill="#744210"/>
+            <circle cx="28" cy="48" r="8" fill="#744210"/>
+            <circle cx="72" cy="48" r="8" fill="#744210"/>
+            <circle cx="50" cy="55" r="23" fill="#fbe3db"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="32" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <circle cx="68" cy="59" r="2.5" fill="#fbb6ce" opacity="0.6"/>
+            <!-- 商務質感方框眼鏡 -->
+            <rect x="30" y="46" width="16" height="12" rx="2" stroke="#2d3748" stroke-width="2" fill="none"/>
+            <rect x="54" y="46" width="16" height="12" rx="2" stroke="#2d3748" stroke-width="2" fill="none"/>
+            <line x1="46" y1="52" x2="54" y2="52" stroke="#2d3748" stroke-width="2"/>
+            <line x1="28" y1="52" x2="30" y2="52" stroke="#2d3748" stroke-width="2"/>
+            <line x1="72" y1="52" x2="70" y2="52" stroke="#2d3748" stroke-width="2"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="42" cy="40" r="6" fill="#5c3006"/>
+            <circle cx="50" cy="39" r="6" fill="#5c3006"/>
+            <circle cx="58" cy="40" r="6" fill="#5c3006"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#319795"/>
+        </svg>`,
+        // 5. 女生 A (無眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fff5f5"/>
+                    <stop offset="100%" stop-color="#fed7d7"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg5)" stroke="#e2e8f0" stroke-width="2"/>
+            <circle cx="75" cy="40" r="12" fill="#ed64a6"/>
+            <circle cx="50" cy="55" r="23" fill="#fdf2f0"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="31" cy="59" r="3" fill="#feb2b2"/>
+            <circle cx="69" cy="59" r="3" fill="#feb2b2"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M25 45 C 23 30, 77 30, 75 45 C 72 45, 68 40, 50 40 C 32 40, 28 45, 25 45 Z" fill="#d53f8c"/>
+            <rect x="23" y="44" width="6" height="15" rx="3" fill="#d53f8c"/>
+            <rect x="71" y="44" width="6" height="15" rx="3" fill="#d53f8c"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#dd6b20"/>
+        </svg>`,
+        // 6. 女生 A (配戴眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg6" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fff5f5"/>
+                    <stop offset="100%" stop-color="#fed7d7"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg6)" stroke="#e2e8f0" stroke-width="2"/>
+            <circle cx="75" cy="40" r="12" fill="#ed64a6"/>
+            <circle cx="50" cy="55" r="23" fill="#fdf2f0"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="31" cy="59" r="3" fill="#feb2b2"/>
+            <circle cx="69" cy="59" r="3" fill="#feb2b2"/>
+            <!-- 時尚紅框圓眼鏡 -->
+            <circle cx="38" cy="52" r="7.5" stroke="#e53e3e" stroke-width="2" fill="none"/>
+            <circle cx="62" cy="52" r="7.5" stroke="#e53e3e" stroke-width="2" fill="none"/>
+            <line x1="45.5" y1="52" x2="54.5" y2="52" stroke="#e53e3e" stroke-width="2"/>
+            <line x1="28" y1="52" x2="30.5" y2="52" stroke="#e53e3e" stroke-width="2"/>
+            <line x1="72" y1="52" x2="69.5" y2="52" stroke="#e53e3e" stroke-width="2"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M25 45 C 23 30, 77 30, 75 45 C 72 45, 68 40, 50 40 C 32 40, 28 45, 25 45 Z" fill="#d53f8c"/>
+            <rect x="23" y="44" width="6" height="15" rx="3" fill="#d53f8c"/>
+            <rect x="71" y="44" width="6" height="15" rx="3" fill="#d53f8c"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#dd6b20"/>
+        </svg>`,
+        // 7. 女生 B (無眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg7" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#faf5ff"/>
+                    <stop offset="100%" stop-color="#e9d8fd"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg7)" stroke="#e2e8f0" stroke-width="2"/>
+            <circle cx="50" cy="55" r="23" fill="#fdf2f0"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="31" cy="59" r="3" fill="#feb2b2"/>
+            <circle cx="69" cy="59" r="3" fill="#feb2b2"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M24 40 C 24 22, 76 22, 76 40 L 76 58 L 68 58 L 68 45 C 68 45, 50 42, 50 45 C 50 42, 32 45, 32 45 L 32 58 L 24 58 Z" fill="#4a5568"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#805ad5"/>
+        </svg>`,
+        // 8. 女生 B (配戴眼鏡)
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#faf5ff"/>
+                    <stop offset="100%" stop-color="#e9d8fd"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="46" fill="url(#bg8)" stroke="#e2e8f0" stroke-width="2"/>
+            <circle cx="50" cy="55" r="23" fill="#fdf2f0"/>
+            <circle cx="38" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="62" cy="52" r="3.5" fill="#2d3748"/>
+            <circle cx="31" cy="59" r="3" fill="#feb2b2"/>
+            <circle cx="69" cy="59" r="3" fill="#feb2b2"/>
+            <!-- 薰衣草紫圓框眼鏡 -->
+            <circle cx="38" cy="52" r="7.5" stroke="#805ad5" stroke-width="2" fill="none"/>
+            <circle cx="62" cy="52" r="7.5" stroke="#805ad5" stroke-width="2" fill="none"/>
+            <line x1="45.5" y1="52" x2="54.5" y2="52" stroke="#805ad5" stroke-width="2"/>
+            <line x1="28" y1="52" x2="30.5" y2="52" stroke="#805ad5" stroke-width="2"/>
+            <line x1="72" y1="52" x2="69.5" y2="52" stroke="#805ad5" stroke-width="2"/>
+            <path d="M46 64 Q50 68 54 64" stroke="#2d3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M24 40 C 24 22, 76 22, 76 40 L 76 58 L 68 58 L 68 45 C 68 45, 50 42, 50 45 C 50 42, 32 45, 32 45 L 32 58 L 24 58 Z" fill="#4a5568"/>
+            <path d="M32 78 C 32 78, 36 72, 50 72 C 64 72, 68 78, 68 78 Z" fill="#805ad5"/>
+        </svg>`
+    ];
+
+    const characterNames = [
+        "男生A (無眼鏡)", "男生A (配戴眼鏡)",
+        "男生B (無眼鏡)", "男生B (配戴眼鏡)",
+        "女生A (無眼鏡)", "女生A (配戴眼鏡)",
+        "女生B (無眼鏡)", "女生B (配戴眼鏡)"
+    ];
+
+    // 藉由安全編碼，將向量 SVG 字串編譯為高清 DataURL
+    function createVectorAvatar(index) {
+        const svgString = characterSVGs[index] || characterSVGs[0];
+        return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+    }
+
+    // 預先生成人物頭像的 DataURL
+    let avatarDataURLs = [];
+
+    function generateAvatars() {
+        avatarDataURLs = characterSVGs.map((_, idx) => createVectorAvatar(idx));
+    }
+    generateAvatars();
+
+    // ============================================================
+    //  头像选择器渲染与交互
+    // ============================================================
+    let currentAvatarIndex = 0; // 默认第一个
+
+    function renderAvatarPicker() {
+        avatarPicker.innerHTML = '';
+        avatarDataURLs.forEach((url, index) => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.title = characterNames[index]; // 滑鼠移上去顯示人物與狀態名稱
+            img.className =
+                'w-9 h-9 rounded-full border-2 border-transparent hover:border-amber-400 cursor-pointer transition-all hover:scale-110 shadow-sm bg-white';
+            img.dataset.index = index;
+            img.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectAvatar(index);
+            });
+            avatarPicker.appendChild(img);
+        });
+    }
+    renderAvatarPicker();
+
+    function selectAvatar(index) {
+        currentAvatarIndex = index;
+        avatarImg.src = avatarDataURLs[index];
+        localStorage.setItem('user_avatar_index', String(index));
+        closePicker();
+    }
+
+    function loadSavedAvatar() {
+        const saved = localStorage.getItem('user_avatar_index');
+        if (saved !== null) {
+            const idx = parseInt(saved, 10);
+            if (!isNaN(idx) && idx >= 0 && idx < avatarDataURLs.length) {
+                currentAvatarIndex = idx;
+            }
+        }
+        avatarImg.src = avatarDataURLs[currentAvatarIndex];
+    }
+
+    function togglePicker(e) {
+        e.stopPropagation();
+        avatarPicker.classList.toggle('hidden');
+    }
+
+    // 關閉選擇器
+    function closePicker() {
+        avatarPicker.classList.add('hidden');
+    }
+
+    // 点击头像容器切换选择器
+    avatarContainer.addEventListener('click', togglePicker);
+
+    // 点击文档其他地方关闭选择器
+    document.addEventListener('click', function(e) {
+        if (!avatarContainer.contains(e.target)) {
+            closePicker();
+        }
+    });
+
+    // ============================================================
+    //  显示学生卡片 (含头像加载)
+    // ============================================================
+    function showStudentCard(animate = false) {
+        const d = getStudentDetails();
+        document.getElementById('card-real-name').innerText = d.realName || "--";
+        document.getElementById('card-class').innerText = d.studentClass || "--";
+        document.getElementById('card-class-no').innerText = d.classNo || "--";
+        document.getElementById('card-student-id').innerText = d.studentId || "--";
+
+        // 加载头像
+        loadSavedAvatar();
+
+        if (animate) {
+            loginSection.classList.remove('hidden');
+            loginSection.classList.add('animate-ios-exit');
+            if (secureBadge) secureBadge.classList.add('hidden');
+
+            setTimeout(() => {
+                loginSection.classList.add('hidden');
+                loginSection.classList.remove('animate-ios-exit');
+                cardSection.classList.remove('hidden');
+                cardSection.classList.add('animate-ios-menu');
+            }, 520);
+        } else {
+            loginSection.classList.add('hidden');
+            cardSection.classList.remove('hidden');
+            cardSection.classList.add('animate-ios-menu');
+            if (secureBadge) secureBadge.classList.add('hidden');
+        }
+    }
+
+    // ============================================================
+    //  错误提示
+    // ============================================================
+    function showError(msg) {
+        errorText.innerText = msg;
+        errorMsg.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    // ============================================================
+    //  重置登入按鈕
+    // ============================================================
+    function resetSubmitBtn() {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Login &amp; Verify</span>`;
+        lucide.createIcons();
+    }
+
+    // ============================================================
+    //  登录表單提交
+    // ============================================================
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        errorMsg.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Checking Credentials...</span>
+        `;
+
+        const username = document.getElementById('username').value.trim();
+        const password = passwordInput.value;
+
+        try {
+            const resp = await fetch(GAS_AUTH_URL, {
+                method: "POST",
+                mode: "cors",
+                redirect: "follow",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                localStorage.setItem("jwt_token", data.token || "");
+                localStorage.setItem("user_role", data.role || "student");
+                localStorage.setItem("user_username", username);
+
+                if (data.identity_tag) {
+                    localStorage.setItem("user_class", cleanVal(data.identity_tag.class));
+                    localStorage.setItem("user_class_no", cleanVal(data.identity_tag.class_no));
+                    localStorage.setItem("user_real_name", cleanVal(data.identity_tag.real_name));
+                } else {
+                    localStorage.setItem("user_class", "");
+                    localStorage.setItem("user_class_no", "");
+                    localStorage.setItem("user_real_name", "");
+                }
+
+                localStorage.setItem("userToken", data.token || "");
+                localStorage.setItem("userRole", data.role || "student");
+                localStorage.setItem("userInfo", JSON.stringify({
+                    real_name: localStorage.getItem("user_real_name"),
+                    class: localStorage.getItem("user_class"),
+                    class_no: localStorage.getItem("user_class_no"),
+                    username: username
+                }));
+
+                showStudentCard(true);
+                loginForm.reset();
+            } else {
+                showError(data.message || "驗證失敗，請檢查輸入帳號或密碼");
+            }
+        } catch (err) {
+            console.error("Auth fetch error:", err);
+            showError("無法連線至安全性認證點。請確認 GAS 專案已正確部署。");
+        } finally {
+            resetSubmitBtn();
+        }
+    });
+
+    // ============================================================
+    //  密码显示切换
+    // ============================================================
+    togglePwBtn.addEventListener('click', () => {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            pwIcon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            passwordInput.type = 'password';
+            pwIcon.setAttribute('data-lucide', 'eye');
+        }
+        lucide.createIcons();
+    });
+
+    // ============================================================
+    //  登出
+    // ============================================================
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        localStorage.clear();
+        cardSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        if (secureBadge) secureBadge.classList.remove('hidden');
+    });
+
+    // ============================================================
+    //  电源按钮 -> 首页
+    // ============================================================
+    document.getElementById('power-btn').addEventListener('click', () => {
+        window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
+    });
+
+    // ============================================================
+    //  功能卡片点击 (占位)
+    // ============================================================
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const feature = this.dataset.feature || '功能';
+            alert(`您點擊了「${feature}」\n此功能模組將在後續版本中接入。`);
+        });
+    });
+
+    // ============================================================
+    //  页面初始化 — Token 自动验证
+    // ============================================================
+    document.addEventListener("DOMContentLoaded", async () => {
+        lucide.createIcons();
+
+        const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+        const details = getStudentDetails();
+
+        if (details.studentId !== "無ID資料" && token) {
+            // 显示加载
+            const loader = document.createElement('div');
+            loader.id = 'temp-loader';
+            loader.className =
+                'crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl flex flex-col items-center justify-center';
+            loader.innerHTML = `
+            <svg class="animate-spin h-10 w-10 text-amber-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-slate-700 font-medium text-sm tracking-wider">安全驗證中，請稍候…</span>
+          `;
+            document.querySelector('main').appendChild(loader);
+
+            try {
+                const url =
+                    `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(token)}`;
+                const resp = await fetch(url, { method: "GET", mode: "cors" });
+                const data = await resp.json();
+
+                if (data.result === 'success') {
+                    loader.remove();
+                    showStudentCard(false);
+                } else {
+                    throw new Error("Token 驗證失效");
+                }
+            } catch (_) {
+                localStorage.clear();
+                loader.remove();
+                loginSection.classList.remove('hidden');
+                if (secureBadge) secureBadge.classList.remove('hidden');
+                showError("驗證已過期或失效，請重新登入！");
+            }
+        } else {
+            loginSection.classList.remove('hidden');
+        }
+    });
+</script>
+
+</body>
+</html>
