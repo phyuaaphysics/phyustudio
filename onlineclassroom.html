@@ -1310,20 +1310,15 @@
         const rawDate = String(row[5] || "").trim(); 
         const date = formatDisplayDate(rawDate);
 
-        // 🚀 核心邏輯：在 session 與 title 中間導入網課日期 (欄 F) 的小標籤
+        // 🚀 核心優化: 日期與標題分兩行，date 細一點，title 大一點
         rowEl.innerHTML = `
           <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
             <span class="w-8 h-8 rounded-lg border ${iconCircleClass} flex items-center justify-center shrink-0">
               <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
             </span>
-            <div class="flex items-center space-x-3 flex-1 min-w-0">
-              <span class="text-sm font-bold text-emerald-800 tracking-wide shrink-0 min-w-[55px]">${session}</span>
-              ${date ? `
-                <span class="text-slate-400/30 select-none text-xs shrink-0">|</span>
-                <span class="text-xs text-slate-600 font-medium shrink-0 bg-white/70 px-2 py-0.5 rounded border border-slate-200/60 shadow-sm">${date}</span>
-              ` : ''}
-              <span class="text-slate-400/30 select-none text-xs shrink-0">|</span>
-              <span class="text-sm text-slate-800 font-semibold truncate">${title}</span>
+            <div class="flex flex-col flex-1 min-w-0">
+              <span class="text-xs text-slate-500 font-medium tracking-wide">${date || ''}</span>
+              <span class="text-sm md:text-base font-bold text-slate-800 truncate leading-tight">${title}</span>
             </div>
           </div>
           <div class="flex items-center space-x-1 ${textClass} text-xs font-bold tracking-widest ${isClickable ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
