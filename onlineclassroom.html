@@ -314,7 +314,7 @@
       color: #4338ca;
     }
 
-    /* 個人資料彈窗 (iOS 阻尼) */
+    /* 個人資料彈窗 (iOS 阻尼) - 放大尺寸 */
     #profile-overlay {
       background: rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(12px);
@@ -327,9 +327,9 @@
       border: 1px solid rgba(255, 255, 255, 0.6);
       box-shadow: 0 40px 80px rgba(15, 23, 42, 0.15);
       width: 90%;
-      max-width: 480px;
-      height: 80vh;
-      max-height: 700px;
+      max-width: 90vw;
+      height: 85vh;
+      max-height: 90vh;
       border-radius: 2.5rem;
       overflow: hidden;
       transform: scale(0.92) translateY(20px);
@@ -349,6 +349,31 @@
       height: 100%;
       border: none;
       background: white;
+    }
+    /* 全屏按鈕樣式 */
+    .profile-control-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      border: 1px solid rgba(203, 213, 225, 0.6);
+      background: rgba(255, 255, 255, 0.6);
+      color: #1e293b;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .profile-control-btn:hover {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(148, 163, 184, 0.6);
+      transform: scale(1.05);
+    }
+    .profile-control-btn:active {
+      transform: scale(0.92);
     }
   </style>
 </head>
@@ -697,15 +722,22 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 🚀 SECTION 5: 個人資料彈窗 (iframe) -->
+  <!-- 🚀 SECTION 5: 個人資料彈窗 (iframe) - 放大並含全屏按鈕 -->
   <!-- ========================================== -->
   <div id="profile-overlay" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
     <div class="profile-card relative">
-      <!-- 關閉按鈕 -->
-      <button id="close-profile-btn" class="absolute top-3 right-4 z-10 w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-600 hover:text-white bg-white/60 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-full transition duration-200 shadow-md">
-        ✕
-      </button>
-      <iframe id="profile-iframe" src="https://phyuaaphysics.github.io/phyustudio/studentprofile.html" title="學生個人資料"></iframe>
+      <!-- 控制按鈕列 (全屏 + 關閉) -->
+      <div class="absolute top-3 right-4 z-10 flex items-center gap-2">
+        <!-- 全屏按鈕 -->
+        <button id="fullscreen-profile-btn" class="profile-control-btn" title="全屏">
+          <i data-lucide="maximize" class="w-4 h-4"></i>
+        </button>
+        <!-- 關閉按鈕 -->
+        <button id="close-profile-btn" class="profile-control-btn hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-600" title="關閉">
+          ✕
+        </button>
+      </div>
+      <iframe id="profile-iframe" src="https://phyuaaphysics.github.io/phyustudio/studentprofile.html" title="學生個人資料" allowfullscreen></iframe>
     </div>
   </div>
 
@@ -902,15 +934,26 @@
     const profileOverlay = document.getElementById('profile-overlay');
     const profileTriggerBtn = document.getElementById('profile-trigger-btn');
     const closeProfileBtn = document.getElementById('close-profile-btn');
+    const fullscreenProfileBtn = document.getElementById('fullscreen-profile-btn');
+    const profileIframe = document.getElementById('profile-iframe');
 
     function openProfile() {
       profileOverlay.classList.remove('hidden', 'closing');
-      // 強制 reflow 以觸發動畫
       void profileOverlay.offsetWidth;
       profileOverlay.classList.add('open');
+      // 重置全屏按鈕圖標
+      const icon = fullscreenProfileBtn.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', 'maximize');
+        lucide.createIcons();
+      }
     }
 
     function closeProfile() {
+      // 如果處於全屏狀態，先退出全屏
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
       profileOverlay.classList.remove('open');
       profileOverlay.classList.add('closing');
       setTimeout(() => {
@@ -919,8 +962,42 @@
       }, 600);
     }
 
+    // 全屏切換
+    function toggleFullscreen() {
+      const iframe = profileIframe;
+      if (!document.fullscreenElement) {
+        // 進入全屏 (可選擇 iframe 或整個 profile-card)
+        // 使用 iframe 全屏更符合直覺
+        if (iframe.requestFullscreen) {
+          iframe.requestFullscreen().catch(err => {
+            // 若 iframe 全屏失敗，嘗試整個 profile-card
+            const card = document.querySelector('.profile-card');
+            if (card && card.requestFullscreen) {
+              card.requestFullscreen().catch(e => console.warn('全屏失敗', e));
+            }
+          });
+        }
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // 監聽全屏變化以更新圖標
+    document.addEventListener('fullscreenchange', () => {
+      const icon = fullscreenProfileBtn.querySelector('i');
+      if (icon) {
+        if (document.fullscreenElement) {
+          icon.setAttribute('data-lucide', 'minimize');
+        } else {
+          icon.setAttribute('data-lucide', 'maximize');
+        }
+        lucide.createIcons();
+      }
+    });
+
     profileTriggerBtn.addEventListener('click', openProfile);
     closeProfileBtn.addEventListener('click', closeProfile);
+    fullscreenProfileBtn.addEventListener('click', toggleFullscreen);
     // 點擊背景關閉
     profileOverlay.addEventListener('click', (e) => {
       if (e.target === profileOverlay) closeProfile();
@@ -1129,21 +1206,15 @@
 
       let html = '';
 
-      // 判斷是否處於「大分類展開」狀態 (有選中大分類)
       const isCategoryExpanded = (activeCategoryFilter !== null);
 
       if (isCategoryExpanded) {
-        // 顯示返回按鈕 (回到全部)
         html += `<span class="filter-capsule active" data-action="back" style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.2);color:#4338ca;">
           <i data-lucide="arrow-left" class="w-3 h-3 mr-1"></i> 返回
         </span>`;
-        // 顯示當前大分類名稱 (作為標題)
         html += `<span class="text-xs font-bold text-slate-600 px-1 shrink-0">${activeCategoryFilter}</span>`;
-        // 分隔
         html += `<span class="text-slate-300 text-xs select-none mx-0.5">|</span>`;
-        // 顯示該大分類下的所有小分類
         const subCats = categoryMap[activeCategoryFilter] || [];
-        // 全部小分類 (清空小分類篩選)
         const isAllSubActive = (activeSubCategoryFilter === null);
         html += `<span class="filter-capsule-sub ${isAllSubActive ? 'active' : ''}" data-category="${activeCategoryFilter}" data-sub="all">全部</span>`;
         subCats.forEach(sub => {
@@ -1151,7 +1222,6 @@
           html += `<span class="filter-capsule-sub ${isSubActive ? 'active' : ''}" data-category="${activeCategoryFilter}" data-sub="${sub}">${sub}</span>`;
         });
       } else {
-        // 顯示全部課程 + 所有大分類
         const isAllActive = (activeCategoryFilter === null && activeSubCategoryFilter === null);
         html += `<span class="filter-capsule ${isAllActive ? 'active' : ''}" data-category="all" data-sub="all">全部課程</span>`;
 
@@ -1163,16 +1233,12 @@
       }
 
       filterNavContainer.innerHTML = html;
-
-      // 重新生成 Lucide 圖標
       lucide.createIcons();
 
-      // 綁定點擊事件 (事件代理)
       filterNavContainer.querySelectorAll('.filter-capsule, .filter-capsule-sub').forEach(el => {
         el.addEventListener('click', function(e) {
           e.stopPropagation();
           
-          // 處理返回按鈕
           if (this.dataset.action === 'back') {
             activeCategoryFilter = null;
             activeSubCategoryFilter = null;
@@ -1188,9 +1254,7 @@
             activeCategoryFilter = null;
             activeSubCategoryFilter = null;
           } else if (sub === 'all') {
-            // 點擊大分類：展開 (不再切換，直接設定)
             if (activeCategoryFilter === category) {
-              // 如果已經是同一個大分類，則收起 (回到全部)
               activeCategoryFilter = null;
               activeSubCategoryFilter = null;
             } else {
@@ -1198,7 +1262,6 @@
               activeSubCategoryFilter = null;
             }
           } else {
-            // 點擊小分類
             if (activeSubCategoryFilter === sub) {
               activeSubCategoryFilter = null;
             } else {
@@ -1691,7 +1754,6 @@
             class_no: classNo,
             role: userRole,
             duration: currentVideoDuration
-            // 移除 category, sub_category
           })
         });
 
