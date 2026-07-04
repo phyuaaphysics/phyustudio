@@ -9,12 +9,12 @@
   <!-- Lucide Icons for responsive elements -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* 引入 Cinzel (優雅古典襯線體) 與 Inter (極簡現代無襯線體) */
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    /* 引入 Cinzel (優雅古典襯線體)、Inter (極簡現代無襯線體) 與 Shippori Mincho (優雅日系明體 BOLD) */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&display=swap');
     
     body {
       font-family: 'Inter', 'Noto Sans TC', sans-serif;
-      background-image: url('https://i.ibb.co/bgLYLMKs/image.png');
+      background-image: url('https://i.ibb.co/yn7JJ8yy/classroom.jpg');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
@@ -24,15 +24,20 @@
       font-family: 'Cinzel', serif;
     }
 
-    /* 極致輕盈的淡白色磨砂卡片（高度還原物理高光質感） */
+    .shippori-title {
+      font-family: 'Shippori Mincho', serif;
+      font-weight: 700;
+    }
+
+    /* 減少玻璃透明度，提高遮罩實色（更清晰易讀） */
     .crystal-panel {
-      background: rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.78);
       /* 淡白色重度磨砂 */
-      backdrop-filter: blur(40px) saturate(160%);
-      -webkit-backdrop-filter: blur(40px) saturate(160%);
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.1), 
-                  inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(30px) saturate(160%);
+      -webkit-backdrop-filter: blur(30px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08), 
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     /* 對稱淺色膠囊型輸入框 */
@@ -65,12 +70,248 @@
         transform: translateY(10px); 
       }
       to { 
-        opacity: 1; 
+        opacity: 1;
         transform: translateY(0);
       }
     }
     .animate-fade-in {
       animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* OS 風格擬真彈性阻尼進場動畫 */
+    @keyframes osDamping {
+      0% {
+        opacity: 0;
+        transform: translateY(60px) scale(0.95);
+        filter: blur(8px);
+      }
+      55% {
+        opacity: 0.9;
+        transform: translateY(-6px) scale(1.01);
+        filter: blur(0px);
+      }
+      75% {
+        transform: translateY(2px) scale(0.997);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+      }
+    }
+    .animate-os-damping {
+      animation: osDamping 1.1s cubic-bezier(0.25, 1, 0.2, 1) forwards;
+    }
+
+    /* iOS 級別阻尼淡入動畫 (用於 Menu Card 展開) */
+    @keyframes iosMenuEntrance {
+      0% {
+        opacity: 0;
+        transform: translateY(35px) scale(0.96);
+        filter: blur(10px);
+      }
+      60% {
+        transform: translateY(-3px) scale(1.006);
+        filter: blur(0px);
+      }
+      80% {
+        transform: translateY(1px) scale(0.998);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+      }
+    }
+    .animate-ios-menu {
+      animation: iosMenuEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別阻尼淡出動畫 (用於 Login Section 退出) */
+    @keyframes iosLoginExit {
+      0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.94) translateY(-30px);
+        filter: blur(12px);
+      }
+    }
+    .animate-ios-exit {
+      animation: iosLoginExit 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別超慢阻尼影音遮罩進場動畫 (淡入與優雅縮小回彈) */
+    @keyframes iosOverlayEntrance {
+      0% {
+        opacity: 0;
+        transform: scale(1.08);
+        backdrop-filter: blur(0px) saturate(100%);
+        -webkit-backdrop-filter: blur(0px) saturate(100%);
+        background-color: rgba(255, 255, 255, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+        backdrop-filter: blur(30px) saturate(160%);
+        -webkit-backdrop-filter: blur(30px) saturate(160%);
+        background-color: rgba(255, 255, 255, 0.85);
+      }
+    }
+    .animate-ios-overlay-enter {
+      animation: iosOverlayEntrance 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別超慢阻尼影音遮罩退場動畫 (淡入與優雅放大消散) */
+    @keyframes iosOverlayExit {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+        backdrop-filter: blur(30px) saturate(160%);
+        -webkit-backdrop-filter: blur(30px) saturate(160%);
+        background-color: rgba(255, 255, 255, 0.85);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.08);
+        backdrop-filter: blur(0px) saturate(100%);
+        -webkit-backdrop-filter: blur(0px) saturate(100%);
+        background-color: rgba(255, 255, 255, 0);
+      }
+    }
+    .animate-ios-overlay-exit {
+      animation: iosOverlayExit 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* iOS 級別日曆展開／收合動畫 */
+    #calendar-panel {
+      transition: all 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .calendar-collapsed {
+      max-height: 0 !important;
+      transform: scale-y(0) !important;
+      opacity: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      border-top-width: 0 !important;
+      border-bottom-width: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .calendar-day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 日曆月份/年份滾輪輸入框樣式 */
+    .calendar-roller-input {
+      width: 70px;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+      color: #0f172a;
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      transition: all 0.2s ease;
+    }
+    .calendar-roller-input:focus {
+      outline: none;
+      border-color: rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      background: rgba(255, 255, 255, 0.8);
+    }
+    .calendar-roller-input::-webkit-outer-spin-button,
+    .calendar-roller-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .calendar-roller-input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .calendar-roller-select {
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0f172a;
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .calendar-roller-select:focus {
+      outline: none;
+      border-color: rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    /* 分類過濾導航列膠囊樣式 */
+    .filter-capsule {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.5);
+      color: #334155;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      white-space: nowrap;
+    }
+    .filter-capsule:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(16, 185, 129, 0.2);
+      transform: translateY(-1px);
+    }
+    .filter-capsule.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #065f46;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+    }
+    .filter-capsule-sub {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: rgba(241, 245, 249, 0.6);
+      color: #475569;
+      white-space: nowrap;
+    }
+    .filter-capsule-sub:hover {
+      background: rgba(241, 245, 249, 0.9);
+      border-color: rgba(100, 116, 139, 0.15);
+    }
+    .filter-capsule-sub.active {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.25);
+      color: #4338ca;
     }
   </style>
 </head>
@@ -90,9 +331,9 @@
   <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
 
     <!-- ========================================== -->
-    <!-- SECTION 1: 極致美學登入面板 -->
+    <!-- SECTION 1: 極致美學登入面板 (預設隱藏以防 token 驗證時閃爍) -->
     <!-- ========================================== -->
-    <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl">
+    <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-os-damping mt-6 shadow-2xl hidden">
       
       <!-- 官方 APP ICON (直角矩形置中，不使用圓角) -->
       <div class="flex justify-center mb-8">
@@ -101,10 +342,10 @@
         </div>
       </div>
 
-      <!-- 標題：Cinzel 古典襯線字型與優雅寬字距 -->
+      <!-- 標題：Shippori Mincho 襯線字型與優雅寬字距 -->
       <div class="mb-10">
-        <h2 class="text-2xl md:text-[2rem] font-semibold tracking-[0.15em] text-slate-900 cinzel-title leading-tight">
-          ONLINE CLASSROOM
+        <h2 class="text-2xl md:text-[2rem] font-bold tracking-[0.15em] text-slate-900 shippori-title leading-tight">
+          線上補課系統
         </h2>
         <h3 class="text-xs tracking-[0.4em] text-slate-300/70 cinzel-title mt-3.5 uppercase">
           Student Portal
@@ -157,34 +398,19 @@
     <!-- ========================================== -->
     <!-- SECTION 2: 學生學籍資料卡片 & 課室版面 (登入成功) -->
     <!-- ========================================== -->
-    <div id="card-section" class="w-full hidden animate-fade-in space-y-4">
+    <div id="card-section" class="w-full hidden space-y-4">
       
       <!-- 頂部高質感導航工具列 -->
       <div class="flex justify-end items-center px-1">
-        <!-- 右側：功能快捷按鈕 (淡色主題優化) -->
+        <!-- 右側：精簡功能快捷按鈕 (僅保留登出與關機重定向功能) -->
         <div class="flex items-center space-x-2">
-          <!-- 綠色 S4 圓章 -->
-          <span class="w-7 h-7 rounded-full bg-emerald-500 text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-md shadow-emerald-500/20">
-            S4
-          </span>
-          
-          <!-- 選單清單按鈕 -->
-          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
-            <i data-lucide="list" class="w-3.5 h-3.5"></i>
-          </button>
-
-          <!-- 雲端連線狀態按鈕 -->
-          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 transition">
-            <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
-          </button>
-
           <!-- 登出/返回系統按鈕 -->
           <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-rose-500/20 hover:border-rose-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-rose-600 transition" title="登出系統">
             <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
           </button>
 
-          <!-- 系統關機符號 -->
-          <button class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+          <!-- 系統關機符號 (重定向回首頁) -->
+          <button id="power-btn" class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition" title="返回主頁面">
             <i data-lucide="power" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -200,13 +426,13 @@
             <i data-lucide="graduation-cap" class="w-5 h-5"></i>
           </div>
           <div class="text-left">
-            <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 cinzel-title">--</h3>
+            <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 shippori-title">--</h3>
             <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
           </div>
         </div>
 
-        <!-- 右側：班級與學號對稱卡區 -->
-        <div class="flex items-center gap-8 text-right pr-1 shrink-0">
+        <!-- 右側：班級與學號對稱卡區 + 日曆圖示按鈕 -->
+        <div class="flex items-center gap-4 text-right pr-1 shrink-0">
           <!-- 班別 -->
           <div>
             <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
@@ -221,8 +447,65 @@
             <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
             <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
           </div>
+
+          <!-- 垂直精細分割線 -->
+          <div class="w-[1px] h-6 bg-slate-900/10"></div>
+
+          <!-- 日曆展開/收合按鈕 (iOS風，帶點按縮放與自訂高亮) -->
+          <button id="calendar-toggle-btn" class="w-9 h-9 rounded-full bg-white/60 hover:bg-emerald-50/80 hover:text-emerald-700 border border-slate-900/[0.08] flex items-center justify-center text-slate-700 transition duration-300 active:scale-90 shadow-sm" title="開啟補課日曆">
+            <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
+          </button>
         </div>
 
+      </div>
+
+      <!-- ========================================== -->
+      <!-- iOS 風格折疊日曆主面板 -->
+      <!-- ========================================== -->
+      <div id="calendar-panel" class="crystal-panel rounded-2xl p-4 origin-top calendar-collapsed overflow-hidden space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-900/5 pb-2">
+          <button id="cal-prev-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <!-- 月份/年份滾輪輸入區（可點擊編輯） -->
+          <div class="flex items-center gap-1" id="calendar-roller-container">
+            <input type="number" id="cal-year-input" class="calendar-roller-input" min="2020" max="2035" step="1" value="2026">
+            <span class="text-sm font-medium text-slate-500">年</span>
+            <select id="cal-month-select" class="calendar-roller-select">
+              <option value="0">一月</option><option value="1">二月</option><option value="2">三月</option>
+              <option value="3">四月</option><option value="4">五月</option><option value="5">六月</option>
+              <option value="6">七月</option><option value="7">八月</option><option value="8">九月</option>
+              <option value="9">十月</option><option value="10">十一月</option><option value="11">十二月</option>
+            </select>
+          </div>
+          <button id="cal-next-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+          <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+        </div>
+        <div id="calendar-days" class="grid grid-cols-7 gap-1">
+          <!-- JS 動態寫入 -->
+        </div>
+        <!-- 狀態圖例與重設按鈕 -->
+        <div class="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-900/5">
+          <span class="flex items-center gap-1.5 font-medium text-slate-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span>
+            有補課課堂日期
+          </span>
+          <button id="cal-reset-btn" class="px-3 py-1 rounded-full bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 text-[10px] font-bold transition active:scale-95 shadow-sm">
+            顯示全部課程
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 頂部橫向分類過濾導航列 (膠囊式) -->
+      <!-- ========================================== -->
+      <div id="filter-nav-container" class="crystal-panel rounded-2xl p-3 overflow-x-auto flex items-center gap-2 flex-nowrap scrollbar-hide" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
+        <span class="text-[10px] font-bold text-slate-400 tracking-widest uppercase shrink-0 mr-1">分類</span>
+        <!-- 動態由 JS 生成 -->
       </div>
 
       <!-- 核心面板二：動態學業課程列表 -->
@@ -237,6 +520,25 @@
         </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- 🚀 出席數據查閱入口卡片 -->
+      <!-- ========================================== -->
+      <div id="attendance-lookup-btn" class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center cursor-pointer hover:bg-white/45 transition duration-300 shadow-sm border border-slate-200">
+        <div class="flex items-center space-x-4">
+          <div class="w-11 h-11 bg-indigo-500/10 border border-indigo-400/20 rounded-full flex items-center justify-center text-indigo-700 shadow-sm shrink-0">
+            <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <h3 class="text-lg font-bold tracking-wide text-slate-900 shippori-title">出席數據查閱</h3>
+            <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">全班出席率與課程完成進度</p>
+          </div>
+        </div>
+        <div class="flex items-center text-indigo-700 text-xs font-bold tracking-widest">
+          <span>展開查閱</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 ml-1"></i>
+        </div>
+      </div>
+
       <!-- 底層資料註腳標記 -->
       <div class="flex justify-between items-center px-4 text-[10px] text-slate-500/70 uppercase tracking-widest">
         <span>學員代碼識別: <span id="card-student-id" class="font-mono bg-white/40 px-2 py-0.5 rounded ml-1 text-slate-800 border border-white/50">--</span></span>
@@ -248,9 +550,9 @@
   </main>
 
   <!-- ========================================== -->
-  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂) -->
+  <!-- SECTION 3: 內置同頁滿版播放器 (淡色超重度磨砂 - 管理 iOS 阻尼轉場) -->
   <!-- ========================================== -->
-  <div id="video-overlay" class="fixed inset-0 z-50 hidden bg-white/75 backdrop-blur-2xl flex flex-col justify-between animate-fade-in text-slate-900">
+  <div id="video-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
     <!-- 播放器置頂控制列 -->
     <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm">
       <div class="flex items-center space-x-3">
@@ -264,6 +566,12 @@
 
     <!-- 影音核心顯示與自訂操作區 -->
     <main class="flex-1 w-full flex flex-col items-center justify-center p-4 space-y-4">
+      <!-- 🎬 Shippori Mincho 大字體標題區 (大字體、完美配合播放器最大寬度) -->
+      <h2 id="video-player-large-title" class="text-xl md:text-2xl lg:text-3xl font-bold text-left text-slate-950 shippori-title tracking-wide px-2 w-full max-w-4xl leading-relaxed">
+        --
+      </h2>
+
+      <!-- 🎬 還原版播放器容器 (w-full max-w-4xl) -->
       <div class="w-full max-w-4xl aspect-video relative flex items-center justify-center">
         <!-- YouTube API 專屬容器 -->
         <div id="video-overlay-player" class="w-full h-full rounded-2xl shadow-2xl border border-slate-300 bg-black"></div>
@@ -297,6 +605,60 @@
     </footer>
   </div>
 
+  <!-- ========================================== -->
+  <!-- 🚀 SECTION 4: 出席數據查閱滿版彈窗 (iOS 級阻尼轉場) -->
+  <!-- ========================================== -->
+  <div id="attendance-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
+    <!-- 頂部控制列 -->
+    <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shrink-0">
+      <div class="flex items-center space-x-3">
+        <span class="text-xs tracking-widest text-indigo-700 font-bold bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-400/20 shadow-sm">ATTENDANCE REPORT</span>
+        <h1 class="text-sm font-bold tracking-wide text-slate-950 shippori-title">出席數據查閱</h1>
+      </div>
+      <button id="close-attendance-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
+        ✕
+      </button>
+    </header>
+
+    <!-- 內容主區域 -->
+    <main class="flex-1 w-full overflow-hidden p-4 md:p-6 space-y-4 max-w-7xl mx-auto flex flex-col justify-start min-h-0">
+      <div class="text-left space-y-1 shrink-0">
+        <h2 class="text-xl md:text-2xl font-bold text-slate-950 shippori-title tracking-wide">全班出席狀態一覽表</h2>
+        <p class="text-xs text-slate-500">本表展示您所屬群組 (Role) 所有同學的補課完成進度。完成之課程將以綠色勾號顯示。</p>
+      </div>
+
+      <!-- 數據加載狀態 -->
+      <div id="attendance-table-loader" class="crystal-panel rounded-2xl p-12 text-center text-sm text-slate-500 flex-1 flex flex-col items-center justify-center">
+        <svg class="animate-spin h-8 w-8 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>正在從雲端調取學生名單與出席數據...</span>
+      </div>
+
+      <!-- 響應式滾動表格卡片 -->
+      <div id="attendance-table-container" class="hidden crystal-panel rounded-2xl overflow-hidden shadow-md flex-1 flex flex-col min-h-0 border border-slate-200">
+        <div class="overflow-auto flex-1">
+          <table class="w-full text-left border-collapse min-w-[700px] text-xs">
+            <thead class="bg-slate-100/90 sticky top-0 z-10 border-b border-slate-200">
+              <tr id="attendance-table-header">
+                <!-- 動態寫入表頭 -->
+              </tr>
+            </thead>
+            <tbody id="attendance-table-body" class="divide-y divide-slate-200/60 bg-white/40 font-medium">
+              <!-- 動態寫入每一列 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部宣告 -->
+    <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50 shrink-0">
+      &copy; 2026 PH Studio. All rights reserved.
+    </footer>
+  </div>
+
   <!-- Footer Info (極簡低對比) -->
   <footer class="w-full max-w-6xl text-center py-2 text-[10px] tracking-[0.2em] uppercase text-slate-500/60 z-10 shrink-0">
     <p>&copy; 2026 PH Studio. All rights reserved.</p>
@@ -307,13 +669,14 @@
     // ⚙️ Google Apps Script 部署正式網址 (分流管理)
     // =======================================================
     // 擁有學生帳密驗證資料庫的原 Auth 端點：
-    const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyD7xFaKkDT00Nbh13hw2OdyO0QxcUxbcLR_DuIlcHxTeifT1U5WR3Rb_Ks0n8mJqkX/exec";
-    
+    const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
     // 指向 Loader 載入課程端點：
-    const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbxYWLs22DosabEX35RtOQppHJ2X_av2FPWEbhvflSGOmUnJqQGwSBWki5HZgHVRSQA/exec";
-    
-    // 指向您全新指定的專屬簽到 Record 儲存端點：
-    const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbyTjDnpHtL-Cy3r5nrVrJMGiT-qyXqD69ZdMZyIepg3uGov8T3zYtTJMITsGDf-nvrM/exec";
+    const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
+    // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
+    const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbx_TGZzwkLS2-igfam2c9NetRG9s1zNYbTd5F-HlYCD3K0ew0Q2utfvlX3q03kdtCj8/exec";
+
+    // 🚀 學生 roster 試算表 JSON 調取端點 (NAME分頁)
+    const ROSTER_JSON_URL = "https://docs.google.com/spreadsheets/d/1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU/gviz/tq?tqx=out:json&sheet=NAME";
 
     // DOM Elements
     const loginSection = document.getElementById('login-section');
@@ -327,6 +690,11 @@
     const pwIcon = document.getElementById('pw-icon');
     const secureBadge = document.getElementById('secure-badge');
     const topicsContainer = document.getElementById('topics-container');
+    const filterNavContainer = document.getElementById('filter-nav-container');
+
+    // 🚀 日曆相關 DOM 節點
+    const calendarToggleBtn = document.getElementById('calendar-toggle-btn');
+    const calendarPanel = document.getElementById('calendar-panel');
 
     // YouTube API 播放器與保安變數
     let ytPlayer = null;
@@ -338,6 +706,142 @@
     // 當前播放影音資訊追蹤
     let currentSession = "";
     let currentTitle = "";
+    let currentVideoWatched = false; // 🚀 追蹤目前點開的影片是否為「已看過」
+    // 新增：儲存當前影片的 metadata
+    let currentVideoDuration = "";
+    let currentVideoCategory = "";
+    let currentVideoSubCategory = "";
+
+    // 🚀 全域日曆與課程篩選器暫存數據
+    let calendarCurrentDate = new Date();
+    let activeLessonDatesSet = new Set();
+    let filteredDateStr = null; // 儲存篩選 ISO 字串 (如 "2026-03-12")
+    let isCalendarFirstLoad = true;
+    let globalTopicRows = [];
+    let globalUserRole = "";
+    let globalRecords = [];
+
+    // 🚀 分類過濾狀態
+    let activeCategoryFilter = null;      // 當前選中的大分類 (null = 全部)
+    let activeSubCategoryFilter = null;   // 當前選中的小分類 (null = 全部)
+    let categoryMap = {};                // { 大分類: [小分類1, 小分類2, ...] }
+    let courseMetadata = {};             // { session: { duration, category, subCategory } }
+
+    // =======================================================
+    // 🔍 終極容錯數據解析與時區偏移日期格式化方法
+    // =======================================================
+    function cleanVal(val) {
+      if (val === null || val === undefined) return "";
+      const str = String(val).trim();
+      if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料" || str === "--") return "";
+      return str;
+    }
+
+    // 🚀 核心優化：消除全形與半形空白、特殊不可見字元，保證比對完全一致
+    function stripAllSpaces(str) {
+      if (!str) return "";
+      return String(str).replace(/[\s\u3000]/g, ""); // 移除所有半形及日文/中文全形空白 (\u3000)
+    }
+
+    // 🚀 解決 Google Sheets 時區序列化偏差，將 UTC 或各式時間字串完美轉回本地 `YYYY年M月D日` (防時區位移版)
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return "";
+      const str = String(dateStr).trim();
+      
+      // 🚀 核心修正優先：如果包含 T, Z 或冒號，說明是完整的 UTC 或是帶時間戳記的格式，必須經過本地時區轉換
+      if (str.includes("T") || str.includes("Z") || str.includes(":")) {
+        try {
+          const d = new Date(str);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            const date = d.getDate();
+            return `${year}年${month}月${date}日`;
+          }
+        } catch (e) {
+          console.error("Date formatting failed:", e);
+        }
+      }
+
+      // 如果只是單純的日期字串 (如 2026-07-02 或 2026/07/02)，直接正則提煉，防止非 ISO 格式在不同瀏覽器解析出錯
+      const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+      if (matchYMD) {
+        return `${matchYMD[1]}年${parseInt(matchYMD[2], 10)}月${parseInt(matchYMD[3], 10)}日`;
+      }
+      
+      return str;
+    }
+
+    // 🚀 將試算表或各種非標準日期格式轉換為乾淨的 "YYYY-MM-DD" 標準索引字串
+    function getIsoDateString(dateStr) {
+      if (!dateStr) return null;
+      const str = String(dateStr).trim();
+      
+      // 🚀 核心修正優先：如果是完整包含時間的 ISO 格式，優先轉換為本地時區，避免 Regex 提煉截斷導致相差一天
+      if (str.includes("T") || str.includes("Z") || str.includes(":")) {
+        try {
+          const d = new Date(str);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const date = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${date}`;
+          }
+        } catch (e) {}
+      }
+
+      // 先用正則高容錯解析 YYYY-MM-DD 或 YYYY/MM/DD 結構
+      const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+      if (matchYMD) {
+        const y = matchYMD[1];
+        const m = String(parseInt(matchYMD[2], 10)).padStart(2, '0');
+        const d = String(parseInt(matchYMD[3], 10)).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      // 解析 YYYY年M月D日 中文時間格式
+      const matchCnYMD = str.match(/(\d+)年(\d+)月(\d+)日/);
+      if (matchCnYMD) {
+        const y = matchCnYMD[1];
+        const m = String(parseInt(matchCnYMD[2], 10)).padStart(2, '0');
+        const d = String(parseInt(matchCnYMD[3], 10)).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      return null;
+    }
+
+    // 🚀 學生資料統一取值與回寫 (配合指定扁平鍵)
+    function getStudentDetails() {
+      let realName = cleanVal(localStorage.getItem("user_real_name"));
+      let studentClass = cleanVal(localStorage.getItem("user_class"));
+      let classNo = cleanVal(localStorage.getItem("user_class_no"));
+      let studentId = cleanVal(localStorage.getItem("user_username"));
+
+      // 備份機制：如果直接鍵不存在，嘗試解鎖 userInfo 物件 (確保相容性)
+      if (!realName || !studentClass || !classNo || !studentId) {
+        try {
+          const rawInfo = localStorage.getItem("userInfo");
+          if (rawInfo && rawInfo !== "undefined" && rawInfo !== "null") {
+            const userInfo = JSON.parse(rawInfo);
+            if (!realName) realName = cleanVal(userInfo.real_name || userInfo.realName || userInfo.name);
+            if (!studentClass) studentClass = cleanVal(userInfo.class || userInfo.studentClass);
+            if (!classNo) classNo = cleanVal(userInfo.class_no || userInfo.classNo);
+            if (!studentId) studentId = cleanVal(userInfo.student_id || userInfo.studentId || userInfo.username);
+          }
+        } catch (e) {
+          console.error("解析 userInfo 失敗", e);
+        }
+      }
+
+      // 如果依然沒有任何數值，賦予預設空字串
+      if (!realName) realName = "";
+      if (!studentClass) studentClass = "";
+      if (!classNo) classNo = "";
+      if (!studentId) studentId = "無ID資料";
+
+      return { realName, studentClass, classNo, studentId };
+    }
 
     // 非同步加載 YouTube Iframe API 
     (function() {
@@ -352,21 +856,150 @@
       isYtApiReady = true;
     };
 
-    // Page Load Setup: Verify Cache in localStorage
-    document.addEventListener("DOMContentLoaded", () => {
+    // Page Load Setup: Verify Cache in localStorage with GAS Loader URL first
+    document.addEventListener("DOMContentLoaded", async () => {
       // Initialize Lucide icons
       lucide.createIcons();
+
+      // 關機鍵重定向點擊監聽
+      document.getElementById('power-btn').addEventListener('click', () => {
+        window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
+      });
+
+      // 🚀 日曆 Panel 展開與收合控制 (iOS微回彈物理手感轉場)
+      calendarToggleBtn.addEventListener('click', () => {
+        calendarPanel.classList.toggle('calendar-collapsed');
+        calendarToggleBtn.classList.toggle('bg-emerald-100');
+        calendarToggleBtn.classList.toggle('text-emerald-700');
+        calendarToggleBtn.classList.toggle('border-emerald-200');
+      });
+
+      // 🚀 綁定日曆月份導航 clicks (阻止冒泡)
+      document.getElementById('cal-prev-month').addEventListener('click', (e) => {
+        e.stopPropagation();
+        calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+        updateCalendarRollerFromDate();
+        renderCalendar();
+      });
+
+      document.getElementById('cal-next-month').addEventListener('click', (e) => {
+        e.stopPropagation();
+        calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+        updateCalendarRollerFromDate();
+        renderCalendar();
+      });
+
+      document.getElementById('cal-reset-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        filteredDateStr = null;
+        renderCalendar();
+        executeFilterRender();
+      });
+
+      // 🚀 日曆滾輪輸入事件：年份輸入
+      const yearInput = document.getElementById('cal-year-input');
+      const monthSelect = document.getElementById('cal-month-select');
       
-      const savedUser = localStorage.getItem("userInfo");
-      const savedToken = localStorage.getItem("userToken");
-      const savedRole = localStorage.getItem("userRole");
+      yearInput.addEventListener('change', function() {
+        let val = parseInt(this.value, 10);
+        if (isNaN(val) || val < 2020) val = 2020;
+        if (val > 2035) val = 2035;
+        this.value = val;
+        calendarCurrentDate.setFullYear(val);
+        renderCalendar();
+      });
+
+      monthSelect.addEventListener('change', function() {
+        calendarCurrentDate.setMonth(parseInt(this.value, 10));
+        renderCalendar();
+      });
+
+      // 點擊年份/月份區域可快速聚焦
+      document.getElementById('calendar-roller-container').addEventListener('click', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        const yearInput = document.getElementById('cal-year-input');
+        yearInput.focus();
+        yearInput.select();
+      });
+
+      // 🚀 「出席數據查閱」開啟點擊監聽
+      document.getElementById('attendance-lookup-btn').addEventListener('click', () => {
+        const overlay = document.getElementById('attendance-overlay');
+        overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
+        overlay.classList.add('animate-ios-overlay-enter');
+        fetchStudentRosterAndRender();
+      });
+
+      // 🚀 「出席數據查閱」關閉點擊監聽
+      document.getElementById('close-attendance-btn').addEventListener('click', () => {
+        const overlay = document.getElementById('attendance-overlay');
+        overlay.classList.remove('animate-ios-overlay-enter');
+        overlay.classList.add('animate-ios-overlay-exit');
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+        }, 730);
+      });
+
+      // =======================================================
+      // 🚀 對接相容橋樑：自動解析並校正自 Index.html 登入頁傳遞的 Token 與使用者資訊
+      // =======================================================
+      const jwtToken = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+      const userRole = localStorage.getItem("user_role") || localStorage.getItem("userRole");
+
+      if (jwtToken) {
+        localStorage.setItem("jwt_token", jwtToken);
+        localStorage.setItem("userToken", jwtToken);
+      }
+      if (userRole) {
+        localStorage.setItem("user_role", userRole);
+        localStorage.setItem("userRole", userRole);
+      }
       
-      if (savedUser && savedUser !== "null" && savedToken) {
+      const savedToken = localStorage.getItem("jwt_token");
+      const savedRole = localStorage.getItem("user_role");
+      const details = getStudentDetails();
+      
+      if (details.studentId !== "無ID資料" && savedToken) {
+        // 建立優雅的臨時安全驗證載入狀態
+        const tempLoader = document.createElement('div');
+        tempLoader.id = 'temp-loader';
+        tempLoader.className = 'crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl flex flex-col items-center justify-center';
+        tempLoader.innerHTML = `
+          <svg class="animate-spin h-10 w-10 text-emerald-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-slate-800 font-medium text-sm tracking-wider">安全驗證中，請稍候...</span>
+        `;
+        document.querySelector('main').appendChild(tempLoader);
+
         try {
-          showStudentCard(JSON.parse(savedUser), savedRole);
+          // 透過 loader gs 驗證 Token 是否仍然有效
+          const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(savedToken)}`;
+          const response = await fetch(url, {
+            method: "GET",
+            mode: "cors"
+          });
+          const resData = await response.json();
+
+          if (resData.result === 'success') {
+            // 驗證成功，移除載入狀態，顯示學生卡片與課程清單 (不需 exit 轉場)
+            tempLoader.remove();
+            showStudentCard(false);
+          } else {
+            throw new Error("Token 驗證失效");
+          }
         } catch (e) {
+          // 驗證失敗，清除快取，要求登入
           localStorage.clear();
+          tempLoader.remove();
+          loginSection.classList.remove('hidden');
+          if (secureBadge) secureBadge.classList.remove('hidden');
+          showError("驗證已過期或失效，請重新登入！");
         }
+      } else {
+        // 沒有 token，直接顯示登入畫面
+        loginSection.classList.remove('hidden');
       }
     });
 
@@ -410,29 +1043,50 @@
           },
           body: JSON.stringify({ username, password })
         });
-
         const data = await response.json();
 
         if (data.success) {
-          // Commit to localStorage
-          localStorage.setItem("userToken", data.token);
-          localStorage.setItem("userRole", data.role);
-          localStorage.setItem("userInfo", JSON.stringify(data.local_storage_data));
+          // 🚀 完全按照新版對接規範進行 localStorage 寫入與儲存
+          localStorage.setItem("jwt_token", data.token || "");
+          localStorage.setItem("user_role", data.role || "student");
+          localStorage.setItem("user_username", username);
 
-          // Load success view UI
-          showStudentCard(data.local_storage_data, data.role);
+          // 解鎖與初始化身份標籤詳細欄位 (Identity Tags)
+          if (data.identity_tag) {
+            localStorage.setItem("user_class", cleanVal(data.identity_tag.class));
+            localStorage.setItem("user_class_no", cleanVal(data.identity_tag.class_no));
+            localStorage.setItem("user_real_name", cleanVal(data.identity_tag.real_name));
+          } else {
+            localStorage.setItem("user_class", "");
+            localStorage.setItem("user_class_no", "");
+            localStorage.setItem("user_real_name", "");
+          }
+
+          // 對齊備用相容 key，避免其他函數因命名規則斷軌
+          localStorage.setItem("userToken", data.token || "");
+          localStorage.setItem("userRole", data.role || "student");
+          localStorage.setItem("userInfo", JSON.stringify({
+            real_name: localStorage.getItem("user_real_name"),
+            class: localStorage.getItem("user_class"),
+            class_no: localStorage.getItem("user_class_no"),
+            username: username
+          }));
+
+          // Load success view UI with elegant iOS transitions
+          showStudentCard(true);
           loginForm.reset();
         } else {
           showError(data.message || "驗證失敗，請檢查輸入帳號或密碼");
         }
       } catch (err) {
         console.error("Fetch error details:", err);
-        showError("無法連線至安全性認證端點。請確認您的 GAS 專案已正確部署。");
+        showError("無法連線至安全性認點。請確認您的 GAS 專案已正確部署。");
       } finally {
         resetSubmitBtn();
       }
     });
 
+    // Reset login button status
     function resetSubmitBtn() {
       submitBtn.disabled = false;
       submitBtn.innerHTML = `
@@ -441,7 +1095,7 @@
       lucide.createIcons();
     }
 
-    // Handle session logging out
+    // Handle session logging out (使用 clear 確保兩種登入欄位一併清除)
     document.getElementById('logout-btn').addEventListener('click', () => {
       localStorage.clear();
       cardSection.classList.add('hidden');
@@ -449,28 +1103,151 @@
       if (secureBadge) secureBadge.classList.remove('hidden');
     });
 
-    // Update and draw the beautiful Student Card interface
-    function showStudentCard(userInfo, role) {
-      document.getElementById('card-real-name').innerText = userInfo.real_name || '無名氏';
-      document.getElementById('card-class').innerText = userInfo.class || 'N/A';
-      document.getElementById('card-class-no').innerText = userInfo.class_no || 'N/A';
-      document.getElementById('card-student-id').innerText = userInfo.student_id || '無ID資料';
+    // Update and draw the beautiful Student Card interface (帶阻尼淡出/展開 iOS 級動畫)
+    function showStudentCard(animate = false) {
+      const details = getStudentDetails();
       
-      // Switch panels gracefully
-      loginSection.classList.add('hidden');
-      cardSection.classList.remove('hidden');
-      if (secureBadge) secureBadge.classList.add('hidden');
-      
-      // 動態加載課程列表
-      fetchTopics();
+      // 如果未回傳則顯示為 "--" 佔位
+      document.getElementById('card-real-name').innerText = details.realName || "--";
+      document.getElementById('card-class').innerText = details.studentClass || "--";
+      document.getElementById('card-class-no').innerText = details.classNo || "--";
+      document.getElementById('card-student-id').innerText = details.studentId || "--";
+
+      if (animate) {
+        // 先顯示正在退出的 Login 面板，進行流傳的縮小淡出 exit
+        loginSection.classList.remove('hidden');
+        loginSection.classList.add('animate-ios-exit');
+        if (secureBadge) secureBadge.classList.add('hidden');
+        
+        setTimeout(() => {
+          loginSection.classList.add('hidden');
+          loginSection.classList.remove('animate-ios-exit');
+          
+          // 展示 Card Section，並套用 iOS 物理級 Damped 阻尼淡入展開
+          cardSection.classList.remove('hidden');
+          cardSection.classList.add('animate-ios-menu');
+          
+          // 同步載入課程列表
+          fetchTopics();
+        }, 520); // 配合 CSS Exit Animation 時長
+      } else {
+        loginSection.classList.add('hidden');
+        cardSection.classList.remove('hidden');
+        cardSection.classList.add('animate-ios-menu');
+        if (secureBadge) secureBadge.classList.add('hidden');
+
+        // 動態加載課程列表
+        fetchTopics();
+      }
+    }
+
+    // =======================================================
+    // 🚀 日曆滾輪UI同步更新函數
+    // =======================================================
+    function updateCalendarRollerFromDate() {
+      const yearInput = document.getElementById('cal-year-input');
+      const monthSelect = document.getElementById('cal-month-select');
+      if (yearInput) yearInput.value = calendarCurrentDate.getFullYear();
+      if (monthSelect) monthSelect.value = calendarCurrentDate.getMonth();
+    }
+
+    // =======================================================
+    // 🚀 動態日曆渲染邏輯 (iOS 風格極簡版 + 滾輪支援)
+    // =======================================================
+    function renderCalendar() {
+      const calendarDays = document.getElementById('calendar-days');
+      const monthYearLabel = document.getElementById('cal-month-year');
+      if (!calendarDays) return;
+
+      // 更新滾輪數值以匹配 calendarCurrentDate
+      updateCalendarRollerFromDate();
+
+      const year = calendarCurrentDate.getFullYear();
+      const month = calendarCurrentDate.getMonth();
+
+      // 月份中文名 (保留給其他用途)
+      const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+      if (monthYearLabel) monthYearLabel.innerText = `${year}年 ${monthNames[month]}`;
+
+      calendarDays.innerHTML = "";
+
+      // 取得該月的第一天是星期幾、以及總天數
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      // 填充第一天前的空白格子
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = "p-1";
+        calendarDays.appendChild(emptyCell);
+      }
+
+      // 動態生成該月的所有日期
+      for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        const hasLesson = activeLessonDatesSet.has(dateStr);
+        const isSelected = (filteredDateStr === dateStr);
+
+        dayCell.className = "calendar-day-cell relative text-[11px] font-semibold h-8 w-8 mx-auto flex flex-col items-center justify-center rounded-full";
+
+        if (hasLesson) {
+          if (isSelected) {
+            // 已選中狀態（深翡翠色）
+            dayCell.className += " bg-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold scale-105";
+          } else {
+            // 未選中有課程狀態（高質感淡綠色）
+            dayCell.className += " bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300/40 cursor-pointer font-bold";
+          }
+          
+          // 加入極簡的 iOS 底下小綠點指示
+          const dot = document.createElement('span');
+          dot.className = `w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? 'bg-white' : 'bg-emerald-500'}`;
+          
+          dayCell.appendChild(document.createTextNode(day));
+          dayCell.appendChild(dot);
+
+          // 點擊事件：切換日期篩選器
+          dayCell.addEventListener('click', () => {
+            if (filteredDateStr === dateStr) {
+              filteredDateStr = null; // 點同一個日期則重設
+            } else {
+              filteredDateStr = dateStr;
+            }
+            renderCalendar();
+            executeFilterRender();
+          });
+        } else {
+          // 一般日期（無課堂）
+          dayCell.className += " text-slate-700 hover:bg-slate-200/50 cursor-pointer";
+          dayCell.appendChild(document.createTextNode(day));
+
+          // 允許點擊無網課日期來清除篩選
+          dayCell.addEventListener('click', () => {
+            if (filteredDateStr) {
+              filteredDateStr = null;
+              renderCalendar();
+              executeFilterRender();
+            }
+          });
+        }
+
+        calendarDays.appendChild(dayCell);
+      }
+    }
+
+    // 重新觸發課程篩選與列表渲染
+    function executeFilterRender() {
+      renderTopics(globalTopicRows, globalUserRole, globalRecords);
     }
 
     // =======================================================
     // 🚀 動態課程載入與權限比對 (GS Loader Integration)
     // =======================================================
     async function fetchTopics() {
-      const token = localStorage.getItem("userToken");
-      const userRole = (localStorage.getItem("userRole") || "student").toLowerCase();
+      const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+      const userRole = (localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student").toLowerCase();
 
       if (!token) {
         showError("Token 遺失，請重新登入。");
@@ -486,6 +1263,7 @@
           <span>安全通道建立中，正在為您構建個人專屬課堂清單...</span>
         </div>
       `;
+
       try {
         const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(token)}`;
         const response = await fetch(url, {
@@ -495,7 +1273,28 @@
         const resData = await response.json();
 
         if (resData.result === 'success') {
-          renderTopics(resData.data, userRole);
+          // 🚀 安全解構：偵測回傳的數據結構，分別讀取課程列表與觀看紀錄
+          let topicRows = [];
+          let records = [];
+
+          if (resData.data) {
+            if (Array.isArray(resData.data)) {
+              topicRows = resData.data;
+            } else if (resData.data.front && Array.isArray(resData.data.front)) {
+              topicRows = resData.data.front;
+            }
+
+            if (resData.data.record && Array.isArray(resData.data.record)) {
+              records = resData.data.record;
+            }
+          }
+
+          // 備用方案：如根節點也存在紀錄則採用之
+          if (records.length === 0) {
+            records = resData.records || resData.record || [];
+          }
+
+          renderTopics(topicRows, userRole, records);
         } else {
           if (resData.requireLogin) {
             localStorage.clear();
@@ -513,77 +1312,369 @@
       }
     }
 
-    // 渲染課室排版
-    function renderTopics(rows, userRole) {
-      if (!rows || rows.length <= 1) {
+    // =======================================================
+    // 🚀 渲染分類過濾導航列 (膠囊式)
+    // =======================================================
+    function renderFilterNav(rows) {
+      if (!filterNavContainer) return;
+      
+      // 重置分類映射
+      categoryMap = {};
+      courseMetadata = {};
+      
+      // 解析 rows 中的分類資訊 (假設 rows 為包含標題列的完整陣列)
+      let dataRows = [];
+      if (Array.isArray(rows)) {
+        dataRows = rows.slice(1); // 跳過標題列
+      } else if (rows && rows.front && Array.isArray(rows.front)) {
+        dataRows = rows.front.slice(1);
+      } else {
+        dataRows = [];
+      }
+
+      // 過濾符合使用者權限的課程
+      const userRole = (localStorage.getItem("user_role") || "student").toLowerCase();
+      const allowedRows = dataRows.filter(row => {
+        const rowRole = String(row[0] || "").trim().toLowerCase();
+        return (userRole === "teacher" || userRole === "admin" || rowRole === userRole);
+      });
+
+      // 提取分類資訊：H欄(7)=片長, I欄(8)=大分類, J欄(9)=小分類
+      allowedRows.forEach(row => {
+        const session = String(row[1] || "").trim();
+        const duration = String(row[7] || "").trim();
+        const category = String(row[8] || "").trim();
+        const subCategory = String(row[9] || "").trim();
+        
+        if (session) {
+          courseMetadata[session] = { duration, category, subCategory };
+          
+          if (category) {
+            if (!categoryMap[category]) {
+              categoryMap[category] = [];
+            }
+            if (subCategory && !categoryMap[category].includes(subCategory)) {
+              categoryMap[category].push(subCategory);
+            }
+          }
+        }
+      });
+
+      // 開始構建導航列 HTML
+      let html = '';
+      
+      // 全部課程按鈕
+      const isAllActive = (activeCategoryFilter === null && activeSubCategoryFilter === null);
+      html += `<span class="filter-capsule ${isAllActive ? 'active' : ''}" data-category="all" data-sub="all">全部課程</span>`;
+
+      // 大分類按鈕
+      const categories = Object.keys(categoryMap).sort();
+      categories.forEach(cat => {
+        const isCatActive = (activeCategoryFilter === cat);
+        html += `<span class="filter-capsule ${isCatActive ? 'active' : ''}" data-category="${cat}" data-sub="all">${cat}</span>`;
+      });
+
+      // 如果有選中的大分類，則在後面追加小分類
+      if (activeCategoryFilter && categoryMap[activeCategoryFilter]) {
+        const subCats = categoryMap[activeCategoryFilter].sort();
+        // 分隔符
+        html += `<span class="text-slate-300 text-xs select-none mx-0.5">|</span>`;
+        // 全部小分類
+        const isAllSubActive = (activeSubCategoryFilter === null);
+        html += `<span class="filter-capsule-sub ${isAllSubActive ? 'active' : ''}" data-category="${activeCategoryFilter}" data-sub="all">全部</span>`;
+        // 各個小分類
+        subCats.forEach(sub => {
+          const isSubActive = (activeSubCategoryFilter === sub);
+          html += `<span class="filter-capsule-sub ${isSubActive ? 'active' : ''}" data-category="${activeCategoryFilter}" data-sub="${sub}">${sub}</span>`;
+        });
+      }
+
+      filterNavContainer.innerHTML = html;
+
+      // 綁定點擊事件 (事件代理)
+      filterNavContainer.querySelectorAll('.filter-capsule, .filter-capsule-sub').forEach(el => {
+        el.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const category = this.dataset.category;
+          const sub = this.dataset.sub;
+          
+          if (category === 'all' && sub === 'all') {
+            // 點擊「全部課程」
+            activeCategoryFilter = null;
+            activeSubCategoryFilter = null;
+          } else if (sub === 'all') {
+            // 點擊大分類
+            if (activeCategoryFilter === category) {
+              // 如果點擊的是同一個大分類，則取消選中 (回到全部)
+              activeCategoryFilter = null;
+              activeSubCategoryFilter = null;
+            } else {
+              activeCategoryFilter = category;
+              activeSubCategoryFilter = null; // 重置小分類
+            }
+          } else {
+            // 點擊小分類
+            if (activeSubCategoryFilter === sub) {
+              // 取消選中小分類，但保留大分類
+              activeSubCategoryFilter = null;
+            } else {
+              activeCategoryFilter = category;
+              activeSubCategoryFilter = sub;
+            }
+          }
+          
+          // 重新渲染導航列與課程列表
+          renderFilterNav(globalTopicRows);
+          renderTopics(globalTopicRows, globalUserRole, globalRecords);
+        });
+      });
+    }
+
+    // =======================================================
+    // 🚀 課程列表渲染 (支援分類過濾 + 兩行標題)
+    // =======================================================
+    function renderTopics(rows, userRole, records = []) {
+      // 備份參數至全域，供日曆篩選與回呼使用
+      globalTopicRows = rows;
+      globalUserRole = userRole;
+      globalRecords = records;
+
+      // 渲染分類導航列 (先解析分類)
+      renderFilterNav(rows);
+
+      // 🚀 安全防禦：確保 rows 是一個陣列，防止 rows.slice 發生錯誤
+      let finalRows = rows;
+      if (rows && !Array.isArray(rows) && Array.isArray(rows.front)) {
+        finalRows = rows.front;
+      }
+
+      if (!Array.isArray(finalRows)) {
+        console.error("rows is not an array:", rows);
+        topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">課程資料讀取異常，請重新登入或聯繫管理員。</div>`;
+        return;
+      }
+
+      if (finalRows.length <= 1) {
         topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
         return;
       }
 
-      // 排除第 0 列 (標題列：A: ROLE, B: session, C: Title, D: youtube link, E: status)
-      const dataRows = rows.slice(1);
-      
+      // 排除第 0 列 (標題列：A: ROLE, B: SESSION, C: TITLE, D: Youtube, E: STATUS, F: Date, G: ver2, H: 片長, I: 大分類, J: 小分類)
+      const dataRows = finalRows.slice(1);
+
       // 過濾使用者權限
       const allowedRows = dataRows.filter(row => {
         const rowRole = String(row[0] || "").trim().toLowerCase();
-        return (userRole === "teacher" || userRole === "admin" || userRole === userRole && rowRole === userRole);
+        return (userRole === "teacher" || userRole === "admin" || rowRole === userRole);
       });
-      
-      // 按照 B 欄 (Session 順序) 進行排序
+
+      // 按照 B 欄 (Session 順序) 進行排序 (降序排列：大數值排頂部)
       allowedRows.sort((a, b) => {
         const numA = parseFloat(a[1]) || 0;
         const numB = parseFloat(b[1]) || 0;
-        return numA - numB;
+        return numB - numA;
       });
+
+      // 🚀 建立並解析「所有可用課程網課日期」並同步加載到日曆的高亮指示中
+      activeLessonDatesSet.clear();
+      allowedRows.forEach(row => {
+        const rawDate = String(row[5] || "").trim();
+        const isoDate = getIsoDateString(rawDate);
+        if (isoDate) {
+          activeLessonDatesSet.add(isoDate);
+        }
+      });
+
+      // 第一次載入時，自動將日曆預設月份焦點切換到「最新一堂補課」所在的月份
+      if (isCalendarFirstLoad && activeLessonDatesSet.size > 0) {
+        const sortedDates = Array.from(activeLessonDatesSet).sort();
+        const latestIso = sortedDates[sortedDates.length - 1];
+        if (latestIso) {
+          calendarCurrentDate = new Date(latestIso);
+        }
+        isCalendarFirstLoad = false;
+      }
+
+      // 重新渲染日曆
+      renderCalendar();
 
       if (allowedRows.length === 0) {
         topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500 font-medium">您的權限無法存取目前的課程。</div>`;
         return;
       }
 
+      // =======================================================
+      // 🚀 精準解鎖與比對：讀取 RECORD 分頁，當 欄 D 出現與 user_real_name 相符時，讀取 欄 E 進行判定
+      // =======================================================
+      const details = getStudentDetails();
+      const currentStudentName = details.realName.trim();
+      const watchedSessions = new Set();
+
+      let finalRecords = records;
+      if (records && !Array.isArray(records) && Array.isArray(records.record)) {
+        finalRecords = records.record;
+      }
+
+      if (Array.isArray(finalRecords)) {
+        finalRecords.forEach((row, idx) => {
+          if (idx === 0) return; // 略過標題
+          
+          // 欄 D: user_real_name (index 3)
+          // 欄 E: session (index 4)
+          const rowName = String(row[3] || "").trim(); 
+          const rowSession = String(row[4] || "").trim(); 
+          
+          if (currentStudentName && stripAllSpaces(rowName) === stripAllSpaces(currentStudentName) && rowSession) {
+            watchedSessions.add(rowSession);
+          }
+        });
+      }
+
+      // 🚀 實施日曆日期篩選邏輯：若 filteredDateStr 存在，僅保留符合篩選日期的列
+      let displayRows = allowedRows;
+      if (filteredDateStr) {
+        displayRows = allowedRows.filter(row => {
+          const rawDate = String(row[5] || "").trim();
+          return getIsoDateString(rawDate) === filteredDateStr;
+        });
+      }
+
+      // 🚀 實施分類過濾邏輯
+      if (activeCategoryFilter) {
+        displayRows = displayRows.filter(row => {
+          const session = String(row[1] || "").trim();
+          const meta = courseMetadata[session] || {};
+          const cat = meta.category || "";
+          if (activeSubCategoryFilter) {
+            // 同時過濾大分類與小分類
+            return cat === activeCategoryFilter && (meta.subCategory || "") === activeSubCategoryFilter;
+          } else {
+            // 僅過濾大分類
+            return cat === activeCategoryFilter;
+          }
+        });
+      }
+
       topicsContainer.innerHTML = "";
 
-      // 遍歷渲染符合權限的課程列
-      allowedRows.forEach(row => {
+      if (displayRows.length === 0) {
+        let msg = "該日期沒有排定任何補課課程。";
+        if (activeCategoryFilter) {
+          msg = activeSubCategoryFilter 
+            ? `沒有符合「${activeCategoryFilter} / ${activeSubCategoryFilter}」分類的課程。`
+            : `沒有符合「${activeCategoryFilter}」分類的課程。`;
+        }
+        topicsContainer.innerHTML = `<div class="p-10 text-center text-sm text-slate-500">${msg}</div>`;
+        return;
+      }
+
+      // 遍歷渲染符合篩選的課程列
+      displayRows.forEach(row => {
         const session = String(row[1] || "").trim();
         const title = String(row[2] || "").trim();
         const ytLink = String(row[3] || "").trim();
         const status = String(row[4] || "").trim().toLowerCase(); // active / inactive
 
         const isActive = (status === "active");
+        const isWatched = watchedSessions.has(session);
+        const isClickable = isActive || isWatched;
+
+        // 🚀 顯著增強已完成（淡綠色）與未完成項目（淡紅色）的視覺厚度與邊框特徵
+        let rowBgClass = "";
+        if (isWatched) {
+          rowBgClass = "bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
+        } else if (isActive) {
+          rowBgClass = "bg-rose-100/90 hover:bg-rose-200/90 text-rose-950 border-l-4 border-rose-500 cursor-pointer shadow-sm";
+        } else {
+          rowBgClass = "opacity-60 bg-rose-100/40 text-rose-900/60 border-l-4 border-rose-300/50 cursor-not-allowed";
+        }
 
         const rowEl = document.createElement("div");
-        rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${
-          isActive 
-            ? "hover:bg-white/45 cursor-pointer" 
-            : "opacity-40 cursor-not-allowed bg-slate-900/[0.04] text-slate-500"
-        }`;
+        rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
 
+        // 🚀 依據完成狀態調整左側圓形圖示風格
+        let iconName = "lock";
+        let iconCircleClass = "border-slate-400/20 text-slate-500 bg-slate-400/10";
+        if (isWatched) {
+          iconName = "check-circle-2";
+          iconCircleClass = "border-emerald-500/30 text-emerald-600 bg-emerald-500/20";
+        } else if (isActive) {
+          iconName = "layers";
+          iconCircleClass = "border-rose-400/20 text-rose-700 bg-rose-500/10";
+        } else {
+          iconName = "lock";
+          iconCircleClass = "border-rose-300/20 text-rose-400/50 bg-rose-500/5";
+        }
+
+        // 🚀 依據完成狀態調整右側文字與指示圖示
+        let statusText = "LOCKED";
+        let rightIcon = "lock";
+        let textClass = "text-rose-900/40";
+        if (isWatched) {
+          statusText = "COMPLETED";
+          rightIcon = "check";
+          textClass = "text-emerald-700 font-bold";
+        } else if (isActive) {
+          statusText = "ENTER";
+          rightIcon = "chevron-right";
+          textClass = "text-rose-700";
+        }
+
+        // 🚀 格式化網課日期
+        const rawDate = String(row[5] || "").trim(); 
+        const date = formatDisplayDate(rawDate);
+
+        // 🚀 提取 session 數字 (例如 "S4-12" -> "12" 或 "第十二講")
+        let sessionNum = session;
+        const matchNum = String(session).match(/\d+/g);
+        if (matchNum) {
+          const lastNum = matchNum[matchNum.length - 1];
+          const numInt = parseInt(lastNum, 10);
+          if (!isNaN(numInt)) {
+            // 轉為中文數字 (僅支援 1~99)
+            const chineseNum = ['零','一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+            if (numInt >= 1 && numInt <= 30) {
+              sessionNum = `${chineseNum[numInt]}`;
+            } else {
+              sessionNum = `${numInt}`;
+            }
+          }
+        }
+
+        // 🚀 組合標題：補課第X講：標題
+        let displayTitle = title;
+        if (sessionNum && title) {
+          displayTitle = `補課第${sessionNum}講：${title}`;
+        } else if (sessionNum && !title) {
+          displayTitle = `補課第${sessionNum}講`;
+        }
+
+        // 🚀 核心優化: 日期與標題分兩行，date 細一點，title 大一點
         rowEl.innerHTML = `
           <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
-            <span class="w-8 h-8 rounded-lg bg-emerald-500/10 border ${
-              isActive ? "border-emerald-500/20 text-emerald-700" : "border-slate-400/20 text-slate-500"
-            } flex items-center justify-center shrink-0">
-              <i data-lucide="${isActive ? "layers" : "lock"}" class="w-3.5 h-3.5"></i>
+            <span class="w-8 h-8 rounded-lg border ${iconCircleClass} flex items-center justify-center shrink-0">
+              <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
             </span>
-            <div class="flex items-center space-x-3 flex-1 min-w-0">
-              <span class="text-sm font-bold text-emerald-800 tracking-wide shrink-0 min-w-[55px]">${session}</span>
-              <span class="text-slate-400/30 select-none text-xs shrink-0">|</span>
-              <span class="text-sm text-slate-800 font-semibold truncate">${title}</span>
+            <div class="flex flex-col flex-1 min-w-0">
+              <span class="text-xs text-slate-500 font-medium tracking-wide">${date || ''}</span>
+              <span class="text-sm md:text-base font-bold text-slate-800 truncate leading-tight">${displayTitle}</span>
             </div>
           </div>
-          <div class="flex items-center space-x-1 ${
-            isActive ? "text-emerald-700" : "text-slate-500"
-          } text-xs font-bold tracking-widest ${isActive ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
-            <span>${isActive ? "ENTER" : "LOCKED"}</span>
-            <i data-lucide="${isActive ? "chevron-right" : "lock"}" class="w-3 h-3"></i>
+          <div class="flex items-center space-x-1 ${textClass} text-xs font-bold tracking-widest ${isClickable ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
+            <span>${statusText}</span>
+            <i data-lucide="${rightIcon}" class="w-3 h-3"></i>
           </div>
         `;
 
-        if (isActive) {
+        if (isClickable) {
           rowEl.addEventListener("click", () => {
             if (ytLink) {
-              openVideoWindow(session, title, ytLink);
+              // 儲存 metadata 供簽到使用
+              const meta = courseMetadata[session] || {};
+              currentVideoDuration = meta.duration || "";
+              currentVideoCategory = meta.category || "";
+              currentVideoSubCategory = meta.subCategory || "";
+              openVideoWindow(session, title, ytLink, isWatched);
             } else {
               alert("本堂課程尚未配置影片網址。");
             }
@@ -599,10 +1690,11 @@
     // =======================================================
     // 🎬 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
     // =======================================================
-    function openVideoWindow(session, title, url) {
+    function openVideoWindow(session, title, url, isWatched) {
       // 紀錄當前播放課程細節
       currentSession = session;
       currentTitle = title;
+      currentVideoWatched = isWatched;
 
       let videoId = "";
       try {
@@ -617,11 +1709,16 @@
         videoId = url;
       }
 
+      // 同時寫入頂部迷你與中央大 Shippori 標題
       document.getElementById('video-overlay-title').innerText = title;
-      document.getElementById('video-overlay').classList.remove('hidden');
+      document.getElementById('video-player-large-title').innerText = title;
+
+      // 🚀 執行優雅的 iOS 阻尼淡入與回彈縮放轉場
+      const overlay = document.getElementById('video-overlay');
+      overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
+      overlay.classList.add('animate-ios-overlay-enter');
       
-      // 初始化簽到按鈕與自訂按鈕狀態
-      document.getElementById('attendance-btn').classList.add('hidden');
+      const btn = document.getElementById('attendance-btn');
       const playBtnSpan = document.querySelector('#custom-play-btn span');
       if (playBtnSpan) {
         playBtnSpan.innerText = "播放 (Play)";
@@ -631,6 +1728,16 @@
       maxWatchedTime = 0;
       if (timeCheckInterval) clearInterval(timeCheckInterval);
       if (attendanceTimer) clearInterval(attendanceTimer);
+      
+      // 🚀 若已完成報到，直接顯示已完成報到狀態，不隱藏，亦無倒數計時
+      if (isWatched) {
+        btn.classList.remove('hidden');
+        btn.disabled = true;
+        btn.className = "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+        btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
+      } else {
+        btn.classList.add('hidden');
+      }
       
       if (isYtApiReady) {
         if (ytPlayer) {
@@ -647,11 +1754,11 @@
           videoId: videoId,
           playerVars: {
             autoplay: 1,
-            controls: 1,        // 允許全螢幕，開啟 YouTube 原生控制列
-            disablekb: 1,       // 禁用鍵盤快進
+            controls: 1,  
+            disablekb: 1,
             rel: 0,
             modestbranding: 1,
-            fs: 1               // 啟用原生全螢幕按鈕
+            fs: 1
           },
           events: {
             'onStateChange': onPlayerStateChange
@@ -660,6 +1767,10 @@
       } else {
         console.warn("YouTube API 尚未就緒。");
       }
+
+      setTimeout(() => {
+        lucide.createIcons();
+      }, 50);
     }
 
     // 影片安全偵測定時器
@@ -669,12 +1780,14 @@
         if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
           const currentTime = ytPlayer.getCurrentTime();
           
-          // 鎖定播放速度：如果播放速度不為 1 倍速，強制重設回 1 倍速
+          if (currentVideoWatched) {
+            return; 
+          }
+          
           if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
             ytPlayer.setPlaybackRate(1);
           }
           
-          // 鎖定進度條快進：防止向前跳轉超過已觀看時間
           if (currentTime > maxWatchedTime + 2.5) {
             ytPlayer.seekTo(maxWatchedTime, true);
           } else {
@@ -684,7 +1797,6 @@
       }, 500);
     }
 
-    // 影片安全偵測定時器停止
     function stopTimeTracking() {
       if (timeCheckInterval) {
         clearInterval(timeCheckInterval);
@@ -692,7 +1804,6 @@
       }
     }
 
-    // YouTube 播放狀態偵測
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.PLAYING) {
         startTimeTracking();
@@ -700,15 +1811,15 @@
         stopTimeTracking();
       }
 
-      // YT.PlayerState.ENDED 代表影片完全播放結束
       if (event.data === YT.PlayerState.ENDED) {
-        startAttendanceCountdown();
+        if (!currentVideoWatched) {
+          startAttendanceCountdown();
+        }
       }
     }
 
-    // 啟動簽到限時倒數 (2分鐘)
     function startAttendanceCountdown() {
-      let timeLeft = 120; // 2 分鐘，共 120 秒
+      let timeLeft = 120;
       const btn = document.getElementById('attendance-btn');
       btn.classList.remove('hidden');
       btn.disabled = false;
@@ -721,13 +1832,11 @@
         timeLeft--;
         if (timeLeft <= 0) {
           clearInterval(attendanceTimer);
-          // 超時鎖定簽到按鈕
           btn.disabled = true;
           btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
           btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>超時，請勿掛機，請重新播放</span>`;
           lucide.createIcons();
           
-          // 變更播放按鈕文字為「重新播放」
           const playBtnSpan = document.querySelector('#custom-play-btn span');
           if (playBtnSpan) {
             playBtnSpan.innerText = "重新播放";
@@ -742,15 +1851,23 @@
       }, 1000);
     }
 
-    // 自訂 Play 按鈕事件
     document.getElementById('custom-play-btn').addEventListener('click', () => {
       if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
         const playBtnSpan = document.querySelector('#custom-play-btn span');
         if (playBtnSpan && playBtnSpan.innerText === "重新播放") {
-          // 重設簽到機制與觀看紀錄，重新回到 0 秒開始
           maxWatchedTime = 0;
           if (attendanceTimer) clearInterval(attendanceTimer);
-          document.getElementById('attendance-btn').classList.add('hidden');
+          
+          if (currentVideoWatched) {
+            const btn = document.getElementById('attendance-btn');
+            btn.classList.remove('hidden');
+            btn.disabled = true;
+            btn.className = "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+            btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
+          } else {
+            document.getElementById('attendance-btn').classList.add('hidden');
+          }
+          
           playBtnSpan.innerText = "播放 (Play)";
           ytPlayer.seekTo(0, true);
         }
@@ -758,24 +1875,31 @@
       }
     });
 
-    // 自訂 Pause 按鈕事件
     document.getElementById('custom-pause-btn').addEventListener('click', () => {
       if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
         ytPlayer.pauseVideo();
       }
     });
 
-    // 關閉同頁播放器監聽
     document.getElementById('close-video-btn').addEventListener('click', () => {
-      document.getElementById('video-overlay').classList.add('hidden');
+      const overlay = document.getElementById('video-overlay');
+      overlay.classList.remove('animate-ios-overlay-enter');
+      overlay.classList.add('animate-ios-overlay-exit');
+      
       stopTimeTracking();
       if (attendanceTimer) clearInterval(attendanceTimer);
       if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
         ytPlayer.stopVideo();
       }
+      
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 730);
     });
 
-    // 完成簽到按鈕點擊監聽 (對接 Google GAS 並儲存到 Record 分頁)
+    // ====================================================================
+    // 🚀 穩定版簽到提交邏輯 (新增欄位: 片長, 大分類, 小分類)
+    // ====================================================================
     document.getElementById('attendance-btn').addEventListener('click', async () => {
       if (attendanceTimer) clearInterval(attendanceTimer);
       
@@ -791,22 +1915,17 @@
       `;
       lucide.createIcons();
 
-      const token = localStorage.getItem("userToken");
-      // 🚀 雙重安全防護機制：若 localStorage 中的 userInfo 為空、"null" 或未定義，則自動解構成空物件 {}
-      const userInfoRaw = localStorage.getItem("userInfo");
-      const userInfo = (userInfoRaw && userInfoRaw !== "null") ? JSON.parse(userInfoRaw) : {};
-      const userRole = localStorage.getItem("userRole") || "student";
+      const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+      const userRole = localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student";
 
-      if (!token) {
-        btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：未登入</span>`;
-        btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
-        lucide.createIcons();
-        return;
-      }
+      const details = getStudentDetails();
+      
+      const studentId = details.studentId;
+      const realName = details.realName;
+      const studentClass = details.studentClass;
+      const classNo = details.classNo;
 
       try {
-        // 將簽到資料發送給全新的專屬簽到端點 (GAS_ATTENDANCE_URL)
-        // 並將儲存在 local storage 中的學生識別資料一併發送
         const response = await fetch(GAS_ATTENDANCE_URL, {
           method: "POST",
           mode: "cors",
@@ -819,23 +1938,28 @@
             token: token,
             session: currentSession,
             title: currentTitle,
-            student_id: userInfo.student_id || "",
-            real_name: userInfo.real_name || "",
-            class: userInfo.class || "",
-            class_no: userInfo.class_no || "",
-            role: userRole
+            student_id: studentId,
+            real_name: realName,
+            class: studentClass,
+            class_no: classNo,
+            role: userRole,
+            // 新增欄位
+            duration: currentVideoDuration,
+            category: currentVideoCategory,
+            sub_category: currentVideoSubCategory
           })
         });
 
         const resData = await response.json();
 
         if (resData.success) {
-          // 顯示簽到成功狀態
           btn.innerHTML = `
             <i data-lucide="check-circle-2" class="w-4 h-4"></i>
             <span>簽到紀錄已提交 (Saved)</span>
           `;
           btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+          
+          fetchTopics();
         } else {
           btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
           btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
@@ -844,13 +1968,184 @@
         console.error("Attendance submission error:", err);
         btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路連線錯誤，請重試</span>`;
         btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
-        btn.disabled = false; // 網路錯誤允許重試
+        btn.disabled = false;
       } finally {
         lucide.createIcons();
       }
     });
 
-    // Display formatted errors
+    // ====================================================================
+    // 🚀 出席數據查閱：獲取全班名單並與 attendance record 對比渲染表格
+    // ====================================================================
+    async function fetchStudentRosterAndRender() {
+      const loader = document.getElementById('attendance-table-loader');
+      const tableContainer = document.getElementById('attendance-table-container');
+      const headerRow = document.getElementById('attendance-table-header');
+      const tableBody = document.getElementById('attendance-table-body');
+
+      loader.classList.remove('hidden');
+      tableContainer.classList.add('hidden');
+
+      const getCellValue = (cell) => {
+        if (!cell) return "";
+        if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
+        if (cell.f !== null && cell.f !== undefined) return String(cell.f).trim();
+        return "";
+      };
+
+      try {
+        const response = await fetch(ROSTER_JSON_URL);
+        const text = await response.text();
+
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}') + 1;
+        const jsonString = text.substring(jsonStart, jsonEnd);
+        const rawJsonData = JSON.parse(jsonString);
+
+        if (!rawJsonData.table || !rawJsonData.table.rows) {
+          throw new Error("試算表數據結構不正確");
+        }
+
+        const rows = rawJsonData.table.rows;
+
+        const parsedStudentList = rows.map((r, index) => {
+          if (index === 0) return null;
+          if (!r.c) return null;
+
+          return {
+            role: cleanVal(getCellValue(r.c[0])),
+            class: cleanVal(getCellValue(r.c[1])),
+            classNo: cleanVal(getCellValue(r.c[2])),
+            name: cleanVal(getCellValue(r.c[3]))
+          };
+        }).filter(item => item !== null && item.name !== "");
+
+        const currentUserRole = (localStorage.getItem("user_role") || "student").toLowerCase();
+
+        const matchingStudents = parsedStudentList.filter(student => {
+          if (currentUserRole === "teacher" || currentUserRole === "admin") return true;
+          return student.role.toLowerCase() === currentUserRole;
+        });
+
+        matchingStudents.sort((a, b) => {
+          if (a.class !== b.class) {
+            return String(a.class).localeCompare(String(b.class));
+          }
+          return (parseFloat(a.classNo) || 0) - (parseFloat(b.classNo) || 0);
+        });
+
+        const sessionList = [];
+        if (globalTopicRows && globalTopicRows.length > 1) {
+          const dataRows = globalTopicRows.slice(1);
+          dataRows.forEach(row => {
+            const rowRole = String(row[0] || "").trim().toLowerCase();
+            if (rowRole === currentUserRole || currentUserRole === "teacher" || currentUserRole === "admin" || (currentUserRole !== "teacher" && currentUserRole !== "admin" && rowRole === currentUserRole)) {
+              const session = String(row[1] || "").trim();
+              if (session && !sessionList.includes(session)) {
+                sessionList.push(session);
+              }
+            }
+          });
+        }
+
+        sessionList.sort((a, b) => {
+          const getNum = (str) => {
+            const match = String(str).match(/\d+/g);
+            if (match) return parseFloat(match[match.length - 1]) || 0;
+            return 0;
+          };
+          return getNum(a) - getNum(b);
+        });
+
+        headerRow.innerHTML = `
+          <th class="p-3 text-left font-bold text-slate-700 tracking-wider">班別</th>
+          <th class="p-3 text-left font-bold text-slate-700 tracking-wider">座號</th>
+          <th class="p-3 text-left font-bold text-slate-700 tracking-wider">姓名</th>
+          ${sessionList.map(session => `<th class="p-3 text-center font-bold text-slate-700 tracking-wider">補課${session}</th>`).join('')}
+        `;
+
+        const attendanceMap = {};
+        
+        let recordRows = globalRecords;
+        if (globalRecords && globalRecords.record && Array.isArray(globalRecords.record)) {
+          recordRows = globalRecords.record;
+        }
+
+        if (Array.isArray(recordRows)) {
+          recordRows.forEach((row, idx) => {
+            if (idx === 0) return;
+            const rowName = String(row[3] || "").trim();
+            const rowSession = String(row[4] || "").trim();
+            
+            const cleanRowName = stripAllSpaces(rowName);
+            const cleanRowSession = stripAllSpaces(rowSession);
+            
+            if (cleanRowName && cleanRowSession) {
+              attendanceMap[`${cleanRowName}_${cleanRowSession}`] = true;
+            }
+          });
+        }
+
+        tableBody.innerHTML = "";
+
+        if (matchingStudents.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="${3 + sessionList.length}" class="p-8 text-center text-slate-500 font-medium">該群組暫無其他學生名單資料。</td>
+            </tr>
+          `;
+        } else {
+          matchingStudents.forEach(student => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50/80 transition duration-150 border-b border-slate-200/40";
+            
+            let sessionCellsHtml = "";
+            sessionList.forEach(session => {
+              const cleanStudentName = stripAllSpaces(student.name);
+              const cleanSession = stripAllSpaces(session);
+              const hasCompleted = attendanceMap[`${cleanStudentName}_${cleanSession}`] === true;
+              
+              if (hasCompleted) {
+                sessionCellsHtml += `
+                  <td class="p-3 text-center text-emerald-600 font-extrabold text-sm select-none">
+                    ✓
+                  </td>
+                `;
+              } else {
+                sessionCellsHtml += `
+                  <td class="p-3 text-center text-rose-500 font-extrabold text-sm select-none">
+                    ✕
+                  </td>
+                `;
+              }
+            });
+
+            tr.innerHTML = `
+              <td class="p-3 font-semibold text-slate-800">${student.class || '--'}</td>
+              <td class="p-3 text-slate-600 font-medium">${student.classNo || '--'}</td>
+              <td class="p-3 font-bold text-slate-900">${student.name || '--'}</td>
+              ${sessionCellsHtml}
+            `;
+            tableBody.appendChild(tr);
+          });
+        }
+
+        loader.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+
+      } catch (err) {
+        console.error("Failed to load roster matrix:", err);
+        loader.innerHTML = `
+          <div class="p-6 text-rose-800 font-semibold space-y-2">
+            <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto text-rose-500 mb-1"></i>
+            <p>調取名單與出席數據失敗</p>
+            <p class="text-xs text-slate-500">請確認您的名單試算表連結已開啟共用檢視權限！</p>
+          </div>
+        `;
+        lucide.createIcons();
+      }
+    }
+
     function showError(msg) {
       errorText.innerText = msg;
       errorMsg.classList.remove('hidden');
