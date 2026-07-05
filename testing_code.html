@@ -433,38 +433,10 @@
             margin-bottom: 8px;
         }
 
-        /* 同期ボタンのスタイリング */
+        /* 同步按鈕 – 已移除，此處保留空樣式 */
         .sync-btn {
-            position: absolute;
-            right: 24px;
-            bottom: 24px;
-            z-index: 50;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 100px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        .sync-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        .sync-btn:active {
-            transform: scale(0.95);
-        }
-        .sync-btn.loading i {
-            animation: spin 1s linear infinite;
+            /* 已移除 */
+            display: none;
         }
 
         @keyframes spin {
@@ -523,16 +495,16 @@
             }
         }
 
-        /* ----- 新增 Hero 按鈕樣式 (玻璃感＋懸浮動畫) ----- */
+        /* ----- 新版 Hero 按鈕與服務卡片設計 ----- */
         .hero-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            padding: 12px 24px;
+            padding: 12px 28px;
             border-radius: 9999px;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 14px;
             letter-spacing: 0.04em;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
@@ -543,8 +515,7 @@
             color: #fff;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            flex: 1 1 auto;
-            min-width: 120px;
+            flex: 0 1 auto;
         }
 
         .hero-btn i {
@@ -564,7 +535,6 @@
             transition-duration: 0.08s;
         }
 
-        /* 主要按鈕 (馬上開始) 使用品牌色 */
         .hero-btn-primary {
             background: rgba(2, 132, 199, 0.85);
             border-color: rgba(56, 189, 248, 0.5);
@@ -576,32 +546,96 @@
             box-shadow: 0 8px 40px rgba(2, 132, 199, 0.5);
         }
 
-        /* 按鈕容器：響應式 flex 換行 */
-        .hero-btn-group {
+        /* 服務卡片 (Session Cards) */
+        .session-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 18px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            min-width: 100px;
+            flex: 1 1 0;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .session-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.45);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        }
+
+        .session-card:active {
+            transform: scale(0.94);
+            transition-duration: 0.08s;
+        }
+
+        .session-card i {
+            font-size: 2rem;
+            margin-bottom: 2px;
+            opacity: 0.9;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
+        }
+
+        .session-card .card-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+            line-height: 1.2;
+        }
+
+        .session-card .card-sub {
+            font-size: 0.65rem;
+            opacity: 0.7;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+        }
+
+        /* 卡片容器 */
+        .session-card-group {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
+            gap: 16px;
             width: 100%;
-            max-width: 720px;
+            max-width: 600px;
             margin: 0 auto;
             padding: 0 8px;
         }
 
-        /* 平板 / 手機適配 */
+        /* 響應式調整 */
         @media (max-width: 640px) {
+            .session-card {
+                padding: 14px 10px;
+                min-width: 80px;
+                flex: 1 1 40%;
+            }
+            .session-card i {
+                font-size: 1.6rem;
+            }
+            .session-card .card-title {
+                font-size: 0.75rem;
+            }
+            .session-card .card-sub {
+                font-size: 0.55rem;
+            }
             .hero-btn {
-                padding: 10px 16px;
-                font-size: 11px;
-                min-width: 100px;
+                padding: 10px 20px;
+                font-size: 12px;
                 gap: 6px;
             }
             .hero-btn i {
                 font-size: 0.9rem;
-            }
-            .hero-btn-group {
-                gap: 8px;
-                max-width: 100%;
             }
         }
 
@@ -619,11 +653,26 @@
             .nav-btn {
                 display: none !important;
             }
-            .sync-btn {
-                right: 16px;
-                bottom: 16px;
-                padding: 8px 14px;
-            }
+        }
+
+        /* 暗色模式卡片微調 */
+        body.dark-mode .session-card {
+            background: rgba(30, 41, 59, 0.3);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+        }
+        body.dark-mode .session-card:hover {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        body.dark-mode .hero-btn {
+            color: #f1f5f9;
+        }
+        body.dark-mode .hero-btn-primary {
+            background: rgba(2, 132, 199, 0.7);
+        }
+        body.dark-mode .hero-btn-primary:hover {
+            background: rgba(2, 132, 199, 0.9);
         }
     </style>
 </head>
@@ -733,74 +782,72 @@
                     <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
                     <div class="hero-gradient-overlay"></div>
 
-                    <!-- 手動同步按鈕 -->
-                    <button id="sync-button" onclick="manualSync()" class="sync-btn">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>與雲端同步</span>
-                    </button>
+                    <!-- 手動同步按鈕已移除 (原 sync-btn) -->
 
                     <div class="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-6 text-center">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-6 md:mb-8 relative z-10">
+                        <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-4 md:mb-6 relative z-10">
 
-                        <!-- 按鈕群組：四顆按鈕  -->
-                        <div class="hero-btn-group relative z-10">
-                            <!-- 1. 馬上開始 (主要) -->
+                        <!-- 主要按鈕 (馬上開始) 保留 -->
+                        <div class="relative z-10 mb-4 md:mb-6">
                             <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')"
                             class="hero-btn hero-btn-primary">
                             <i class="fas fa-play"></i>
                             <span>馬上開始</span>
                         </button>
+                    </div>
 
-                        <!-- 2. 線上補課系統 -->
-                        <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/makeup')"
-                        class="hero-btn">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                        <span>線上補課系統</span>
+                    <!-- 三張服務卡片 (取代原按鈕群組) -->
+                    <div class="session-card-group relative z-10">
+                        <!-- 線上補課系統 -->
+                        <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/makeup')">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span class="card-title">線上補課系統</span>
+                            <span class="card-sub">Make-up Class</span>
+                        </div>
+
+                        <!-- 課堂錄影 -->
+                        <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/recordings')">
+                            <i class="fas fa-video"></i>
+                            <span class="card-title">課堂錄影</span>
+                            <span class="card-sub">Recordings</span>
+                        </div>
+
+                        <!-- 線上評估中心 -->
+                        <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/assessment')">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span class="card-title">線上評估中心</span>
+                            <span class="card-sub">Assessment</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
+            <div class="loader">正在從數據庫獲取內容...</div>
+        </main>
+
+        <section id="sec-archive" class="mt-20 pb-16 px-6">
+            <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
+
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                    <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
+                        Pastpaper Archive
+                    </h2>
+                    <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+
+                    <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
+                        Detailed Examination Resource Collections
+                    </p>
+                    <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
+                        Enter Archive
                     </button>
-
-                    <!-- 3. 課堂錄影 -->
-                    <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/recordings')"
-                    class="hero-btn">
-                    <i class="fas fa-video"></i>
-                    <span>課堂錄影</span>
-                </button>
-
-                <!-- 4. 線上評估中心 -->
-                <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/assessment')"
-                class="hero-btn">
-                <i class="fas fa-clipboard-list"></i>
-                <span>線上評估中心</span>
-            </button>
-        </div>
+                </div>
+            </div>
+        </section>
     </div>
-</div>
-</section>
-
-<main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
-    <div class="loader">正在從數據庫獲取內容...</div>
-</main>
-
-<section id="sec-archive" class="mt-20 pb-16 px-6">
-    <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
-        <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
-
-        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-            <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
-                Pastpaper Archive
-            </h2>
-            <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
-
-            <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
-                Detailed Examination Resource Collections
-            </p>
-            <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
-                Enter Archive
-            </button>
-        </div>
-    </div>
-</section>
-</div>
 </div>
 
 <!-- QR Scanner Modal Overlay -->
@@ -973,7 +1020,7 @@
                 csvText = await response.text();
 
                 // 偵測是否返回 HTML 登入牆 or 404 (Google Sheets 常見拒絕連線網頁)
-                if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
+                if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.trim().startsWith('<html')) {
                     throw new Error("返回格式非 CSV (可能是 GID 無效或需要權限設定)");
                 }
             } catch (firstErr) {
@@ -985,7 +1032,7 @@
                 response = await fetch(fallbackUrl);
                 csvText = await response.text();
 
-                if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
+                if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.trim().startsWith('<html')) {
                     throw new Error("備用管道仍返回網頁 HTML (請確定試算表權限已設定為『知道連結的任何人均可檢視』)");
                 }
             }
@@ -1031,21 +1078,10 @@
         }
     }
 
-    // 手動同期ボタン用
+    // 手動同期ボタン用 (保留但已無按鈕觸發)
     async function manualSync() {
-        const btn = document.getElementById('sync-button');
-        btn.classList.add('loading');
-        btn.querySelector('span').innerText = '同步中...';
-
-        storage.removeItem('lumina_data_ver');
-        storage.removeItem('lumina_data_payload');
-
-        await initData();
-
-        setTimeout(() => {
-            btn.classList.remove('loading');
-            btn.querySelector('span').innerText = '與雲端同步';
-        }, 800);
+        // 此函數已不觸發，保留以防其他呼叫
+        console.warn("manualSync 已不再使用");
     }
 
     // CSV 行分割パーサー
