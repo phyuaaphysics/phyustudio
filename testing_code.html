@@ -435,7 +435,6 @@
 
         /* 同步按鈕 – 已移除，此處保留空樣式 */
         .sync-btn {
-            /* 已移除 */
             display: none;
         }
 
@@ -613,6 +612,11 @@
             padding: 0 8px;
         }
 
+        /* 歡迎訊息文字陰影 */
+        .text-shadow-lg {
+            text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
         /* 響應式調整 */
         @media (max-width: 640px) {
             .session-card {
@@ -779,693 +783,649 @@
         <div id="view-home">
             <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
                 <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
+                    <!-- 背景圖片保留 -->
                     <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
                     <div class="hero-gradient-overlay"></div>
 
-                    <!-- 手動同步按鈕已移除 (原 sync-btn) -->
+                    <!-- 手動同步按鈕已移除 -->
 
                     <div class="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-6 text-center">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-4 md:mb-6 relative z-10">
+                        <!-- 歡迎訊息 (新增) -->
+                        <div class="relative z-10 mb-4 text-white text-shadow-lg">
+                            <span id="welcome-message" class="text-xl md:text-2xl font-light tracking-wide">歡迎回來，</span>
+                            <span id="username-display" class="text-2xl md:text-3xl font-bold text-sky-200">訪客</span>
+                        </div>
 
-                        <!-- 主要按鈕 (馬上開始) 保留 -->
-                        <div class="relative z-10 mb-4 md:mb-6">
-                            <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')"
-                            class="hero-btn hero-btn-primary">
-                            <i class="fas fa-play"></i>
-                            <span>馬上開始</span>
+                        <!-- 三張服務卡片 -->
+                        <div class="session-card-group relative z-10">
+                            <!-- 線上補課系統 -->
+                            <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/makeup')">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <span class="card-title">線上補課系統</span>
+                                <span class="card-sub">Make-up Class</span>
+                            </div>
+
+                            <!-- 課堂錄影 -->
+                            <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/recordings')">
+                                <i class="fas fa-video"></i>
+                                <span class="card-title">課堂錄影</span>
+                                <span class="card-sub">Recordings</span>
+                            </div>
+
+                            <!-- 線上評估中心 -->
+                            <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/assessment')">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span class="card-title">線上評估中心</span>
+                                <span class="card-sub">Assessment</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
+                <div class="loader">正在從數據庫獲取內容...</div>
+            </main>
+
+            <section id="sec-archive" class="mt-20 pb-16 px-6">
+                <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
+
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                        <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
+                            Pastpaper Archive
+                        </h2>
+                        <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+
+                        <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
+                            Detailed Examination Resource Collections
+                        </p>
+                        <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
+                            Enter Archive
                         </button>
                     </div>
+                </div>
+            </section>
+        </div>
+    </div>
 
-                    <!-- 三張服務卡片 (取代原按鈕群組) -->
-                    <div class="session-card-group relative z-10">
-                        <!-- 線上補課系統 -->
-                        <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/makeup')">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <span class="card-title">線上補課系統</span>
-                            <span class="card-sub">Make-up Class</span>
-                        </div>
+    <!-- QR Scanner Modal Overlay -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
+        <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
+            <!-- Close Scanner -->
+            <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
+            </h3>
 
-                        <!-- 課堂錄影 -->
-                        <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/recordings')">
-                            <i class="fas fa-video"></i>
-                            <span class="card-title">課堂錄影</span>
-                            <span class="card-sub">Recordings</span>
-                        </div>
-
-                        <!-- 線上評估中心 -->
-                        <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/assessment')">
-                            <i class="fas fa-clipboard-list"></i>
-                            <span class="card-title">線上評估中心</span>
-                            <span class="card-sub">Assessment</span>
-                        </div>
-                    </div>
+            <!-- Video / Canvas viewport wrapper -->
+            <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
+                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+                <canvas id="qr-canvas" class="hidden"></canvas>
+                <!-- Scanner Overlay Target Area -->
+                <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
+                    <!-- Scanner Laser Line -->
+                    <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
                 </div>
             </div>
-        </section>
 
-        <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
-            <div class="loader">正在從數據庫獲取內容...</div>
-        </main>
-
-        <section id="sec-archive" class="mt-20 pb-16 px-6">
-            <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
-                <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
-
-                <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                    <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
-                        Pastpaper Archive
-                    </h2>
-                    <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
-
-                    <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
-                        Detailed Examination Resource Collections
-                    </p>
-                    <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
-                        Enter Archive
-                    </button>
-                </div>
+            <!-- File Upload Fallback Button -->
+            <div class="mt-4 w-full flex justify-center">
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
+                    <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
+                    <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQRFile(this)">
+                </label>
             </div>
-        </section>
+
+            <p class="text-slate-400 text-xs mt-4 text-center px-4 leading-relaxed font-light">
+                請將相機對準 QR Code 或直接上傳條碼相片。<br>相機啟動時請允許相機存取權限。
+            </p>
+            <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
+        </div>
     </div>
-</div>
 
-<!-- QR Scanner Modal Overlay -->
-<div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
-    <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
-        <!-- Close Scanner -->
-        <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
-            <i class="fas fa-times text-xl"></i>
-        </button>
-        <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
-            <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
-        </h3>
-
-        <!-- Video / Canvas viewport wrapper -->
-        <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
-            <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
-            <canvas id="qr-canvas" class="hidden"></canvas>
-            <!-- Scanner Overlay Target Area -->
-            <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
-                <!-- Scanner Laser Line -->
-                <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
+    <div id="dock-nav-wrapper" class="dock-wrapper">
+        <nav class="dock-nav">
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+            <div class="dock-content">
+                <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
+                    <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
+                </button>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
+                    <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
+                </button>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
+                    <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
+                </button>
+                <button onclick="openQRScanner()" class="dock-item">
+                    <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
+                </button>
             </div>
-        </div>
-
-        <!-- File Upload Fallback Button -->
-        <div class="mt-4 w-full flex justify-center">
-            <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
-                <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
-                <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQRFile(this)">
-            </label>
-        </div>
-
-        <p class="text-slate-400 text-xs mt-4 text-center px-4 leading-relaxed font-light">
-            請將相機對準 QR Code 或直接上傳條碼相片。<br>相機啟動時請允許相機存取權限。
-        </p>
-        <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+        </nav>
     </div>
-</div>
+    <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
-<div id="dock-nav-wrapper" class="dock-wrapper">
-    <nav class="dock-nav">
-        <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
-        <div class="dock-content">
-            <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
-                <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
-            </button>
-            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
-                <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
-            </button>
-            <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
-                <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
-            </button>
-            <button onclick="openQRScanner()" class="dock-item">
-                <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
-            </button>
-        </div>
-        <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
-    </nav>
-</div>
-<div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
-
-<script>
-    // 安全 LocalStorage 沙盒防禦封裝物件
-    const storage = {
-        getItem(key) {
-            try {
-                return localStorage.getItem(key);
-            } catch (e) {
-                console.warn("Storage read blocked:", e);
-                return null;
-            }
-        },
-        setItem(key, value) {
-            try {
-                localStorage.setItem(key, value);
-            } catch (e) {
-                console.warn("Storage write blocked:", e);
-            }
-        },
-        removeItem(key) {
-            try {
-                localStorage.removeItem(key);
-            } catch (e) {
-                console.warn("Storage remove blocked:", e);
-            }
-        }
-    };
-
-    // Google Sheet CSV URL (針對 FRONT 分頁)
-    const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
-    const SHEET_CSV_URL =
-    `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=966779417`;
-
-    let rawData = [];
-    let lastScrollY = window.scrollY;
-
-    // QRスキャナー関連の変数
-    let qrStream = null;
-    let qrAnimationId = null;
-
-    // フィルターおよび検索ステータス
-    let currentFilter = 'all';
-    let searchQuery = '';
-
-    // 全域網格排版 (Grid View) 狀態旗標
-    let isGridView = false;
-
-    // 日夜モード切り替え処理
-    function toggleTheme(isDark) {
-        if (isDark) {
-            document.body.classList.add('dark-mode');
-            storage.setItem('theme', 'dark');
-        } else {
-            document.body.classList.remove('dark-mode');
-            storage.setItem('theme', 'light');
-        }
-    }
-
-    // 読み込み時に初期テーマを適用 (安全沙盒相容)
-    (function() {
-        let savedTheme = null;
-        try {
-            savedTheme = localStorage.getItem('theme');
-        } catch (e) {
-            console.warn("Theme storage access denied", e);
-        }
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
-
-        if (isDark) {
-            document.body.classList.add('dark-mode');
-            document.addEventListener('DOMContentLoaded', () => {
-                const toggleInput = document.getElementById('dark-mode-toggle');
-                if (toggleInput) toggleInput.checked = true;
-            });
-        }
-    })();
-
-    // 優化後的載入流程：先用 localstorage 匯出第一瞬資料（Cache-First），然後才在背景檢查版本數目是否改變
-    async function initData() {
-        // 1. 第一瞬：立即載入並渲染 LocalStorage 快取，讓用戶秒開
-        const cachedVer = storage.getItem('lumina_data_ver');
-        const cachedData = storage.getItem('lumina_data_payload');
-        let hasRenderedCache = false;
-
-        if (cachedData) {
-            try {
-                rawData = JSON.parse(cachedData);
-                if (rawData && rawData.length > 0) {
-                    console.log("第一瞬載入：已從 LocalStorage 恢復快取數據，版本號:", cachedVer);
-                    renderFilters();
-                    renderContent();
-                    hasRenderedCache = true;
+    <script>
+        // 安全 LocalStorage 沙盒防禦封裝物件
+        const storage = {
+            getItem(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn("Storage read blocked:", e);
+                    return null;
                 }
-            } catch (jsonErr) {
-                console.warn("LocalStorage 快取受損，清理重設:", jsonErr);
-                storage.removeItem('lumina_data_ver');
-                storage.removeItem('lumina_data_payload');
-            }
-        }
-
-        // 2. 第二步：在背景發起網路請求，確認線上版本是否改變
-        try {
-            let csvText = '';
-            let response;
-
-            // 第一嘗試階段：使用預設標準 GID 連結
-            try {
-                response = await fetch(`${SHEET_CSV_URL}&cachebust=${Date.now()}&t=${Date.now()}`);
-                csvText = await response.text();
-
-                // 偵測是否返回 HTML 登入牆 or 404 (Google Sheets 常見拒絕連線網頁)
-                if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.trim().startsWith('<html')) {
-                    throw new Error("返回格式非 CSV (可能是 GID 無效或需要權限設定)");
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn("Storage write blocked:", e);
                 }
-            } catch (firstErr) {
-                console.warn("標準 GID 導出失敗，啟動備用分頁名稱解析器 (FRONT):", firstErr);
-
-                // 第二後備階段：使用 Google Visualization API 依「分頁名稱」拉取，防禦 GID 被使用者重建變更
-                const fallbackUrl =
-                    `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=FRONT&cachebust=${Date.now()}`;
-                response = await fetch(fallbackUrl);
-                csvText = await response.text();
-
-                if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.trim().startsWith('<html')) {
-                    throw new Error("備用管道仍返回網頁 HTML (請確定試算表權限已設定為『知道連結的任何人均可檢視』)");
+            },
+            removeItem(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn("Storage remove blocked:", e);
                 }
             }
+        };
 
-            const lines = parseCSVRows(csvText);
+        // 讀取使用者名稱並顯示
+        (function displayUsername() {
+            const name = storage.getItem('user_real_name');
+            const displayEl = document.getElementById('username-display');
+            if (displayEl) {
+                displayEl.textContent = name || '訪客';
+            }
+        })();
 
-            if (lines.length > 0) {
-                const firstRow = lines[0];
-                // 檢查 A1 是否為 'ver'
-                if (firstRow[0] && firstRow[0].toLowerCase() === 'ver') {
-                    const currentOnlineVer = firstRow[1] || ''; // B1 取得版本號
+        // Google Sheet CSV URL (針對 FRONT 分頁)
+        const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
+        const SHEET_CSV_URL =
+        `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=966779417`;
 
-                    // 判斷：線上版本號改變，或是先前未能成功渲染快取
-                    if (currentOnlineVer !== cachedVer || !hasRenderedCache) {
-                        console.log("偵測到線上版本改變或無快取，正在背景重新匯入最新數據...", "舊版本:", cachedVer, "新版本:",
-                            currentOnlineVer);
-                        rawData = processRawRows(lines);
+        let rawData = [];
+        let lastScrollY = window.scrollY;
 
-                        // 重新寫入快取
-                        storage.setItem('lumina_data_ver', currentOnlineVer);
-                        storage.setItem('lumina_data_payload', JSON.stringify(rawData));
+        // QRスキャナー関連の変数
+        let qrStream = null;
+        let qrAnimationId = null;
 
-                        // 更新渲染畫面
+        // フィルターおよび検索ステータス
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // 全域網格排版 (Grid View) 狀態旗標
+        let isGridView = false;
+
+        // 日夜モード切り替え処理
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                storage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                storage.setItem('theme', 'light');
+            }
+        }
+
+        // 読み込み時に初期テーマを適用 (安全沙盒相容)
+        (function() {
+            let savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (e) {
+                console.warn("Theme storage access denied", e);
+            }
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    const toggleInput = document.getElementById('dark-mode-toggle');
+                    if (toggleInput) toggleInput.checked = true;
+                });
+            }
+        })();
+
+        // 優化後的載入流程：先用 localstorage 匯出第一瞬資料（Cache-First），然後才在背景檢查版本數目是否改變
+        async function initData() {
+            // 1. 第一瞬：立即載入並渲染 LocalStorage 快取，讓用戶秒開
+            const cachedVer = storage.getItem('lumina_data_ver');
+            const cachedData = storage.getItem('lumina_data_payload');
+            let hasRenderedCache = false;
+
+            if (cachedData) {
+                try {
+                    rawData = JSON.parse(cachedData);
+                    if (rawData && rawData.length > 0) {
+                        console.log("第一瞬載入：已從 LocalStorage 恢復快取數據，版本號:", cachedVer);
                         renderFilters();
                         renderContent();
-                    } else {
-                        console.log("背景版本檢查完成：線上版本與快取一致 (", cachedVer, ")，無須更新。");
+                        hasRenderedCache = true;
                     }
-                } else {
-                    // 若無 ver 規則，直接解析渲染
-                    rawData = processRawRows(lines);
-                    renderFilters();
-                    renderContent();
+                } catch (jsonErr) {
+                    console.warn("LocalStorage 快取受損，清理重設:", jsonErr);
+                    storage.removeItem('lumina_data_ver');
+                    storage.removeItem('lumina_data_payload');
                 }
             }
-        } catch (error) {
-            console.error("背景同步失敗:", error);
-            // 若一開始沒能加載快取（新安裝用戶），且背景更新也失敗，則顯示錯誤提示
-            if (!hasRenderedCache) {
-                document.getElementById('main-content-area').innerHTML =
-                    `<div class="loader">載入失敗，請確認試算表分享權限並保持網路連線。</div>`;
+
+            // 2. 第二步：在背景發起網路請求，確認線上版本是否改變
+            try {
+                let csvText = '';
+                let response;
+
+                // 第一嘗試階段：使用預設標準 GID 連結
+                try {
+                    response = await fetch(`${SHEET_CSV_URL}&cachebust=${Date.now()}&t=${Date.now()}`);
+                    csvText = await response.text();
+
+                    // 偵測是否返回 HTML 登入牆 or 404 (Google Sheets 常見拒絕連線網頁)
+                    if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.trim().startsWith('<html')) {
+                        throw new Error("返回格式非 CSV (可能是 GID 無效或需要權限設定)");
+                    }
+                } catch (firstErr) {
+                    console.warn("標準 GID 導出失敗，啟動備用分頁名稱解析器 (FRONT):", firstErr);
+
+                    // 第二後備階段：使用 Google Visualization API 依「分頁名稱」拉取，防禦 GID 被使用者重建變更
+                    const fallbackUrl =
+                        `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=FRONT&cachebust=${Date.now()}`;
+                    response = await fetch(fallbackUrl);
+                    csvText = await response.text();
+
+                    if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.trim().startsWith('<html')) {
+                        throw new Error("備用管道仍返回網頁 HTML (請確定試算表權限已設定為『知道連結的任何人均可檢視』)");
+                    }
+                }
+
+                const lines = parseCSVRows(csvText);
+
+                if (lines.length > 0) {
+                    const firstRow = lines[0];
+                    // 檢查 A1 是否為 'ver'
+                    if (firstRow[0] && firstRow[0].toLowerCase() === 'ver') {
+                        const currentOnlineVer = firstRow[1] || ''; // B1 取得版本號
+
+                        // 判斷：線上版本號改變，或是先前未能成功渲染快取
+                        if (currentOnlineVer !== cachedVer || !hasRenderedCache) {
+                            console.log("偵測到線上版本改變或無快取，正在背景重新匯入最新數據...", "舊版本:", cachedVer, "新版本:",
+                                currentOnlineVer);
+                            rawData = processRawRows(lines);
+
+                            // 重新寫入快取
+                            storage.setItem('lumina_data_ver', currentOnlineVer);
+                            storage.setItem('lumina_data_payload', JSON.stringify(rawData));
+
+                            // 更新渲染畫面
+                            renderFilters();
+                            renderContent();
+                        } else {
+                            console.log("背景版本檢查完成：線上版本與快取一致 (", cachedVer, ")，無須更新。");
+                        }
+                    } else {
+                        // 若無 ver 規則，直接解析渲染
+                        rawData = processRawRows(lines);
+                        renderFilters();
+                        renderContent();
+                    }
+                }
+            } catch (error) {
+                console.error("背景同步失敗:", error);
+                // 若一開始沒能加載快取（新安裝用戶），且背景更新也失敗，則顯示錯誤提示
+                if (!hasRenderedCache) {
+                    document.getElementById('main-content-area').innerHTML =
+                        `<div class="loader">載入失敗，請確認試算表分享權限並保持網路連線。</div>`;
+                }
             }
         }
-    }
 
-    // 手動同期ボタン用 (保留但已無按鈕觸發)
-    async function manualSync() {
-        // 此函數已不觸發，保留以防其他呼叫
-        console.warn("manualSync 已不再使用");
-    }
+        // 手動同期ボタン用 (保留但已無按鈕觸發)
+        async function manualSync() {
+            console.warn("manualSync 已不再使用");
+        }
 
-    // CSV 行分割パーサー
-    function parseCSVRows(text) {
-        const lines = [];
-        let row = [""];
-        let inQuotes = false;
+        // CSV 行分割パーサー
+        function parseCSVRows(text) {
+            const lines = [];
+            let row = [""];
+            let inQuotes = false;
 
-        for (let i = 0; i < text.length; i++) {
-            let c = text[i];
-            let next = text[i + 1];
-            if (c === '"') {
-                if (inQuotes && next === '"') { row[row.length - 1] += '"';
-                    i++; } else { inQuotes = !inQuotes; }
-            } else if (c === ',' && !inQuotes) {
-                row.push('');
-            } else if ((c === '\r' || c === '\n') && !inQuotes) {
-                if (c === '\r' && next === '\n') { i++; }
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                let next = text[i + 1];
+                if (c === '"') {
+                    if (inQuotes && next === '"') { row[row.length - 1] += '"';
+                        i++; } else { inQuotes = !inQuotes; }
+                } else if (c === ',' && !inQuotes) {
+                    row.push('');
+                } else if ((c === '\r' || c === '\n') && !inQuotes) {
+                    if (c === '\r' && next === '\n') { i++; }
+                    lines.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += c;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') {
                 lines.push(row);
-                row = [''];
-            } else {
-                row[row.length - 1] += c;
             }
-        }
-        if (row.length > 1 || row[0] !== '') {
-            lines.push(row);
-        }
-        return lines;
-    }
-
-    // 試算表データからアイテム配列へのマッピング (新レイアウト対応)
-    function processRawRows(lines) {
-        return lines
-            .filter((row, idx) => {
-                if (idx === 0) return false;
-                return row[1] && row[0] !== 'ver' && row[0] !== 'filter';
-            })
-            .map(row => {
-                return {
-                    filter: (row[0] || '').trim(),
-                    section: (row[1] || '').trim(),
-                    order: parseInt(row[2]) || 0,
-                    tag: (row[3] || '').trim(),
-                    img: (row[4] || '').trim(),
-                    url: (row[5] || '').trim(),
-                    gridOrder: parseInt(row[6]) || 0
-                };
-            });
-    }
-
-    // フィルターボタンレンダリング
-    function renderFilters() {
-        const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
-        const container = document.getElementById('filter-container');
-        container.innerHTML = filters.map(f => `
-                <button class="filter-capsule ${f === currentFilter ? 'active' : ''}" 
-                        data-filter="${f}" 
-                        onclick="setFilter('${f}')">
-                    ${f === 'all' ? '全部' : f}
-                </button>
-            `).join('');
-    }
-
-    // 關閉/開啟格狀網格排版 (Grid View) 狀態
-    function toggleGridView() {
-        isGridView = !isGridView;
-        const btn = document.getElementById('grid-view-toggle');
-        if (isGridView) {
-            btn.classList.add('text-sky-500');
-            btn.classList.remove('opacity-60');
-        } else {
-            btn.classList.remove('text-sky-500');
-            btn.classList.add('opacity-60');
-        }
-        renderContent();
-    }
-
-    // コンテンツレンダリング (不顯示卡片下方的任何文字/標籤，保持完美的卡片排版)
-    function renderContent() {
-        const mainArea = document.getElementById('main-content-area');
-        mainArea.innerHTML = '';
-
-        const heroSection = document.getElementById('hero-section');
-        const archiveSection = document.getElementById('sec-archive');
-
-        // 1. 先獲取並過濾符合當前條件的卡片
-        let processedItems = [...rawData];
-
-        // 分類篩選
-        if (currentFilter !== 'all') {
-            processedItems = processedItems.filter(item => item.filter === currentFilter);
+            return lines;
         }
 
-        // 標籤篩選
-        if (searchQuery.trim() !== '') {
-            const query = searchQuery.toLowerCase().trim();
-            processedItems = processedItems.filter(item => {
-                return item.tag && item.tag.toLowerCase().includes(query);
-            });
+        // 試算表データからアイテム配列へのマッピング (新レイアウト対応)
+        function processRawRows(lines) {
+            return lines
+                .filter((row, idx) => {
+                    if (idx === 0) return false;
+                    return row[1] && row[0] !== 'ver' && row[0] !== 'filter';
+                })
+                .map(row => {
+                    return {
+                        filter: (row[0] || '').trim(),
+                        section: (row[1] || '').trim(),
+                        order: parseInt(row[2]) || 0,
+                        tag: (row[3] || '').trim(),
+                        img: (row[4] || '').trim(),
+                        url: (row[5] || '').trim(),
+                        gridOrder: parseInt(row[6]) || 0
+                    };
+                });
         }
 
-        // 2. 根據是否開啟 Grid View 渲染不同的版面
-        if (isGridView) {
-            // Grid View時以欄G的順序排位 (gridOrder)
-            processedItems.sort((a, b) => a.gridOrder - b.gridOrder);
+        // フィルターボタンレンダリング
+        function renderFilters() {
+            const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
+            const container = document.getElementById('filter-container');
+            container.innerHTML = filters.map(f => `
+                    <button class="filter-capsule ${f === currentFilter ? 'active' : ''}" 
+                            data-filter="${f}" 
+                            onclick="setFilter('${f}')">
+                        ${f === 'all' ? '全部' : f}
+                    </button>
+                `).join('');
+        }
 
-            // 格狀網格排版模式：隱藏海報輪播 Hero 與底部的 Pastpaper Section
-            heroSection.classList.add('section-hidden');
-            archiveSection.classList.add('section-hidden');
+        // 關閉/開啟格狀網格排版 (Grid View) 狀態
+        function toggleGridView() {
+            isGridView = !isGridView;
+            const btn = document.getElementById('grid-view-toggle');
+            if (isGridView) {
+                btn.classList.add('text-sky-500');
+                btn.classList.remove('opacity-60');
+            } else {
+                btn.classList.remove('text-sky-500');
+                btn.classList.add('opacity-60');
+            }
+            renderContent();
+        }
 
-            if (processedItems.length === 0) {
-                mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
-                return;
+        // コンテンツレンダリング (不顯示卡片下方的任何文字/標籤，保持完美的卡片排版)
+        function renderContent() {
+            const mainArea = document.getElementById('main-content-area');
+            mainArea.innerHTML = '';
+
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
+
+            // 1. 先獲取並過濾符合當前條件的卡片
+            let processedItems = [...rawData];
+
+            // 分類篩選
+            if (currentFilter !== 'all') {
+                processedItems = processedItems.filter(item => item.filter === currentFilter);
             }
 
-            const gridHtml = `
-                    <section class="max-w-screen-2xl mx-auto py-4">
-                        <div class="grid grid-cols-3 md:grid-cols-6 gap-0 grid-tight-pack">
-                            ${processedItems.map((item, index) => {
-                                const rowMobile = Math.floor(index / 3);
-                                const rowDesktop = Math.floor(index / 6);
-                                return `
-                                <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="handleNavigation('${item.url}')">
-                                    <div class="poster-card" title="Tags: ${item.tag || '無'}">
-                                        <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
-                                    </div>
-                                </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </section>
-                `;
-            mainArea.innerHTML = gridHtml;
+            // 標籤篩選
+            if (searchQuery.trim() !== '') {
+                const query = searchQuery.toLowerCase().trim();
+                processedItems = processedItems.filter(item => {
+                    return item.tag && item.tag.toLowerCase().includes(query);
+                });
+            }
 
-        } else {
-            // 原貌 Slider 分區排版模式
-            if (currentFilter === 'all') {
-                heroSection.classList.remove('section-hidden');
-                archiveSection.classList.remove('section-hidden');
-            } else {
+            // 2. 根據是否開啟 Grid View 渲染不同的版面
+            if (isGridView) {
+                // Grid View時以欄G的順序排位 (gridOrder)
+                processedItems.sort((a, b) => a.gridOrder - b.gridOrder);
+
+                // 格狀網格排版模式：隱藏海報輪播 Hero 與底部的 Pastpaper Section
                 heroSection.classList.add('section-hidden');
                 archiveSection.classList.add('section-hidden');
-            }
 
-            const sections = [...new Set(rawData.map(d => d.section))];
-            let hasVisibleCards = false;
-
-            sections.forEach(secName => {
-                let itemsInSec = rawData
-                    .filter(d => d.section === secName)
-                    .sort((a, b) => a.order - b.order);
-
-                if (currentFilter !== 'all') {
-                    itemsInSec = itemsInSec.filter(item => item.filter === currentFilter);
+                if (processedItems.length === 0) {
+                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
+                    return;
                 }
 
-                if (searchQuery.trim() !== '') {
-                    const query = searchQuery.toLowerCase().trim();
-                    itemsInSec = itemsInSec.filter(item => {
-                        return item.tag && item.tag.toLowerCase().includes(query);
-                    });
-                }
-
-                if (itemsInSec.length === 0) return;
-                hasVisibleCards = true;
-
-                const filterTag = itemsInSec[0].filter;
-                const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
-                const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
-
-                const sectionHtml = `
-                        <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
-                            <h2 class="section-title">${secName}</h2>
-                            <div class="slider-wrapper">
-                                <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
-                                    <i class="fas fa-chevron-left text-xs text-slate-400"></i>
-                                </button>
-                                <div class="slider-container hide-scrollbar" id="${sliderId}">
-                                    ${itemsInSec.map(item => `
-                                        <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
-                                            <div class="poster-card" title="Tags: ${item.tag || '無'}">
-                                                <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
-                                            </div>
+                const gridHtml = `
+                        <section class="max-w-screen-2xl mx-auto py-4">
+                            <div class="grid grid-cols-3 md:grid-cols-6 gap-0 grid-tight-pack">
+                                ${processedItems.map((item, index) => {
+                                    const rowMobile = Math.floor(index / 3);
+                                    const rowDesktop = Math.floor(index / 6);
+                                    return `
+                                    <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="handleNavigation('${item.url}')">
+                                        <div class="poster-card" title="Tags: ${item.tag || '無'}">
+                                            <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
                                         </div>
-                                    `).join('')}
-                                </div>
-                                <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
-                                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
-                                </button>
+                                    </div>
+                                    `;
+                                }).join('')}
                             </div>
                         </section>
                     `;
-                mainArea.insertAdjacentHTML('beforeend', sectionHtml);
-            });
+                mainArea.innerHTML = gridHtml;
 
-            if (!hasVisibleCards) {
-                mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
-            }
-        }
-    }
-
-    // 検索窓トグル処理
-    function toggleSearchInput() {
-        const panel = document.getElementById('search-panel');
-        panel.classList.toggle('open');
-        if (panel.classList.contains('open')) {
-            document.getElementById('tag-search-input').focus();
-        } else {
-            clearSearch();
-        }
-    }
-
-    // 検索文字入力処理
-    function handleSearch(val) {
-        searchQuery = val;
-        renderContent();
-    }
-
-    // 検索クリア処理
-    function clearSearch() {
-        const input = document.getElementById('tag-search-input');
-        if (input) input.value = '';
-        searchQuery = '';
-        renderContent();
-    }
-
-    // 導航欄與 Dock 選單切換
-    function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
-
-    function toggleFilter() {
-        const bar = document.getElementById('filter-bar');
-        bar.classList.toggle('collapsed');
-    }
-
-    function scrollSlider(id, offset) {
-        const el = document.getElementById(id);
-        if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
-    }
-
-    // ホームスクロールとフィルターの完全初期化
-    function scrollToHome() {
-        setFilter('all');
-        clearSearch();
-        if (isGridView) {
-            toggleGridView();
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function handleNavigation(url) {
-        if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
-        window.location.href = url;
-    }
-
-    function setFilter(filterType) {
-        currentFilter = filterType;
-        const buttons = document.querySelectorAll('.filter-capsule');
-        buttons.forEach(btn => {
-            if (btn.dataset.filter === filterType) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-
-        const heroSection = document.getElementById('hero-section');
-        const archiveSection = document.getElementById('sec-archive');
-
-        if (!isGridView) {
-            if (filterType === 'all') {
-                heroSection.classList.remove('section-hidden');
-                archiveSection.classList.remove('section-hidden');
             } else {
-                heroSection.classList.add('section-hidden');
-                archiveSection.classList.add('section-hidden');
-            }
-        }
-        renderContent();
-    }
+                // 原貌 Slider 分區排版模式
+                if (currentFilter === 'all') {
+                    heroSection.classList.remove('section-hidden');
+                    archiveSection.classList.remove('section-hidden');
+                } else {
+                    heroSection.classList.add('section-hidden');
+                    archiveSection.classList.add('section-hidden');
+                }
 
-    // QRコードスキャナーコントロール
-    async function openQRScanner() {
-        const modal = document.getElementById('qr-scanner-modal');
-        const video = document.getElementById('qr-video');
-        const errMsg = document.getElementById('qr-error-msg');
+                const sections = [...new Set(rawData.map(d => d.section))];
+                let hasVisibleCards = false;
 
-        errMsg.classList.add('hidden');
-        errMsg.innerText = "";
-        modal.classList.remove('pointer-events-none', 'opacity-0');
-        modal.classList.add('opacity-100');
+                sections.forEach(secName => {
+                    let itemsInSec = rawData
+                        .filter(d => d.section === secName)
+                        .sort((a, b) => a.order - b.order);
 
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            qrStream = stream;
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true);
-
-            try {
-                await video.play();
-            } catch (playErr) {
-                console.warn("Video play interrupted, attempting fallback options", playErr);
-            }
-
-            qrAnimationId = requestAnimationFrame(tickQRScanner);
-        } catch (err) {
-            console.error("Camera access failed:", err);
-            errMsg.innerText =
-                "相機不可用（可能被瀏覽器安全政策限制、未授權， or 未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按碼。";
-            errMsg.classList.remove('hidden');
-        }
-    }
-
-    function closeQRScanner() {
-        const modal = document.getElementById('qr-scanner-modal');
-        modal.classList.add('opacity-0', 'pointer-events-none');
-        modal.classList.remove('opacity-100');
-
-        if (qrStream) {
-            qrStream.getTracks().forEach(track => track.stop());
-            qrStream = null;
-        }
-        if (qrAnimationId) {
-            cancelAnimationFrame(qrAnimationId);
-            qrAnimationId = null;
-        }
-
-        document.getElementById('qr-file-input').value = "";
-    }
-
-    function tickQRScanner() {
-        const video = document.getElementById('qr-video');
-        const canvasElement = document.getElementById('qr-canvas');
-        if (!video || !canvasElement) return;
-        const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
-        if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
-            canvasElement.height = video.videoHeight;
-            canvasElement.width = video.videoWidth;
-            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-
-            try {
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "attemptBoth",
-                });
-                if (code) {
-                    let resultText = code.data.trim();
-                    let finalUrl = '';
-
-                    if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
-                        finalUrl = resultText;
-                    } else {
-                        if (resultText.startsWith('/')) {
-                            resultText = resultText.substring(1);
-                        }
-                        finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                    if (currentFilter !== 'all') {
+                        itemsInSec = itemsInSec.filter(item => item.filter === currentFilter);
                     }
 
-                    closeQRScanner();
-                    window.location.href = finalUrl;
-                    return;
+                    if (searchQuery.trim() !== '') {
+                        const query = searchQuery.toLowerCase().trim();
+                        itemsInSec = itemsInSec.filter(item => {
+                            return item.tag && item.tag.toLowerCase().includes(query);
+                        });
+                    }
+
+                    if (itemsInSec.length === 0) return;
+                    hasVisibleCards = true;
+
+                    const filterTag = itemsInSec[0].filter;
+                    const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
+                    const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+
+                    const sectionHtml = `
+                            <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
+                                <h2 class="section-title">${secName}</h2>
+                                <div class="slider-wrapper">
+                                    <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
+                                        <i class="fas fa-chevron-left text-xs text-slate-400"></i>
+                                    </button>
+                                    <div class="slider-container hide-scrollbar" id="${sliderId}">
+                                        ${itemsInSec.map(item => `
+                                            <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
+                                                <div class="poster-card" title="Tags: ${item.tag || '無'}">
+                                                    <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
+                                        <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                                    </button>
+                                </div>
+                            </section>
+                        `;
+                    mainArea.insertAdjacentHTML('beforeend', sectionHtml);
+                });
+
+                if (!hasVisibleCards) {
+                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
                 }
-            } catch (e) {
-                console.error("Error drawing or extracting canvas pixels", e);
             }
         }
-        if (qrStream) {
-            qrAnimationId = requestAnimationFrame(tickQRScanner);
+
+        // 検索窓トグル処理
+        function toggleSearchInput() {
+            const panel = document.getElementById('search-panel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                document.getElementById('tag-search-input').focus();
+            } else {
+                clearSearch();
+            }
         }
-    }
 
-    // アップロード画像によるQRコードデコード
-    function handleQRFile(input) {
-        const file = input.files[0];
-        if (!file) return;
+        // 検索文字入力処理
+        function handleSearch(val) {
+            searchQuery = val;
+            renderContent();
+        }
 
-        const errMsg = document.getElementById('qr-error-msg');
-        errMsg.classList.add('hidden');
+        // 検索クリア処理
+        function clearSearch() {
+            const input = document.getElementById('tag-search-input');
+            if (input) input.value = '';
+            searchQuery = '';
+            renderContent();
+        }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvasElement = document.getElementById('qr-canvas');
-                const canvas = canvasElement.getContext('2d');
-                canvasElement.width = img.width;
-                canvasElement.height = img.height;
-                canvas.drawImage(img, 0, 0);
+        // 導航欄與 Dock 選單切換
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+
+        function toggleFilter() {
+            const bar = document.getElementById('filter-bar');
+            bar.classList.toggle('collapsed');
+        }
+
+        function scrollSlider(id, offset) {
+            const el = document.getElementById(id);
+            if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+
+        // ホームスクロールとフィルターの完全初期化
+        function scrollToHome() {
+            setFilter('all');
+            clearSearch();
+            if (isGridView) {
+                toggleGridView();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function handleNavigation(url) {
+            if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
+            window.location.href = url;
+        }
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            const buttons = document.querySelectorAll('.filter-capsule');
+            buttons.forEach(btn => {
+                if (btn.dataset.filter === filterType) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
+
+            if (!isGridView) {
+                if (filterType === 'all') {
+                    heroSection.classList.remove('section-hidden');
+                    archiveSection.classList.remove('section-hidden');
+                } else {
+                    heroSection.classList.add('section-hidden');
+                    archiveSection.classList.add('section-hidden');
+                }
+            }
+            renderContent();
+        }
+
+        // QRコードスキャナーコントロール
+        async function openQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('qr-video');
+            const errMsg = document.getElementById('qr-error-msg');
+
+            errMsg.classList.add('hidden');
+            errMsg.innerText = "";
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.classList.add('opacity-100');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                qrStream = stream;
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+
+                try {
+                    await video.play();
+                } catch (playErr) {
+                    console.warn("Video play interrupted, attempting fallback options", playErr);
+                }
+
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            } catch (err) {
+                console.error("Camera access failed:", err);
+                errMsg.innerText =
+                    "相機不可用（可能被瀏覽器安全政策限制、未授權， or 未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按碼。";
+                errMsg.classList.remove('hidden');
+            }
+        }
+
+        function closeQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.classList.remove('opacity-100');
+
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+            if (qrAnimationId) {
+                cancelAnimationFrame(qrAnimationId);
+                qrAnimationId = null;
+            }
+
+            document.getElementById('qr-file-input').value = "";
+        }
+
+        function tickQRScanner() {
+            const video = document.getElementById('qr-video');
+            const canvasElement = document.getElementById('qr-canvas');
+            if (!video || !canvasElement) return;
+            const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
+            if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+
                 try {
                     const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height, {
@@ -1474,6 +1434,7 @@
                     if (code) {
                         let resultText = code.data.trim();
                         let finalUrl = '';
+
                         if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
                             finalUrl = resultText;
                         } else {
@@ -1482,38 +1443,85 @@
                             }
                             finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
                         }
+
                         closeQRScanner();
                         window.location.href = finalUrl;
-                    } else {
-                        errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error drawing or extracting canvas pixels", e);
+                }
+            }
+            if (qrStream) {
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            }
+        }
+
+        // アップロード画像によるQRコードデコード
+        function handleQRFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const errMsg = document.getElementById('qr-error-msg');
+            errMsg.classList.add('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvasElement = document.getElementById('qr-canvas');
+                    const canvas = canvasElement.getContext('2d');
+                    canvasElement.width = img.width;
+                    canvasElement.height = img.height;
+                    canvas.drawImage(img, 0, 0);
+                    try {
+                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "attemptBoth",
+                        });
+                        if (code) {
+                            let resultText = code.data.trim();
+                            let finalUrl = '';
+                            if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                                finalUrl = resultText;
+                            } else {
+                                if (resultText.startsWith('/')) {
+                                    resultText = resultText.substring(1);
+                                }
+                                finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                            }
+                            closeQRScanner();
+                            window.location.href = finalUrl;
+                        } else {
+                            errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
+                            errMsg.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Manual QR decode error:", err);
+                        errMsg.innerText = "相片讀取失敗，請重新嘗試。";
                         errMsg.classList.remove('hidden');
                     }
-                } catch (err) {
-                    console.error("Manual QR decode error:", err);
-                    errMsg.innerText = "相片讀取失敗，請重新嘗試。";
-                    errMsg.classList.remove('hidden');
-                }
+                };
+                img.src = e.target.result;
             };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    window.addEventListener('scroll', () => {
-        const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-        if (currentScrollY > 30) document.body.classList.add('scrolled');
-        else document.body.classList.remove('scrolled');
-
-        const filterBar = document.getElementById('filter-bar');
-        if (currentScrollY > lastScrollY && currentScrollY > 150) {
-            if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
-        } else if (currentScrollY < lastScrollY) {
-            if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
+            reader.readAsDataURL(file);
         }
-        lastScrollY = currentScrollY;
-    }, { passive: true });
 
-    document.addEventListener('DOMContentLoaded', initData);
-</script>
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+            if (currentScrollY > 30) document.body.classList.add('scrolled');
+            else document.body.classList.remove('scrolled');
+
+            const filterBar = document.getElementById('filter-bar');
+            if (currentScrollY > lastScrollY && currentScrollY > 150) {
+                if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
+            } else if (currentScrollY < lastScrollY) {
+                if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', initData);
+    </script>
 </body>
 </html>
