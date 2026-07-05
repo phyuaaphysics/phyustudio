@@ -296,8 +296,8 @@
         <!-- ========================================== -->
         <div id="feature-grid" class="grid grid-cols-2 gap-3 mt-1">
 
-            <!-- 優先第一功能: 功課及公告欄 -->
-            <div class="feature-card crystal-panel rounded-2xl p-4 col-span-2 flex flex-col items-center justify-center cursor-pointer hover:bg-white/60 transition border border-transparent hover:border-indigo-300/50 bg-gradient-to-r from-indigo-50/20 to-purple-50/20" data-feature="功課及公告欄">
+            <!-- 優先第一功能: 功課及公告欄 (實作點) -->
+            <div id="notice-board-card" class="feature-card crystal-panel rounded-2xl p-4 col-span-2 flex flex-col items-center justify-center cursor-pointer hover:bg-white/60 transition border border-transparent hover:border-indigo-300/50 bg-gradient-to-r from-indigo-50/20 to-purple-50/20" data-feature="功課及公告欄">
                 <div class="relative">
                     <i data-lucide="megaphone" class="w-8 h-8 text-indigo-600 mb-2"></i>
                     <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
@@ -351,6 +351,53 @@
 <!--  SECTION 3 : 全自訂彈窗與資訊面板            -->
 <!-- ========================================== -->
 
+<!-- 功課及公告欄詳細面板 (Modal) -->
+<div id="notice-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-[#fefcf9] border border-amber-100/80 rounded-[2rem] max-w-lg w-full p-6 md:p-8 shadow-2xl relative flex flex-col max-h-[85vh] overflow-hidden transform scale-95 transition-transform duration-300">
+        
+        <!-- 關閉按鈕 -->
+        <button id="close-notice-modal-btn" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+
+        <!-- 頂部標題區 -->
+        <div class="text-center pb-4 border-b border-amber-100/50 shrink-0">
+            <span class="inline-block p-2.5 rounded-full bg-indigo-50 text-indigo-600 mb-2">
+                <i data-lucide="megaphone" class="w-6 h-6"></i>
+            </span>
+            <h3 class="text-xl font-bold text-slate-800 shippori-title">功課及公告欄</h3>
+            <p class="text-[10px] text-slate-400 font-medium tracking-widest uppercase mt-1">Classwork &amp; Notice Board</p>
+        </div>
+
+        <!-- 搜尋篩選列 -->
+        <div class="pt-4 shrink-0">
+            <div class="relative">
+                <input type="text" id="notice-search-input" placeholder="搜尋公告關鍵字、日期或期限..."
+                       class="pill-input w-full px-5 py-2.5 rounded-full text-xs font-light tracking-wide text-left placeholder:text-slate-400/60" />
+            </div>
+        </div>
+
+        <!-- 滾動公告列表區域 -->
+        <div class="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+            <div id="notice-container" class="space-y-4">
+                <!-- 公告卡片動態載入 -->
+            </div>
+
+            <!-- 無資料提示 -->
+            <div id="notice-empty-state" class="hidden text-center py-12 text-slate-400 space-y-2">
+                <i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-300"></i>
+                <p class="text-xs">目前暫無符合您身分及班別的有效公告。</p>
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <div class="pt-4 border-t border-amber-100/50 flex justify-between items-center text-[10px] text-slate-400 shrink-0">
+            <span>資料即時同步自 Google Sheets</span>
+            <span id="notice-updated-time">剛剛</span>
+        </div>
+    </div>
+</div>
+
 <!-- 線上補課時數詳細面板 (Modal) -->
 <div id="makeup-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
     <div class="bg-[#fefcf9] border border-amber-100/80 rounded-[2rem] max-w-lg w-full p-6 md:p-8 shadow-2xl relative flex flex-col max-h-[85vh] overflow-hidden transform scale-95 transition-transform duration-300">
@@ -382,7 +429,7 @@
                 <div id="calculated-hours-text" class="text-[11px] text-slate-500/80 font-medium mt-1">約等於 0.0 小時的補課時間</div>
             </div>
 
-            <!-- 數據卡 2：各大課題佔比 (圖形呈現) -->
+            <!-- 數據卡 2：各大課題佔比 (Pie Chart 原生圖形) -->
             <div class="space-y-4">
                 <div class="flex justify-between items-center px-1">
                     <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
@@ -391,14 +438,36 @@
                     <span class="text-[10px] text-slate-400">依據影片觀看次數統計</span>
                 </div>
 
-                <!-- 原生精緻進度條容器 (多色百分比比例條) -->
-                <div id="topic-bar-chart" class="w-full h-5 rounded-full bg-slate-100 overflow-hidden flex shadow-inner">
-                    <!-- JS 動態插入比例格段 -->
+                <!-- 圓餅圖容器 (動態 Conic-Gradient Solid Pie Chart) -->
+                <div class="flex justify-center items-center py-2 shrink-0">
+                    <div id="topic-pie-chart" class="w-36 h-36 rounded-full shadow-md relative flex items-center justify-center transition-all duration-500" style="background: conic-gradient(#e2e8f0 0% 100%);">
+                        <!-- 內孔挖空，使圓餅圖呈現 Donut 造型以提昇質感 -->
+                        <div class="absolute w-22 h-22 rounded-full bg-[#fefcf9] flex flex-col items-center justify-center shadow-inner">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">主要課題</span>
+                            <span id="pie-center-count" class="text-xs font-extrabold text-slate-600">--</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 課題圖例細節列表 -->
                 <div id="topic-legend-list" class="grid grid-cols-1 gap-2.5 pt-2">
                     <!-- JS 動態插入圖例項目 -->
+                </div>
+
+                <!-- 💡 膠囊引導引導文字與標籤容器區 -->
+                <div class="space-y-3.5 pt-4 border-t border-dashed border-amber-200/50">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-amber-500/5 py-2 px-3 rounded-xl border border-amber-500/10">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                        <span>💡 請點擊下方大課題膠囊標籤，檢視小課題詳細佔比：</span>
+                    </div>
+                    <div id="topic-capsules-container" class="flex flex-wrap gap-2.5 py-1">
+                        <!-- JS 動態動態產生大課題膠囊 -->
+                    </div>
+                </div>
+
+                <!-- 各課題下之小課題垂直棒型圖 analysis Session 區 -->
+                <div id="subtopic-section-container" class="space-y-4 pt-4 border-t border-dashed border-amber-100">
+                    <!-- JS 動態插入小課題 Session -->
                 </div>
             </div>
 
@@ -471,10 +540,20 @@
     const closeModalBtn = document.getElementById('close-modal-btn');
     const totalMinutesDisplay = document.getElementById('total-minutes-display');
     const calculatedHoursText = document.getElementById('calculated-hours-text');
-    const topicBarChart = document.getElementById('topic-bar-chart');
+    const topicPieChart = document.getElementById('topic-pie-chart');
+    const pieCenterCount = document.getElementById('pie-center-count');
     const topicLegendList = document.getElementById('topic-legend-list');
     const emptyRecordNotice = document.getElementById('empty-record-notice');
     const dataUpdatedTime = document.getElementById('data-updated-time');
+
+    // 公告欄 Modal 相關 (實作點)
+    const noticeModal = document.getElementById('notice-modal');
+    const noticeBoardCard = document.getElementById('notice-board-card');
+    const closeNoticeModalBtn = document.getElementById('close-notice-modal-btn');
+    const noticeSearchInput = document.getElementById('notice-search-input');
+    const noticeContainer = document.getElementById('notice-container');
+    const noticeEmptyState = document.getElementById('notice-empty-state');
+    const noticeUpdatedTime = document.getElementById('notice-updated-time');
 
     // 通用 Alert 相關
     const customAlertModal = document.getElementById('custom-alert-modal');
@@ -485,6 +564,7 @@
 
     // 全局緩存載入資料
     let fetchedDatabase = null;
+    let cachedNotices = []; // 緩存公告數據
 
     // ============================================================
     //  工具函數
@@ -496,7 +576,38 @@
         return str;
     }
 
-    // 優質顏色調色盤 (用於圖形渲染)
+    // CSV 安全解析器 (處理包含雙引號及換行的儲存格)
+    function parseCSV(text) {
+        let lines = [];
+        let row = [""];
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+            let c = text[i];
+            let next = text[i+1];
+            if (c === '"') {
+                if (inQuotes && next === '"') {
+                    row[row.length - 1] += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (c === ',' && !inQuotes) {
+                row.push('');
+            } else if ((c === '\r' || c === '\n') && !inQuotes) {
+                if (c === '\r' && next === '\n') { i++; }
+                lines.push(row);
+                row = [''];
+            } else {
+                row[row.length - 1] += c;
+            }
+        }
+        if (row.length > 1 || row[0] !== '') {
+            lines.push(row);
+        }
+        return lines;
+    }
+
+    // 優質顏色調色盤 (用於圓餅圖與垂直棒型圖渲染)
     const chartPalette = [
         { bg: 'bg-indigo-500', text: 'text-indigo-600', fill: '#6366f1' },
         { bg: 'bg-emerald-500', text: 'text-emerald-600', fill: '#10b981' },
@@ -860,7 +971,7 @@
         } else {
             loginSection.classList.add('hidden');
             cardSection.classList.remove('hidden');
-            if (secureBadge) secureBadge.classList.add('hidden');
+            if (secureBadge) secureBadge.classList.remove('hidden');
         }
     }
 
@@ -1047,14 +1158,201 @@
     //  功能卡片點擊 (其他佔位)
     // ============================================================
     document.querySelectorAll('.feature-card').forEach(card => {
-        // 排除補課時數卡片
-        if (card.id === 'makeup-hours-card') return;
+        // 排除補課時數及公告欄卡片 (實作點)
+        if (card.id === 'makeup-hours-card' || card.id === 'notice-board-card') return;
         
         card.addEventListener('click', function() {
             const feature = this.dataset.feature || '功能';
             showCustomAlert("系統提示", `您點擊了「${feature}」\n此功能模組將在後續版本中接入。`, "info");
         });
     });
+
+    // ============================================================
+    //  實作：功課及公告欄功能模組 (實作點)
+    // ============================================================
+    noticeBoardCard.addEventListener('click', async () => {
+        openNoticeModal();
+        setNoticeModalLoading(true);
+
+        const details = getStudentDetails();
+        const rawRole = localStorage.getItem("user_role") || "student";
+        const userRole = rawRole.trim().toLowerCase();
+        const userClass = details.studentClass.trim().toUpperCase();
+
+        try {
+            const sheetId = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
+            const sheetName = 'Notice';
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+            
+            const resp = await fetch(csvUrl, { method: "GET" });
+            if (!resp.ok) throw new Error("遠端載入公告資料失敗");
+            
+            const csvText = await resp.text();
+            const rows = parseCSV(csvText);
+            
+            cachedNotices = [];
+            // row[0] 為標題行：A為刊登日期，B為role，C為class，D為公告項目，E為完成期限，F為公告張貼狀態
+            for (let i = 1; i < rows.length; i++) {
+                const r = rows[i];
+                if (!r || r.length < 4) continue;
+                
+                const postDate = cleanVal(r[0]);
+                const roleSetting = cleanVal(r[1]);
+                const classSetting = cleanVal(r[2]);
+                const content = cleanVal(r[3]);
+                const deadline = r[4] ? String(r[4]).trim() : "";
+                const status = cleanVal(r[5]).toUpperCase();
+                
+                if (content) {
+                    cachedNotices.push({
+                        date: postDate || "無日期",
+                        role: roleSetting,
+                        class: classSetting,
+                        content: content,
+                        deadline: deadline,
+                        status: status
+                    });
+                }
+            }
+            
+            renderFilteredNotices(userRole, userClass);
+        } catch (err) {
+            console.error("載入公告欄失敗:", err);
+            // 斷網或發生 CORS 問題時之安全降級 Mock
+            loadNoticeFallback(userRole, userClass);
+        }
+    });
+
+    closeNoticeModalBtn.addEventListener('click', closeNoticeModal);
+    noticeModal.addEventListener('click', (e) => {
+        if (e.target === noticeModal) closeNoticeModal();
+    });
+
+    noticeSearchInput.addEventListener('input', () => {
+        const details = getStudentDetails();
+        const rawRole = localStorage.getItem("user_role") || "student";
+        const userRole = rawRole.trim().toLowerCase();
+        const userClass = details.studentClass.trim().toUpperCase();
+        renderFilteredNotices(userRole, userClass);
+    });
+
+    function openNoticeModal() {
+        noticeModal.classList.remove('hidden');
+        setTimeout(() => {
+            noticeModal.classList.remove('opacity-0');
+            noticeModal.querySelector('div').classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeNoticeModal() {
+        noticeModal.classList.add('opacity-0');
+        noticeModal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+            noticeModal.classList.add('hidden');
+        }, 300);
+    }
+
+    function setNoticeModalLoading(isLoading) {
+        if (isLoading) {
+            noticeContainer.innerHTML = `
+                <div class="flex flex-col justify-center items-center py-12 space-y-3">
+                    <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-xs text-slate-500 font-medium">正在同步雲端公告數據...</span>
+                </div>
+            `;
+            noticeEmptyState.classList.add('hidden');
+        }
+    }
+
+    function renderFilteredNotices(userRole, userClass) {
+        const filterText = noticeSearchInput.value.trim().toLowerCase();
+        
+        // 依照設定規則過濾公告
+        const filtered = cachedNotices.filter(notice => {
+            // 1. 欄F狀態必須為 ACTIVE
+            if (notice.status !== 'ACTIVE') return false;
+
+            // 2. 角色 Role 精確比對一致 (忽略大小寫)
+            if (notice.role.trim().toLowerCase() !== userRole) return false;
+
+            // 3. 班級 Class 過濾
+            const classSetting = notice.class.trim().toUpperCase();
+            // 若欄 C 為 ALL 或空白，所有人皆可看；否則，必須與 user 的 class 精確匹配
+            if (classSetting !== "" && classSetting !== "ALL") {
+                if (classSetting !== userClass) {
+                    return false;
+                }
+            }
+
+            // 4. 關鍵字過濾 (公告內容、刊登日期、完成期限)
+            if (filterText !== "") {
+                const textMatch = notice.content.toLowerCase().includes(filterText) ||
+                                  notice.date.toLowerCase().includes(filterText) ||
+                                  notice.deadline.toLowerCase().includes(filterText);
+                if (!textMatch) return false;
+            }
+
+            return true;
+        });
+
+        // 照日期由新到舊倒序排列
+        filtered.sort((a, b) => b.date.localeCompare(a.date));
+
+        noticeContainer.innerHTML = '';
+
+        if (filtered.length === 0) {
+            noticeEmptyState.classList.remove('hidden');
+        } else {
+            noticeEmptyState.classList.add('hidden');
+            
+            filtered.forEach(notice => {
+                const hasDeadline = notice.deadline && notice.deadline !== '';
+                const isAllClass = (notice.class === '' || notice.class.toUpperCase() === 'ALL');
+                const classBadgeText = isAllClass ? '全體適用' : `${notice.class} 班別專屬`;
+                const classBadgeStyle = isAllClass 
+                    ? 'bg-indigo-50 text-indigo-700 border-indigo-100/50' 
+                    : 'bg-amber-50 text-amber-700 border-amber-100/50';
+
+                const cardHtml = `
+                    <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 space-y-3 text-left">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider">${notice.date}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold border ${classBadgeStyle}">
+                                ${classBadgeText}
+                            </span>
+                        </div>
+                        <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">${notice.content}</p>
+                        ${hasDeadline ? `
+                        <div class="flex items-center space-x-2 bg-rose-50/50 border border-rose-100/35 rounded-xl p-2.5 text-[10px] text-rose-700">
+                            <i data-lucide="clock" class="w-3.5 h-3.5 flex-shrink-0 text-rose-500"></i>
+                            <span class="font-bold">期限提示：</span>
+                            <span class="font-medium">${notice.deadline}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                noticeContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        lucide.createIcons();
+        const now = new Date();
+        noticeUpdatedTime.innerText = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} 已更新`;
+    }
+
+    function loadNoticeFallback(userRole, userClass) {
+        // 安全模擬數據 (離線、沙盒展示用)
+        cachedNotices = [
+            { date: "2026/07/04", role: "student", class: "ALL", content: "教務處公告：期末物理複習影片均已上傳完畢，請各位同學把握時間複習，並注意維持適當課表！", deadline: "2026/07/15 23:59 前完成", status: "ACTIVE" },
+            { date: "2026/07/03", role: "student", class: "6A", content: "6A 專屬公告：請6A班同學於本週五交齊學習歷程檔案表單。", deadline: "本週五中午", status: "ACTIVE" },
+            { date: "2026/07/02", role: "student", class: "6B", content: "6B 專屬公告：本學期物理專題分組名單及大綱申報截止提醒。", deadline: "2026/07/10 下午", status: "ACTIVE" },
+            { date: "2026/07/01", role: "teacher", class: "ALL", content: "教職公告：下週三將召開本學期末物理科教學檢討會議，請各位老師備好簡報。", deadline: "2026/07/08 14:00 召開", status: "ACTIVE" }
+        ];
+        renderFilteredNotices(userRole, userClass);
+    }
 
     // ============================================================
     //  實作：線上補課時數功能模組
@@ -1128,8 +1426,11 @@
               </div>
             `;
             calculatedHoursText.innerText = "正在從雲端數據庫計算您的時數...";
-            topicBarChart.innerHTML = '';
+            topicPieChart.style.background = 'conic-gradient(#e2e8f0 0% 100%)';
+            pieCenterCount.innerText = '--';
             topicLegendList.innerHTML = '';
+            document.getElementById('topic-capsules-container').innerHTML = '';
+            document.getElementById('subtopic-section-container').innerHTML = '';
             emptyRecordNotice.classList.add('hidden');
         }
     }
@@ -1151,6 +1452,7 @@
 
         let totalMinutes = 0;
         let topicCounts = {};
+        let subtopicCounts = {}; // 用於收集各大課題下小課題的觀看次數
         let matchedCount = 0;
 
         // 從第 2 行開始跑（跳過標題行）
@@ -1173,6 +1475,13 @@
                 // 2. 統計大課題 (J 欄) 次數
                 const mainTopic = cleanVal(row[9]) || "未分類課題";
                 topicCounts[mainTopic] = (topicCounts[mainTopic] || 0) + 1;
+
+                // 3. 統計大課題下的小課題 (K 欄) 次數
+                const subTopic = cleanVal(row[10]) || "未分類小課題";
+                if (!subtopicCounts[mainTopic]) {
+                    subtopicCounts[mainTopic] = {};
+                }
+                subtopicCounts[mainTopic][subTopic] = (subtopicCounts[mainTopic][subTopic] || 0) + 1;
             }
         }
 
@@ -1186,8 +1495,8 @@
         const hoursDecimal = (totalMinutes / 60).toFixed(2);
         calculatedHoursText.innerText = `累計觀看過 ${matchedCount} 部學習影片，折合約 ${hoursDecimal} 小時`;
 
-        // 渲染大課題佔比圖形 (圖表與圖例)
-        renderTopicAnalytics(topicCounts, matchedCount);
+        // 渲染大課題佔比圓餅圖與小課題 Session 垂直棒型圖
+        renderTopicAnalytics(topicCounts, subtopicCounts, matchedCount);
 
         // 設定資料更新時間
         const now = new Date();
@@ -1197,15 +1506,22 @@
     function showEmptyState() {
         totalMinutesDisplay.innerHTML = `0.0 <span class="text-base font-medium text-slate-500">分鐘</span>`;
         calculatedHoursText.innerText = `尚未在雲端找到您的補課紀錄`;
-        topicBarChart.innerHTML = `<div class="w-full bg-slate-200 h-full"></div>`;
+        topicPieChart.style.background = 'conic-gradient(#e2e8f0 0% 100%)';
+        pieCenterCount.innerText = '無紀錄';
         topicLegendList.innerHTML = '';
+        document.getElementById('topic-capsules-container').innerHTML = '';
+        document.getElementById('subtopic-section-container').innerHTML = '';
         emptyRecordNotice.classList.remove('hidden');
     }
 
-    // 渲染大課題多色比例進度條與極致視覺圖例
-    function renderTopicAnalytics(topicCounts, totalCount) {
-        topicBarChart.innerHTML = '';
+    // 渲染大課題圓餅圖 與 小課題各區塊垂直棒型圖 (Pie Chart & Subtopic Sessions)
+    function renderTopicAnalytics(topicCounts, subtopicCounts, totalCount) {
         topicLegendList.innerHTML = '';
+        const capsulesContainer = document.getElementById('topic-capsules-container');
+        const subtopicSectionContainer = document.getElementById('subtopic-section-container');
+        
+        capsulesContainer.innerHTML = '';
+        subtopicSectionContainer.innerHTML = '';
 
         // 排序大課題資料（依觀看次數多到少）
         const sortedTopics = Object.entries(topicCounts).map(([name, count]) => {
@@ -1216,16 +1532,21 @@
             };
         }).sort((a, b) => b.count - a.count);
 
+        // 更新環形中央資訊
+        pieCenterCount.innerText = `${sortedTopics.length} 個課題`;
+
+        let gradientParts = [];
+        let currentAngle = 0;
+
         sortedTopics.forEach((item, index) => {
-            // 決定顏色
+            // 決定顏色配對
             const colorObj = chartPalette[index % chartPalette.length];
 
-            // 1. 建造比例條片段
-            const barSegment = document.createElement('div');
-            barSegment.className = `${colorObj.bg} h-full transition-all duration-500`;
-            barSegment.style.width = `${item.percentage}%`;
-            barSegment.title = `${item.name}: ${item.count}次 (${item.percentage.toFixed(1)}%)`;
-            topicBarChart.appendChild(barSegment);
+            // 1. 計算錐形漸層角度並加入漸層陣列
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + item.percentage;
+            gradientParts.push(`${colorObj.fill} ${startAngle.toFixed(1)}% ${endAngle.toFixed(1)}%`);
+            currentAngle = endAngle;
 
             // 2. 建造圖例列表項 (極簡美觀)
             const legendItem = document.createElement('div');
@@ -1241,7 +1562,114 @@
                 </div>
             `;
             topicLegendList.appendChild(legendItem);
+
+            // 3. 建造點擊專用「大課題膠囊（Capsule Button）」
+            const capsuleBtn = document.createElement('button');
+            capsuleBtn.className = `px-3 py-1.5 rounded-full text-xs font-bold border transition-all duration-300 flex items-center gap-1.5 ${colorObj.text} bg-white border-slate-200/80 hover:bg-slate-50 active:scale-95 shadow-sm`;
+            capsuleBtn.innerHTML = `
+                <span class="w-2 h-2 rounded-full ${colorObj.bg}"></span>
+                <span>${item.name}</span>
+            `;
+            
+            // 膠囊點擊監聽器：切換顯示該大課題下的小課題佔比
+            capsuleBtn.addEventListener('click', () => {
+                // 清除其他膠囊的活動樣式（重置為普通白底）
+                document.querySelectorAll('#topic-capsules-container button').forEach(btn => {
+                    btn.classList.remove('ring-2', 'ring-offset-1', 'ring-slate-400', 'bg-slate-100/50');
+                });
+                // 點亮當前點擊之膠囊
+                capsuleBtn.classList.add('ring-2', 'ring-offset-1', 'ring-slate-400', 'bg-slate-100/50');
+                
+                // 動態渲染對應的小課題垂直棒型圖
+                renderSubtopicBarChart(item.name, subtopicCounts[item.name], colorObj);
+            });
+
+            capsulesContainer.appendChild(capsuleBtn);
         });
+
+        // 4. 套用動態 conic-gradient 樣式渲染圓餅圖
+        if (gradientParts.length > 0) {
+            topicPieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+        } else {
+            topicPieChart.style.background = 'conic-gradient(#e2e8f0 0% 100%)';
+        }
+
+        // 5. 初始化：自動點擊第一個膠囊（最高佔比課題），讓使用者一開啟即有預設檢視
+        if (sortedTopics.length > 0) {
+            setTimeout(() => {
+                const firstCapsule = capsulesContainer.querySelector('button');
+                if (firstCapsule) firstCapsule.click();
+            }, 50);
+        }
+        
+        lucide.createIcons();
+    }
+
+    // 負責渲染特定大課題下之「小課題垂直棒型圖（Vertical Capsule Bar Chart）」
+    function renderSubtopicBarChart(topicName, subMap, colorObj) {
+        const subtopicSectionContainer = document.getElementById('subtopic-section-container');
+        subtopicSectionContainer.innerHTML = '';
+
+        if (!subMap) return;
+        const subTotal = Object.values(subMap).reduce((a, b) => a + b, 0);
+
+        // 排序小課題
+        const sortedSubs = Object.entries(subMap).map(([sName, sCount]) => {
+            return {
+                name: sName,
+                count: sCount,
+                percentage: (sCount / subTotal) * 100
+            };
+        }).sort((a, b) => b.count - a.count);
+
+        // Session 外層卡片
+        const sessionWrapper = document.createElement('div');
+        sessionWrapper.className = "p-4 rounded-2xl bg-slate-50/70 border border-slate-100/80 space-y-3.5 animate-fade-in text-left";
+        
+        // Session 標題
+        sessionWrapper.innerHTML = `
+            <div class="flex justify-between items-center px-1">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full ${colorObj.bg}"></span>
+                    ${topicName} · 詳細小課題分佈
+                </span>
+                <span class="text-[9px] text-slate-400 font-mono">計 ${subTotal} 次觀看</span>
+            </div>
+        `;
+
+        // 垂直棒型圖 Flex 容器 (定高 120px，由底向上對齊，避免百分比失效)
+        const barChartFlex = document.createElement('div');
+        barChartFlex.className = "flex items-end justify-around h-32 pt-6 pb-2 border-b border-slate-200/40 px-2 gap-3 overflow-x-auto min-h-[120px]";
+
+        sortedSubs.forEach((subItem) => {
+            const subBar = document.createElement('div');
+            // 保證容器撐滿 100% 高度以提供子項目絕對百分比伸展參照
+            subBar.className = "flex flex-col items-center flex-1 min-w-[60px] max-w-[80px] group relative h-full justify-end";
+            
+            // 安全防呆：保證就算是 0% 也有微弱的 capsule 高度可被看見與懸浮
+            const displayHeight = Math.max(subItem.percentage, 6);
+
+            subBar.innerHTML = `
+                <!-- Hover 浮層說明 (Tooltip) -->
+                <div class="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none transition-all">
+                    <span class="bg-slate-800 text-white text-[10px] rounded-lg py-1.5 px-2.5 whitespace-nowrap shadow-lg font-medium">
+                        ${subItem.name}: ${subItem.count}次 (${subItem.percentage.toFixed(1)}%)
+                    </span>
+                    <div class="w-1.5 h-1.5 bg-slate-800 rotate-45 -mt-1"></div>
+                </div>
+                <!-- 雙向圓滑膠囊形棒棒 (rounded-full) -->
+                <div class="w-4 rounded-full ${colorObj.bg} transition-all duration-500 hover:opacity-85 shadow-sm cursor-pointer" style="height: ${displayHeight}%;"></div>
+                <!-- 文字標籤 -->
+                <span class="text-[9px] text-slate-500 truncate w-full text-center mt-2.5 font-medium select-none" title="${subItem.name}">
+                    ${subItem.name}
+                </span>
+            `;
+            barChartFlex.appendChild(subBar);
+        });
+
+        sessionWrapper.appendChild(barChartFlex);
+        subtopicSectionContainer.appendChild(sessionWrapper);
+        lucide.createIcons();
     }
 
     // 模擬用資料庫降級容錯 (用於本機測試或網路連線失敗時)
@@ -1254,7 +1682,7 @@
                     ["學員代號", "班別", "班號", "學員姓名", "影片代號", "影片名稱", "觀看日期", "觀看時間", "片長", "大課題", "小課題"],
                     ["S001", "6A", "18", targetName, "V01", "力學基礎一", "2026/01/10", "14:00", "45", "古典力學 Mechanics", "牛頓運動定律"],
                     ["S001", "6A", "18", targetName, "V02", "力學基礎二", "2026/01/12", "15:30", "30", "古典力學 Mechanics", "動量守恆"],
-                    ["S001", "6A", "18", targetName, "V03", "波的干涉", "2026/02/05", "10:15", "50", "波動學 Waves", "雙縫干涉實作"],
+                    ["S001", "6A", "18", targetName, "V03", "波的干涉", "2026/02/05", "10:15", "50", "波動學 Waves", "雙縫干涉"],
                     ["S001", "6A", "18", targetName, "V04", "折射定律示範", "2026/02/06", "11:00", "25", "波動學 Waves", "幾何光學與全反射"],
                     ["S001", "6A", "18", targetName, "V05", "電場與電力線", "2026/03/01", "16:20", "40", "電磁學 Electromagnetism", "庫侖定律"],
                     ["S001", "6A", "18", targetName, "V06", "熱學與理想氣體", "2026/03/12", "09:00", "60", "熱學 Thermal Physics", "氣體動力論"]
