@@ -77,12 +77,12 @@
 
         /* ダークモード用スタイル修正 */
         body.dark-mode .hero-container-framed {
-            background-color: #1e293b;
-            border-color: rgba(255, 255, 255, 0.1);
+            background-color: #0f172a;
+            border-color: rgba(255, 255, 255, 0.08);
         }
 
         body.dark-mode .hero-gradient-overlay {
-            background: linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.2) 40%, rgba(9, 13, 22, 0.95) 95%);
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.3) 40%, rgba(9, 13, 22, 0.95) 95%);
         }
 
         body.dark-mode .filter-capsule {
@@ -321,21 +321,318 @@
             box-shadow: none !important;
         }
 
+        /* ===== 全新 Hero 容器設計 ===== */
         .hero-container-framed {
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
-            overflow: hidden;
             position: relative;
-            background-color: #fff;
+            width: 100%;
+            height: 70vh;
+            min-height: 500px;
+            max-height: 800px;
+            border-radius: 28px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0c1a2e 0%, #1a2a4a 40%, #0f2847 100%);
+            box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.5);
             transition: all 0.4s ease;
+            isolation: isolate;
+        }
+
+        /* Hero 背景層 - 動態粒子與光暈 */
+        .hero-bg-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        /* 粒子容器 */
+        .hero-particles {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.15);
+            pointer-events: none;
+            animation: floatParticle var(--duration, 8s) ease-in-out infinite alternate;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translate(var(--tx, 40px), var(--ty, -30px)) scale(1.6);
+                opacity: 0.9;
+            }
+        }
+
+        /* 光暈球體 */
+        .hero-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .hero-glow-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.25), transparent 70%);
+            top: -100px;
+            right: -100px;
+            animation: pulseGlow 6s ease-in-out infinite alternate;
+        }
+
+        .hero-glow-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2), transparent 70%);
+            bottom: -80px;
+            left: -80px;
+            animation: pulseGlow 8s ease-in-out infinite alternate-reverse;
+        }
+
+        .hero-glow-3 {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.12), transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulseGlow 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        /* 背景圖片 (輕柔覆蓋) */
+        .hero-bg-image {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            opacity: 0.3;
+            object-fit: cover;
+            object-position: center 30%;
+            mix-blend-mode: overlay;
         }
 
         .hero-gradient-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 40%, rgba(238, 242, 246, 0.9) 95%);
+            z-index: 3;
+            background: linear-gradient(to bottom,
+                    rgba(12, 26, 46, 0.2) 0%,
+                    rgba(12, 26, 46, 0.5) 40%,
+                    rgba(12, 26, 46, 0.92) 100%);
             pointer-events: none;
+        }
+
+        /* Hero 內容層 */
+        .hero-content {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 40px 32px 48px;
+            text-align: center;
+        }
+
+        /* 歡迎訊息 - 更精緻 */
+        .hero-welcome {
+            margin-bottom: 12px;
+        }
+
+        .hero-welcome .greeting {
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .hero-welcome .username {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(56, 189, 248, 0.15);
+        }
+
+        @media (min-width: 768px) {
+            .hero-welcome .username {
+                font-size: 3rem;
+            }
+            .hero-welcome .greeting {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* 標語 */
+        .hero-tagline {
+            font-size: 0.75rem;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        /* 服務卡片群組 - 更精緻 */
+        .session-card-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .session-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 16px 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            min-width: 100px;
+            flex: 1 1 0;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 卡片內部光暈 */
+        .session-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(56, 189, 248, 0.06), transparent 70%);
+            pointer-events: none;
+            transition: opacity 0.4s;
+            opacity: 0;
+        }
+
+        .session-card:hover::before {
+            opacity: 1;
+        }
+
+        .session-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        .session-card:active {
+            transform: scale(0.94);
+            transition-duration: 0.08s;
+        }
+
+        .session-card i {
+            font-size: 1.6rem;
+            opacity: 0.8;
+            transition: transform 0.3s;
+        }
+
+        .session-card:hover i {
+            transform: scale(1.1) translateY(-2px);
+        }
+
+        .session-card .card-title {
+            font-weight: 400;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            line-height: 1.2;
+        }
+
+        .session-card .card-sub {
+            font-size: 0.55rem;
+            opacity: 0.4;
+            font-weight: 300;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 640px) {
+            .hero-container-framed {
+                height: 60vh;
+                min-height: 420px;
+                border-radius: 0;
+            }
+            .session-card {
+                padding: 14px 10px;
+                min-width: 70px;
+                flex: 1 1 30%;
+            }
+            .session-card i {
+                font-size: 1.3rem;
+            }
+            .session-card .card-title {
+                font-size: 0.7rem;
+            }
+            .session-card .card-sub {
+                font-size: 0.5rem;
+            }
+            .hero-content {
+                padding: 24px 16px 32px;
+            }
+            .hero-welcome .username {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dock-wrapper {
+                width: 92%;
+                max-width: 400px;
+            }
+            #page-content {
+                padding-top: calc(env(safe-area-inset-top, 0px) + 120px);
+            }
+            .nav-btn {
+                display: none !important;
+            }
+        }
+
+        /* 暗色模式卡片微調 */
+        body.dark-mode .session-card {
+            background: rgba(30, 41, 59, 0.25);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        body.dark-mode .session-card:hover {
+            background: rgba(30, 41, 59, 0.4);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+        body.dark-mode .hero-container-framed {
+            background: linear-gradient(135deg, #0a0f1f 0%, #141d33 40%, #0a1a2e 100%);
         }
 
         .section-hidden {
@@ -436,7 +733,6 @@
             margin-bottom: 8px;
         }
 
-        /* 同步按鈕 – 已移除，此處保留空樣式 */
         .sync-btn {
             display: none;
         }
@@ -450,7 +746,6 @@
             }
         }
 
-        /* ロードアニメーション */
         .loader {
             display: flex;
             justify-content: center;
@@ -462,7 +757,6 @@
             text-transform: uppercase;
         }
 
-        /* 漸進式瀑布流（Staggered Fade & Rise）卡片登場動畫 - 物理阻尼微彈效果 */
         @keyframes fadeRise {
             from {
                 opacity: 0;
@@ -484,7 +778,6 @@
             }
         }
 
-        /* QRスキャナーエフェクト */
         @keyframes qr-scan-line {
             0% {
                 transform: translateY(-130px);
@@ -495,195 +788,6 @@
             100% {
                 transform: translateY(-130px);
             }
-        }
-
-        /* ----- 新版 Hero 按鈕與服務卡片設計 (日式極簡風格) ----- */
-        .hero-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px 28px;
-            border-radius: 9999px;
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 0.04em;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            flex: 0 1 auto;
-        }
-
-        .hero-btn i {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .hero-btn:hover {
-            transform: translateY(-4px) scale(1.02);
-            background: rgba(255, 255, 255, 0.28);
-            border-color: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .hero-btn:active {
-            transform: scale(0.94);
-            transition-duration: 0.08s;
-        }
-
-        .hero-btn-primary {
-            background: rgba(2, 132, 199, 0.85);
-            border-color: rgba(56, 189, 248, 0.5);
-            box-shadow: 0 4px 24px rgba(2, 132, 199, 0.35);
-        }
-        .hero-btn-primary:hover {
-            background: rgba(2, 132, 199, 1);
-            border-color: rgba(56, 189, 248, 0.8);
-            box-shadow: 0 8px 40px rgba(2, 132, 199, 0.5);
-        }
-
-        /* 日式極簡服務卡片 (Session Cards) */
-        .session-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 20px 16px;
-            border-radius: 12px; /* 較小的圓角，日式簡約 */
-            background: rgba(255, 255, 255, 0.08); /* 極淡的背景 */
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04); /* 非常微弱的陰影 */
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            cursor: pointer;
-            min-width: 100px;
-            flex: 1 1 0;
-            color: #fff;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-            font-weight: 300; /* 輕量字重 */
-            letter-spacing: 0.04em;
-        }
-
-        .session-card:hover {
-            transform: translateY(-4px);
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        }
-
-        .session-card:active {
-            transform: scale(0.94);
-            transition-duration: 0.08s;
-        }
-
-        .session-card i {
-            font-size: 1.8rem;
-            margin-bottom: 4px;
-            opacity: 0.85;
-            font-weight: 300;
-            filter: drop-shadow(0 1px 4px rgba(0,0,0,0.05));
-        }
-
-        .session-card .card-title {
-            font-weight: 400; /* 中細字重 */
-            font-size: 0.9rem;
-            letter-spacing: 0.06em;
-            line-height: 1.3;
-        }
-
-        .session-card .card-sub {
-            font-size: 0.6rem;
-            opacity: 0.6;
-            font-weight: 300;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        /* 卡片容器 */
-        .session-card-group {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px; /* 間隔加大 */
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 8px;
-        }
-
-        /* 歡迎訊息文字陰影 */
-        .text-shadow-lg {
-            text-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        }
-
-        /* 響應式調整 */
-        @media (max-width: 640px) {
-            .session-card {
-                padding: 16px 12px;
-                min-width: 80px;
-                flex: 1 1 40%;
-            }
-            .session-card i {
-                font-size: 1.4rem;
-            }
-            .session-card .card-title {
-                font-size: 0.75rem;
-            }
-            .session-card .card-sub {
-                font-size: 0.5rem;
-            }
-            .hero-btn {
-                padding: 10px 20px;
-                font-size: 12px;
-                gap: 6px;
-            }
-            .hero-btn i {
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hero-container-framed {
-                border-radius: 0;
-            }
-            .dock-wrapper {
-                width: 92%;
-                max-width: 400px;
-            }
-            #page-content {
-                padding-top: calc(env(safe-area-inset-top, 0px) + 120px);
-            }
-            .nav-btn {
-                display: none !important;
-            }
-        }
-
-        /* 暗色模式卡片微調 - 更乾淨的暗色 */
-        body.dark-mode .session-card {
-            background: rgba(30, 41, 59, 0.2);
-            border-color: rgba(255, 255, 255, 0.06);
-            color: #e2e8f0;
-        }
-        body.dark-mode .session-card:hover {
-            background: rgba(30, 41, 59, 0.35);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-        body.dark-mode .hero-btn {
-            color: #f1f5f9;
-        }
-        body.dark-mode .hero-btn-primary {
-            background: rgba(2, 132, 199, 0.7);
-        }
-        body.dark-mode .hero-btn-primary:hover {
-            background: rgba(2, 132, 199, 0.9);
         }
     </style>
 </head>
@@ -696,63 +800,35 @@
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
 
-                <!-- 控制按鈕與日夜切換開關 -->
                 <div class="flex items-center gap-4 md:gap-6">
-
-                    <!-- 日夜切換開關 -->
                     <div class="flex items-center">
                         <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
                             <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
-
-                            <!-- Pill Track -->
                             <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
-
-                                <!-- 星空背景 (夜間模式專用) -->
                                 <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
-
-                                    <!-- Tiny Star 1 -->
                                     <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-
-                                    <!-- Tiny Star 2 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-
-                                    <!-- Tiny Star 3 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-
-                                    <!-- Tiny Star 4 -->
                                     <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                                 </div>
-
-                                <!-- 太陽/月亮滑塊 -->
                                 <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
-
-                                    <!-- 太陽 (日間模式) -->
                                     <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
-
-                                    <!-- 月亮 (夜間模式) -->
                                     <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
-
-                                        <!-- 月面隕石坑 -->
                                         <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
-
                                         <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
                                         <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
                                         <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
                                     </div>
                                 </div>
-
-                                <!-- 雲朵 (日間模式背景裝飾) -->
                                 <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
                                     <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
                                     </svg>
                                 </div>
-
                             </div>
                         </label>
                     </div>
 
-                    <!-- 格狀排版切換 Icon -->
                     <div class="flex items-center text-sky-800 opacity-60 hover:opacity-100 transition-opacity">
                         <i id="grid-view-toggle" class="fas fa-border-all text-xl cursor-pointer" onclick="toggleGridView()"></i>
                     </div>
@@ -765,7 +841,6 @@
         </div>
 
         <div class="filter-bar px-6" id="filter-bar">
-            <!-- 搜尋面板 -->
             <div id="search-panel" class="max-w-screen-2xl mx-auto px-1">
                 <div class="relative w-full">
                     <input type="text" id="tag-search-input" oninput="handleSearch(this.value)" placeholder="輸入關鍵字以標籤 (Tag) 篩選相關卡片..." class="w-full bg-white/60 dark:bg-slate-800/60 border border-sky-400/30 rounded-full py-2 px-10 text-sm focus:outline-none focus:border-sky-500 transition-colors dark:text-slate-200">
@@ -786,40 +861,52 @@
     </header>
 
     <div id="page-content">
-        <!-- 錄影庫首頁 -->
         <div id="view-home">
+            <!-- ===== 全新 Hero 區域 ===== -->
             <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
-                <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
-                    <!-- 背景圖片保留 -->
-                    <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
+                <div class="hero-container-framed">
+
+                    <!-- 背景層：粒子 -->
+                    <div class="hero-bg-layer">
+                        <div class="hero-particles" id="hero-particles"></div>
+                    </div>
+
+                    <!-- 光暈 -->
+                    <div class="hero-glow hero-glow-1"></div>
+                    <div class="hero-glow hero-glow-2"></div>
+                    <div class="hero-glow hero-glow-3"></div>
+
+                    <!-- 背景圖片 (輕柔覆蓋) -->
+                    <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="hero-bg-image" alt="">
+
+                    <!-- 漸層覆蓋 -->
                     <div class="hero-gradient-overlay"></div>
 
-                    <!-- 手動同步按鈕已移除 -->
-
-                    <div class="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-6 text-center">
+                    <!-- 內容層 -->
+                    <div class="hero-content">
                         <!-- 歡迎訊息 -->
-                        <div class="relative z-10 mb-4 text-white text-shadow-lg">
-                            <span id="welcome-message" class="text-xl md:text-2xl font-light tracking-wide">歡迎回來，</span>
-                            <span id="username-display" class="text-2xl md:text-3xl font-bold text-sky-200">訪客</span>
+                        <div class="hero-welcome">
+                            <div class="greeting">✦ 歡迎回來</div>
+                            <div class="username" id="username-display">訪客</div>
                         </div>
 
-                        <!-- 三張服務卡片 (日式極簡風格) -->
-                        <div class="session-card-group relative z-10">
-                            <!-- 線上補課系統 -->
+                        <!-- 標語 -->
+                        <div class="hero-tagline">— 探索你的學習旅程 —</div>
+
+                        <!-- 服務卡片 -->
+                        <div class="session-card-group">
                             <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/makeup')">
                                 <i class="fas fa-chalkboard-teacher"></i>
                                 <span class="card-title">線上補課系統</span>
                                 <span class="card-sub">Make-up Class</span>
                             </div>
 
-                            <!-- 課堂錄影 -->
                             <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/recordings')">
                                 <i class="fas fa-video"></i>
                                 <span class="card-title">課堂錄影</span>
                                 <span class="card-sub">Recordings</span>
                             </div>
 
-                            <!-- 線上評估中心 -->
                             <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/assessment')">
                                 <i class="fas fa-clipboard-list"></i>
                                 <span class="card-title">線上評估中心</span>
@@ -860,7 +947,6 @@
     <!-- QR Scanner Modal Overlay -->
     <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
         <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
-            <!-- Close Scanner -->
             <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -868,18 +954,14 @@
                 <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
             </h3>
 
-            <!-- Video / Canvas viewport wrapper -->
             <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
                 <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
                 <canvas id="qr-canvas" class="hidden"></canvas>
-                <!-- Scanner Overlay Target Area -->
                 <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
-                    <!-- Scanner Laser Line -->
                     <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
                 </div>
             </div>
 
-            <!-- File Upload Fallback Button -->
             <div class="mt-4 w-full flex justify-center">
                 <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
                     <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
@@ -952,26 +1034,49 @@
             }
         })();
 
+        // ===== 粒子生成器 =====
+        (function createParticles() {
+            const container = document.getElementById('hero-particles');
+            if (!container) return;
+            const count = 35;
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = 4 + Math.random() * 20;
+                const duration = 6 + Math.random() * 10;
+                const tx = (Math.random() - 0.5) * 120;
+                const ty = (Math.random() - 0.5) * 100;
+                p.style.cssText = `
+                        width: ${size}px;
+                        height: ${size}px;
+                        top: ${Math.random() * 100}%;
+                        left: ${Math.random() * 100}%;
+                        --duration: ${duration}s;
+                        --tx: ${tx}px;
+                        --ty: ${ty}px;
+                        animation-delay: ${Math.random() * 5}s;
+                        background: rgba(56, 189, 248, ${0.05 + Math.random() * 0.12});
+                        border: 1px solid rgba(56, 189, 248, ${0.03 + Math.random() * 0.06});
+                    `;
+                container.appendChild(p);
+            }
+        })();
+
         // Google Sheet CSV URL (針對 FRONT 分頁)
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         const SHEET_CSV_URL =
-        `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=966779417`;
+            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=966779417`;
 
         let rawData = [];
         let lastScrollY = window.scrollY;
 
-        // QRスキャナー関連の変数
         let qrStream = null;
         let qrAnimationId = null;
 
-        // フィルターおよび検索ステータス
         let currentFilter = 'all';
         let searchQuery = '';
-
-        // 全域網格排版 (Grid View) 狀態旗標
         let isGridView = false;
 
-        // 日夜モード切り替え処理
         function toggleTheme(isDark) {
             if (isDark) {
                 document.body.classList.add('dark-mode');
@@ -982,7 +1087,6 @@
             }
         }
 
-        // 読み込み時に初期テーマを適用 (安全沙盒相容)
         (function() {
             let savedTheme = null;
             try {
@@ -1002,9 +1106,7 @@
             }
         })();
 
-        // 優化後的載入流程：先用 localstorage 匯出第一瞬資料（Cache-First），然後才在背景檢查版本數目是否改變
         async function initData() {
-            // 1. 第一瞬：立即載入並渲染 LocalStorage 快取，讓用戶秒開
             const cachedVer = storage.getItem('lumina_data_ver');
             const cachedData = storage.getItem('lumina_data_payload');
             let hasRenderedCache = false;
@@ -1025,24 +1127,20 @@
                 }
             }
 
-            // 2. 第二步：在背景發起網路請求，確認線上版本是否改變
             try {
                 let csvText = '';
                 let response;
 
-                // 第一嘗試階段：使用預設標準 GID 連結
                 try {
                     response = await fetch(`${SHEET_CSV_URL}&cachebust=${Date.now()}&t=${Date.now()}`);
                     csvText = await response.text();
 
-                    // 偵測是否返回 HTML 登入牆 or 404 (Google Sheets 常見拒絕連線網頁)
                     if (csvText.trim().startsWith('<!DOCTYPE html>') || csvText.trim().startsWith('<html')) {
                         throw new Error("返回格式非 CSV (可能是 GID 無效或需要權限設定)");
                     }
                 } catch (firstErr) {
                     console.warn("標準 GID 導出失敗，啟動備用分頁名稱解析器 (FRONT):", firstErr);
 
-                    // 第二後備階段：使用 Google Visualization API 依「分頁名稱」拉取，防禦 GID 被使用者重建變更
                     const fallbackUrl =
                         `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=FRONT&cachebust=${Date.now()}`;
                     response = await fetch(fallbackUrl);
@@ -1057,28 +1155,23 @@
 
                 if (lines.length > 0) {
                     const firstRow = lines[0];
-                    // 檢查 A1 是否為 'ver'
                     if (firstRow[0] && firstRow[0].toLowerCase() === 'ver') {
-                        const currentOnlineVer = firstRow[1] || ''; // B1 取得版本號
+                        const currentOnlineVer = firstRow[1] || '';
 
-                        // 判斷：線上版本號改變，或是先前未能成功渲染快取
                         if (currentOnlineVer !== cachedVer || !hasRenderedCache) {
                             console.log("偵測到線上版本改變或無快取，正在背景重新匯入最新數據...", "舊版本:", cachedVer, "新版本:",
                                 currentOnlineVer);
                             rawData = processRawRows(lines);
 
-                            // 重新寫入快取
                             storage.setItem('lumina_data_ver', currentOnlineVer);
                             storage.setItem('lumina_data_payload', JSON.stringify(rawData));
 
-                            // 更新渲染畫面
                             renderFilters();
                             renderContent();
                         } else {
                             console.log("背景版本檢查完成：線上版本與快取一致 (", cachedVer, ")，無須更新。");
                         }
                     } else {
-                        // 若無 ver 規則，直接解析渲染
                         rawData = processRawRows(lines);
                         renderFilters();
                         renderContent();
@@ -1086,7 +1179,6 @@
                 }
             } catch (error) {
                 console.error("背景同步失敗:", error);
-                // 若一開始沒能加載快取（新安裝用戶），且背景更新也失敗，則顯示錯誤提示
                 if (!hasRenderedCache) {
                     document.getElementById('main-content-area').innerHTML =
                         `<div class="loader">載入失敗，請確認試算表分享權限並保持網路連線。</div>`;
@@ -1094,12 +1186,10 @@
             }
         }
 
-        // 手動同期ボタン用 (保留但已無按鈕觸發)
         async function manualSync() {
             console.warn("manualSync 已不再使用");
         }
 
-        // CSV 行分割パーサー
         function parseCSVRows(text) {
             const lines = [];
             let row = [""];
@@ -1127,7 +1217,6 @@
             return lines;
         }
 
-        // 試算表データからアイテム配列へのマッピング (新レイアウト対応)
         function processRawRows(lines) {
             return lines
                 .filter((row, idx) => {
@@ -1147,7 +1236,6 @@
                 });
         }
 
-        // フィルターボタンレンダリング
         function renderFilters() {
             const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
             const container = document.getElementById('filter-container');
@@ -1160,7 +1248,6 @@
                 `).join('');
         }
 
-        // 關閉/開啟格狀網格排版 (Grid View) 狀態
         function toggleGridView() {
             isGridView = !isGridView;
             const btn = document.getElementById('grid-view-toggle');
@@ -1174,7 +1261,6 @@
             renderContent();
         }
 
-        // コンテンツレンダリング (不顯示卡片下方的任何文字/標籤，保持完美的卡片排版)
         function renderContent() {
             const mainArea = document.getElementById('main-content-area');
             mainArea.innerHTML = '';
@@ -1182,15 +1268,12 @@
             const heroSection = document.getElementById('hero-section');
             const archiveSection = document.getElementById('sec-archive');
 
-            // 1. 先獲取並過濾符合當前條件的卡片
             let processedItems = [...rawData];
 
-            // 分類篩選
             if (currentFilter !== 'all') {
                 processedItems = processedItems.filter(item => item.filter === currentFilter);
             }
 
-            // 標籤篩選
             if (searchQuery.trim() !== '') {
                 const query = searchQuery.toLowerCase().trim();
                 processedItems = processedItems.filter(item => {
@@ -1198,12 +1281,9 @@
                 });
             }
 
-            // 2. 根據是否開啟 Grid View 渲染不同的版面
             if (isGridView) {
-                // Grid View時以欄G的順序排位 (gridOrder)
                 processedItems.sort((a, b) => a.gridOrder - b.gridOrder);
 
-                // 格狀網格排版模式：隱藏海報輪播 Hero 與底部的 Pastpaper Section
                 heroSection.classList.add('section-hidden');
                 archiveSection.classList.add('section-hidden');
 
@@ -1232,7 +1312,6 @@
                 mainArea.innerHTML = gridHtml;
 
             } else {
-                // 原貌 Slider 分區排版模式
                 if (currentFilter === 'all') {
                     heroSection.classList.remove('section-hidden');
                     archiveSection.classList.remove('section-hidden');
@@ -1298,7 +1377,6 @@
             }
         }
 
-        // 検索窓トグル処理
         function toggleSearchInput() {
             const panel = document.getElementById('search-panel');
             panel.classList.toggle('open');
@@ -1309,13 +1387,11 @@
             }
         }
 
-        // 検索文字入力処理
         function handleSearch(val) {
             searchQuery = val;
             renderContent();
         }
 
-        // 検索クリア処理
         function clearSearch() {
             const input = document.getElementById('tag-search-input');
             if (input) input.value = '';
@@ -1323,7 +1399,6 @@
             renderContent();
         }
 
-        // 導航欄與 Dock 選單切換
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
 
         function toggleFilter() {
@@ -1336,7 +1411,6 @@
             if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
         }
 
-        // ホームスクロールとフィルターの完全初期化
         function scrollToHome() {
             setFilter('all');
             clearSearch();
@@ -1374,7 +1448,6 @@
             renderContent();
         }
 
-        // QRコードスキャナーコントロール
         async function openQRScanner() {
             const modal = document.getElementById('qr-scanner-modal');
             const video = document.getElementById('qr-video');
@@ -1464,7 +1537,6 @@
             }
         }
 
-        // アップロード画像によるQRコードデコード
         function handleQRFile(input) {
             const file = input.files[0];
             if (!file) return;
