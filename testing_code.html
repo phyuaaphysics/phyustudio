@@ -15,6 +15,8 @@
     <!-- 引入 jsQR 解析庫 -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js">
     </script>
+    <!-- 引入日文字型 (Noto Sans JP) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
 
@@ -125,7 +127,8 @@
         }
 
         body {
-            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            /* 日式風格字型優先 */
+            font-family: 'Noto Sans JP', 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg);
             color: #334155;
             -webkit-tap-highlight-color: transparent;
@@ -494,7 +497,7 @@
             }
         }
 
-        /* ----- 新版 Hero 按鈕與服務卡片設計 ----- */
+        /* ----- 新版 Hero 按鈕與服務卡片設計 (日式極簡風格) ----- */
         .hero-btn {
             display: inline-flex;
             align-items: center;
@@ -545,33 +548,35 @@
             box-shadow: 0 8px 40px rgba(2, 132, 199, 0.5);
         }
 
-        /* 服務卡片 (Session Cards) */
+        /* 日式極簡服務卡片 (Session Cards) */
         .session-card {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            padding: 18px 12px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            padding: 20px 16px;
+            border-radius: 12px; /* 較小的圓角，日式簡約 */
+            background: rgba(255, 255, 255, 0.08); /* 極淡的背景 */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04); /* 非常微弱的陰影 */
             transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
             min-width: 100px;
             flex: 1 1 0;
             color: #fff;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            font-weight: 300; /* 輕量字重 */
+            letter-spacing: 0.04em;
         }
 
         .session-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            background: rgba(255, 255, 255, 0.22);
-            border-color: rgba(255, 255, 255, 0.45);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         }
 
         .session-card:active {
@@ -580,24 +585,26 @@
         }
 
         .session-card i {
-            font-size: 2rem;
-            margin-bottom: 2px;
-            opacity: 0.9;
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+            opacity: 0.85;
+            font-weight: 300;
+            filter: drop-shadow(0 1px 4px rgba(0,0,0,0.05));
         }
 
         .session-card .card-title {
-            font-weight: 700;
+            font-weight: 400; /* 中細字重 */
             font-size: 0.9rem;
-            letter-spacing: 0.02em;
-            line-height: 1.2;
+            letter-spacing: 0.06em;
+            line-height: 1.3;
         }
 
         .session-card .card-sub {
-            font-size: 0.65rem;
-            opacity: 0.7;
-            font-weight: 400;
-            letter-spacing: 0.04em;
+            font-size: 0.6rem;
+            opacity: 0.6;
+            font-weight: 300;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         /* 卡片容器 */
@@ -605,7 +612,7 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 16px;
+            gap: 20px; /* 間隔加大 */
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
@@ -620,18 +627,18 @@
         /* 響應式調整 */
         @media (max-width: 640px) {
             .session-card {
-                padding: 14px 10px;
+                padding: 16px 12px;
                 min-width: 80px;
                 flex: 1 1 40%;
             }
             .session-card i {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
             }
             .session-card .card-title {
                 font-size: 0.75rem;
             }
             .session-card .card-sub {
-                font-size: 0.55rem;
+                font-size: 0.5rem;
             }
             .hero-btn {
                 padding: 10px 20px;
@@ -659,15 +666,15 @@
             }
         }
 
-        /* 暗色模式卡片微調 */
+        /* 暗色模式卡片微調 - 更乾淨的暗色 */
         body.dark-mode .session-card {
-            background: rgba(30, 41, 59, 0.3);
-            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(30, 41, 59, 0.2);
+            border-color: rgba(255, 255, 255, 0.06);
             color: #e2e8f0;
         }
         body.dark-mode .session-card:hover {
-            background: rgba(30, 41, 59, 0.5);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(30, 41, 59, 0.35);
+            border-color: rgba(255, 255, 255, 0.15);
         }
         body.dark-mode .hero-btn {
             color: #f1f5f9;
@@ -790,13 +797,13 @@
                     <!-- 手動同步按鈕已移除 -->
 
                     <div class="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-6 text-center">
-                        <!-- 歡迎訊息 (新增) -->
+                        <!-- 歡迎訊息 -->
                         <div class="relative z-10 mb-4 text-white text-shadow-lg">
                             <span id="welcome-message" class="text-xl md:text-2xl font-light tracking-wide">歡迎回來，</span>
                             <span id="username-display" class="text-2xl md:text-3xl font-bold text-sky-200">訪客</span>
                         </div>
 
-                        <!-- 三張服務卡片 -->
+                        <!-- 三張服務卡片 (日式極簡風格) -->
                         <div class="session-card-group relative z-10">
                             <!-- 線上補課系統 -->
                             <div class="session-card" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/makeup')">
