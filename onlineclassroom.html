@@ -10,6 +10,11 @@
     <!-- Lucide Icons for responsive elements -->
     <script src="https://unpkg.com/lucide@latest">
     </script>
+    <!-- jsPDF + AutoTable for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- html2canvas for capturing rendered HTML (preserves Chinese fonts) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* 引入 Cinzel (優雅古典襯線體)、Inter (極簡現代無襯線體) 與 Shippori Mincho (優雅日系明體 BOLD) */
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&display=swap');
@@ -536,9 +541,16 @@
                 <span class="text-xs tracking-widest text-indigo-700 font-bold bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-400/20 shadow-sm">ATTENDANCE REPORT</span>
                 <h1 class="text-sm font-bold tracking-wide text-slate-950 shippori-title">出席數據查閱</h1>
             </div>
-            <button id="close-attendance-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
-                ✕
-            </button>
+            <div class="flex items-center space-x-2">
+                <!-- PDF Export Button -->
+                <button id="export-attendance-pdf-btn" class="h-8 px-3 flex items-center space-x-1.5 text-[10px] font-bold tracking-widest text-indigo-700 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-400/20 rounded-lg transition duration-200 active:scale-95 shadow-sm uppercase">
+                    <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+                    <span>Export PDF</span>
+                </button>
+                <button id="close-attendance-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
+                    ✕
+                </button>
+            </div>
         </header>
 
         <!-- 內容主區域 -->
@@ -833,6 +845,11 @@
                 setTimeout(() => {
                     overlay.classList.add('hidden');
                 }, 730);
+            });
+
+            // 🚀 「Export PDF」按鈕點擊監聽
+            document.getElementById('export-attendance-pdf-btn').addEventListener('click', () => {
+                exportAttendanceToPdf();
             });
 
             // =======================================================
@@ -1961,6 +1978,156 @@
                         </div>
                     `;
                 lucide.createIcons();
+            }
+        }
+
+        // 🚀 PDF Export: 將出席數據表格匯出為 PDF (使用 html2canvas 捕捉已渲染的表格，完美保留中文字型)
+        async function exportAttendanceToPdf() {
+            const { jsPDF } = window.jspdf;
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const tableContainer = document.getElementById('attendance-table-container');
+            if (tableContainer.classList.contains('hidden')) {
+                alert('Please load attendance data first before exporting PDF!');
+                return;
+            }
+
+            // Count records for verification
+            const totalRows = tableContainer.querySelectorAll('tbody tr').length;
+            const totalCols = tableContainer.querySelectorAll('thead th').length;
+            console.log('PDF Export: Found ' + totalRows + ' student rows, ' + totalCols + ' columns');
+
+            // Create off-screen container for PDF layout
+            const pdfWrapper = document.createElement('div');
+            pdfWrapper.style.cssText = 'position:absolute;left:-9999px;top:0;background:#fff;padding:30px 40px;font-family:\'Inter\',\'Noto Sans TC\',sans-serif;';
+
+            // Title section
+            const titleDiv = document.createElement('div');
+            titleDiv.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;"><div><h1 style="font-size:22px;font-weight:700;color:#0f172a;margin:0;font-family:\'Shippori Mincho\',serif;letter-spacing:0.05em;">Attendance Report</h1><p style="font-size:10px;color:#94a3b8;margin:4px 0 0 0;letter-spacing:0.15em;text-transform:uppercase;">Attendance Report</p></div><div style="text-align:right;"><p style="font-size:10px;color:#64748b;margin:0;">Generated: ' + dateStr + '</p><p style="font-size:9px;color:#94a3b8;margin:2px 0 0 0;">PH Studio &copy; 2026</p></div></div><div style="height:1px;background:#e2e8f0;margin:12px 0 16px 0;"></div>';
+            pdfWrapper.appendChild(titleDiv);
+
+            // Clone the attendance table — strip ALL Tailwind classes to avoid layout constraints
+            const originalTable = tableContainer.querySelector('table');
+            const tableClone = document.createElement('table');
+            // Copy thead
+            const thead = document.createElement('thead');
+            const headerRow = originalTable.querySelector('thead tr');
+            if (headerRow) {
+                const newHeaderRow = document.createElement('tr');
+                headerRow.querySelectorAll('th').forEach(th => {
+                    const newTh = document.createElement('th');
+                    newTh.textContent = th.innerText.trim();
+                    newTh.style.cssText = 'padding:10px 12px;text-align:center;font-weight:700;color:#fff;background-color:#4f46e5;border-bottom:2px solid #4338ca;font-size:11px;letter-spacing:0.05em;white-space:nowrap;';
+                    newHeaderRow.appendChild(newTh);
+                });
+                thead.appendChild(newHeaderRow);
+            }
+            tableClone.appendChild(thead);
+            // Copy tbody — iterate ALL rows to ensure nothing is missed
+            const tbody = document.createElement('tbody');
+            const bodyRows = originalTable.querySelectorAll('tbody tr');
+            bodyRows.forEach((row, rowIndex) => {
+                const newTr = document.createElement('tr');
+                if (rowIndex % 2 === 1) newTr.style.backgroundColor = '#f8fafc';
+                row.querySelectorAll('td').forEach(td => {
+                    const newTd = document.createElement('td');
+                    const text = td.innerText.trim();
+                    newTd.textContent = text;
+                    if (text === '\u2713' || text === '\u2714') {
+                        newTd.style.cssText = 'padding:8px 12px;text-align:center;color:#10b981;font-weight:800;font-size:14px;border-bottom:1px solid #e2e8f0;white-space:nowrap;';
+                    } else if (text === '\u2715' || text === '\u2716' || text === '\u2717' || text === '\u2718') {
+                        newTd.style.cssText = 'padding:8px 12px;text-align:center;color:#ef4444;font-weight:800;font-size:14px;border-bottom:1px solid #e2e8f0;white-space:nowrap;';
+                    } else {
+                        newTd.style.cssText = 'padding:8px 12px;color:#334155;border-bottom:1px solid #e2e8f0;font-weight:500;white-space:nowrap;';
+                    }
+                    newTr.appendChild(newTd);
+                });
+                tbody.appendChild(newTr);
+            });
+            tableClone.appendChild(tbody);
+            tableClone.style.cssText = 'border-collapse:collapse;font-size:12px;width:auto;';
+            pdfWrapper.appendChild(tableClone);
+
+            // Footer
+            const footerDiv = document.createElement('div');
+            footerDiv.style.cssText = 'margin-top:16px;padding-top:10px;border-top:1px solid #e2e8f0;text-align:center;font-size:9px;color:#94a3b8;';
+            footerDiv.textContent = 'PH Studio \u00A9 2026. All rights reserved. Total students: ' + totalRows + ' | Total sessions: ' + (totalCols - 3);
+            pdfWrapper.appendChild(footerDiv);
+
+            document.body.appendChild(pdfWrapper);
+
+            try {
+                // Measure the table's natural width and set the wrapper accordingly
+                const tableNaturalWidth = tableClone.scrollWidth || tableClone.offsetWidth;
+                const wrapperWidth = Math.max(tableNaturalWidth + 80, 800); // 40px padding each side
+                pdfWrapper.style.width = wrapperWidth + 'px';
+
+                const canvas = await html2canvas(pdfWrapper, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    windowWidth: wrapperWidth + 100,
+                    width: wrapperWidth,
+                    height: pdfWrapper.scrollHeight
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+
+                // Verify all rows were captured
+                console.log('PDF Export: Canvas size = ' + imgWidth + 'x' + imgHeight + 'px');
+
+                // Use landscape A4, auto-rotate to portrait if the table is narrow and tall
+                const isPortrait = (imgHeight / imgWidth) > 1.4;
+                const pdf = new jsPDF({
+                    orientation: isPortrait ? 'portrait' : 'landscape',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                // Scale image to fit PDF width while preserving aspect ratio
+                const ratio = pdfWidth / imgWidth;
+                const scaledHeight = imgHeight * ratio;
+
+                if (scaledHeight <= pdfHeight) {
+                    // Content fits on one page
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, scaledHeight);
+                } else {
+                    // Multi-page: split the tall image across pages
+                    let heightLeft = scaledHeight;
+                    let position = 0;
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+                    heightLeft -= pdfHeight;
+                    while (heightLeft > 0) {
+                        position -= pdfHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+                        heightLeft -= pdfHeight;
+                    }
+                }
+
+                // Add page numbers and record count to each page
+                const pageCount = pdf.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    pdf.setPage(i);
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(160);
+                    pdf.text('Page ' + i + ' of ' + pageCount + '  |  Students: ' + totalRows + '  |  Sessions: ' + (totalCols - 3), pdfWidth - 80, pdfHeight - 6);
+                }
+
+                const filename = 'Attendance_Report_' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '.pdf';
+                pdf.save(filename);
+                console.log('PDF Export: Success! ' + totalRows + ' rows exported across ' + pageCount + ' pages.');
+            } catch (err) {
+                console.error('PDF export failed:', err);
+                alert('PDF export failed. Please try again.');
+            } finally {
+                document.body.removeChild(pdfWrapper);
             }
         }
 
