@@ -16,8 +16,8 @@
     <!-- html2canvas for capturing rendered HTML (preserves Chinese fonts) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 引入 Cinzel (優雅古典襯線體)、Inter (極簡現代無襯線體) 與 Shippori Mincho (優雅日系明體 BOLD) */
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&display=swap');
+        /* 引入 Cinzel、Inter、Shippori Mincho 與 Sofia Sans 字型 */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&family=Sofia+Sans:wght@700;800;900&display=swap');
 
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
@@ -34,6 +34,10 @@
         .shippori-title {
             font-family: 'Shippori Mincho', serif;
             font-weight: 700;
+        }
+
+        .sofia-font {
+            font-family: 'Sofia Sans', sans-serif;
         }
 
         /* 減少玻璃透明度，提高遮罩實色（更清晰易讀） */
@@ -251,8 +255,8 @@
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 🆕 profile iframe 满版适配 */
-        #profile-iframe {
+        /* profile iframe 满版适配 */
+        #profile-iframe, #membership-iframe {
             width: 100%;
             height: 100%;
             border: none;
@@ -361,7 +365,7 @@
             <!-- 核心面板一：學生帳戶資訊卡 -->
             <div class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center gap-4">
 
-                <!-- 🆕 左側：帳戶名稱與身份標誌 — 點擊整個區域開啟學生檔案 iframe -->
+                <!-- 左側：帳戶名稱與身份標誌 — 點擊整個區域開啟學生檔案 iframe -->
                 <div id="student-profile-trigger" class="flex items-center space-x-4 cursor-pointer select-none">
 
                     <!-- 薄荷綠圓形學士帽圖示 -->
@@ -375,7 +379,7 @@
 
                 </div>
 
-                <!-- 右側：班級與學號對稱卡區 + 日曆圖示按鈕 -->
+                <!-- 右側：班級、學號與會員狀態對稱卡區 + 日曆圖示按鈕 -->
                 <div class="flex items-center gap-4 text-right pr-1 shrink-0">
                     <!-- 班別 -->
                     <div>
@@ -390,6 +394,18 @@
                     <div>
                         <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
                         <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+                    </div>
+
+                    <!-- 垂直精細分割線 -->
+                    <div class="w-[1px] h-6 bg-slate-900/10"></div>
+
+                    <!-- 🆕 會員狀態 -->
+                    <div>
+                        <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium flex items-center justify-end gap-0.5">
+                            會員狀態
+                            <button id="membership-info-trigger" class="w-3.5 h-3.5 rounded-full bg-slate-200 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-[9px] font-bold text-slate-600 transition" title="點擊了解更多">?</button>
+                        </p>
+                        <p id="card-membership" class="text-base font-black text-slate-850 tracking-wide sofia-font">--</p>
                     </div>
 
                     <!-- 垂直精細分割線 -->
@@ -593,7 +609,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 🆕 SECTION 5: 學生個人檔案 iframe 滿版彈窗 (iOS 級阻尼轉場) -->
+    <!-- SECTION 5: 學生個人檔案 iframe 滿版彈窗 (iOS 級阻尼轉場) -->
     <!-- ========================================== -->
     <div id="profile-overlay" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-xl">
         <!-- 右上角懸浮 iOS 風格半透明圓形關閉按鈕 -->
@@ -602,6 +618,18 @@
         </button>
         <!-- 佔全屏 iframe 內容區 -->
         <iframe id="profile-iframe" src="https://phyuaaphysics.github.io/phyustudio/studentprofile.html" class="w-full h-full border-none" allowfullscreen loading="lazy"></iframe>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🆕 SECTION 6: 會員狀態介紹 membership iframe 滿版彈窗 (iOS 級阻尼轉場) -->
+    <!-- ========================================== -->
+    <div id="membership-overlay" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-xl">
+        <!-- 右上角懸浮 iOS 風格半透明圓形關閉按鈕 -->
+        <button id="close-membership-btn" class="absolute top-6 right-6 w-11 h-11 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white text-xl font-light transition duration-200 z-50 border border-white/20 shadow-lg active:scale-90" title="關閉會員說明">
+            ✕
+        </button>
+        <!-- 佔全屏 iframe 內容區 -->
+        <iframe id="membership-iframe" src="https://phyuaaphysics.github.io/phyustudio/membership.html" class="w-full h-full border-none" allowfullscreen loading="lazy"></iframe>
     </div>
 
     <!-- Footer Info (極簡低對比) -->
@@ -853,7 +881,7 @@
             });
 
             // =======================================================
-            // 🆕 學生個人檔案 iframe — 開啟 / 關閉 (iOS 級阻尼彈簧優化)
+            // 學生個人檔案 iframe — 開啟 / 關閉 (iOS 級阻尼彈簧優化)
             // =======================================================
             const profileTrigger = document.getElementById('student-profile-trigger');
             const profileOverlay = document.getElementById('profile-overlay');
@@ -878,6 +906,35 @@
                     setTimeout(() => {
                         profileOverlay.classList.add('hidden');
                     }, 350); // 對應 350ms 的 exit 動畫時長
+                });
+            }
+
+            // =======================================================
+            // 🆕 會員說明介紹彈窗 — 開啟 / 關閉 (iOS 級阻尼彈簧優化)
+            // =======================================================
+            const membershipInfoTrigger = document.getElementById('membership-info-trigger');
+            const membershipOverlay = document.getElementById('membership-overlay');
+            const closeMembershipBtn = document.getElementById('close-membership-btn');
+
+            if (membershipInfoTrigger) {
+                membershipInfoTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 避免與其他點擊衝突
+                    const iframe = document.getElementById('membership-iframe');
+                    if (iframe) {
+                        iframe.src = "https://phyuaaphysics.github.io/phyustudio/membership.html";
+                    }
+                    membershipOverlay.classList.remove('hidden', 'animate-profile-exit');
+                    membershipOverlay.classList.add('animate-profile-enter');
+                });
+            }
+
+            if (closeMembershipBtn) {
+                closeMembershipBtn.addEventListener('click', () => {
+                    membershipOverlay.classList.remove('animate-profile-enter');
+                    membershipOverlay.classList.add('animate-profile-exit');
+                    setTimeout(() => {
+                        membershipOverlay.classList.add('hidden');
+                    }, 350);
                 });
             }
 
@@ -1069,8 +1126,9 @@
                     cardSection.classList.remove('hidden');
                     cardSection.classList.add('animate-ios-menu');
 
-                    // 同步載入課程列表
+                    // 同步載入課程列表與會員資訊
                     fetchTopics();
+                    fetchAndDisplayMembership();
                 }, 520); // 配合 CSS Exit Animation 時長
             } else {
                 loginSection.classList.add('hidden');
@@ -1078,8 +1136,96 @@
                 cardSection.classList.add('animate-ios-menu');
                 if (secureBadge) secureBadge.classList.add('hidden');
 
-                // 動態加載課程列表
+                // 動態加載課程列表與會員資訊
                 fetchTopics();
+                fetchAndDisplayMembership();
+            }
+        }
+
+        // =======================================================
+        // 🆕 格式化會員狀態字體顏色 (Sofia Sans + 專屬顏色樣式)
+        // =======================================================
+        function formatMembershipHTML(val) {
+            const clean = cleanVal(val);
+            if (!clean || clean === "--") return "--";
+            const upper = clean.toUpperCase();
+            
+            // 依據類別將指定英文字染色，其餘文字保持中立深色
+            if (upper.includes("PH CORE")) {
+                return clean.replace(/CORE/gi, '<span class="text-gray-400 font-extrabold">CORE</span>');
+            }
+            if (upper.includes("PH PLUS")) {
+                return clean.replace(/PLUS/gi, '<span class="text-blue-500 font-extrabold">PLUS</span>');
+            }
+            if (upper.includes("PH PRIME")) {
+                return clean.replace(/PRIME/gi, '<span class="text-red-500 font-extrabold">PRIME</span>');
+            }
+            if (upper.includes("PH ULTRA")) {
+                return clean.replace(/ULTRA/gi, '<span class="text-purple-600 font-extrabold">ULTRA</span>');
+            }
+            return clean;
+        }
+
+        // =======================================================
+        // 🆕 異步獲取與顯示會員狀態 (比對 Roster 表 D/E 欄)
+        // =======================================================
+        async function fetchAndDisplayMembership() {
+            const details = getStudentDetails();
+            const currentStudentName = details.realName.trim();
+            if (!currentStudentName) return;
+
+            // 1. 先用本地緩存顯示 (秒開預防轉向白屏)
+            const cachedMembership = localStorage.getItem("user_membership");
+            if (cachedMembership) {
+                document.getElementById('card-membership').innerHTML = formatMembershipHTML(cachedMembership);
+            } else {
+                document.getElementById('card-membership').innerHTML = "--";
+            }
+
+            // 2. 背景同步 Roster 最新資料
+            try {
+                const response = await fetch(ROSTER_JSON_URL);
+                const text = await response.text();
+
+                // 提取 Google Visualization API 回傳的 JSON payload
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                const jsonString = text.substring(jsonStart, jsonEnd);
+                const rawJsonData = JSON.parse(jsonString);
+
+                if (rawJsonData.table && rawJsonData.table.rows) {
+                    const rows = rawJsonData.table.rows;
+                    
+                    const getCellValue = (cell) => {
+                        if (!cell) return "";
+                        if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
+                        if (cell.f !== null && cell.f !== undefined) return String(cell.f).trim();
+                        return "";
+                    };
+
+                    let foundMembership = "";
+                    // 從第 1 列開始，第 0 列為標題
+                    for (let i = 1; i < rows.length; i++) {
+                        const r = rows[i];
+                        if (r.c) {
+                            const name = cleanVal(getCellValue(r.c[3])); // D 欄真實姓名
+                            if (stripAllSpaces(name) === stripAllSpaces(currentStudentName)) {
+                                foundMembership = cleanVal(getCellValue(r.c[4])); // E 欄會員狀態
+                                break;
+                            }
+                        }
+                    }
+
+                    if (foundMembership) {
+                        localStorage.setItem("user_membership", foundMembership);
+                        document.getElementById('card-membership').innerHTML = formatMembershipHTML(foundMembership);
+                    } else {
+                        localStorage.setItem("user_membership", "普通會員");
+                        document.getElementById('card-membership').innerHTML = formatMembershipHTML("普通會員");
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch membership status:", err);
             }
         }
 
