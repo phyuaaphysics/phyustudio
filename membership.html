@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PH 物理學習方案 - 終極影片控制系統</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Sofia Sans, Noto Sans TC, Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,600;1,800&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons for Beautiful Badges & Player Controls -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Sofia Sans', 'Plus Jakarta Sans', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#030712',
+                        cardBg: 'rgba(15, 23, 42, 0.65)',
+                        phCore: {
+                            glow: 'rgba(148, 163, 184, 0.15)',
+                            border: '#64748b',
+                            text: '#cbd5e1'
+                        },
+                        phPlus: {
+                            glow: 'rgba(14, 165, 233, 0.25)',
+                            border: '#0ea5e9',
+                            text: '#38bdf8'
+                        },
+                        phPrime: {
+                            glow: 'rgba(249, 115, 22, 0.25)',
+                            border: '#f97316',
+                            text: '#fb923c'
+                        },
+                        phUltra: {
+                            glow: 'rgba(168, 85, 247, 0.35)',
+                            border: '#a855f7',
+                            text: '#c084fc'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(30, 41, 150, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 60%, rgba(147, 51, 234, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+        .glow-active-core {
+            box-shadow: 0 0 25px rgba(148, 163, 184, 0.4);
+            border-color: #94a3b8 !important;
+        }
+        .glow-active-plus {
+            box-shadow: 0 0 30px rgba(14, 165, 233, 0.5);
+            border-color: #0ea5e9 !important;
+        }
+        .glow-active-prime {
+            box-shadow: 0 0 30px rgba(249, 115, 22, 0.5);
+            border-color: #f97316 !important;
+        }
+        .glow-active-ultra {
+            box-shadow: 0 0 35px rgba(168, 85, 247, 0.6);
+            border-color: #a855f7 !important;
+        }
+        /* Glassmorphism scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+        /* Custom Keyframe Animations */
+        @keyframes subtleRotate {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .animate-sparkle {
+            animation: subtleRotate 8s infinite linear;
+        }
+    </style>
+    <!-- YouTube Iframe API Support -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+</head>
+<body class="text-slate-100 min-h-screen py-10 px-4 md:px-8 font-sans antialiased selection:bg-purple-500/30 selection:text-purple-200">
+
+    <!-- Top Glow Ornament & Sparkle Logo -->
+    <div class="flex flex-col items-center text-center mb-10 relative">
+        
+        <!-- App Icon with Dark Blue Neon Aura -->
+        <div class="relative mb-6 group">
+            <!-- Glow background -->
+            <div class="absolute inset-0 bg-blue-900/60 rounded-3xl blur-2xl transform group-hover:scale-125 transition-all duration-500"></div>
+            <!-- App Icon Frame -->
+            <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="PH Physics Logo" class="w-24 h-24 relative z-10 rounded-2xl border border-blue-500/30 shadow-[0_0_40px_rgba(30,58,138,0.7)] object-contain transition-transform duration-300 group-hover:scale-105">
+        </div>
+
+        <div class="w-16 h-16 mb-4 relative flex items-center justify-center">
+            <!-- Glowing background aura -->
+            <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500 via-purple-500 to-orange-500 rounded-full blur-xl opacity-60 animate-pulse"></div>
+            <!-- Beautiful Sparkling Geometric SVG representing Google AI's premium star style -->
+            <svg class="w-10 h-10 text-white relative z-10 animate-sparkle" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z" fill="url(#sparkleGrad)"/>
+                <defs>
+                    <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#38bdf8" />
+                        <stop offset="50%" stop-color="#a855f7" />
+                        <stop offset="100%" stop-color="#fb923c" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+        
+        <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight max-w-4xl mx-auto">
+            掌握 <span class="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">PH 核心學習方案</span><br class="hidden md:inline">
+            精準突破物理大關，輕鬆掌控日常學習
+        </h1>
+        <p class="text-slate-400 mt-4 text-base md:text-lg max-w-2xl">
+            系統會自動根據你的最新測考成績劃分方案權限。高分學生成就「終極掌控」；基礎學員享有「考勤補強與全方位守護」。
+        </p>
+    </div>
+
+    <!-- Interactive Interactive Score Calculator & Tier Matcher -->
+    <div class="max-w-4xl mx-auto mb-16 bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="w-full md:w-1/2">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="inline-flex items-center justify-center bg-blue-500/10 text-blue-400 rounded-lg p-2 w-8 h-8">
+                        <i class="fa-solid fa-calculator text-sm"></i>
+                    </span>
+                    <h3 class="text-lg font-bold text-slate-200">測考成績智能試算器</h3>
+                </div>
+                <p class="text-slate-400 text-sm">拖動滑桿或輸入你的物理測考分數，系統將立即為你點亮對應的學習會員卡片並設定播放器權限。</p>
+            </div>
+            
+            <div class="w-full md:w-1/2 flex items-center gap-4">
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs text-slate-400 mb-2">
+                        <span>0% (基本)</span>
+                        <span>100% (完美)</span>
+                    </div>
+                    <input type="range" id="scoreSlider" min="0" max="100" value="55" 
+                           class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none">
+                </div>
+                <div class="relative w-24">
+                    <input type="number" id="scoreInput" min="0" max="100" value="55"
+                           class="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2 text-center text-xl font-extrabold text-blue-400 focus:outline-none focus:border-blue-500">
+                    <span class="absolute right-2 top-2.5 text-slate-500 text-xs font-bold">%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grade-to-Tier Quick Indicator Status Banner -->
+        <div class="mt-6 p-4 rounded-xl bg-slate-950/40 border border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400 text-sm">目前試算分數：</span>
+                <span id="scoreBadgeValue" class="text-lg font-bold text-white bg-slate-800 px-3 py-1 rounded-lg">55%</span>
+                <span class="text-slate-400 text-sm">→</span>
+                <span id="matchingTierBadge" class="text-sm font-semibold px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                    ⚡ PH Plus
+                </span>
+            </div>
+            <div class="text-xs text-slate-400 italic">
+                *當前對應影片首次播放限制：<span id="matchingTierLimitText" class="text-sky-300 font-semibold">固定 1.0x 語速且完全不可快進</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Tiers Container (Mirroring Google AI Tiers Layout with Centered Content) -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 relative">
+        
+        <!-- CARD 1: PH Core -->
+        <div id="card-core" class="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between items-center text-center transition-all duration-300 hover:-translate-y-1 hover:border-slate-600 relative overflow-hidden group">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-slate-500/5 rounded-full blur-2xl group-hover:bg-slate-500/10 transition-all duration-300"></div>
+            <div>
+                <div class="flex flex-col items-center mb-4">
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/20 mb-2">
+                        基礎強化
+                    </span>
+                    <span class="text-xs text-slate-500 font-medium">🛡️ PH Core</span>
+                </div>
+                
+                <h3 class="text-2xl font-black text-slate-200 mt-2">PH Core</h3>
+                <div class="flex items-baseline justify-center mt-2">
+                    <span class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-200 to-slate-400 bg-clip-text text-transparent">&lt; 40%</span>
+                    <span class="text-slate-500 text-sm ml-2">測考分數</span>
+                </div>
+                <p class="text-slate-400 text-sm mt-3 leading-relaxed">
+                    針對基礎未達標之學員提供全天候守護，透過強制基礎補強視頻打底。
+                </p>
+
+                <!-- Divider line -->
+                <div class="h-px bg-slate-800 my-5 w-full"></div>
+
+                <div class="space-y-3 text-left">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 text-center">包含與限制：</div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-exclamation text-rose-400 mt-0.5 shrink-0"></i>
+                        <span><strong>補課要求：</strong>必須觀看額外基礎補習影片，配合系統<strong>中途</strong>考勤打卡檢查。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-xmark text-slate-500 mt-0.5 shrink-0"></i>
+                        <span><strong>首次觀看：</strong>完全不可快進，不可調節速度。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span><strong>回放複習：</strong>首次看完後解鎖，享有自由快進/後退/調速。</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 w-full">
+                <button onclick="simulateIdentity('core')" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition duration-200 shadow-md flex items-center justify-center gap-2">
+                    <span>模擬 Core 身份觀看</span>
+                    <i class="fa-solid fa-circle-play"></i>
+                </button>
+                <button onclick="toggleDetails('details-core')" class="w-full text-center text-[11px] text-slate-500 hover:text-slate-400 mt-3 flex items-center justify-center gap-1">
+                    <span>檢視全部權限</span>
+                    <i id="icon-details-core" class="fa-solid fa-chevron-down text-[9px]"></i>
+                </button>
+            </div>
+            
+            <!-- Dynamic collapsible details inside card -->
+            <div id="details-core" class="hidden mt-4 pt-4 border-t border-slate-800/80 text-[11px] text-slate-400 space-y-2 w-full">
+                <div class="flex justify-between"><span>首次播放控制：</span><span class="text-rose-400 font-semibold">❌ 完全禁止</span></div>
+                <div class="flex justify-between"><span>首次播放速限：</span><span class="text-slate-300">固定 1.0x</span></div>
+                <div class="flex justify-between"><span>複習快進權限：</span><span class="text-emerald-400">✅ 自由調控</span></div>
+                <div class="flex justify-between"><span>考勤打卡要求：</span><span class="text-amber-400">⚠️ 有（隨機中途打卡）</span></div>
+            </div>
+        </div>
+
+        <!-- CARD 2: PH Plus -->
+        <div id="card-plus" class="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between items-center text-center transition-all duration-300 hover:-translate-y-1 hover:border-sky-600/50 relative overflow-hidden group">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-all duration-300"></div>
+            <div>
+                <div class="flex flex-col items-center mb-4">
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-2">
+                        穩健提升
+                    </span>
+                    <span class="text-xs text-slate-500 font-medium">⚡ PH Plus</span>
+                </div>
+                
+                <h3 class="text-2xl font-black text-slate-200 mt-2">PH Plus</h3>
+                <div class="flex items-baseline justify-center mt-2">
+                    <span class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-sky-200 to-sky-400 bg-clip-text text-transparent">40% - 65%</span>
+                    <span class="text-slate-500 text-sm ml-2">測考分數</span>
+                </div>
+                <p class="text-slate-400 text-sm mt-3 leading-relaxed">
+                    合格水準！不需要額外觀看補習視頻。首次觀看仍需專注精讀，不可快進。
+                </p>
+
+                <!-- Divider line -->
+                <div class="h-px bg-slate-800 my-5 w-full"></div>
+
+                <div class="space-y-3 text-left">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 text-center">包含與限制：</div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span><strong>補課要求：</strong>無需額外基礎補習，但需在觀看結束時進行<strong>完成後</strong>考勤打卡。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-xmark text-slate-500 mt-0.5 shrink-0"></i>
+                        <span><strong>首次觀看：</strong>完全不可快進，且固定在 1.0x 標準語速。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span><strong>回放複習：</strong>一鍵解鎖，享有自由快進、後退與速度調控。</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 w-full">
+                <button onclick="simulateIdentity('plus')" class="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl transition duration-200 shadow-lg shadow-sky-950 flex items-center justify-center gap-2">
+                    <span>模擬 Plus 身份觀看</span>
+                    <i class="fa-solid fa-circle-play"></i>
+                </button>
+                <button onclick="toggleDetails('details-plus')" class="w-full text-center text-[11px] text-slate-500 hover:text-slate-400 mt-3 flex items-center justify-center gap-1">
+                    <span>檢視全部權限</span>
+                    <i id="icon-details-plus" class="fa-solid fa-chevron-down text-[9px]"></i>
+                </button>
+            </div>
+            
+            <!-- Dynamic collapsible details inside card -->
+            <div id="details-plus" class="hidden mt-4 pt-4 border-t border-slate-800/80 text-[11px] text-slate-400 space-y-2 w-full">
+                <div class="flex justify-between"><span>首次播放控制：</span><span class="text-rose-400 font-semibold">❌ 完全禁止</span></div>
+                <div class="flex justify-between"><span>首次播放速限：</span><span class="text-slate-300">固定 1.0x</span></div>
+                <div class="flex justify-between"><span>複習快進權限：</span><span class="text-emerald-400">✅ 自由調控</span></div>
+                <div class="flex justify-between"><span>考勤打卡要求：</span><span class="text-sky-400">⚠️ 有（影片完成後打卡）</span></div>
+            </div>
+        </div>
+
+        <!-- CARD 3: PH Prime -->
+        <div id="card-prime" class="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between items-center text-center transition-all duration-300 hover:-translate-y-1 hover:border-orange-500/50 relative overflow-hidden group">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-all duration-300"></div>
+            <div>
+                <div class="flex flex-col items-center mb-4">
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 mb-2">
+                        卓越首選
+                    </span>
+                    <span class="text-xs text-slate-500 font-medium">🔥 PH Prime</span>
+                </div>
+                
+                <h3 class="text-2xl font-black text-slate-200 mt-2">PH Prime</h3>
+                <div class="flex items-baseline justify-center mt-2">
+                    <span class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-orange-200 to-orange-400 bg-clip-text text-transparent">65% - 80%</span>
+                    <span class="text-slate-500 text-sm ml-2">測考分數</span>
+                </div>
+                <p class="text-slate-400 text-sm mt-3 leading-relaxed">
+                    表現優異！無需觀看基礎補習。首次觀看雖然不可快進，但解鎖了「調速特權」。
+                </p>
+
+                <!-- Divider line -->
+                <div class="h-px bg-slate-800 my-5 w-full"></div>
+
+                <div class="space-y-3 text-left">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 text-center">包含與限制：</div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span><strong>補課要求：</strong>無需補習，但需在影片觀看結束時進行<strong>完成後</strong>考勤打卡。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
+                        <span><strong>首次觀看：</strong>完全不可快進。但允許調節視頻播放速度。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span><strong>調速特權：</strong>首次觀看即可設定 1.25x, 1.5x, 2.0x 快速吸取知識。</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 w-full">
+                <button onclick="simulateIdentity('prime')" class="w-full py-2.5 px-4 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-xl transition duration-200 shadow-lg shadow-orange-950 flex items-center justify-center gap-2">
+                    <span>模擬 Prime 身份觀看</span>
+                    <i class="fa-solid fa-circle-play"></i>
+                </button>
+                <button onclick="toggleDetails('details-prime')" class="w-full text-center text-[11px] text-slate-500 hover:text-slate-400 mt-3 flex items-center justify-center gap-1">
+                    <span>檢視全部權限</span>
+                    <i id="icon-details-prime" class="fa-solid fa-chevron-down text-[9px]"></i>
+                </button>
+            </div>
+            
+            <!-- Dynamic collapsible details inside card -->
+            <div id="details-prime" class="hidden mt-4 pt-4 border-t border-slate-800/80 text-[11px] text-slate-400 space-y-2 w-full">
+                <div class="flex justify-between"><span>首次播放控制：</span><span class="text-rose-400 font-semibold">❌ 完全禁止</span></div>
+                <div class="flex justify-between"><span>首次播放速限：</span><span class="text-emerald-400">✅ 允許調速 (1.25x - 2.0x)</span></div>
+                <div class="flex justify-between"><span>複習快進權限：</span><span class="text-emerald-400">✅ 自由調控</span></div>
+                <div class="flex justify-between"><span>考勤打卡要求：</span><span class="text-orange-400">⚠️ 有（影片完成後打卡）</span></div>
+            </div>
+        </div>
+
+        <!-- CARD 4: PH Ultra -->
+        <div id="card-ultra" class="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between items-center text-center transition-all duration-300 hover:-translate-y-1 hover:border-purple-500 relative overflow-hidden group">
+            <div class="absolute -right-16 -top-16 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all duration-300"></div>
+            <div>
+                <div class="flex flex-col items-center mb-4">
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-2">
+                        終極掌控
+                    </span>
+                    <span class="text-xs text-slate-400 font-medium">🌌 PH Ultra</span>
+                </div>
+                
+                <h3 class="text-2xl font-black text-slate-200 mt-2">PH Ultra</h3>
+                <div class="flex items-baseline justify-center mt-2">
+                    <span class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-purple-200 to-purple-400 bg-clip-text text-transparent">&gt; 80%</span>
+                    <span class="text-slate-500 text-sm ml-2">測考分數</span>
+                </div>
+                <p class="text-slate-400 text-sm mt-3 leading-relaxed">
+                    終極實力擁有者！無任何額外學習負擔，享有播放器最高級別的绝对掌控自由。
+                </p>
+
+                <!-- Divider line -->
+                <div class="h-px bg-slate-800 my-5 w-full"></div>
+
+                <div class="space-y-3 text-left">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 text-center">包含與限制：</div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-crown text-purple-400 mt-0.5 shrink-0"></i>
+                        <span><strong>掌控特權：</strong>完全毫無限制！首次觀看即可隨意快進、後退、調速。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span><strong>學習要求：</strong>無需觀看任何額外基礎或補習視頻。</span>
+                    </div>
+                    <div class="flex items-start gap-2.5 text-xs text-slate-300">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span><strong>回放複習：</strong>極速加載，享有播放器終極控制權限。</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 w-full">
+                <button onclick="simulateIdentity('ultra')" class="w-full py-2.5 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition duration-200 shadow-lg shadow-purple-950 flex items-center justify-center gap-2">
+                    <span>模擬 Ultra 身份觀看</span>
+                    <i class="fa-solid fa-crown"></i>
+                </button>
+                <button onclick="toggleDetails('details-ultra')" class="w-full text-center text-[11px] text-slate-500 hover:text-slate-400 mt-3 flex items-center justify-center gap-1">
+                    <span>檢視全部權限</span>
+                    <i id="icon-details-ultra" class="fa-solid fa-chevron-down text-[9px]"></i>
+                </button>
+            </div>
+            
+            <!-- Dynamic collapsible details inside card -->
+            <div id="details-ultra" class="hidden mt-4 pt-4 border-t border-slate-800/80 text-[11px] text-slate-400 space-y-2 w-full">
+                <div class="flex justify-between"><span>首次播放控制：</span><span class="text-emerald-400 font-semibold">✨ 完美解鎖</span></div>
+                <div class="flex justify-between"><span>首次播放速限：</span><span class="text-emerald-400">✨ 無限制任意調速</span></div>
+                <div class="flex justify-between"><span>複習快進權限：</span><span class="text-emerald-400">✨ 完美解鎖</span></div>
+                <div class="flex justify-between"><span>考勤打卡要求：</span><span class="text-emerald-400">✨ 無需打卡</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MAIN INTERACTIVE SECTION: Interactive Video Player Simulator SandBox -->
+    <div class="max-w-5xl mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 md:p-8 shadow-2xl relative mb-16">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-2xl pointer-events-none"></div>
+        
+        <div class="flex flex-col lg:flex-row justify-between items-start gap-8 relative z-10">
+            
+            <!-- Player Panel Controls -->
+            <div class="w-full lg:w-2/5 space-y-6">
+                <div>
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-purple-500/10 text-purple-300 text-xs font-bold mb-3 border border-purple-500/20">
+                        <i class="fa-solid fa-flask"></i> 實機功能模擬沙盒
+                    </span>
+                    <h2 class="text-2xl font-extrabold text-slate-100">物理學習播放器</h2>
+                    <p class="text-slate-400 text-xs mt-1">在這裡，你可以即時測試不同會員狀態在看課時，系統播放器的實際表現與阻攔反饋。</p>
+                </div>
+
+                <!-- Simulation Settings -->
+                <div class="space-y-4 p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-wider">設定當前模擬環境</h4>
+                    
+                    <!-- Simulating Tier Select -->
+                    <div class="space-y-1">
+                        <label class="text-xs text-slate-400">1. 選擇學生級別：</label>
+                        <select id="playerSimTier" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500" onchange="onPlayerSettingChange()">
+                            <option value="core">🛡️ PH Core (測考少於40%)</option>
+                            <option value="plus" selected>⚡ PH Plus (40-65% 合格)</option>
+                            <option value="prime">🔥 PH Prime (65-80% 優秀)</option>
+                            <option value="ultra">🌌 PH Ultra (大於80% 卓越)</option>
+                        </select>
+                    </div>
+
+                    <!-- Simulating Watch Stage (First Watch vs Review) -->
+                    <div class="space-y-2">
+                        <label class="text-xs text-slate-400 block">2. 影片觀看狀態：</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btnFirstWatch" onclick="setWatchStage('first')" class="py-2 px-3 text-xs font-bold rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-300 transition duration-150">
+                                <i class="fa-solid fa-eye-slash mr-1"></i> 首次觀看限制
+                            </button>
+                            <button id="btnReviewWatch" onclick="setWatchStage('review')" class="py-2 px-3 text-xs font-medium rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800 transition duration-150">
+                                <i class="fa-solid fa-arrows-spin mr-1"></i> 複習 / 回放
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Status Indicators -->
+                <div class="space-y-3 p-4 rounded-xl bg-slate-950/30 border border-slate-800/80 text-xs">
+                    <h4 class="font-bold text-slate-300 mb-1">系統實施監測器：</h4>
+                    <div class="flex justify-between items-center py-1 border-b border-slate-800">
+                        <span class="text-slate-400">不准快進限制：</span>
+                        <span id="indicatorNoFastForward" class="font-bold text-rose-400 flex items-center gap-1">
+                            <i class="fa-solid fa-lock"></i> 嚴格管制中
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 border-b border-slate-800">
+                        <span class="text-slate-400">視頻播放速限：</span>
+                        <span id="indicatorSpeedLimit" class="font-bold text-amber-400">
+                            鎖定 1.0x 語速
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-400">考勤隨機打卡：</span>
+                        <span id="indicatorAttendanceCheck" class="font-bold text-slate-500">
+                            ✨ 無需進行
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Custom Interactive Video Player UI -->
+            <div class="w-full lg:w-3/5">
+                <div class="bg-black rounded-xl overflow-hidden border border-slate-800 shadow-2xl relative aspect-video group">
+                    
+                    <!-- YouTube Iframe API Player Target -->
+                    <div id="ytPlayer" class="absolute inset-0 w-full h-full pointer-events-none"></div>
+
+                    <!-- Invisible overlay to trigger Custom Play/Pause clicks -->
+                    <div onclick="togglePlayState()" class="absolute inset-0 z-0 cursor-pointer"></div>
+
+                    <!-- MOCK VIDEO CONTENT OVERLAY (Acting as placeholder and loading state) -->
+                    <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-b from-slate-950/20 to-slate-950/80 transition-opacity duration-500 z-10 pointer-events-none">
+                        <!-- Canvas animation block simulating motion -->
+                        <div id="videoVisualizer" class="w-20 h-20 mb-3 rounded-full border-4 border-slate-800 flex items-center justify-center relative">
+                            <i id="videoVisualizerIcon" class="fa-solid fa-play text-2xl text-slate-300 ml-1"></i>
+                            <!-- Pulsing border representing play states -->
+                            <div id="videoVisualizerPulse" class="absolute inset-0 rounded-full border-4 border-sky-400/30 scale-100 opacity-0 transition duration-300"></div>
+                        </div>
+                        <h3 id="videoTitle" class="text-lg font-bold text-slate-200">正在播放：【PH 物理高分專題】牛頓運動定律解析</h3>
+                        <p id="videoSubtext" class="text-xs text-slate-400 mt-2 max-w-sm">
+                            當前進度：<span id="currentTimeText">00:00</span> / <span class="video-total-duration">10:00</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Attendance Check PopUp overlay (Simulated in the player) -->
+                    <div id="attendanceOverlay" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
+                        <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center text-amber-400 text-2xl mb-4 animate-bounce">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-amber-400">🚨 PH Core 學習防呆考勤打卡</h4>
+                        <p class="text-slate-300 text-xs mt-2 max-w-sm">
+                            系統偵測到你正在觀看基礎補習影片，請點擊下方按鈕完成打卡，否則影片將無法繼續播放！
+                        </p>
+                        <button onclick="dismissAttendance()" class="mt-5 px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-lg transition duration-200">
+                            <i class="fa-solid fa-circle-check mr-1"></i> 我正在專心看課，完成打卡！
+                        </button>
+                    </div>
+
+                    <!-- System Warning Notification Box within player -->
+                    <div id="playerToast" class="absolute top-4 left-4 right-4 bg-rose-500/90 text-white text-xs px-4 py-3 rounded-lg flex items-center gap-2 transform -translate-y-16 opacity-0 transition-all duration-300 z-40 shadow-lg">
+                        <i class="fa-solid fa-triangle-exclamation text-sm shrink-0"></i>
+                        <span id="playerToastText" class="font-medium">⚠️ 提示資訊</span>
+                    </div>
+
+                    <!-- MOCK CONTROLS BAR (Custom HTML5 Player Skin) -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent p-4 flex flex-col gap-3 z-20">
+                        
+                        <!-- Timeline Slider -->
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] text-slate-400" id="playerCurrentTime">00:00</span>
+                            <div class="flex-1 h-2 bg-slate-800 rounded-full relative cursor-pointer" id="timelineBar" onclick="handleTimelineClick(event)">
+                                <!-- Buffer bar -->
+                                <div class="absolute top-0 left-0 bottom-0 bg-slate-700/60 rounded-full w-[45%]"></div>
+                                <!-- Progress bar -->
+                                <div class="absolute top-0 left-0 bottom-0 bg-blue-500 rounded-full w-[0%]" id="timelineProgress"></div>
+                                <!-- Handle -->
+                                <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white w-3.5 h-3.5 rounded-full shadow-md scale-100 hover:scale-125 transition-transform duration-100" style="left: 0%;" id="timelineHandle"></div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 video-total-duration">10:00</span>
+                        </div>
+
+                        <!-- Lower Control Buttons -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <!-- Play/Pause -->
+                                <button onclick="togglePlayState()" class="text-slate-300 hover:text-white transition duration-150" id="btnPlayPause">
+                                    <i class="fa-solid fa-play text-lg" id="playIcon"></i>
+                                </button>
+                                <!-- Rewind 10s -->
+                                <button onclick="skipTime(-10)" class="text-slate-400 hover:text-white transition duration-150 text-sm" title="倒退 10 秒">
+                                    <i class="fa-solid fa-backward-step"></i> -10s
+                                </button>
+                                <!-- Forward 10s -->
+                                <button onclick="skipTime(10)" class="text-slate-400 hover:text-white transition duration-150 text-sm" title="快進 10 秒">
+                                    +10s <i class="fa-solid fa-forward-step"></i>
+                                </button>
+                                <!-- Test Attendance Check Trigger for Admin -->
+                                <button onclick="triggerAttendanceMock('midway')" id="btnTriggerCheck" class="hidden text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded hover:bg-amber-500/20 transition duration-150">
+                                    <i class="fa-solid fa-fingerprint mr-1"></i> 手動觸發打卡
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <!-- Speed Selector Panel -->
+                                <div class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-md border border-slate-800">
+                                    <span class="text-[10px] text-slate-400">速度：</span>
+                                    <select id="playerSpeedSelector" class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer" onchange="handleSpeedChange()">
+                                        <option value="1.0">1.0x (標準)</option>
+                                        <option value="1.25">1.25x</option>
+                                        <option value="1.5">1.5x</option>
+                                        <option value="2.0">2.0x</option>
+                                    </select>
+                                </div>
+                                <span class="text-[10px] bg-slate-800 border border-slate-700 px-2 py-1 rounded text-slate-300 uppercase font-bold" id="badgeActiveMode">
+                                    首次觀看
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <!-- Quick Instructions and Sandbox Logs -->
+                <div class="mt-4 p-4 rounded-xl bg-slate-900/30 border border-slate-800/80">
+                    <h5 class="text-xs font-bold text-slate-300 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-terminal text-blue-400"></i> 控制台模擬日誌：
+                    </h5>
+                    <div id="sandboxConsole" class="font-mono text-[11px] text-slate-400 bg-slate-950 p-3 rounded-lg h-24 overflow-y-auto space-y-1">
+                        <div class="text-slate-500">[系統啟動] 播放器沙盒初始化成功。當前模擬：PH Plus + 首次觀看。</div>
+                        <div class="text-slate-500">[狀態] 拖動最上方的滑桿可以即時更改學生成績和對應的播放限制！</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- COMPARISON TABLE: Tailored from Google One / Google AI Scheme -->
+    <div class="max-w-6xl mx-auto mb-16 bg-slate-900/30 backdrop-blur-md border border-slate-800/60 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl md:text-3xl font-black text-slate-100 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-rectangle-list text-purple-400"></i> 找出適合你的 PH 學習方案
+            </h2>
+            <p class="text-slate-400 text-xs md:text-sm mt-2">詳細對比各等級特權，全方位解鎖你專屬的物理成長路徑</p>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800/80">
+            <table class="w-full text-left border-collapse text-xs md:text-sm">
+                <thead>
+                    <tr class="bg-slate-950/80 border-b border-slate-800">
+                        <th class="p-4 text-slate-400 font-extrabold w-1/4">方案特權項目</th>
+                        <th class="p-4 text-slate-400 font-bold text-center">🛡️ PH Core</th>
+                        <th class="p-4 text-sky-400 font-bold text-center">⚡ PH Plus</th>
+                        <th class="p-4 text-orange-400 font-bold text-center">🔥 PH Prime</th>
+                        <th class="p-4 text-purple-400 font-bold text-center">🌌 PH Ultra</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/50">
+                    <!-- Section: 成績與門檻 -->
+                    <tr class="bg-slate-900/10">
+                        <td colspan="5" class="p-3 font-black text-xs text-indigo-400 uppercase tracking-wider bg-slate-950/30">
+                            🎓 測考門檻與補強要求
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-300 font-medium">物理測考成績門檻</td>
+                        <td class="p-4 text-center text-slate-400 font-semibold">少於 40%</td>
+                        <td class="p-4 text-center text-sky-400 font-semibold">40% - 65%</td>
+                        <td class="p-4 text-center text-orange-400 font-semibold">65% - 80%</td>
+                        <td class="p-4 text-center text-purple-400 font-semibold">大於 80%</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-300 font-medium">基礎補習影片觀看</td>
+                        <td class="p-4 text-center text-rose-400 font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> 強制觀看</td>
+                        <td class="p-4 text-center text-slate-500">無需觀看</td>
+                        <td class="p-4 text-center text-slate-500">無需觀看</td>
+                        <td class="p-4 text-center text-slate-500">無需觀看</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-300 font-medium">系統考勤防呆打卡</td>
+                        <td class="p-4 text-center text-amber-400 font-bold"><i class="fa-solid fa-fingerprint mr-1"></i> 隨機中途打卡</td>
+                        <td class="p-4 text-center text-sky-400 font-bold"><i class="fa-solid fa-clock mr-1"></i> 完成後打卡</td>
+                        <td class="p-4 text-center text-orange-400 font-bold"><i class="fa-solid fa-clock mr-1"></i> 完成後打卡</td>
+                        <td class="p-4 text-center text-emerald-500 font-bold"><i class="fa-solid fa-circle-check"></i> 免除</td>
+                    </tr>
+
+                    <!-- Section: 播放器控制限制 -->
+                    <tr class="bg-slate-900/10">
+                        <td colspan="5" class="p-3 font-black text-xs text-indigo-400 uppercase tracking-wider bg-slate-950/30">
+                            📹 首次觀看播放控制
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-300 font-medium">首次播放快進限制</td>
+                        <td class="p-4 text-center text-rose-400 font-bold"><i class="fa-solid fa-lock mr-1"></i> 完全鎖定</td>
+                        <td class="p-4 text-center text-rose-400 font-bold"><i class="fa-solid fa-lock mr-1"></i> 完全鎖定</td>
+                        <td class="p-4 text-center text-rose-400 font-bold"><i class="fa-solid fa-lock mr-1"></i> 完全鎖定</td>
+                        <td class="p-4 text-center text-emerald-400 font-bold"><i class="fa-solid fa-unlock mr-1"></i> 完全解鎖</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-300 font-medium">首次播放倍速調控</td>
+                        <td class="p-4 text-center text-rose-400 font-bold"><i class="fa-solid fa-ban mr-1"></i> 固定 1.0x</td>
+                        <td class="p-4 text-center text-rose-400 font-bold"><i class="fa-solid fa-ban mr-1"></i> 固定 1.0x</td>
+                        <td class="p-4 text-center text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 自由加速</td>
+                        <td class="p-4 text-center text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 自由調速</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-300 font-medium">複習 / 回放控制權限</td>
+                        <td class="p-4 text-center text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 自由解鎖</td>
+                        <td class="p-4 text-center text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 自由解鎖</td>
+                        <td class="p-4 text-center text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 自由解鎖</td>
+                        <td class="p-4 text-center text-emerald-400 font-bold"><i class="fa-solid fa-crown mr-1"></i> 絕對控制自由</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footnotes & Explanations -->
+    <div class="max-w-4xl mx-auto text-center mt-12 text-xs text-slate-500 space-y-2">
+        <p>* 以上播放限制為首次播放時由 PH 智慧教學系統強烈執行，複習回放時系統會自動解鎖完整播放器限制權限。</p>
+        <p>PH studios &copy; 2026.</p>
+    </div>
+
+    <!-- Internal Interactive Logic Script -->
+    <script>
+        // Global variables representing Simulation State
+        let currentScore = 55;
+        let currentTier = 'plus'; // 'core', 'plus', 'prime', 'ultra'
+        let currentWatchStage = 'first'; // 'first', 'review'
+        let isPlaying = false;
+        let currentVideoTime = 0; // in seconds
+        let totalVideoTime = 600; // default 10 mins fallback
+        let playbackSpeed = 1.0;
+        let consoleLogElement = document.getElementById('sandboxConsole');
+        let activeAttendanceType = 'midway'; // 'midway' or 'completion'
+        
+        // YouTube API States
+        let ytPlayer;
+        let isYtReady = false;
+
+        // Callback trigger by YouTube Iframe API when loaded
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('ytPlayer', {
+                height: '100%',
+                width: '100%',
+                videoId: 'CUw-lkVm2og',
+                playerVars: {
+                    'controls': 0,
+                    'disablekb': 1,
+                    'modestbranding': 1,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'fs': 0,
+                    'iv_load_policy': 3,
+                    'autohide': 1,
+                    'origin': window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            isYtReady = true;
+            totalVideoTime = ytPlayer.getDuration() || 600;
+            updateTotalDuration(totalVideoTime);
+            writeConsoleLog("📺 YouTube 影片載入成功，準備就緒！", "success");
+        }
+
+        function onPlayerStateChange(event) {
+            // YT.PlayerState: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
+            if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                document.getElementById('videoPlaceholder').style.opacity = '0'; // hide loading cover
+                syncControlsUI(true);
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                isPlaying = false;
+                syncControlsUI(false);
+            } else if (event.data === YT.PlayerState.ENDED) {
+                isPlaying = false;
+                syncControlsUI(false);
+                onVideoEnded();
+            }
+        }
+
+        // Helper: Sync custom UI layout to real playing status
+        function syncControlsUI(playing) {
+            const playIcon = document.getElementById('playIcon');
+            const visualizerIcon = document.getElementById('videoVisualizerIcon');
+            const visualizerPulse = document.getElementById('videoVisualizerPulse');
+
+            if (playing) {
+                playIcon.className = "fa-solid fa-pause text-lg";
+                visualizerIcon.className = "fa-solid fa-film text-2xl text-blue-400 animate-spin";
+                visualizerPulse.className = "absolute inset-0 rounded-full border-4 border-sky-400/30 scale-125 opacity-100 transition-all duration-700";
+                writeConsoleLog("▶️ 影片啟動播放。");
+            } else {
+                playIcon.className = "fa-solid fa-play text-lg";
+                visualizerIcon.className = "fa-solid fa-play text-2xl text-slate-300 ml-1";
+                visualizerPulse.className = "absolute inset-0 rounded-full border-4 border-sky-400/30 scale-100 opacity-0 transition duration-300";
+                writeConsoleLog("⏸️ 影片已暫停。");
+            }
+        }
+
+        // Dynamic Total Time Updater in UI
+        function updateTotalDuration(duration) {
+            const totalDurationElements = document.querySelectorAll('.video-total-duration');
+            const durationStr = secondsToTime(duration);
+            totalDurationElements.forEach(el => {
+                el.innerText = durationStr;
+            });
+        }
+
+        // Initial setup on window load
+        window.onload = function() {
+            // Setup slider and inputs
+            const scoreSlider = document.getElementById('scoreSlider');
+            const scoreInput = document.getElementById('scoreInput');
+            
+            scoreSlider.addEventListener('input', function() {
+                updateScoreAndTiers(this.value);
+            });
+            scoreInput.addEventListener('input', function() {
+                let val = parseInt(this.value);
+                if (isNaN(val)) val = 0;
+                if (val > 100) val = 100;
+                if (val < 0) val = 0;
+                this.value = val;
+                scoreSlider.value = val;
+                updateScoreAndTiers(val);
+            });
+
+            // Initialize display state
+            updateScoreAndTiers(currentScore);
+            
+            // Start micro timeline ticker (just mock progress tick)
+            setInterval(videoProgressTick, 500); // Ticking 500ms for responsiveness
+        };
+
+        // Write a log line to mock terminal console
+        function writeConsoleLog(msg, type = 'info') {
+            const timeStr = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+            let colorClass = 'text-slate-400';
+            if (type === 'warning') colorClass = 'text-amber-400 font-medium';
+            if (type === 'error') colorClass = 'text-rose-400 font-medium';
+            if (type === 'success') colorClass = 'text-emerald-400 font-medium';
+            
+            consoleLogElement.innerHTML += `<div class="${colorClass}">[${timeStr}] ${msg}</div>`;
+            consoleLogElement.scrollTop = consoleLogElement.scrollHeight;
+        }
+
+        // Logic to update state based on Score
+        function updateScoreAndTiers(score) {
+            currentScore = score;
+            
+            // UI elements update
+            document.getElementById('scoreBadgeValue').innerText = score + '%';
+            document.getElementById('scoreInput').value = score;
+            document.getElementById('scoreSlider').value = score;
+            
+            // Determine Tier
+            let tier = 'core';
+            let badgeText = '🛡️ PH Core';
+            let badgeClass = 'bg-slate-500/20 text-slate-300 border-slate-500/30';
+            let limitText = '基礎補習、中途考勤打卡、首次觀看不可快進與調速';
+            
+            if (score >= 40 && score < 65) {
+                tier = 'plus';
+                badgeText = '⚡ PH Plus';
+                badgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+                limitText = '首次播放固定 1.0x 語速、不可快進且需完成後打卡';
+            } else if (score >= 65 && score <= 80) {
+                tier = 'prime';
+                badgeText = '🔥 PH Prime';
+                badgeClass = 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+                limitText = '首次播放不可快進、需完成後打卡，但允許隨意調速';
+            } else if (score > 80) {
+                tier = 'ultra';
+                badgeText = '🌌 PH Ultra';
+                badgeClass = 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+                limitText = '尊享終極特權！完全自由播放無限制，免除考勤';
+            }
+
+            currentTier = tier;
+
+            // Update state indicator badge
+            const matchingTierBadge = document.getElementById('matchingTierBadge');
+            matchingTierBadge.innerText = badgeText;
+            matchingTierBadge.className = `text-sm font-semibold px-3 py-1 rounded-full border ${badgeClass}`;
+            document.getElementById('matchingTierLimitText').innerText = limitText;
+
+            // Sync visual highlights of cards
+            highlightCard(tier);
+
+            // Update player sim selector
+            document.getElementById('playerSimTier').value = tier;
+            
+            // Reapply settings inside player
+            applyPlayerRestrictions();
+            writeConsoleLog(`學生成績更新為 ${score}%，自動切換至 ${badgeText} 狀態。`);
+        }
+
+        // Highlights the matched card with premium glow matching image specifications
+        function highlightCard(activeTier) {
+            const tiers = ['core', 'plus', 'prime', 'ultra'];
+            
+            tiers.forEach(t => {
+                const card = document.getElementById(`card-${t}`);
+                if (t === activeTier) {
+                    card.classList.add(`glow-active-${t}`);
+                    card.classList.remove('bg-slate-900/40', 'border-slate-800/80');
+                    card.style.borderColor = 'currentColor'; // fallback
+                } else {
+                    card.className = card.className.replace(new RegExp(`glow-active-${t}`, 'g'), '');
+                    card.classList.add('bg-slate-900/40', 'border-slate-800/80');
+                }
+            });
+        }
+
+        // Simulate choosing a tier from a card button
+        function simulateIdentity(tier) {
+            let score = 30; // core default
+            if (tier === 'plus') score = 55;
+            if (tier === 'prime') score = 72;
+            if (tier === 'ultra') score = 90;
+            
+            updateScoreAndTiers(score);
+            
+            // Smooth scroll to sandbox
+            document.getElementById('playerSimTier').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            writeConsoleLog(`[切換] 已手動模擬登入 [${tier.toUpperCase()}] 身份！`, 'success');
+        }
+
+        // Toggle collapsible details in tier cards
+        function toggleDetails(elementId) {
+            const details = document.getElementById(elementId);
+            const icon = document.getElementById('icon-' + elementId);
+            
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                icon.className = 'fa-solid fa-chevron-up text-[9px]';
+            } else {
+                details.classList.add('hidden');
+                icon.className = 'fa-solid fa-chevron-down text-[9px]';
+            }
+        }
+
+        // Handle Change in Sim Dashboard Select
+        function onPlayerSettingChange() {
+            const selectVal = document.getElementById('playerSimTier').value;
+            let score = 30;
+            if (selectVal === 'plus') score = 55;
+            if (selectVal === 'prime') score = 72;
+            if (selectVal === 'ultra') score = 90;
+            
+            updateScoreAndTiers(score);
+        }
+
+        // Sets the watch mode state (First Watch or Review/Replay)
+        function setWatchStage(stage) {
+            currentWatchStage = stage;
+            
+            const btnFirst = document.getElementById('btnFirstWatch');
+            const btnReview = document.getElementById('btnReviewWatch');
+            const badgeActiveMode = document.getElementById('badgeActiveMode');
+
+            if (stage === 'first') {
+                btnFirst.className = "py-2 px-3 text-xs font-bold rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-300 transition duration-150";
+                btnReview.className = "py-2 px-3 text-xs font-medium rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800 transition duration-150";
+                badgeActiveMode.innerText = "首次觀看";
+                badgeActiveMode.className = "text-[10px] bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded text-amber-400 font-bold uppercase";
+                writeConsoleLog("觀看模式切換：首次觀看（將實施相應級別的限制）", "warning");
+            } else {
+                btnReview.className = "py-2 px-3 text-xs font-bold rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-300 transition duration-150";
+                btnFirst.className = "py-2 px-3 text-xs font-medium rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800 transition duration-150";
+                badgeActiveMode.innerText = "複習回放";
+                badgeActiveMode.className = "text-[10px] bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded text-emerald-400 font-bold uppercase";
+                writeConsoleLog("觀看模式切換：複習/回放（本段影片已全數觀看完畢，解鎖全部功能控制權）", "success");
+            }
+
+            applyPlayerRestrictions();
+        }
+
+        // Implements and visualizes the core rules of the playback logic
+        function applyPlayerRestrictions() {
+            const infNoFF = document.getElementById('indicatorNoFastForward');
+            const infSpeedLimit = document.getElementById('indicatorSpeedLimit');
+            const infAttendance = document.getElementById('indicatorAttendanceCheck');
+            const speedSelector = document.getElementById('playerSpeedSelector');
+            const btnTriggerCheck = document.getElementById('btnTriggerCheck');
+
+            // Reset defaults
+            btnTriggerCheck.classList.add('hidden');
+
+            // Scenario 1: Replay/Review watch (ALL restrictions are automatically unlocked)
+            if (currentWatchStage === 'review') {
+                infNoFF.innerHTML = '<i class="fa-solid fa-unlock text-emerald-400"></i> 已完全解鎖';
+                infNoFF.className = 'font-bold text-emerald-400 flex items-center gap-1';
+                
+                infSpeedLimit.innerText = '完全解鎖調速';
+                infSpeedLimit.className = 'font-bold text-emerald-400';
+                
+                infAttendance.innerText = '✨ 無需進行';
+                infAttendance.className = 'font-bold text-slate-500';
+                
+                // Allow selector change
+                speedSelector.disabled = false;
+                return;
+            }
+
+            // Scenario 2: First Watch rules (Strict constraints apply based on Tiers)
+            if (currentTier === 'core') {
+                infNoFF.innerHTML = '<i class="fa-solid fa-lock text-rose-400"></i> 嚴格管制中';
+                infNoFF.className = 'font-bold text-rose-400 flex items-center gap-1';
+                
+                infSpeedLimit.innerText = '強制 1.0x 語速';
+                infSpeedLimit.className = 'font-bold text-rose-400';
+                
+                infAttendance.innerText = '⚠️ 隨機中途打卡';
+                infAttendance.className = 'font-bold text-amber-400';
+                
+                // Lock player speed selection to 1.0x
+                speedSelector.value = "1.0";
+                playbackSpeed = 1.0;
+                if (isYtReady) ytPlayer.setPlaybackRate(1.0);
+                speedSelector.disabled = true;
+                btnTriggerCheck.classList.remove('hidden'); // allow admin simulator testing
+
+            } else if (currentTier === 'plus') {
+                infNoFF.innerHTML = '<i class="fa-solid fa-lock text-rose-400"></i> 嚴格管制中';
+                infNoFF.className = 'font-bold text-rose-400 flex items-center gap-1';
+                
+                infSpeedLimit.innerText = '固定 1.0x 語速';
+                infSpeedLimit.className = 'font-bold text-slate-400';
+                
+                infAttendance.innerText = '📝 影片完成後打卡';
+                infAttendance.className = 'font-bold text-sky-400';
+                
+                // Lock player speed to 1.0x
+                speedSelector.value = "1.0";
+                playbackSpeed = 1.0;
+                if (isYtReady) ytPlayer.setPlaybackRate(1.0);
+                speedSelector.disabled = true;
+
+            } else if (currentTier === 'prime') {
+                infNoFF.innerHTML = '<i class="fa-solid fa-lock text-rose-400"></i> 嚴格管制中';
+                infNoFF.className = 'font-bold text-rose-400 flex items-center gap-1';
+                
+                infSpeedLimit.innerText = '解鎖 1.5x / 2.0x 快速學習';
+                infSpeedLimit.className = 'font-bold text-emerald-400';
+                
+                infAttendance.innerText = '📝 影片完成後打卡';
+                infAttendance.className = 'font-bold text-orange-400';
+                
+                // Enable speed adjustments
+                speedSelector.disabled = false;
+
+            } else if (currentTier === 'ultra') {
+                infNoFF.innerHTML = '<i class="fa-solid fa-unlock text-emerald-400"></i> 完全解鎖';
+                infNoFF.className = 'font-bold text-emerald-400 flex items-center gap-1';
+                
+                infSpeedLimit.innerText = '終極自由調速';
+                infSpeedLimit.className = 'font-bold text-emerald-400';
+                
+                infAttendance.innerText = '✨ 無需進行';
+                infAttendance.className = 'font-bold text-slate-500';
+                
+                speedSelector.disabled = false;
+            }
+        }
+
+        // Custom Toast Notification System
+        function showToast(message) {
+            const toast = document.getElementById('playerToast');
+            const toastText = document.getElementById('playerToastText');
+            
+            toastText.innerText = message;
+            toast.className = toast.className.replace('opacity-0 -translate-y-16', 'opacity-100 translate-y-0');
+            
+            setTimeout(() => {
+                toast.className = toast.className.replace('opacity-100 translate-y-0', 'opacity-0 -translate-y-16');
+            }, 3500);
+        }
+
+        // Timeline Bar Click Handler - Blocking logic simulation!
+        function handleTimelineClick(event) {
+            if (!isYtReady) {
+                showToast("⚠️ 影片正在加載，請稍候...");
+                return;
+            }
+            
+            const timeline = document.getElementById('timelineBar');
+            const rect = timeline.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            const duration = ytPlayer.getDuration() || totalVideoTime;
+            const targetTime = Math.floor(percentage * duration);
+
+            // Fast forward blocking logic
+            if (targetTime > currentVideoTime) {
+                // If is first watch, and tier is Core, Plus or Prime -> BLOCK!
+                if (currentWatchStage === 'first' && currentTier !== 'ultra') {
+                    showToast(`⚠️ 播放限制：首次觀看禁止快進影片！「${currentTier.toUpperCase()}」級別需完整讀課完畢。`);
+                    writeConsoleLog(`[阻攔] 系統檢測到快進嘗試 (${secondsToTime(currentVideoTime)} -> ${secondsToTime(targetTime)}) 成功阻攔並將進度重設！`, 'error');
+                    return;
+                }
+            }
+
+            // If allowed (Ultra or Review mode or going backwards)
+            updateTimelinePosition(targetTime);
+            ytPlayer.seekTo(targetTime, true);
+            writeConsoleLog(`[跳轉] 進度更新至 ${secondsToTime(targetTime)}。`);
+        }
+
+        // Timeline Backward & Forward skip button simulator
+        function skipTime(seconds) {
+            if (!isYtReady) {
+                showToast("⚠️ 影片正在加載，請稍候...");
+                return;
+            }
+
+            const duration = ytPlayer.getDuration() || totalVideoTime;
+            const targetTime = Math.max(0, Math.min(duration, currentVideoTime + seconds));
+            
+            if (seconds > 0) {
+                // Try to fast forward
+                if (currentWatchStage === 'first' && currentTier !== 'ultra') {
+                    showToast(`⚠️ 播放限制：首次觀看禁止快進！快進被系統嚴格封鎖。`);
+                    writeConsoleLog(`[阻攔] 快進 +10s 嘗試遭限制系統阻攔！`, 'error');
+                    return;
+                }
+            }
+
+            updateTimelinePosition(targetTime);
+            ytPlayer.seekTo(targetTime, true);
+            writeConsoleLog(`[跳轉] 影片${seconds > 0 ? '快進' : '後退'}了 ${Math.abs(seconds)} 秒。`);
+        }
+
+        // Updates progress visualization inside HTML player skin
+        function updateTimelinePosition(seconds) {
+            currentVideoTime = seconds;
+            const duration = isYtReady ? ytPlayer.getDuration() : totalVideoTime;
+            const percentage = (currentVideoTime / duration) * 100;
+            
+            document.getElementById('timelineProgress').style.width = `${percentage}%`;
+            document.getElementById('timelineHandle').style.left = `${percentage}%`;
+            
+            const timeStr = secondsToTime(currentVideoTime);
+            document.getElementById('playerCurrentTime').innerText = timeStr;
+            document.getElementById('currentTimeText').innerText = timeStr;
+        }
+
+        // Play and Pause Toggle Simulation
+        function togglePlayState() {
+            if (!isYtReady) {
+                showToast("⚠️ 影片正在加載，請稍候...");
+                return;
+            }
+
+            if (isPlaying) {
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+        }
+
+        // Automated continuous playback progress tick
+        function videoProgressTick() {
+            if (!isYtReady || !isPlaying) return;
+
+            // Read actual time from YouTube API
+            const ytCurrentTime = ytPlayer.getCurrentTime();
+
+            // Anti-cheat fallback verification (If YouTube player jumps ahead inexplicably on first watch)
+            if (currentWatchStage === 'first' && currentTier !== 'ultra') {
+                if (ytCurrentTime > currentVideoTime + 3) { // 3 seconds buffer
+                    ytPlayer.seekTo(currentVideoTime, true);
+                    writeConsoleLog(`[防作弊警告] 偵測到影片播放進度異常超前！已自動回滾至安全進度。`, 'error');
+                    return;
+                }
+            }
+
+            currentVideoTime = ytCurrentTime;
+            
+            // Core Random Attendance trigger simulation (around every 30 seconds for demo convenience)
+            if (currentTier === 'core' && currentWatchStage === 'first' && Math.floor(currentVideoTime) % 30 === 15) {
+                triggerAttendanceMock('midway');
+                return;
+            }
+
+            updateTimelinePosition(currentVideoTime);
+        }
+
+        // Speed Adjustment selection logic
+        function handleSpeedChange() {
+            const val = parseFloat(document.getElementById('playerSpeedSelector').value);
+            
+            // Double validation logic
+            if (currentWatchStage === 'first' && (currentTier === 'core' || currentTier === 'plus')) {
+                showToast("⚠️ 播放限制：目前級別不允許在首次觀看時調節播放速度。");
+                document.getElementById('playerSpeedSelector').value = "1.0";
+                playbackSpeed = 1.0;
+                if (isYtReady) ytPlayer.setPlaybackRate(1.0);
+                writeConsoleLog("[阻攔] 嘗試調整速度，但該級別首次看課已限制固定為 1.0x 語速！", 'error');
+                return;
+            }
+
+            playbackSpeed = val;
+            if (isYtReady) {
+                ytPlayer.setPlaybackRate(val);
+            }
+            writeConsoleLog(`[速限更新] 播放速度成功調控為 ${val}x 倍速。`, 'success');
+        }
+
+        // Called when YouTube triggers end state
+        function onVideoEnded() {
+            if (currentWatchStage === 'first' && (currentTier === 'plus' || currentTier === 'prime' || currentTier === 'core')) {
+                // If Core, plus or prime at first watch -> require completion check-in
+                triggerAttendanceMock('completion');
+            } else {
+                completeLearning();
+            }
+        }
+
+        function completeLearning() {
+            writeConsoleLog("🎉 恭喜！本片已首次完整播放完畢！解鎖複習限制。", "success");
+            setWatchStage('review');
+        }
+
+        // Attendance popup mechanisms specifically for "Core", "Plus" and "Prime" Students
+        function triggerAttendanceMock(type = 'midway') {
+            if (isPlaying && isYtReady) {
+                ytPlayer.pauseVideo(); // pause YouTube Video
+            }
+            activeAttendanceType = type;
+
+            const overlay = document.getElementById('attendanceOverlay');
+            const title = overlay.querySelector('h4');
+            const text = overlay.querySelector('p');
+            const button = overlay.querySelector('button');
+
+            if (type === 'midway') {
+                title.innerHTML = '🚨 PH Core 學習防呆中途打卡';
+                text.innerText = '系統偵測到您正在觀看基礎補習影片，請點擊下方按鈕完成中途隨機打卡，以驗證在線觀看狀態。';
+                button.innerHTML = '<i class="fa-solid fa-fingerprint mr-1"></i> 我正在專心聽課，完成中途打卡！';
+            } else {
+                title.innerHTML = '📝 PH 學習防呆完成後打卡';
+                text.innerText = `恭喜觀看影片完畢！「${currentTier.toUpperCase()}」級別學生請點擊下方按鈕進行完成後考勤打卡，系統將為您記錄課時並自動解鎖複習限制。`;
+                button.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> 已聽課完畢，確認完成考勤打卡！';
+            }
+
+            overlay.classList.remove('hidden');
+            writeConsoleLog(`🚨 [打卡警告] 觸發了系統 [${type === 'midway' ? '隨機中途' : '課後完成'}] 考勤打卡機制！影片暫停。`, "warning");
+        }
+
+        function dismissAttendance() {
+            document.getElementById('attendanceOverlay').classList.add('hidden');
+            
+            if (activeAttendanceType === 'completion') {
+                writeConsoleLog("✅ [課後打卡成功] 通過完成後考勤防呆檢查！本影片已成功解鎖複習與控制自由權限。", "success");
+                completeLearning();
+            } else {
+                writeConsoleLog("✅ [中途打卡成功] 通過中途防呆檢查！繼續播放影片。", "success");
+                if (isYtReady) {
+                    ytPlayer.playVideo(); // resume YouTube Video
+                }
+            }
+        }
+
+        // Helper: Convert seconds to beautiful video time layout
+        function secondsToTime(secs) {
+            const minutes = Math.floor(secs / 60);
+            const seconds = Math.floor(secs % 60);
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>
