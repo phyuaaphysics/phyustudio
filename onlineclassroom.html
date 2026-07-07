@@ -263,16 +263,15 @@
             background: #fff;
         }
 
-        /* 🆕 呼吸灯泡闪烁动画 (sparkle) */
+        /* 🆕 呼吸灯泡闪烁动画 (仅光影闪烁，不缩放) */
         @keyframes sparkle {
             0%, 100% {
                 opacity: 1;
-                transform: scale(1);
+                text-shadow: 0 0 0px currentColor;
             }
             50% {
                 opacity: 0.4;
-                transform: scale(1.12);
-                text-shadow: 0 0 12px currentColor;
+                text-shadow: 0 0 12px currentColor, 0 0 24px currentColor;
             }
         }
         .sparkle-text {
@@ -379,60 +378,62 @@
                 </div>
             </div>
 
-            <!-- ========================================== -->
-            <!-- 核心面板一：學生帳戶資訊卡 (調整為垂直佈局，會員狀態獨立成行) -->
-            <!-- ========================================== -->
-            <div class="crystal-panel rounded-2xl p-4 flex flex-col gap-3">
+            <!-- 核心面板一：學生帳戶資訊卡（會員狀態置於右側） -->
+            <div class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center gap-4">
 
-                <!-- 第一行：左側學生資訊 + 右側班別/學號/日曆 (不含會員狀態) -->
-                <div class="flex flex-row justify-between items-center gap-4">
-                    <!-- 左側：帳戶名稱與身份標誌 — 點擊整個區域開啟學生檔案 iframe -->
-                    <div id="student-profile-trigger" class="flex items-center space-x-4 cursor-pointer select-none">
-                        <!-- 薄荷綠圓形學士帽圖示 -->
-                        <div class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
-                            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-                        </div>
-                        <div class="text-left">
-                            <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 shippori-title">--</h3>
-                            <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
-                        </div>
+                <!-- 左側：帳戶名稱與身份標誌 — 點擊整個區域開啟學生檔案 iframe -->
+                <div id="student-profile-trigger" class="flex items-center space-x-4 cursor-pointer select-none">
+
+                    <!-- 薄荷綠圓形學士帽圖示 -->
+                    <div class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
+                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-left">
+                        <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 shippori-title">--</h3>
+                        <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
                     </div>
 
-                    <!-- 右側：班級、學號、日曆按鈕 -->
-                    <div class="flex items-center gap-4 text-right pr-1 shrink-0">
-                        <!-- 班別 -->
-                        <div>
-                            <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
-                            <p id="card-class" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
-                        </div>
-
-                        <!-- 垂直精細分割線 -->
-                        <div class="w-[1px] h-6 bg-slate-900/10"></div>
-
-                        <!-- 學號 -->
-                        <div>
-                            <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
-                            <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
-                        </div>
-
-                        <!-- 垂直精細分割線 -->
-                        <div class="w-[1px] h-6 bg-slate-900/10"></div>
-
-                        <!-- 日曆展開/收合按鈕 (iOS風，帶點按縮放與自訂高亮) -->
-                        <button id="calendar-toggle-btn" class="w-9 h-9 rounded-full bg-white/60 hover:bg-emerald-50/80 hover:text-emerald-700 border border-slate-900/[0.08] flex items-center justify-center text-slate-700 transition duration-300 active:scale-90 shadow-sm" title="開啟補課日曆">
-                            <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
-                        </button>
-                    </div>
                 </div>
 
-                <!-- 第二行：會員狀態 (獨立成行，放大，並加入呼吸燈效果) -->
-                <div class="flex flex-col items-start w-full pt-2 border-t border-slate-900/10 mt-1">
-                    <div class="flex items-center gap-1">
-                        <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">會員狀態</p>
-                        <button id="membership-info-trigger" class="w-3.5 h-3.5 rounded-full bg-slate-200 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-[9px] font-bold text-slate-600 transition" title="點擊了解更多">?</button>
+                <!-- 右側：班級、學號、會員狀態（放大+閃爍）、日曆按鈕 -->
+                <div class="flex items-center gap-3 md:gap-4 text-right pr-1 shrink-0 flex-wrap justify-end">
+
+                    <!-- 班別 -->
+                    <div>
+                        <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
+                        <p id="card-class" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
                     </div>
-                    <p id="card-membership" class="text-2xl md:text-3xl font-black text-slate-850 tracking-wide sofia-font">--</p>
+
+                    <!-- 垂直精細分割線 -->
+                    <div class="w-[1px] h-6 bg-slate-900/10 hidden sm:block"></div>
+
+                    <!-- 學號 -->
+                    <div>
+                        <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
+                        <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+                    </div>
+
+                    <!-- 垂直精細分割線 -->
+                    <div class="w-[1px] h-6 bg-slate-900/10 hidden sm:block"></div>
+
+                    <!-- 會員狀態（右側，放大，帶呼吸燈效果） -->
+                    <div class="flex flex-col items-end">
+                        <div class="flex items-center gap-1">
+                            <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">會員狀態</p>
+                            <button id="membership-info-trigger" class="w-3.5 h-3.5 rounded-full bg-slate-200 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-[9px] font-bold text-slate-600 transition" title="點擊了解更多">?</button>
+                        </div>
+                        <p id="card-membership" class="text-xl md:text-2xl font-black text-slate-850 tracking-wide sofia-font">--</p>
+                    </div>
+
+                    <!-- 垂直精細分割線 -->
+                    <div class="w-[1px] h-6 bg-slate-900/10 hidden sm:block"></div>
+
+                    <!-- 日曆展開/收合按鈕 -->
+                    <button id="calendar-toggle-btn" class="w-9 h-9 rounded-full bg-white/60 hover:bg-emerald-50/80 hover:text-emerald-700 border border-slate-900/[0.08] flex items-center justify-center text-slate-700 transition duration-300 active:scale-90 shadow-sm" title="開啟補課日曆">
+                        <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
+                    </button>
                 </div>
+
             </div>
 
             <!-- ========================================== -->
