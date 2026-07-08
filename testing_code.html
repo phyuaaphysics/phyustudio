@@ -1,1619 +1,1081 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PH Studio - 學生登入系統</title>
+    <title>AI 智能功課與小測核對系統 (視覺精確版)</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com">
     </script>
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest">
     </script>
-    <!-- html2pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js">
     </script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+
+    <!-- html2pdf.js (保留以防其他關聯調用，但輸出改用更穩定的 Native 模式) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+    </script>
+
     <style>
-        /* ===== 原有字型與動畫 (保留全部) ===== */
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&display=swap');
-
-        body {
-            font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-image: url('https://i.ibb.co/yn7JJ8yy/classroom.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        .cinzel-title { font-family: 'Cinzel', serif; }
-        .shippori-title { font-family: 'Shippori Mincho', serif; font-weight: 700; }
-
-        .crystal-panel {
-            background: rgba(255, 255, 255, 0.78);
-            backdrop-filter: blur(30px) saturate(160%);
-            -webkit-backdrop-filter: blur(30px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        /* A4 導出專用樣式 - 螢幕顯示時預設隱藏 */
+        #printContainer {
+            display: none;
         }
 
-        .pill-input {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(15, 23, 42, 0.12);
-            color: #0f172a;
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .pill-input:focus {
-            background: rgba(255, 255, 255, 0.85);
-            border-color: rgba(16, 185, 129, 0.5);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
-            outline: none;
-        }
-        .pill-input::placeholder {
-            color: rgba(15, 23, 42, 0.5);
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            font-size: 0.75rem;
+        .print-page {
+            box-sizing: border-box;
+            background: white;
         }
 
-        /* 動畫 (全部保留) */
-        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
-        @keyframes osDamping { 0%{opacity:0;transform:translateY(60px) scale(0.95);filter:blur(8px)} 55%{opacity:0.9;transform:translateY(-6px) scale(1.01);filter:blur(0px)} 75%{transform:translateY(2px) scale(0.997)} 100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0px)} }
-        .animate-os-damping { animation: osDamping 1.1s cubic-bezier(0.25,1,0.2,1) forwards; }
-        @keyframes iosMenuEntrance { 0%{opacity:0;transform:translateY(35px) scale(0.96);filter:blur(10px)} 60%{transform:translateY(-3px) scale(1.006);filter:blur(0px)} 80%{transform:translateY(1px) scale(0.998)} 100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0px)} }
-        .animate-ios-menu { animation: iosMenuEntrance 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
-        @keyframes iosLoginExit { 0%{opacity:1;transform:scale(1) translateY(0);filter:blur(0px)} 100%{opacity:0;transform:scale(0.94) translateY(-30px);filter:blur(12px)} }
-        .animate-ios-exit { animation: iosLoginExit 0.55s cubic-bezier(0.16,1,0.3,1) forwards; }
-        @keyframes iosOverlayEntrance { 0%{opacity:0;transform:scale(1.08);backdrop-filter:blur(0px) saturate(100%);background-color:rgba(255,255,255,0)} 100%{opacity:1;transform:scale(1);backdrop-filter:blur(30px) saturate(160%);background-color:rgba(255,255,255,0.85)} }
-        .animate-ios-overlay-enter { animation: iosOverlayEntrance 0.85s cubic-bezier(0.16,1,0.3,1) forwards; }
-        @keyframes iosOverlayExit { 0%{opacity:1;transform:scale(1);backdrop-filter:blur(30px) saturate(160%);background-color:rgba(255,255,255,0.85)} 100%{opacity:0;transform:scale(1.08);backdrop-filter:blur(0px) saturate(100%);background-color:rgba(255,255,255,0)} }
-        .animate-ios-overlay-exit { animation: iosOverlayExit 0.75s cubic-bezier(0.16,1,0.3,1) forwards; }
-        @keyframes iosProfileEntrance { 0%{opacity:0;transform:scale(0.92)} 100%{opacity:1;transform:scale(1)} }
-        @keyframes iosProfileExit { 0%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(0.92)} }
-        .animate-profile-enter { animation: iosProfileEntrance 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards; }
-        .animate-profile-exit { animation: iosProfileExit 0.35s cubic-bezier(0.25,1,0.5,1) forwards; }
+        /* 💡 共享與沙盒模式特製：啟用全畫面列印預覽狀態 */
+        body.print-preview-active {
+            background: #cbd5e1 !important; /* 灰底背景突顯 A4 紙張 */
+        }
 
-        #calendar-panel { transition: all 0.55s cubic-bezier(0.16,1,0.3,1); }
-        .calendar-collapsed { max-height:0 !important; transform:scale-y(0) !important; opacity:0 !important; padding-top:0 !important; padding-bottom:0 !important; margin-top:0 !important; margin-bottom:0 !important; border-top-width:0 !important; border-bottom-width:0 !important; pointer-events:none !important; }
-        .calendar-day-cell { aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:0.75rem; border-radius:9999px; cursor:pointer; transition:all 0.25s cubic-bezier(0.16,1,0.3,1); }
-
-        #profile-iframe { width:100%; height:100%; border:none; background:#fff; }
-
-        /* ===== 🆕 超級緊湊表格樣式 (優化版) ===== */
-        .attendance-compact-table {
-            font-size: 7px;
-            border-collapse: collapse;
+        body.print-preview-active #printContainer {
+            display: block !important;
+            position: relative;
+            z-index: 50;
             width: 100%;
-            min-width: 380px;
-            table-layout: auto;
-        }
-        .attendance-compact-table th,
-        .attendance-compact-table td {
-            padding: 1px 3px;
-            text-align: left;
-            border-bottom: 1px solid rgba(15, 23, 42, 0.04);
-            font-size: 7px;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-        .attendance-compact-table th {
-            background: rgba(241, 245, 249, 0.85);
-            font-weight: 700;
-            color: #0f172a;
-            letter-spacing: 0.02em;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            border-bottom: 1px solid #cbd5e1;
-            font-size: 6.5px;
-            text-transform: uppercase;
-            padding: 1px 3px;
-        }
-        .attendance-compact-table td {
-            padding: 1px 3px;
-            font-size: 7px;
-            line-height: 1.2;
-        }
-        .attendance-compact-table .col-class {
-            font-weight: 600;
-            color: #0f172a;
-            min-width: 30px;
-            max-width: 44px;
-        }
-        .attendance-compact-table .col-name {
-            font-weight: 700;
-            color: #0f172a;
-            min-width: 34px;
-            max-width: 58px;
-        }
-        .attendance-compact-table .col-session {
-            text-align: center;
-            font-weight: 700;
-            min-width: 16px;
-            max-width: 30px;
-        }
-        .attendance-compact-table .check-mark {
-            color: #10b981;
-            font-weight: 800;
-            font-size: 9px;
-            text-align: center;
-        }
-        .attendance-compact-table .cross-mark {
-            color: #f43f5e;
-            font-weight: 800;
-            font-size: 9px;
-            text-align: center;
-        }
-        .role-table-header {
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            color: #1e293b;
-            padding: 1px 6px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 4px;
-            border: 1px solid rgba(15,23,42,0.06);
-            display: inline-block;
-        }
-        .role-table-section {
-            margin-bottom: 4px;
+            height: auto;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
-        /* PDF 列印專用 */
+        body.print-preview-active .no-print, 
+        body.print-preview-active header, 
+        body.print-preview-active main, 
+        body.print-preview-active footer, 
+        body.print-preview-active #pdfLoadingOverlay {
+            display: none !important;
+        }
+
+        body.print-preview-active .print-page {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            padding: 15mm !important;
+            margin: 20px auto !important; /* 在螢幕上呈現為一張張獨立的 A4 紙 */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.15) !important;
+            border-radius: 8px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: white !important;
+            page-break-after: always !important;
+            page-break-inside: avoid !important;
+        }
+
+        /* 瀏覽器原生列印與轉 PDF 配置 */
         @media print {
-            .no-print { display: none !important; }
-            #attendance-overlay { position:relative !important; inset:auto !important; z-index:auto !important; display:block !important; background:white !important; backdrop-filter:none !important; }
-            #attendance-overlay header, #attendance-overlay footer { display:none !important; }
-            .crystal-panel { background:white !important; backdrop-filter:none !important; box-shadow:none !important; border:1px solid #e2e8f0 !important; }
-            .attendance-compact-table th { background:#f1f5f9 !important; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-            .attendance-compact-table .check-mark, .attendance-compact-table .cross-mark { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            /* 隱藏主介面的所有無關元素 */
+            .no-print, header, main, footer, #pdfLoadingOverlay, .print-control-bar {
+                display: none !important;
+            }
+            /* 僅顯示列印專用容器 */
+            #printContainer {
+                display: block !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                z-index: 9999999 !important;
+            }
+            .print-page {
+                width: 210mm !important;
+                min-height: 297mm !important; /* 標準 A4 寬高 */
+                padding: 15mm !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+                background: white !important;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 生成中的 loading 遮罩 */
+        #pdfLoadingOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+        #pdfLoadingOverlay.active {
+            display: flex;
+        }
+        #pdfLoadingOverlay .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        #pdfLoadingOverlay p {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        #pdfLoadingOverlay .sub {
+            font-size: 13px;
+            font-weight: 300;
+            opacity: 0.7;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 relative">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <!-- 頂部磨砂背景裝飾 -->
-    <div class="absolute inset-0 bg-black/5 pointer-events-none"></div>
+    <!-- ====== LOADING 遮罩 ====== -->
+    <div id="pdfLoadingOverlay">
+        <div class="spinner"></div>
+        <p>正在準備 A4 報告並開啟列印/另存 PDF 視窗⋯</p>
+        <p class="sub">請在隨後彈出的系統對話框中選擇「另存為 PDF」</p>
+    </div>
 
-    <!-- Header -->
-    <header class="w-full max-w-4xl flex justify-end items-center py-2 z-10 shrink-0">
-        <div id="secure-badge" class="text-[10px] tracking-widest text-slate-800/80 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-sm">
-            SECURE CHANNEL
+    <!-- ====== 頂部導航 ====== -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-white/10 rounded-lg">
+                    <i data-lucide="calculator" class="w-8 h-8 text-yellow-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">AI 智能功課核對系統</h1>
+                    <p class="text-xs text-blue-100 mt-0.5">多模態視覺偵測 • 跨頁多人自動分割 • 嚴格數值核對</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 bg-blue-900/50 px-3 py-1.5 rounded-lg border border-blue-500/30 w-full sm:w-auto">
+                <span class="text-xs text-blue-200 whitespace-nowrap">Gemini API Key:</span>
+                <input type="password" id="apiKeyInput" placeholder="運行環境會自動提供，亦可手動輸入覆蓋" class="bg-blue-950/80 text-xs text-white placeholder-blue-400 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-yellow-400 w-full sm:w-48" />
+                <div id="apiKeyStatus" class="w-2.5 h-2.5 rounded-full bg-emerald-400" title="已就緒"></div>
+            </div>
         </div>
     </header>
 
-    <!-- Main -->
-    <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
+    <!-- ====== 主要工作區 ====== -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-6 no-print">
 
-        <!-- ===== 登入面板 ===== -->
-        <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-os-damping mt-6 shadow-2xl hidden">
-            <div class="flex justify-center mb-8">
-                <div class="w-14 h-14 bg-white/30 p-0.5 border border-white/40 shadow-inner flex items-center justify-center">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="PH Logo" class="w-full h-full" />
+        <!-- 左側控制台 -->
+        <div class="w-full lg:w-5/12 flex flex-col gap-6">
+
+            <!-- 第一步 -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-5">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b pb-2">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">1</span>
+                    準備名單與標準答案
+                </h2>
+
+                <!-- 學生名單 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-blue-600"></i> 學生名單
+                        </label>
+                        <span id="studentListCount" class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full hidden">0 人</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="file" id="studentListFile" accept=".csv,.txt" class="hidden" onchange="handleStudentListUpload(event)" />
+                        <button onclick="document.getElementById('studentListFile').click()" class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg border border-dashed border-slate-300 transition-all">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> 上傳名單檔案 (.csv / .txt)
+                        </button>
+                    </div>
+                    <textarea id="studentListInput" oninput="syncStudentListFromText()" placeholder="可在這裡直接輸入或貼上學生名單，格式：姓名,學號,班號 (每行一人)&#10;例如：&#10;陳大文, 5A01, 5A&#10;李小明, 5A02, 5A" class="w-full h-28 p-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"></textarea>
+                </div>
+
+                <!-- Marking Scheme -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                            <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-emerald-600"></i> Marking Scheme (標準答案)
+                        </label>
+                        <i id="markingSchemeStatusCheck" data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 hidden"></i>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="file" id="markingSchemeFile" accept=".md,.txt" class="hidden" onchange="handleMarkingSchemeUpload(event)" />
+                        <button onclick="document.getElementById('markingSchemeFile').click()" class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg border border-dashed border-slate-300 transition-all">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> 上傳標準答案 Markdown (.md)
+                        </button>
+                    </div>
+                    <textarea id="markingSchemeInput" oninput="syncMarkingSchemeFromText()" placeholder="可在這裡直接輸入、貼上或編輯 Markdown 格式答案...&#10;例如：&#10;# 小測標準答案&#10;## Q1 (5分)&#10;- 課題: 二次方程&#10;- 標準步驟: 帶入求根公式&#10;- 標準數值: x = 2" class="w-full h-32 p-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"></textarea>
+                </div>
+
+                <!-- 學生答卷 PDF -->
+                <div class="space-y-2 border-t pt-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5 text-indigo-600"></i> 上傳學生答卷 (PDF)
+                        </label>
+                        <span id="pdfPageCount" class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full hidden">0 頁</span>
+                    </div>
+                    <div class="relative flex items-center">
+                        <input type="file" id="studentAnsFile" accept=".pdf" class="hidden" onchange="handleStudentAnsUpload(event)" />
+                        <button onclick="document.getElementById('studentAnsFile').click()" class="w-full flex items-center justify-between px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg border border-dashed border-slate-300 transition-all">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
+                                <span id="studentAnsBtnText">上傳全班答卷 PDF</span>
+                            </span>
+                            <i data-lucide="paperclip" class="w-4 h-4 text-slate-400"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="mb-10">
-                <h2 class="text-2xl md:text-[2rem] font-bold tracking-[0.15em] text-slate-900 shippori-title leading-tight">線上補課系統</h2>
-                <h3 class="text-xs tracking-[0.4em] text-slate-300/70 cinzel-title mt-3.5 uppercase">Student Portal</h3>
-                <div class="w-6 h-[1px] bg-white/30 mx-auto mt-4"></div>
-            </div>
-            <form id="login-form" class="space-y-5">
-                <div class="relative">
-                    <input type="text" id="username" required placeholder="Username" class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide" />
+
+            <!-- 第二步 -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b pb-2">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">2</span>
+                    核對與掃描模式配置
+                </h2>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-600 flex items-center gap-1">
+                        <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-500"></i> 答卷分頁模式
+                    </label>
+                    <select id="scanModeSelect" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-white focus:ring-1 focus:ring-blue-500 font-medium">
+                        <option value="auto">自動偵測 (由 AI 自行判斷每頁屬於哪位學生)</option>
+                        <option value="1page">每 1 頁為一個學生 (單面小測/每位學生一頁)</option>
+                        <option value="2pages">每 2 頁為一個學生 (雙面小測/每位學生兩頁)</option>
+                    </select>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">* 建議大批次掃描時，使用「每 1 頁」或「每 2 頁」模式，能 100% 避免長 PDF 漏批。</p>
                 </div>
-                <div class="relative">
-                    <input type="password" id="password" required placeholder="Password" class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide" />
-                    <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-800/45 hover:text-slate-900 transition">
-                        <i data-lucide="eye" id="pw-icon" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                <div id="error-msg" class="hidden bg-rose-50/70 border border-rose-300 text-rose-800 p-3.5 rounded-2xl text-xs text-left flex items-start space-x-2 animate-fadeIn shadow-sm">
-                    <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-rose-400"></i>
-                    <span id="error-text" class="leading-relaxed font-medium"></span>
-                </div>
-                <button type="submit" id="submit-btn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-[0.25em] uppercase py-4 rounded-full shadow-md hover:shadow-lg transition duration-300 transform active:scale-98 flex items-center justify-center space-x-2">
-                    <span>Login & Verify</span>
+
+                <button id="startAnalysisBtn" onclick="startAIParsing()" disabled class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold shadow hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:from-slate-300 disabled:to-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-sm">
+                    <i data-lucide="cpu" class="w-5 h-5"></i>
+                    <span>啟動 AI 智能精確核對</span>
                 </button>
-            </form>
-            <div class="flex justify-center mt-10">
-                <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-400/20 flex items-center justify-center text-emerald-600 shadow-sm">
-                    <i data-lucide="cloud" class="w-4 h-4"></i>
+
+                <div id="progressContainer" class="hidden space-y-2">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span id="progressText" class="text-blue-600">正在準備 PDF 圖像...</span>
+                        <span id="progressPercent" class="text-slate-500">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                        <div id="progressBar" class="bg-blue-600 h-full rounded-full transition-all duration-300" style="width:0%"></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 italic" id="progressDetail">處理中...</p>
                 </div>
+            </div>
+
+            <!-- 第三步 -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-b pb-2">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">3</span>
+                    結果與報表匯出
+                </h2>
+
+                <button id="exportCsvBtn" disabled onclick="exportGradebookToCSV()" class="w-full py-2 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="download" class="w-4 h-4"></i> 匯出登分表 (CSV)
+                </button>
+
+                <button id="exportPdfReportsBtn" disabled onclick="printA4Reports()" class="w-full py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="printer" class="w-4 h-4"></i> 批量導出 A4 批改報告 (PDF/列印)
+                </button>
             </div>
         </div>
 
-        <!-- ===== 學生卡片區 ===== -->
-        <div id="card-section" class="w-full hidden space-y-4">
-            <!-- 工具列 -->
-            <div class="flex justify-end items-center px-1">
-                <div class="flex items-center space-x-2">
-                    <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-rose-500/20 hover:border-rose-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-rose-600 transition" title="登出系統">
-                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                    </button>
-                    <button id="power-btn" class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition" title="返回主頁面">
-                        <i data-lucide="power" class="w-3.5 h-3.5"></i>
-                    </button>
+        <!-- 右側批改面板 -->
+        <div class="w-full lg:w-7/12 flex flex-col gap-6">
+
+            <!-- 登分表 -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="flex items-center justify-between border-b pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="layout-list" class="w-5 h-5 text-blue-600"></i> 小測登分表與比對結果
+                    </h2>
+                    <span id="matchedCountTag" class="text-xs bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full">已匹配: 0 / 0 人</span>
+                </div>
+                <div class="overflow-x-auto max-h-60 overflow-y-auto border border-slate-100 rounded-lg">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200">
+                                <th class="p-3 font-semibold text-slate-600">學號/班號</th>
+                                <th class="p-3 font-semibold text-slate-600">姓名</th>
+                                <th class="p-3 font-semibold text-slate-600">課題</th>
+                                <th class="p-3 font-semibold text-slate-600">QID 認領</th>
+                                <th class="p-3 font-semibold text-slate-600 text-center">對應頁碼</th>
+                                <th class="p-3 font-semibold text-slate-600 text-right">得分</th>
+                                <th class="p-3 font-semibold text-slate-600 text-center">狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gradebookTableBody">
+                            <tr>
+                                <td colspan="7" class="p-8 text-center text-slate-400 italic">請先提供名單、Marking Scheme 及 PDF 考卷，並啟動 AI 核對</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- 帳戶資訊卡 -->
-            <div class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center gap-4">
-                <div id="student-profile-trigger" class="flex items-center space-x-4 cursor-pointer select-none">
-                    <div class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
-                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-                    </div>
-                    <div class="text-left">
-                        <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 shippori-title">--</h3>
-                        <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 text-right pr-1 shrink-0">
+            <!-- 詳細報告區 -->
+            <div id="analysisDetailContainer" class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hidden">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4 mb-4">
                     <div>
-                        <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
-                        <p id="card-class" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+                        <div class="flex items-center gap-2">
+                            <span id="detailStudentClassNum" class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">班級學號</span>
+                            <h3 id="detailStudentName" class="text-xl font-bold text-slate-900">學生姓名</h3>
+                        </div>
+                        <p id="detailTopicTitle" class="text-xs text-slate-500 mt-1">小測課題：尚未辨識</p>
                     </div>
-                    <div class="w-[1px] h-6 bg-slate-900/10"></div>
-                    <div>
-                        <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
-                        <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">總得分 / 總分</span>
+                        <span id="detailStudentScore" class="text-2xl font-black text-indigo-600">0 / 0</span>
                     </div>
-                    <div class="w-[1px] h-6 bg-slate-900/10"></div>
-                    <button id="calendar-toggle-btn" class="w-9 h-9 rounded-full bg-white/60 hover:bg-emerald-50/80 hover:text-emerald-700 border border-slate-900/[0.08] flex items-center justify-center text-slate-700 transition duration-300 active:scale-90 shadow-sm" title="開啟補課日曆">
-                        <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 左欄：逐題核對 -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="check-square" class="w-4 h-4 text-blue-600"></i> 逐題計算與數值批改分析
+                        </h4>
+                        <div id="questionAnalysisList" class="space-y-3 max-h-[400px] overflow-y-auto pr-1"></div>
+                    </div>
+                    <!-- 右欄：AI 評語 -->
+                    <div class="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="message-square" class="w-4 h-4 text-indigo-600"></i> AI 綜合評價與學習建議
+                        </h4>
+                        <div class="space-y-3 text-xs leading-relaxed">
+                            <div>
+                                <span class="font-bold text-slate-600 block">優點與掌握良好的概念：</span>
+                                <p id="detailFeedbackStrengths" class="text-slate-700 mt-1">正在加載...</p>
+                            </div>
+                            <div>
+                                <span class="font-bold text-slate-600 block">常犯錯誤與數值計算盲區：</span>
+                                <p id="detailFeedbackWeaknesses" class="text-slate-700 mt-1">正在加載...</p>
+                            </div>
+                            <div>
+                                <span class="font-bold text-slate-600 block">針對性改進建議：</span>
+                                <p id="detailFeedbackActionable" class="text-slate-700 mt-1">正在加載...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 折疊圖像 -->
+                <div class="mt-6 border-t pt-4">
+                    <button onclick="toggleImageAccordion()" class="w-full flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="eye" class="w-4 h-4 text-slate-500"></i> 檢視此學生對應的高清答卷頁面圖像
+                        </span>
+                        <i id="accordionIcon" data-lucide="chevron-down" class="w-4 h-4 transition-transform"></i>
                     </button>
+                    <div id="imageAccordionContent" class="hidden mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[350px] overflow-y-auto p-2 bg-slate-100 rounded-lg"></div>
                 </div>
-            </div>
-
-            <!-- 日曆面板 -->
-            <div id="calendar-panel" class="crystal-panel rounded-2xl p-4 origin-top calendar-collapsed overflow-hidden space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-900/5 pb-2">
-                    <button id="cal-prev-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
-                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                    </button>
-                    <h4 id="cal-month-year" class="text-sm font-bold text-slate-800 shippori-title tracking-wide">--</h4>
-                    <button id="cal-next-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
-                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
-                </div>
-                <div id="calendar-days" class="grid grid-cols-7 gap-1"></div>
-                <div class="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-900/5">
-                    <span class="flex items-center gap-1.5 font-medium text-slate-600">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span> 有補課課堂日期
-                    </span>
-                    <button id="cal-reset-btn" class="px-3 py-1 rounded-full bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 text-[10px] font-bold transition active:scale-95 shadow-sm">顯示全部課程</button>
-                </div>
-            </div>
-
-            <!-- 課程列表 -->
-            <div id="topics-container" class="crystal-panel rounded-2xl overflow-hidden divide-y divide-slate-900/[0.05]">
-                <div class="p-8 text-center text-sm text-slate-500/80">
-                    <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>正在為您構建個人專屬課堂清單...</span>
-                </div>
-            </div>
-
-            <!-- 出席數據查閱入口 -->
-            <div id="attendance-lookup-btn" class="crystal-panel rounded-2xl p-4 flex flex-row justify-between items-center cursor-pointer hover:bg-white/45 transition duration-300 shadow-sm border border-slate-200">
-                <div class="flex items-center space-x-4">
-                    <div class="w-11 h-11 bg-indigo-500/10 border border-indigo-400/20 rounded-full flex items-center justify-center text-indigo-700 shadow-sm shrink-0">
-                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
-                    </div>
-                    <div class="text-left">
-                        <h3 class="text-lg font-bold tracking-wide text-slate-900 shippori-title">出席數據查閱</h3>
-                        <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">全班出席率與課程完成進度</p>
-                    </div>
-                </div>
-                <div class="flex items-center text-indigo-700 text-xs font-bold tracking-widest">
-                    <span>展開查閱</span>
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 ml-1"></i>
-                </div>
-            </div>
-
-            <!-- 註腳 -->
-            <div class="flex justify-between items-center px-4 text-[10px] text-slate-500/70 uppercase tracking-widest">
-                <span>學員代碼識別: <span id="card-student-id" class="font-mono bg-white/40 px-2 py-0.5 rounded ml-1 text-slate-800 border border-white/50">--</span></span>
-                <span>Verified Secure Node</span>
             </div>
         </div>
     </main>
 
-    <!-- ===== 播放器 Overlay ===== -->
-    <div id="video-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
-        <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shadow-slate-200">
-            <div class="flex items-center space-x-3">
-                <span class="text-xs tracking-widest text-emerald-700 font-bold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-400/20 shadow-sm">ONLINE STREAM</span>
-                <h1 id="video-overlay-title" class="text-sm font-bold tracking-wide text-slate-950 truncate max-w-xs sm:max-w-md">--</h1>
-            </div>
-            <button id="close-video-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">✕</button>
-        </header>
-        <main class="flex-1 w-full flex flex-col items-center justify-center p-4 space-y-4">
-            <h2 id="video-player-large-title" class="text-xl md:text-2xl lg:text-3xl font-bold text-left text-slate-950 shippori-title tracking-wide px-2 w-full max-w-4xl leading-relaxed">--</h2>
-            <div class="w-full max-w-4xl aspect-video relative flex items-center justify-center">
-                <div id="video-overlay-player" class="w-full h-full rounded-2xl shadow-2xl border border-slate-300 bg-black"></div>
-            </div>
-            <div class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-                <div class="flex items-center space-x-3">
-                    <button id="custom-play-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md transition duration-200 transform active:scale-95">
-                        <i data-lucide="play-circle" class="w-4 h-4"></i><span>播放 (Play)</span>
-                    </button>
-                    <button id="custom-pause-btn" class="px-5 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md transition duration-200 transform active:scale-95">
-                        <i data-lucide="pause-circle" class="w-4 h-4"></i><span>暫停 (Pause)</span>
-                    </button>
-                </div>
-                <button id="attendance-btn" class="hidden px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i><span>完成簽到 (Finish & Take Attendance)</span>
-                </button>
-            </div>
-        </main>
-        <footer class="p-3 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50">&copy; 2026 PH Studio. All rights reserved.</footer>
-    </div>
+    <!-- ====== A4 報告列印專用容器（僅在列印與高保真預覽模式下顯示，完美避免沙盒全白及排版問題） ====== -->
+    <div id="printContainer"></div>
 
-    <!-- ===== 出席數據 Overlay (優化版) ===== -->
-    <div id="attendance-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
-        <header class="p-3 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shrink-0">
-            <div class="flex items-center space-x-3">
-                <span class="text-xs tracking-widest text-indigo-700 font-bold bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-400/20 shadow-sm">ATTENDANCE REPORT</span>
-                <h1 class="text-sm font-bold tracking-wide text-slate-950 shippori-title">出席數據查閱</h1>
-            </div>
-            <div class="flex items-center space-x-2 no-print">
-                <button id="export-pdf-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-full flex items-center space-x-1.5 shadow-md transition duration-200 active:scale-95 border border-emerald-500/30" title="匯出 PDF 報告">
-                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i><span>匯出 PDF</span>
-                </button>
-                <button id="close-attendance-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">✕</button>
-            </div>
-        </header>
-        <main class="flex-1 w-full overflow-hidden p-3 md:p-5 space-y-3 max-w-7xl mx-auto flex flex-col justify-start min-h-0">
-            <div class="text-left space-y-0.5 shrink-0">
-                <h2 class="text-lg md:text-xl font-bold text-slate-950 shippori-title tracking-wide">全班出席狀態一覽表</h2>
-                <p class="text-[10px] text-slate-500">本表展示您所屬群組 (Role) 所有同學的補課完成進度。完成之課程將以綠色勾號顯示。</p>
-            </div>
-            <div id="attendance-table-loader" class="crystal-panel rounded-2xl p-10 text-center text-sm text-slate-500 flex-1 flex flex-col items-center justify-center">
-                <svg class="animate-spin h-8 w-8 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>正在從雲端調取學生名單與出席數據...</span>
-            </div>
-            <div id="attendance-table-container" class="hidden crystal-panel rounded-2xl overflow-hidden shadow-md flex-1 flex flex-col min-h-0 border border-slate-200">
-                <div id="attendance-multi-table-wrapper" class="overflow-auto flex-1 p-2 space-y-2">
-                    <!-- JS 動態生成 -->
-                </div>
-            </div>
-        </main>
-        <footer class="p-2 bg-slate-50/80 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50 shrink-0 no-print">&copy; 2026 PH Studio. All rights reserved.</footer>
-    </div>
-
-    <!-- ===== 學生檔案 iframe ===== -->
-    <div id="profile-overlay" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-xl">
-        <button id="close-profile-btn" class="absolute top-6 right-6 w-11 h-11 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white text-xl font-light transition duration-200 z-50 border border-white/20 shadow-lg active:scale-90" title="關閉檔案">✕</button>
-        <iframe id="profile-iframe" src="https://phyuaaphysics.github.io/phyustudio/studentprofile.html" class="w-full h-full border-none" allowfullscreen loading="lazy"></iframe>
-    </div>
-
-    <!-- Footer -->
-    <footer class="w-full max-w-6xl text-center py-2 text-[10px] tracking-[0.2em] uppercase text-slate-500/60 z-10 shrink-0">
-        <p>&copy; 2026 PH Studio. All rights reserved.</p>
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 text-center mt-auto no-print">
+        <p>© 2026 AI 功課與小測核對平台 - 基於 Gemini 2.5 Flash 視覺多模態引擎</p>
     </footer>
 
     <script>
-        // =======================================================
-        // 全域設定
-        // =======================================================
-        const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
-        const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
-        const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbx_TGZzwkLS2-igfam2c9NetRG9s1zNYbTd5F-HlYCD3K0ew0Q2utfvlX3q03kdtCj8/exec";
-        const ROSTER_JSON_URL = "https://docs.google.com/spreadsheets/d/1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU/gviz/tq?tqx=out:json&sheet=NAME";
+        // ============================================================
+        // 1. 全域變數與載入初始化
+        // ============================================================
+        let studentList = [];
+        let markingSchemeText = '';
+        let pdfDoc = null;
+        let pdfPagesImages = [];
+        let matchedResults = [];
+        let selectedStudentIndex = null;
+        const modelName = "gemini-2.5-flash-preview-09-2025";
 
-        // DOM 元素
-        const loginSection = document.getElementById('login-section');
-        const cardSection = document.getElementById('card-section');
-        const loginForm = document.getElementById('login-form');
-        const errorMsg = document.getElementById('error-msg');
-        const errorText = document.getElementById('error-text');
-        const submitBtn = document.getElementById('submit-btn');
-        const togglePwBtn = document.getElementById('toggle-pw');
-        const passwordInput = document.getElementById('password');
-        const pwIcon = document.getElementById('pw-icon');
-        const secureBadge = document.getElementById('secure-badge');
-        const topicsContainer = document.getElementById('topics-container');
-        const calendarToggleBtn = document.getElementById('calendar-toggle-btn');
-        const calendarPanel = document.getElementById('calendar-panel');
-
-        let ytPlayer = null;
-        let isYtApiReady = false;
-        let maxWatchedTime = 0;
-        let timeCheckInterval = null;
-        let attendanceTimer = null;
-        let currentSession = "";
-        let currentTitle = "";
-        let currentVideoWatched = false;
-        let calendarCurrentDate = new Date();
-        let activeLessonDatesSet = new Set();
-        let filteredDateStr = null;
-        let isCalendarFirstLoad = true;
-        let globalTopicRows = [];
-        let globalUserRole = "";
-        let globalRecords = [];
-
-        // =======================================================
-        // 輔助函式
-        // =======================================================
-        function cleanVal(val) {
-            if (val === null || val === undefined) return "";
-            const str = String(val).trim();
-            if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料" || str === "--") return "";
-            return str;
-        }
-        function stripAllSpaces(str) {
-            if (!str) return "";
-            return String(str).replace(/[\s\u3000]/g, "");
-        }
-        function formatDisplayDate(dateStr) {
-            if (!dateStr) return "";
-            const str = String(dateStr).trim();
-            if (str.includes("T") || str.includes("Z") || str.includes(":")) {
-                try {
-                    const d = new Date(str);
-                    if (!isNaN(d.getTime())) {
-                        return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}`;
-                    }
-                } catch (e) {}
-            }
-            const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
-            if (matchYMD) return `${matchYMD[1]}年${parseInt(matchYMD[2],10)}月${parseInt(matchYMD[3],10)}日`;
-            return str;
-        }
-        function getIsoDateString(dateStr) {
-            if (!dateStr) return null;
-            const str = String(dateStr).trim();
-            if (str.includes("T") || str.includes("Z") || str.includes(":")) {
-                try {
-                    const d = new Date(str);
-                    if (!isNaN(d.getTime())) {
-                        const y = d.getFullYear();
-                        const m = String(d.getMonth()+1).padStart(2,'0');
-                        const day = String(d.getDate()).padStart(2,'0');
-                        return `${y}-${m}-${day}`;
-                    }
-                } catch (e) {}
-            }
-            const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
-            if (matchYMD) {
-                const y = matchYMD[1];
-                const m = String(parseInt(matchYMD[2],10)).padStart(2,'0');
-                const d = String(parseInt(matchYMD[3],10)).padStart(2,'0');
-                return `${y}-${m}-${d}`;
-            }
-            const matchCn = str.match(/(\d+)年(\d+)月(\d+)日/);
-            if (matchCn) {
-                const y = matchCn[1];
-                const m = String(parseInt(matchCn[2],10)).padStart(2,'0');
-                const d = String(parseInt(matchCn[3],10)).padStart(2,'0');
-                return `${y}-${m}-${d}`;
-            }
-            return null;
-        }
-        function getStudentDetails() {
-            let realName = cleanVal(localStorage.getItem("user_real_name"));
-            let studentClass = cleanVal(localStorage.getItem("user_class"));
-            let classNo = cleanVal(localStorage.getItem("user_class_no"));
-            let studentId = cleanVal(localStorage.getItem("user_username"));
-            if (!realName || !studentClass || !classNo || !studentId) {
-                try {
-                    const rawInfo = localStorage.getItem("userInfo");
-                    if (rawInfo && rawInfo !== "undefined" && rawInfo !== "null") {
-                        const userInfo = JSON.parse(rawInfo);
-                        if (!realName) realName = cleanVal(userInfo.real_name || userInfo.realName || userInfo.name);
-                        if (!studentClass) studentClass = cleanVal(userInfo.class || userInfo.studentClass);
-                        if (!classNo) classNo = cleanVal(userInfo.class_no || userInfo.classNo);
-                        if (!studentId) studentId = cleanVal(userInfo.student_id || userInfo.studentId || userInfo.username);
-                    }
-                } catch (e) {}
-            }
-            if (!realName) realName = "";
-            if (!studentClass) studentClass = "";
-            if (!classNo) classNo = "";
-            if (!studentId) studentId = "無ID資料";
-            return { realName, studentClass, classNo, studentId };
-        }
-
-        // YouTube API
-        (function() {
-            const tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api";
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        })();
-        window.onYouTubeIframeAPIReady = function() { isYtApiReady = true; };
-
-        // =======================================================
-        // 初始化
-        // =======================================================
-        document.addEventListener("DOMContentLoaded", async () => {
+        window.onload = function() {
             lucide.createIcons();
-            document.getElementById('power-btn').addEventListener('click', () => {
-                window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
-            });
-            calendarToggleBtn.addEventListener('click', () => {
-                calendarPanel.classList.toggle('calendar-collapsed');
-                calendarToggleBtn.classList.toggle('bg-emerald-100');
-                calendarToggleBtn.classList.toggle('text-emerald-700');
-                calendarToggleBtn.classList.toggle('border-emerald-200');
-            });
-            document.getElementById('cal-prev-month').addEventListener('click', (e) => {
-                e.stopPropagation();
-                calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
-                renderCalendar();
-            });
-            document.getElementById('cal-next-month').addEventListener('click', (e) => {
-                e.stopPropagation();
-                calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
-                renderCalendar();
-            });
-            document.getElementById('cal-reset-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                filteredDateStr = null;
-                renderCalendar();
-                executeFilterRender();
-            });
-            document.getElementById('attendance-lookup-btn').addEventListener('click', () => {
-                const overlay = document.getElementById('attendance-overlay');
-                overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
-                overlay.classList.add('animate-ios-overlay-enter');
-                fetchStudentRosterAndRender();
-            });
-            document.getElementById('close-attendance-btn').addEventListener('click', () => {
-                const overlay = document.getElementById('attendance-overlay');
-                overlay.classList.remove('animate-ios-overlay-enter');
-                overlay.classList.add('animate-ios-overlay-exit');
-                setTimeout(() => overlay.classList.add('hidden'), 730);
-            });
+            checkApiKeyInput();
 
-            // PDF 匯出
-            document.getElementById('export-pdf-btn').addEventListener('click', exportAttendancePDF);
-
-            // 學生檔案
-            const profileTrigger = document.getElementById('student-profile-trigger');
-            const profileOverlay = document.getElementById('profile-overlay');
-            const closeProfileBtn = document.getElementById('close-profile-btn');
-            if (profileTrigger) {
-                profileTrigger.addEventListener('click', () => {
-                    const iframe = document.getElementById('profile-iframe');
-                    if (iframe) iframe.src = "https://phyuaaphysics.github.io/phyustudio/studentprofile.html";
-                    profileOverlay.classList.remove('hidden', 'animate-profile-exit');
-                    profileOverlay.classList.add('animate-profile-enter');
-                });
-            }
-            if (closeProfileBtn) {
-                closeProfileBtn.addEventListener('click', () => {
-                    profileOverlay.classList.remove('animate-profile-enter');
-                    profileOverlay.classList.add('animate-profile-exit');
-                    setTimeout(() => profileOverlay.classList.add('hidden'), 350);
-                });
-            }
-
-            // 驗證 Token
-            const jwtToken = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
-            const userRole = localStorage.getItem("user_role") || localStorage.getItem("userRole");
-            if (jwtToken) localStorage.setItem("jwt_token", jwtToken);
-            if (userRole) localStorage.setItem("user_role", userRole);
-            const savedToken = localStorage.getItem("jwt_token");
-            const details = getStudentDetails();
-
-            if (details.studentId !== "無ID資料" && savedToken) {
-                const tempLoader = document.createElement('div');
-                tempLoader.id = 'temp-loader';
-                tempLoader.className = 'crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-fade-in mt-6 shadow-2xl flex flex-col items-center justify-center';
-                tempLoader.innerHTML = `
-                    <svg class="animate-spin h-10 w-10 text-emerald-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span class="text-slate-800 font-medium text-sm tracking-wider">安全驗證中，請稍候...</span>
-                `;
-                document.querySelector('main').appendChild(tempLoader);
+            // 💡 新增：自動從 LocalStorage 還原上次暫存的批改結果
+            const cachedResults = localStorage.getItem('marking_system_results');
+            if (cachedResults) {
                 try {
-                    const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(savedToken)}`;
-                    const response = await fetch(url, { method:"GET", mode:"cors" });
-                    const resData = await response.json();
-                    if (resData.result === 'success') {
-                        tempLoader.remove();
-                        showStudentCard(false);
-                    } else {
-                        throw new Error("Token 驗證失效");
+                    matchedResults = JSON.parse(cachedResults);
+                    if (matchedResults && matchedResults.length > 0) {
+                        document.getElementById('matchedCountTag').innerText = `已匹配: ${matchedResults.length} 人 (自本地還原)`;
+                        renderGradebook();
+                        document.getElementById('exportCsvBtn').disabled = false;
+                        document.getElementById('exportPdfReportsBtn').disabled = false;
+                        showStudentDetail(0);
                     }
                 } catch (e) {
-                    localStorage.clear();
-                    tempLoader.remove();
-                    loginSection.classList.remove('hidden');
-                    if (secureBadge) secureBadge.classList.remove('hidden');
-                    showError("驗證已過期或失效，請重新登入！");
+                    console.error("本地還原批改結果失敗:", e);
                 }
-            } else {
-                loginSection.classList.remove('hidden');
             }
-        });
+        }
 
-        // =======================================================
-        // 登入相關
-        // =======================================================
-        togglePwBtn.addEventListener('click', () => {
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                pwIcon.setAttribute('data-lucide', 'eye-off');
+        function checkApiKeyInput() {
+            const val = document.getElementById('apiKeyInput').value.trim();
+            const circle = document.getElementById('apiKeyStatus');
+            if (val) {
+                circle.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+                circle.title = "已設定自訂 API Key";
             } else {
-                passwordInput.type = 'password';
-                pwIcon.setAttribute('data-lucide', 'eye');
+                circle.className = "w-2.5 h-2.5 rounded-full bg-yellow-400";
+                circle.title = "將使用環境自訂 API Key";
             }
-            lucide.createIcons();
-        });
+        }
+        document.getElementById('apiKeyInput').addEventListener('input', checkApiKeyInput);
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorMsg.classList.add('hidden');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Checking Credentials...</span>
-            `;
-            const username = document.getElementById('username').value.trim();
-            const password = passwordInput.value;
+        // ============================================================
+        // 2. 檔案解析與同步
+        // ============================================================
+        function syncStudentListFromText() {
+            const text = document.getElementById('studentListInput').value;
+            studentList = [];
+            const lines = text.split(/\r?\n/);
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                const parts = line.split(/[,，\t]/);
+                if (parts.length >= 1) {
+                    const name = parts[0].trim();
+                    const studentId = parts[1] ? parts[1].trim() : '';
+                    const classNum = parts[2] ? parts[2].trim() : '';
+                    if (name) studentList.push({ name, studentId, classNum });
+                }
+            });
+            const tag = document.getElementById('studentListCount');
+            if (studentList.length > 0) {
+                tag.innerText = `${studentList.length} 人`;
+                tag.classList.remove('hidden');
+            } else {
+                tag.classList.add('hidden');
+            }
+            checkButtonEnableState();
+        }
+
+        function handleStudentListUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('studentListInput').value = ev.target.result;
+                syncStudentListFromText();
+            };
+            reader.readAsText(file);
+        }
+
+        function syncMarkingSchemeFromText() {
+            markingSchemeText = document.getElementById('markingSchemeInput').value;
+            const check = document.getElementById('markingSchemeStatusCheck');
+            if (markingSchemeText.trim()) {
+                check.classList.remove('hidden');
+            } else {
+                check.classList.add('hidden');
+            }
+            checkButtonEnableState();
+        }
+
+        function handleMarkingSchemeUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('markingSchemeInput').value = ev.target.result;
+                syncMarkingSchemeFromText();
+            };
+            reader.readAsText(file);
+        }
+
+        async function handleStudentAnsUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('studentAnsBtnText').innerText = '正在讀取 PDF...';
+            const reader = new FileReader();
+            reader.onload = async function(ev) {
+                try {
+                    pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(ev.target.result) }).promise;
+                    document.getElementById('studentAnsBtnText').innerText = `已載入 PDF: ${file.name}`;
+                    const tag = document.getElementById('pdfPageCount');
+                    tag.innerText = `${pdfDoc.numPages} 頁`;
+                    tag.classList.remove('hidden');
+                    checkButtonEnableState();
+                } catch (err) {
+                    console.error(err);
+                    alert('PDF 解析失敗，請確認檔案格式。');
+                    document.getElementById('studentAnsBtnText').innerText = '上傳全班答卷 PDF';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function checkButtonEnableState() {
+            const btn = document.getElementById('startAnalysisBtn');
+            const ok = studentList.length > 0 && markingSchemeText.trim() !== '' && pdfDoc !== null;
+            btn.disabled = !ok;
+        }
+
+        // ============================================================
+        // 3. PDF 柵格化
+        // ============================================================
+        async function rasterizePDFAway() {
+            pdfPagesImages = [];
+            const total = pdfDoc.numPages;
+            for (let i = 1; i <= total; i++) {
+                updateProgress(`正在將第 ${i} 頁渲染為高清圖像...`, Math.round((i / total) * 30));
+                const page = await pdfDoc.getPage(i);
+                const scale = 2.0;
+                const viewport = page.getViewport({ scale });
+                const canvas = document.createElement('canvas');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport }).promise;
+                pdfPagesImages.push({ pageNum: i, base64: canvas.toDataURL('image/png') });
+            }
+        }
+
+        function updateProgress(text, percent, detail = '') {
+            const container = document.getElementById('progressContainer');
+            container.classList.remove('hidden');
+            document.getElementById('progressText').innerText = text;
+            document.getElementById('progressPercent').innerText = `${percent}%`;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressDetail').innerText = detail || '';
+        }
+
+        // ============================================================
+        // 4. AI 核對 (分批)
+        // ============================================================
+        async function startAIParsing() {
+            if (!pdfDoc || studentList.length === 0 || !markingSchemeText) return;
             try {
-                const response = await fetch(GAS_AUTH_URL, {
-                    method:"POST", mode:"cors", redirect:"follow",
-                    headers: { "Content-Type":"text/plain;charset=utf-8" },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    localStorage.setItem("jwt_token", data.token || "");
-                    localStorage.setItem("user_role", data.role || "student");
-                    localStorage.setItem("user_username", username);
-                    if (data.identity_tag) {
-                        localStorage.setItem("user_class", cleanVal(data.identity_tag.class));
-                        localStorage.setItem("user_class_no", cleanVal(data.identity_tag.class_no));
-                        localStorage.setItem("user_real_name", cleanVal(data.identity_tag.real_name));
-                    } else {
-                        localStorage.setItem("user_class", "");
-                        localStorage.setItem("user_class_no", "");
-                        localStorage.setItem("user_real_name", "");
-                    }
-                    localStorage.setItem("userToken", data.token || "");
-                    localStorage.setItem("userRole", data.role || "student");
-                    localStorage.setItem("userInfo", JSON.stringify({
-                        real_name: localStorage.getItem("user_real_name"),
-                        class: localStorage.getItem("user_class"),
-                        class_no: localStorage.getItem("user_class_no"),
-                        username: username
-                    }));
-                    showStudentCard(true);
-                    loginForm.reset();
-                } else {
-                    showError(data.message || "驗證失敗，請檢查輸入帳號或密碼");
-                }
+                await rasterizePDFAway();
+                updateProgress('正在上傳圖像至 Gemini 視覺多模態引擎...', 40);
+                await analyzePagesWithAI();
             } catch (err) {
-                showError("無法連線至安全性認點。請確認您的 GAS 專案已正確部署。");
-            } finally {
-                resetSubmitBtn();
-            }
-        });
-
-        function resetSubmitBtn() {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<span>Login & Verify</span>`;
-            lucide.createIcons();
-        }
-
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            localStorage.clear();
-            cardSection.classList.add('hidden');
-            loginSection.classList.remove('hidden');
-            if (secureBadge) secureBadge.classList.remove('hidden');
-        });
-
-        function showStudentCard(animate = false) {
-            const details = getStudentDetails();
-            document.getElementById('card-real-name').innerText = details.realName || "--";
-            document.getElementById('card-class').innerText = details.studentClass || "--";
-            document.getElementById('card-class-no').innerText = details.classNo || "--";
-            document.getElementById('card-student-id').innerText = details.studentId || "--";
-            if (animate) {
-                loginSection.classList.remove('hidden');
-                loginSection.classList.add('animate-ios-exit');
-                if (secureBadge) secureBadge.classList.add('hidden');
-                setTimeout(() => {
-                    loginSection.classList.add('hidden');
-                    loginSection.classList.remove('animate-ios-exit');
-                    cardSection.classList.remove('hidden');
-                    cardSection.classList.add('animate-ios-menu');
-                    fetchTopics();
-                }, 520);
-            } else {
-                loginSection.classList.add('hidden');
-                cardSection.classList.remove('hidden');
-                cardSection.classList.add('animate-ios-menu');
-                if (secureBadge) secureBadge.classList.add('hidden');
-                fetchTopics();
+                console.error(err);
+                updateProgress('核對過程中發生錯誤', 0, err.message);
+                alert('核對失敗: ' + err.message);
             }
         }
 
-        // =======================================================
-        // 日曆與課程渲染
-        // =======================================================
-        function renderCalendar() {
-            const calendarDays = document.getElementById('calendar-days');
-            const monthYearLabel = document.getElementById('cal-month-year');
-            if (!calendarDays || !monthYearLabel) return;
-            const year = calendarCurrentDate.getFullYear();
-            const month = calendarCurrentDate.getMonth();
-            const monthNames = ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];
-            monthYearLabel.innerText = `${year}年 ${monthNames[month]}`;
-            calendarDays.innerHTML = "";
-            const firstDay = new Date(year, month, 1).getDay();
-            const totalDays = new Date(year, month + 1, 0).getDate();
-            for (let i = 0; i < firstDay; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = "p-1";
-                calendarDays.appendChild(emptyCell);
-            }
-            for (let day = 1; day <= totalDays; day++) {
-                const dayCell = document.createElement('div');
-                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                const hasLesson = activeLessonDatesSet.has(dateStr);
-                const isSelected = (filteredDateStr === dateStr);
-                dayCell.className = "calendar-day-cell relative text-[11px] font-semibold h-8 w-8 mx-auto flex flex-col items-center justify-center rounded-full";
-                if (hasLesson) {
-                    if (isSelected) {
-                        dayCell.className += " bg-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold scale-105";
-                    } else {
-                        dayCell.className += " bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300/40 cursor-pointer font-bold";
-                    }
-                    const dot = document.createElement('span');
-                    dot.className = `w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? 'bg-white' : 'bg-emerald-500'}`;
-                    dayCell.appendChild(document.createTextNode(day));
-                    dayCell.appendChild(dot);
-                    dayCell.addEventListener('click', () => {
-                        if (filteredDateStr === dateStr) filteredDateStr = null;
-                        else filteredDateStr = dateStr;
-                        renderCalendar();
-                        executeFilterRender();
-                    });
-                } else {
-                    dayCell.className += " text-slate-700 hover:bg-slate-200/50 cursor-pointer";
-                    dayCell.appendChild(document.createTextNode(day));
-                    dayCell.addEventListener('click', () => {
-                        if (filteredDateStr) {
-                            filteredDateStr = null;
-                            renderCalendar();
-                            executeFilterRender();
+        async function analyzePagesWithAI() {
+            let apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) apiKey = typeof __api_key !== 'undefined' ? __api_key : '';
+            const url =
+                `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const scanMode = document.getElementById('scanModeSelect').value;
+
+            const systemPrompt = `你是一位資深的理科與全科教師，現在負責核對與批改學生的功課/小測答卷。
+        你的任務是接收答卷高清圖片，並將其與提供的 Marking Scheme 進行「精確數值核對（Strict Numerical Verification）」。
+
+        【重要守則與運作邏輯】：
+        1. 你的首要判定標準是「數值精確對比」。文字概念對比僅為輔助。你必須一步步計算並比對學生答案中的「每一道關鍵數值與計算步驟」，絕不可僅做語意概念上的模糊核對。
+        2. 數值核對要求極其嚴苛：你必須對比公式代入值、中間運算步驟、計量單位和最終得數。如果發現計算誤差、中間數值錯誤或計量單位遺漏，必須按規定扣減相應分數，絕不能給出模糊的滿分。
+        3. 絕不臆測與杜絕 OCR 幻覺：你的眼睛在實體考卷圖像上看到什麼，就記錄什麼。若學生手寫字跡模糊不清、或者根本沒有作答，請直接標記為未填寫，並判定數值不吻合與扣分。
+
+        【識別與分頁匹配】：
+        - 你必須從圖片中自動提取出：學生姓名、班號、學號、QID、分類、課題及標題。
+        - 學生姓名、學號或班號必須與「學生班級對照名單」進行精確關聯。
+        - 你必須在 JSON 的 'associatedPages' 中列出這份報告所批改的具體 PDF 頁碼。
+
+        請嚴格依照所附的 JSON Schema 生成 JSON 對象，不要包含 any markdown 包裝（如 \`\`\`json），必須是純 JSON 格式。`;
+
+            const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    matchedStudentsCount: { type: "INTEGER" },
+                    reports: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            required: ["studentName", "studentId", "classNum", "associatedPages", "quizTitle",
+                                "quizTopic", "totalScore", "maxScore", "questions"
+                            ],
+                            properties: {
+                                studentName: { type: "STRING" },
+                                studentId: { type: "STRING" },
+                                classNum: { type: "STRING" },
+                                associatedPages: { type: "ARRAY", items: { type: "INTEGER" } },
+                                quizTitle: { type: "STRING" },
+                                quizTopic: { type: "STRING" },
+                                totalScore: { type: "NUMBER" },
+                                maxScore: { type: "NUMBER" },
+                                questions: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        required: ["qid", "topic", "fullMark", "score", "expectedValue",
+                                            "studentValue", "isNumericMatch", "analysis", "deductionReason"
+                                        ],
+                                        properties: {
+                                            qid: { type: "STRING" },
+                                            topic: { type: "STRING" },
+                                            fullMark: { type: "NUMBER" },
+                                            score: { type: "NUMBER" },
+                                            expectedValue: { type: "STRING" },
+                                            studentValue: { type: "STRING" },
+                                            isNumericMatch: { type: "BOOLEAN" },
+                                            analysis: { type: "STRING" },
+                                            deductionReason: { type: "STRING" }
+                                        }
+                                    }
+                                },
+                                feedback: {
+                                    type: "OBJECT",
+                                    required: ["strengths", "weaknesses", "suggestions"],
+                                    properties: {
+                                        strengths: { type: "STRING" },
+                                        weaknesses: { type: "STRING" },
+                                        suggestions: { type: "STRING" }
+                                    }
+                                }
+                            }
                         }
-                    });
-                }
-                calendarDays.appendChild(dayCell);
-            }
-        }
-
-        function executeFilterRender() {
-            renderTopics(globalTopicRows, globalUserRole, globalRecords);
-        }
-
-        async function fetchTopics() {
-            const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
-            const userRole = (localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student").toLowerCase();
-            if (!token) {
-                showError("Token 遺失，請重新登入。");
-                return;
-            }
-            topicsContainer.innerHTML = `
-                <div class="p-8 text-center text-sm text-slate-500/80">
-                    <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>安全通道建立中，正在為您構建個人專屬課堂清單...</span>
-                </div>
-            `;
-            try {
-                const url = `${GAS_LOADER_URL}?action=getTopic&token=${encodeURIComponent(token)}`;
-                const response = await fetch(url, { method:"GET", mode:"cors" });
-                const resData = await response.json();
-                if (resData.result === 'success') {
-                    let topicRows = [];
-                    let records = [];
-                    if (resData.data) {
-                        if (Array.isArray(resData.data)) topicRows = resData.data;
-                        else if (resData.data.front && Array.isArray(resData.data.front)) topicRows = resData.data.front;
-                        if (resData.data.record && Array.isArray(resData.data.record)) records = resData.data.record;
                     }
-                    if (records.length === 0) records = resData.records || resData.record || [];
-                    renderTopics(topicRows, userRole, records);
-                } else {
-                    if (resData.requireLogin) {
-                        localStorage.clear();
-                        cardSection.classList.add('hidden');
-                        loginSection.classList.remove('hidden');
-                        if (secureBadge) secureBadge.classList.remove('hidden');
-                        showError("認證已過期，請重新登入！");
-                    } else {
-                        topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-rose-800 font-medium">數據加載失敗: ${resData.msg}</div>`;
-                    }
-                }
-            } catch (err) {
-                topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-rose-800 font-medium">連線異常，無法與課室資料庫同步。</div>`;
-            }
-        }
-
-        function renderTopics(rows, userRole, records = []) {
-            globalTopicRows = rows;
-            globalUserRole = userRole;
-            globalRecords = records;
-            let finalRows = rows;
-            if (rows && !Array.isArray(rows) && Array.isArray(rows.front)) finalRows = rows.front;
-            if (!Array.isArray(finalRows)) {
-                topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">課程資料讀取異常，請重新登入或聯繫管理員。</div>`;
-                return;
-            }
-            if (finalRows.length <= 1) {
-                topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
-                return;
-            }
-            const dataRows = finalRows.slice(1);
-            const allowedRows = dataRows.filter(row => {
-                const rowRole = String(row[0] || "").trim().toLowerCase();
-                return (userRole === "teacher" || userRole === "admin" || rowRole === userRole);
-            });
-            allowedRows.sort((a,b) => (parseFloat(b[1])||0) - (parseFloat(a[1])||0));
-            activeLessonDatesSet.clear();
-            allowedRows.forEach(row => {
-                const rawDate = String(row[5] || "").trim();
-                const isoDate = getIsoDateString(rawDate);
-                if (isoDate) activeLessonDatesSet.add(isoDate);
-            });
-            if (isCalendarFirstLoad && activeLessonDatesSet.size > 0) {
-                const sortedDates = Array.from(activeLessonDatesSet).sort();
-                const latestIso = sortedDates[sortedDates.length - 1];
-                if (latestIso) calendarCurrentDate = new Date(latestIso);
-                isCalendarFirstLoad = false;
-            }
-            renderCalendar();
-            if (allowedRows.length === 0) {
-                topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500 font-medium">您的權限無法存取目前的課程。</div>`;
-                return;
-            }
-            const details = getStudentDetails();
-            const currentStudentName = details.realName.trim();
-            const watchedSessions = new Set();
-            let finalRecords = records;
-            if (records && !Array.isArray(records) && Array.isArray(records.record)) finalRecords = records.record;
-            if (Array.isArray(finalRecords)) {
-                finalRecords.forEach((row, idx) => {
-                    if (idx === 0) return;
-                    const rowName = String(row[3] || "").trim();
-                    const rowSession = String(row[4] || "").trim();
-                    if (currentStudentName && stripAllSpaces(rowName) === stripAllSpaces(currentStudentName) && rowSession) {
-                        watchedSessions.add(rowSession);
-                    }
-                });
-            }
-            let displayRows = allowedRows;
-            if (filteredDateStr) {
-                displayRows = allowedRows.filter(row => getIsoDateString(String(row[5]||"").trim()) === filteredDateStr);
-            }
-            topicsContainer.innerHTML = "";
-            if (displayRows.length === 0) {
-                topicsContainer.innerHTML = `<div class="p-10 text-center text-sm text-slate-500">該日期沒有排定任何補課課程。</div>`;
-                return;
-            }
-            displayRows.forEach(row => {
-                const session = String(row[1] || "").trim();
-                const title = String(row[2] || "").trim();
-                const ytLink = String(row[3] || "").trim();
-                const status = String(row[4] || "").trim().toLowerCase();
-                const isActive = (status === "active");
-                const isWatched = watchedSessions.has(session);
-                const isClickable = isActive || isWatched;
-                let rowBgClass = "";
-                if (isWatched) {
-                    rowBgClass = "bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
-                } else if (isActive) {
-                    rowBgClass = "bg-rose-100/90 hover:bg-rose-200/90 text-rose-950 border-l-4 border-rose-500 cursor-pointer shadow-sm";
-                } else {
-                    rowBgClass = "opacity-60 bg-rose-100/40 text-rose-900/60 border-l-4 border-rose-300/50 cursor-not-allowed";
-                }
-                const rowEl = document.createElement("div");
-                rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
-                let iconName = "lock";
-                let iconCircleClass = "border-slate-400/20 text-slate-500 bg-slate-400/10";
-                if (isWatched) {
-                    iconName = "check-circle-2";
-                    iconCircleClass = "border-emerald-500/30 text-emerald-600 bg-emerald-500/20";
-                } else if (isActive) {
-                    iconName = "layers";
-                    iconCircleClass = "border-rose-400/20 text-rose-700 bg-rose-500/10";
-                } else {
-                    iconName = "lock";
-                    iconCircleClass = "border-rose-300/20 text-rose-400/50 bg-rose-500/5";
-                }
-                let statusText = "LOCKED";
-                let rightIcon = "lock";
-                let textClass = "text-rose-900/40";
-                if (isWatched) {
-                    statusText = "COMPLETED";
-                    rightIcon = "check";
-                    textClass = "text-emerald-700 font-bold";
-                } else if (isActive) {
-                    statusText = "ENTER";
-                    rightIcon = "chevron-right";
-                    textClass = "text-rose-700";
-                }
-                const rawDate = String(row[5] || "").trim();
-                const date = formatDisplayDate(rawDate);
-                rowEl.innerHTML = `
-                    <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
-                        <span class="w-8 h-8 rounded-lg border ${iconCircleClass} flex items-center justify-center shrink-0">
-                            <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
-                        </span>
-                        <div class="flex flex-col flex-1 min-w-0">
-                            <span class="text-xs text-slate-500 font-medium tracking-wide">${date || ''}</span>
-                            <span class="text-sm md:text-base font-bold text-slate-800 truncate leading-tight">
-                                <span class="text-emerald-600 font-bold mr-1.5">${session}</span> ${title}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-1 ${textClass} text-xs font-bold tracking-widest ${isClickable ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
-                        <span>${statusText}</span>
-                        <i data-lucide="${rightIcon}" class="w-3 h-3"></i>
-                    </div>
-                `;
-                if (isClickable) {
-                    rowEl.addEventListener("click", () => {
-                        if (ytLink) openVideoWindow(session, title, ytLink, isWatched);
-                        else alert("本堂課程尚未配置影片網址。");
-                    });
-                }
-                topicsContainer.appendChild(rowEl);
-            });
-            lucide.createIcons();
-        }
-
-        // =======================================================
-        // 播放器邏輯 (保留原有，不變)
-        // =======================================================
-        function openVideoWindow(session, title, url, isWatched) {
-            currentSession = session;
-            currentTitle = title;
-            currentVideoWatched = isWatched;
-            let videoId = "";
-            try {
-                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-                const match = url.match(regExp);
-                if (match && match[2].length === 11) videoId = match[2];
-                else videoId = url;
-            } catch (e) { videoId = url; }
-            document.getElementById('video-overlay-title').innerText = title;
-            document.getElementById('video-player-large-title').innerText = title;
-            const overlay = document.getElementById('video-overlay');
-            overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
-            overlay.classList.add('animate-ios-overlay-enter');
-            const btn = document.getElementById('attendance-btn');
-            const playBtnSpan = document.querySelector('#custom-play-btn span');
-            if (playBtnSpan) playBtnSpan.innerText = "播放 (Play)";
-            maxWatchedTime = 0;
-            if (timeCheckInterval) clearInterval(timeCheckInterval);
-            if (attendanceTimer) clearInterval(attendanceTimer);
-            if (isWatched) {
-                btn.classList.remove('hidden');
-                btn.disabled = true;
-                btn.className = "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-                btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
-            } else {
-                btn.classList.add('hidden');
-            }
-            if (isYtApiReady) {
-                if (ytPlayer) try { ytPlayer.destroy(); } catch(e) {}
-                ytPlayer = new YT.Player('video-overlay-player', {
-                    height:'100%', width:'100%', videoId:videoId,
-                    playerVars: { autoplay:1, controls:1, disablekb:1, rel:0, modestbranding:1, fs:1 },
-                    events: { 'onStateChange': onPlayerStateChange }
-                });
-            } else { console.warn("YouTube API 尚未就緒。"); }
-            setTimeout(() => lucide.createIcons(), 50);
-        }
-
-        function startTimeTracking() {
-            if (timeCheckInterval) clearInterval(timeCheckInterval);
-            timeCheckInterval = setInterval(() => {
-                if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
-                    const currentTime = ytPlayer.getCurrentTime();
-                    if (currentVideoWatched) return;
-                    if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
-                        ytPlayer.setPlaybackRate(1);
-                    }
-                    if (currentTime > maxWatchedTime + 2.5) {
-                        ytPlayer.seekTo(maxWatchedTime, true);
-                    } else {
-                        maxWatchedTime = Math.max(maxWatchedTime, currentTime);
-                    }
-                }
-            }, 500);
-        }
-        function stopTimeTracking() {
-            if (timeCheckInterval) { clearInterval(timeCheckInterval); timeCheckInterval = null; }
-        }
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.PLAYING) startTimeTracking();
-            else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) stopTimeTracking();
-            if (event.data === YT.PlayerState.ENDED && !currentVideoWatched) {
-                const duration = (ytPlayer && typeof ytPlayer.getDuration === 'function') ? ytPlayer.getDuration() : 0;
-                if (duration > 0 && maxWatchedTime >= duration * 0.9) {
-                    startAttendanceCountdown();
-                } else {
-                    const btn = document.getElementById('attendance-btn');
-                    btn.classList.remove('hidden');
-                    btn.disabled = true;
-                    btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-                    btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>未完整觀看 (請重播並完整看完影片)</span>`;
-                    lucide.createIcons();
-                    const playBtnSpan = document.querySelector('#custom-play-btn span');
-                    if (playBtnSpan) playBtnSpan.innerText = "重新播放";
-                }
-            }
-        }
-        function startAttendanceCountdown() {
-            let timeLeft = 120;
-            const btn = document.getElementById('attendance-btn');
-            btn.classList.remove('hidden');
-            btn.disabled = false;
-            btn.className = "px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse";
-            btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>完成簽到 (剩餘 2分00秒)</span>`;
-            lucide.createIcons();
-            if (attendanceTimer) clearInterval(attendanceTimer);
-            attendanceTimer = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(attendanceTimer);
-                    btn.disabled = true;
-                    btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-                    btn.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i><span>超時，請勿掛機，請重新播放</span>`;
-                    lucide.createIcons();
-                    const playBtnSpan = document.querySelector('#custom-play-btn span');
-                    if (playBtnSpan) playBtnSpan.innerText = "重新播放";
-                } else {
-                    const minutes = Math.floor(timeLeft / 60);
-                    const seconds = timeLeft % 60;
-                    const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
-                    btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>完成簽到 (剩餘 ${minutes}分${paddedSeconds}秒)</span>`;
-                    lucide.createIcons();
-                }
-            }, 1000);
-        }
-
-        document.getElementById('custom-play-btn').addEventListener('click', () => {
-            if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
-                const playBtnSpan = document.querySelector('#custom-play-btn span');
-                if (playBtnSpan && playBtnSpan.innerText === "重新播放") {
-                    maxWatchedTime = 0;
-                    if (attendanceTimer) clearInterval(attendanceTimer);
-                    if (currentVideoWatched) {
-                        const btn = document.getElementById('attendance-btn');
-                        btn.classList.remove('hidden');
-                        btn.disabled = true;
-                        btn.className = "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-                        btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
-                    } else {
-                        document.getElementById('attendance-btn').classList.add('hidden');
-                    }
-                    playBtnSpan.innerText = "播放 (Play)";
-                    ytPlayer.seekTo(0, true);
-                }
-                ytPlayer.playVideo();
-            }
-        });
-        document.getElementById('custom-pause-btn').addEventListener('click', () => {
-            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
-        });
-        document.getElementById('close-video-btn').addEventListener('click', () => {
-            const overlay = document.getElementById('video-overlay');
-            overlay.classList.remove('animate-ios-overlay-enter');
-            overlay.classList.add('animate-ios-overlay-exit');
-            stopTimeTracking();
-            if (attendanceTimer) clearInterval(attendanceTimer);
-            if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
-            setTimeout(() => overlay.classList.add('hidden'), 730);
-        });
-
-        // =======================================================
-        // 簽到提交
-        // =======================================================
-        document.getElementById('attendance-btn').addEventListener('click', async () => {
-            if (attendanceTimer) clearInterval(attendanceTimer);
-            const btn = document.getElementById('attendance-btn');
-            btn.disabled = true;
-            btn.className = "px-6 py-2.5 bg-slate-400 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-            btn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>正在提交簽到紀錄...</span>
-            `;
-            lucide.createIcons();
-            const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
-            const userRole = localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student";
-            const details = getStudentDetails();
-            const studentId = details.studentId;
-            const realName = details.realName;
-            const studentClass = details.studentClass;
-            const classNo = details.classNo;
-            try {
-                const response = await fetch(GAS_ATTENDANCE_URL, {
-                    method:"POST", mode:"cors", redirect:"follow",
-                    headers: { "Content-Type":"text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action:"submitAttendance",
-                        token:token,
-                        session:currentSession,
-                        title:currentTitle,
-                        student_id:studentId,
-                        real_name:realName,
-                        class:studentClass,
-                        class_no:classNo,
-                        role:userRole
-                    })
-                });
-                const resData = await response.json();
-                if (resData.success) {
-                    btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>簽到紀錄已提交 (Saved)</span>`;
-                    btn.className = "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-                    fetchTopics();
-                } else {
-                    btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>簽到失敗：${resData.message}</span>`;
-                    btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
-                }
-            } catch (err) {
-                btn.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>網路連線錯誤，請重試</span>`;
-                btn.className = "px-6 py-2.5 bg-rose-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md";
-                btn.disabled = false;
-            } finally { lucide.createIcons(); }
-        });
-
-        // =======================================================
-        // 出席數據查閱 (優化：緊湊表格，支援多角色)
-        // =======================================================
-        async function fetchStudentRosterAndRender() {
-            const loader = document.getElementById('attendance-table-loader');
-            const tableContainer = document.getElementById('attendance-table-container');
-            const wrapper = document.getElementById('attendance-multi-table-wrapper');
-
-            loader.classList.remove('hidden');
-            tableContainer.classList.add('hidden');
-            wrapper.innerHTML = '';
-
-            const getCellValue = (cell) => {
-                if (!cell) return "";
-                if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
-                if (cell.f !== null && cell.f !== undefined) return String(cell.f).trim();
-                return "";
+                },
+                required: ["matchedStudentsCount", "reports"]
             };
 
-            try {
-                const response = await fetch(ROSTER_JSON_URL);
-                const text = await response.text();
-                const jsonStart = text.indexOf('{');
-                const jsonEnd = text.lastIndexOf('}') + 1;
-                const jsonString = text.substring(jsonStart, jsonEnd);
-                const rawJsonData = JSON.parse(jsonString);
-                if (!rawJsonData.table || !rawJsonData.table.rows) throw new Error("試算表數據結構不正確");
-                const rows = rawJsonData.table.rows;
+            const studentsListText = studentList.map(s =>
+                `姓名: ${s.name}, 學號: ${s.studentId}, 班號: ${s.classNum}`).join('\n');
 
-                const parsedStudentList = rows.map((r, index) => {
-                    if (index === 0) return null;
-                    if (!r.c) return null;
-                    return {
-                        role: cleanVal(getCellValue(r.c[0])),
-                        class: cleanVal(getCellValue(r.c[1])),
-                        classNo: cleanVal(getCellValue(r.c[2])),
-                        name: cleanVal(getCellValue(r.c[3]))
-                    };
-                }).filter(item => item !== null && item.name !== "");
-
-                const currentUserRole = (localStorage.getItem("user_role") || "student").toLowerCase();
-                const isAdminOrTeacher = (currentUserRole === "teacher" || currentUserRole === "admin");
-
-                let rolesToShow = [];
-                if (isAdminOrTeacher) {
-                    const allRoles = new Set();
-                    parsedStudentList.forEach(s => { if (s.role) allRoles.add(s.role); });
-                    rolesToShow = Array.from(allRoles).sort();
-                } else {
-                    rolesToShow = [currentUserRole];
+            let pageGroups = [];
+            const totalPages = pdfPagesImages.length;
+            if (scanMode === '1page') {
+                for (let i = 0; i < totalPages; i++) pageGroups.push([pdfPagesImages[i]]);
+            } else if (scanMode === '2pages') {
+                for (let i = 0; i < totalPages; i += 2) {
+                    const group = [pdfPagesImages[i]];
+                    if (i + 1 < totalPages) group.push(pdfPagesImages[i + 1]);
+                    pageGroups.push(group);
                 }
-                if (rolesToShow.length === 0) {
-                    loader.classList.add('hidden');
-                    tableContainer.classList.remove('hidden');
-                    wrapper.innerHTML = `<div class="p-8 text-center text-slate-500 font-medium">目前沒有可顯示的學生群組資料。</div>`;
-                    lucide.createIcons();
-                    return;
-                }
+            } else {
+                pageGroups.push(pdfPagesImages);
+            }
 
-                // 取得各角色 session
-                function getSessionsForRole(role) {
-                    const sessionSet = new Set();
-                    if (globalTopicRows && globalTopicRows.length > 1) {
-                        const dataRows = globalTopicRows.slice(1);
-                        dataRows.forEach(row => {
-                            const rowRole = String(row[0] || "").trim().toLowerCase();
-                            if (rowRole === role) {
-                                const session = String(row[1] || "").trim();
-                                if (session) sessionSet.add(session);
-                            }
-                        });
-                    }
-                    const arr = Array.from(sessionSet);
-                    arr.sort((a,b) => {
-                        const getNum = (str) => {
-                            const match = String(str).match(/\d+/g);
-                            if (match) return parseFloat(match[match.length-1]) || 0;
-                            return 0;
-                        };
-                        return getNum(a) - getNum(b);
-                    });
-                    return arr;
-                }
+            let allReports = [];
+            for (let gIndex = 0; gIndex < pageGroups.length; gIndex++) {
+                const group = pageGroups[gIndex];
+                const pagesStr = group.map(p => p.pageNum).join(', ');
+                updateProgress(`正在批改第 ${gIndex+1} / ${pageGroups.length} 組 (PDF 第 ${pagesStr} 頁)...`,
+                    Math.round(40 + ((gIndex / pageGroups.length) * 55)));
 
-                // 出席地圖
-                const attendanceMap = {};
-                let recordRows = globalRecords;
-                if (globalRecords && globalRecords.record && Array.isArray(globalRecords.record)) recordRows = globalRecords.record;
-                if (Array.isArray(recordRows)) {
-                    recordRows.forEach((row, idx) => {
-                        if (idx === 0) return;
-                        const rowName = String(row[3] || "").trim();
-                        const rowSession = String(row[4] || "").trim();
-                        const cleanRowName = stripAllSpaces(rowName);
-                        const cleanRowSession = stripAllSpaces(rowSession);
-                        if (cleanRowName && cleanRowSession) {
-                            attendanceMap[`${cleanRowName}_${cleanRowSession}`] = true;
-                        }
-                    });
-                }
-
-                let hasAnyData = false;
-                rolesToShow.forEach(role => {
-                    const studentsOfRole = parsedStudentList.filter(s =>
-                        s.role && s.role.toLowerCase() === role.toLowerCase()
-                    );
-                    studentsOfRole.sort((a,b) => {
-                        if (a.class !== b.class) return String(a.class).localeCompare(String(b.class));
-                        return (parseFloat(a.classNo)||0) - (parseFloat(b.classNo)||0);
-                    });
-                    const sessionList = getSessionsForRole(role.toLowerCase());
-                    if (studentsOfRole.length === 0 && sessionList.length === 0) return;
-
-                    const roleSection = document.createElement('div');
-                    roleSection.className = 'role-table-section';
-
-                    const headerDiv = document.createElement('div');
-                    headerDiv.className = 'flex items-center gap-1.5';
-                    const roleBadge = document.createElement('span');
-                    roleBadge.className = 'role-table-header';
-                    roleBadge.textContent = `📋 ${role.toUpperCase()}`;
-                    headerDiv.appendChild(roleBadge);
-                    const countSpan = document.createElement('span');
-                    countSpan.className = 'text-[8px] text-slate-400 font-medium ml-0.5';
-                    countSpan.textContent = `（${studentsOfRole.length}人 · ${sessionList.length}堂）`;
-                    headerDiv.appendChild(countSpan);
-                    roleSection.appendChild(headerDiv);
-
-                    if (studentsOfRole.length === 0) {
-                        const emptyHint = document.createElement('div');
-                        emptyHint.className = 'text-[10px] text-slate-400 italic py-0.5 px-2';
-                        emptyHint.textContent = '此群組尚無學生名單。';
-                        roleSection.appendChild(emptyHint);
-                        wrapper.appendChild(roleSection);
-                        return;
-                    }
-
-                    const tableWrapper = document.createElement('div');
-                    tableWrapper.className = 'overflow-x-auto rounded-lg border border-slate-200/60 bg-white/30';
-                    const table = document.createElement('table');
-                    table.className = 'attendance-compact-table';
-
-                    const thead = document.createElement('thead');
-                    let headerHtml = `<tr><th class="col-class">班別</th><th class="col-class">座號</th><th class="col-name">姓名</th>`;
-                    sessionList.forEach(session => {
-                        headerHtml += `<th class="col-session text-[9px]">補課${session}</th>`;
-                    });
-                    headerHtml += `</tr>`;
-                    thead.innerHTML = headerHtml;
-                    table.appendChild(thead);
-
-                    const tbody = document.createElement('tbody');
-                    studentsOfRole.forEach(student => {
-                        let rowHtml = `<tr><td class="col-class">${student.class||'--'}</td><td class="col-class">${student.classNo||'--'}</td><td class="col-name">${student.name||'--'}</td>`;
-                        sessionList.forEach(session => {
-                            const cleanStudentName = stripAllSpaces(student.name);
-                            const cleanSession = stripAllSpaces(session);
-                            const hasCompleted = attendanceMap[`${cleanStudentName}_${cleanSession}`] === true;
-                            if (hasCompleted) {
-                                rowHtml += `<td class="col-session check-mark">✓</td>`;
-                            } else {
-                                rowHtml += `<td class="col-session cross-mark">✕</td>`;
-                            }
-                        });
-                        rowHtml += `</tr>`;
-                        tbody.innerHTML += rowHtml;
-                    });
-                    table.appendChild(tbody);
-                    tableWrapper.appendChild(table);
-                    roleSection.appendChild(tableWrapper);
-                    wrapper.appendChild(roleSection);
-                    hasAnyData = true;
+                const parts = [];
+                parts.push({
+                    text: `【學生班級對照名單】：\n${studentsListText}\n\n【Marking Scheme】：\n${markingSchemeText}\n\n你現在正在批改「第 ${gIndex+1} 組」答卷（對應 PDF 第 ${pagesStr} 頁）。`
                 });
+                group.forEach(p => {
+                    parts.push({ text: `--- 考卷影像第 ${p.pageNum} 頁 ---` });
+                    parts.push({ inlineData: { mimeType: "image/png", data: p.base64.split(',')[1] } });
+                    parts.push({ text: `--- 考卷影像第 ${p.pageNum} 頁結束 ---` });
+                });
+                parts.push({ text: `請分析以上圖片，進行精確核對與評分，並返回對應的 JSON。` });
 
-                if (!hasAnyData) {
-                    wrapper.innerHTML = `<div class="p-8 text-center text-slate-500 font-medium">該群組暫無其他學生名單或課程資料。</div>`;
+                const payload = {
+                    contents: [{ role: "user", parts }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: responseSchema
+                    }
+                };
+
+                let responseText = '';
+                let success = false;
+                let delay = 1000;
+                for (let attempt = 1; attempt <= 5; attempt++) {
+                    try {
+                        const resp = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const json = await resp.json();
+                        responseText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (responseText) { success = true; break; }
+                    } catch (err) {
+                        if (attempt === 5) throw err;
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                    }
                 }
+                if (success) {
+                    try {
+                        const parsed = JSON.parse(responseText);
+                        if (parsed.reports) allReports = allReports.concat(parsed.reports);
+                    } catch (e) {
+                        console.error('JSON 解析失敗:', e, responseText);
+                    }
+                }
+            }
 
-                loader.classList.add('hidden');
-                tableContainer.classList.remove('hidden');
-                lucide.createIcons();
+            processAIResults({ matchedStudentsCount: allReports.length, reports: allReports });
+        }
 
-            } catch (err) {
-                console.error("Failed to load roster:", err);
-                loader.innerHTML = `
-                    <div class="p-6 text-rose-800 font-semibold space-y-2">
-                        <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto text-rose-500 mb-1"></i>
-                        <p>調取名單與出席數據失敗</p>
-                        <p class="text-xs text-slate-500">請確認您的名單試算表連結已開啟共用檢視權限！</p>
-                    </div>
-                `;
-                lucide.createIcons();
+        // ============================================================
+        // 5. 渲染結果與本地儲存
+        // ============================================================
+        function processAIResults(data) {
+            updateProgress('正在渲染登分數據與報告...', 95);
+            matchedResults = data.reports || [];
+            
+            // 💡 新增：AI 核對成功後，立即寫入 LocalStorage 保存
+            localStorage.setItem('marking_system_results', JSON.stringify(matchedResults));
+
+            document.getElementById('matchedCountTag').innerText =
+                `已匹配: ${matchedResults.length} / ${studentList.length} 人`;
+            renderGradebook();
+            document.getElementById('exportCsvBtn').disabled = false;
+            document.getElementById('exportPdfReportsBtn').disabled = false;
+            if (matchedResults.length > 0) showStudentDetail(0);
+            updateProgress('核對完成！', 100);
+            setTimeout(() => document.getElementById('progressContainer').classList.add('hidden'), 3000);
+        }
+
+        function renderGradebook() {
+            const tbody = document.getElementById('gradebookTableBody');
+            tbody.innerHTML = '';
+            if (matchedResults.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="7" class="p-8 text-center text-slate-400 italic">未能匹配到任何學生的試卷資訊，請重試或核對 PDF</td></tr>`;
+                return;
+            }
+            matchedResults.forEach((r, idx) => {
+                const qids = r.questions.map(q => q.qid).join(', ');
+                const pages = r.associatedPages ? `第 ${r.associatedPages.join(', ')} 頁` : '未知';
+                const sel = selectedStudentIndex === idx;
+                const tr = document.createElement('tr');
+                tr.className =
+                    `${sel ? 'bg-blue-50 border-b border-blue-100 hover:bg-blue-50 font-medium' : 'border-b border-slate-100 hover:bg-slate-50 cursor-pointer'}`;
+                tr.onclick = () => showStudentDetail(idx);
+                tr.innerHTML = `
+              <td class="p-3 text-slate-700">${r.classNum || ''} ${r.studentId || ''}</td>
+              <td class="p-3 font-semibold text-slate-900">${r.studentName}</td>
+              <td class="p-3 text-xs text-slate-500 max-w-[150px] truncate" title="${r.quizTopic || ''}">${r.quizTopic || '未標註'}</td>
+              <td class="p-3 text-xs text-slate-600">${qids}</td>
+              <td class="p-3 text-xs text-center text-indigo-600 font-semibold">${pages}</td>
+              <td class="p-3 text-right font-black text-blue-700">${r.totalScore} / ${r.maxScore}</td>
+              <td class="p-3 text-center"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800"><i data-lucide="check" class="w-3 h-3"></i>已批改</span></td>
+            `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function showStudentDetail(idx) {
+            selectedStudentIndex = idx;
+            renderGradebook();
+            const r = matchedResults[idx];
+            if (!r) return;
+            document.getElementById('analysisDetailContainer').classList.remove('hidden');
+            document.getElementById('detailStudentClassNum').innerText = `${r.classNum || '班號未知'} ${r.studentId || '學號未知'}`;
+            document.getElementById('detailStudentName').innerText = r.studentName;
+            document.getElementById('detailTopicTitle').innerText =
+                `小測標題: ${r.quizTitle || '無'} | 課題: ${r.quizTopic || '無'}`;
+            document.getElementById('detailStudentScore').innerText = `${r.totalScore} / ${r.maxScore}`;
+
+            const list = document.getElementById('questionAnalysisList');
+            list.innerHTML = '';
+            r.questions.forEach(q => {
+                const badge = q.isNumericMatch ?
+                    `<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full"><i data-lucide="check" class="w-3 h-3"></i>數值吻合</span>` :
+                    `<span class="inline-flex items-center gap-1 bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full"><i data-lucide="alert-circle" class="w-3 h-3"></i>數值不符/錯誤</span>`;
+                const card = document.createElement('div');
+                card.className =
+                    `p-3.5 rounded-xl border transition-all ${q.isNumericMatch ? 'bg-emerald-50/40 border-emerald-100' : 'bg-rose-50/40 border-rose-100'}`;
+                card.innerHTML = `
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-black text-slate-800 text-sm">${q.qid}</span>
+                  <span class="text-[10px] text-slate-500 bg-slate-200/60 px-1.5 py-0.5 rounded">${q.topic}</span>
+                </div>
+                <div class="flex items-center gap-2">${badge}<span class="text-xs font-bold text-slate-700">${q.score} / ${q.fullMark} 分</span></div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[11px] mb-2 bg-white/80 p-2 rounded-lg border border-slate-100">
+                <div><span class="text-slate-400 block font-medium">Marking 標準數值:</span><code class="text-indigo-700 font-mono font-semibold">${q.expectedValue}</code></div>
+                <div><span class="text-slate-400 block font-medium">學生答卷實際數值:</span><code class="font-mono font-semibold ${q.isNumericMatch ? 'text-emerald-700' : 'text-rose-600'}">${q.studentValue}</code></div>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed mb-1"><span class="font-bold text-slate-700">步驟分析：</span>${q.analysis}</p>
+              ${!q.isNumericMatch ? `<p class="text-xs text-rose-700 font-semibold leading-relaxed"><span class="font-bold">扣分原因：</span>${q.deductionReason}</p>` : ''}
+            `;
+                list.appendChild(card);
+            });
+
+            document.getElementById('detailFeedbackStrengths').innerText = r.feedback.strengths || '無';
+            document.getElementById('detailFeedbackWeaknesses').innerText = r.feedback.weaknesses || '無';
+            document.getElementById('detailFeedbackActionable').innerText = r.feedback.suggestions || '無';
+            renderStudentAccordionImages(r.associatedPages);
+            lucide.createIcons();
+        }
+
+        let accordionOpen = false;
+
+        function toggleImageAccordion() {
+            accordionOpen = !accordionOpen;
+            const content = document.getElementById('imageAccordionContent');
+            const icon = document.getElementById('accordionIcon');
+            if (accordionOpen) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
             }
         }
 
-        // =======================================================
-        // 🆕 PDF 匯出 (修復版)
-        // =======================================================
-        function exportAttendancePDF() {
-            const wrapper = document.getElementById('attendance-multi-table-wrapper');
-            const btn = document.getElementById('export-pdf-btn');
-
-            if (!wrapper || wrapper.innerHTML.trim() === '') {
-                alert('目前沒有出席數據可供匯出，請先載入資料。');
+        function renderStudentAccordionImages(pages) {
+            const container = document.getElementById('imageAccordionContent');
+            container.innerHTML = '';
+            if (!pages || pages.length === 0) {
+                container.innerHTML =
+                `<p class="text-xs text-slate-400 italic p-4 text-center col-span-2">此學生未關聯 any PDF 頁碼</p>`;
                 return;
             }
-
-            // 克隆內容
-            const cloneWrapper = wrapper.cloneNode(true);
-            // 確保所有表格使用緊湊樣式
-            const tables = cloneWrapper.querySelectorAll('table');
-            tables.forEach(t => t.classList.add('attendance-compact-table'));
-
-            // 創建臨時容器 — 使用 fixed + opacity:0，保持在視口中但不可見
-            const tempContainer = document.createElement('div');
-            tempContainer.style.cssText = `
-                position: fixed;
-                left: 0;
-                top: 0;
-                width: 1120px;
-                padding: 12px 16px;
-                background: #ffffff;
-                font-family: 'Inter', 'Noto Sans TC', sans-serif;
-                box-sizing: border-box;
-                opacity: 0;
-                pointer-events: none;
-                z-index: -9999;
-                overflow: visible;
-            `;
-
-            // 內聯樣式 — 確保 PDF 中樣式完整（更緊湊）
-            const styleTag = document.createElement('style');
-            styleTag.textContent = `
-                .attendance-compact-table {
-                    font-size: 6.5px !important;
-                    border-collapse: collapse !important;
-                    width: 100% !important;
-                    min-width: 380px !important;
-                    table-layout: auto !important;
+            pages.forEach(pn => {
+                const img = pdfPagesImages.find(x => x.pageNum === pn);
+                if (img) {
+                    const div = document.createElement('div');
+                    div.className = "bg-white p-2 rounded border border-slate-200 flex flex-col gap-1 items-center shadow-sm";
+                    div.innerHTML =
+                        `<img src="${img.base64}" alt="答卷第 ${pn} 頁" class="w-full h-auto rounded max-h-80 object-contain hover:scale-105 transition-transform cursor-pointer" onclick="openImageInNewTab('${img.base64}')" /><span class="text-[10px] font-semibold text-slate-500">考卷第 ${pn} 頁 (點擊放大)</span>`;
+                    container.appendChild(div);
                 }
-                .attendance-compact-table th,
-                .attendance-compact-table td {
-                    padding: 0px 2px !important;
-                    text-align: left !important;
-                    border-bottom: 1px solid rgba(15, 23, 42, 0.04) !important;
-                    font-size: 6.5px !important;
-                    line-height: 1.15 !important;
-                    white-space: nowrap !important;
-                }
-                .attendance-compact-table th {
-                    background: #f1f5f9 !important;
-                    font-weight: 700 !important;
-                    color: #0f172a !important;
-                    letter-spacing: 0.02em !important;
-                    border-bottom: 1px solid #cbd5e1 !important;
-                    font-size: 6px !important;
-                    text-transform: uppercase !important;
-                    padding: 1px 2px !important;
-                    position: sticky !important;
-                    top: 0 !important;
-                    z-index: 10 !important;
-                }
-                .attendance-compact-table td {
-                    padding: 0px 2px !important;
-                    font-size: 6.5px !important;
-                    line-height: 1.15 !important;
-                }
-                .attendance-compact-table .col-class {
-                    font-weight: 600 !important;
-                    color: #0f172a !important;
-                    min-width: 32px !important;
-                    max-width: 42px !important;
-                }
-                .attendance-compact-table .col-name {
-                    font-weight: 700 !important;
-                    color: #0f172a !important;
-                    min-width: 36px !important;
-                    max-width: 56px !important;
-                }
-                .attendance-compact-table .col-session {
-                    text-align: center !important;
-                    font-weight: 700 !important;
-                    min-width: 18px !important;
-                    max-width: 28px !important;
-                }
-                .attendance-compact-table .check-mark {
-                    color: #10b981 !important;
-                    font-weight: 800 !important;
-                    font-size: 8px !important;
-                    text-align: center !important;
-                    display: inline-block !important;
-                    width: 100% !important;
-                }
-                .attendance-compact-table .cross-mark {
-                    color: #f43f5e !important;
-                    font-weight: 800 !important;
-                    font-size: 8px !important;
-                    text-align: center !important;
-                    display: inline-block !important;
-                    width: 100% !important;
-                }
-                .role-table-header {
-                    font-size: 7.5px !important;
-                    font-weight: 700 !important;
-                    letter-spacing: 0.04em !important;
-                    color: #1e293b !important;
-                    padding: 1px 5px !important;
-                    background: rgba(255,255,255,0.5) !important;
-                    border-radius: 3px !important;
-                    border: 1px solid rgba(15,23,42,0.06) !important;
-                    display: inline-block !important;
-                }
-                .role-table-section {
-                    margin-bottom: 3px !important;
-                }
-                .role-table-section .text-slate-400 { color: #94a3b8 !important; }
-                .role-table-section .italic { font-style: italic !important; }
-                .role-table-section .text-[9px] { font-size: 7px !important; }
-                .role-table-section .py-0\\.5 { padding-top: 0 !important; padding-bottom: 0 !important; }
-                .overflow-x-auto { overflow: visible !important; }
-                .rounded-lg { border-radius: 4px !important; }
-                .border { border: 1px solid #e2e8f0 !important; }
-                .bg-white\\/30 { background: #f8fafc !important; }
-                .flex { display: flex !important; }
-                .items-center { align-items: center !important; }
-                .gap-2 { gap: 4px !important; }
-                .ml-1 { margin-left: 2px !important; }
-                .px-2 { padding-left: 4px !important; padding-right: 4px !important; }
-            `;
-            tempContainer.appendChild(styleTag);
-
-            // 標題區
-            const headerDiv = document.createElement('div');
-            headerDiv.style.cssText = 'display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:6px; border-bottom:1px solid #e2e8f0; padding-bottom:4px;';
-            
-            const title = document.createElement('h1');
-            title.style.cssText = 'font-size:15px; font-weight:700; color:#0f172a; font-family: "Shippori Mincho", serif; margin:0;';
-            title.textContent = '📋 出席數據查閱報告';
-            headerDiv.appendChild(title);
-            
-            const subTitle = document.createElement('span');
-            subTitle.style.cssText = 'font-size:8px; color:#64748b;';
-            subTitle.textContent = `生成：${new Date().toLocaleString('zh-TW')}`;
-            headerDiv.appendChild(subTitle);
-            
-            tempContainer.appendChild(headerDiv);
-
-            // 內容
-            tempContainer.appendChild(cloneWrapper);
-
-            document.body.appendChild(tempContainer);
-
-            // 強制瀏覽器完成佈局
-            requestAnimationFrame(() => {
-                // 再等一幀確保尺寸穩定
-                requestAnimationFrame(() => {
-                    const width = Math.max(tempContainer.scrollWidth, 1100);
-                    const height = Math.max(tempContainer.scrollHeight, 600);
-
-                    const opt = {
-                        margin: [5, 5, 5, 5],
-                        filename: `出席報告_${new Date().toISOString().slice(0,10)}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: {
-                            scale: 2.2,
-                            useCORS: true,
-                            letterRendering: true,
-                            logging: false,
-                            width: width,
-                            height: height,
-                            onclone: function(doc) {
-                                // 確保克隆文檔中的表格樣式正確
-                                const tables = doc.querySelectorAll('.attendance-compact-table');
-                                tables.forEach(t => {
-                                    t.style.width = '100%';
-                                    t.style.fontSize = '6.5px';
-                                });
-                                // 移除可能干擾的 sticky 定位（PDF 中無需）
-                                const ths = doc.querySelectorAll('.attendance-compact-table th');
-                                ths.forEach(th => {
-                                    th.style.position = 'static';
-                                });
-                            }
-                        },
-                        jsPDF: {
-                            unit: 'mm',
-                            format: 'a4',
-                            orientation: 'landscape'
-                        },
-                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                    };
-
-                    const originalText = btn.innerHTML;
-                    btn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 生成中...`;
-                    btn.disabled = true;
-
-                    html2pdf()
-                        .set(opt)
-                        .from(tempContainer)
-                        .save()
-                        .then(() => {
-                            document.body.removeChild(tempContainer);
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                                lucide.createIcons();
-                            }
-                        })
-                        .catch((err) => {
-                            console.error('PDF 生成失敗:', err);
-                            document.body.removeChild(tempContainer);
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                            alert('PDF 匯出失敗，請重試或檢查網路連線。');
-                            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                                lucide.createIcons();
-                            }
-                        });
-                });
             });
         }
 
-        // =======================================================
-        // 錯誤訊息
-        // =======================================================
-        function showError(msg) {
-            errorText.innerText = msg;
-            errorMsg.classList.remove('hidden');
+        function openImageInNewTab(base64) {
+            const w = window.open();
+            w.document.write(`<img src="${base64}" style="max-width:100%;height:auto;" />`);
+            w.document.title = "高清答卷檢視";
+        }
+
+        // ============================================================
+        // 6. CSV 匯出
+        // ============================================================
+        function exportGradebookToCSV() {
+            if (matchedResults.length === 0) return;
+            let csv = "\ufeff";
+            csv += "姓名,學號,班號,小測標題,小測課題,總得分,總分";
+            let maxQ = 0;
+            matchedResults.forEach(r => { if (r.questions.length > maxQ) maxQ = r.questions.length; });
+            for (let i = 1; i <= maxQ; i++) csv += `,Q${i}得分,Q${i}標準值,Q${i}實際值,Q${i}是否吻合`;
+            csv += "\n";
+            matchedResults.forEach(r => {
+                let row =
+                    `"${r.studentName}","${r.studentId || ''}","${r.classNum || ''}","${r.quizTitle || ''}","${r.quizTopic || ''}",${r.totalScore},${r.maxScore}`;
+                for (let i = 0; i < maxQ; i++) {
+                    const q = r.questions[i];
+                    if (q) {
+                        row +=
+                            `,${q.score},"${q.expectedValue.replace(/"/g,'""')}","${q.studentValue.replace(/"/g,'""')}",${q.isNumericMatch ? '是' : '否'}`;
+                    } else {
+                        row += ",,,,";
+                    }
+                }
+                csv += row + "\n";
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `小測成績登分表_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ============================================================
+        // 7. ★★★ 全新 A4 向量列印與沙盒相容預覽模式 (100% 相容 Gemini) ★★★
+        // ============================================================
+        function exitPrintPreview() {
+            // 退出預覽模式，恢復原始控制台顯示
+            document.body.classList.remove('print-preview-active');
+        }
+
+        async function printA4Reports() {
+            // 讀取自 LocalStorage 中最新暫存的批改結果
+            const cachedData = localStorage.getItem('marking_system_results');
+            let reportsToPrint = matchedResults;
+            if (cachedData) {
+                try {
+                    reportsToPrint = JSON.parse(cachedData);
+                } catch(e) {
+                    console.error("自本地載入列印數據失敗，使用記憶體數據", e);
+                }
+            }
+
+            if (!reportsToPrint || reportsToPrint.length === 0) {
+                alert("目前沒有任何已儲存的批改資料可供導出。");
+                return;
+            }
+
+            const container = document.getElementById('printContainer');
+
+            // 清空並構建純 A4 預覽畫面 (加入沙盒專用的無損預覽控制列)
+            container.innerHTML = `
+                <!-- 頂部控制列 (僅螢幕可見，列印時自動隱藏) -->
+                <div class="print-control-bar no-print bg-slate-900 text-white py-3 px-6 sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 shadow-xl border-b border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <span class="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg">
+                            <i data-lucide="printer" class="w-5 h-5"></i>
+                        </span>
+                        <div>
+                            <span class="font-bold text-sm tracking-wide block">A4 批改報告導出與列印預覽</span>
+                            <span class="text-[10px] text-slate-400">若在共享模式下點擊「開啟列印」無反應，請直接使用鍵盤快捷鍵 <kbd class="bg-slate-800 px-1 py-0.5 rounded border border-slate-600 font-mono text-slate-300">Ctrl+P</kbd> 或 <kbd class="bg-slate-800 px-1 py-0.5 rounded border border-slate-600 font-mono text-slate-300">Cmd+P</kbd> 進行導出 PDF</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition-all">
+                            <i data-lucide="printer" class="w-4 h-4"></i>
+                            開啟列印 / 另存為 PDF
+                        </button>
+                        <button onclick="exitPrintPreview()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            返回系統控制台
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            reportsToPrint.forEach((report) => {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = "print-page";
+                pageDiv.style.width = "210mm";
+                pageDiv.style.minHeight = "297mm";
+                pageDiv.style.boxSizing = "border-box";
+                pageDiv.style.padding = "20mm";
+                pageDiv.style.background = "white";
+
+                let qListHtml = '';
+                report.questions.forEach(q => {
+                    qListHtml += `
+                <div style="padding: 12px; margin-bottom: 12px; border: 1px solid ${q.isNumericMatch ? '#e2e8f0' : '#fee2e2'}; border-radius: 6px; background-color: ${q.isNumericMatch ? '#f8fafc' : '#fff1f2'}; page-break-inside: avoid;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-weight: bold; font-size: 14px; color: #1e293b;">${q.qid} - <span style="font-weight: normal; color: #64748b;">${q.topic}</span></span>
+                    <span style="font-weight: bold; font-size: 13px; color: ${q.isNumericMatch ? '#10b981' : '#f43f5e'};">
+                      ${q.isNumericMatch ? '✓ 數值吻合' : '✗ 數值不符'} ${q.score} / ${q.fullMark} 分
+                    </span>
+                  </div>
+                  <table style="width: 100%; font-size: 12px; border-collapse: collapse; margin-bottom: 6px; background: white; border: 1px solid #e2e8f0;">
+                    <tr style="background-color: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                      <th style="text-align: left; padding: 6px 8px; color: #64748b; width: 50%;">標準答案數值 (Marking)</th>
+                      <th style="text-align: left; padding: 6px 8px; color: #64748b; width: 50%;">學生實際手寫 (Student)</th>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 8px; font-family: monospace; font-weight: bold; color: #4338ca;">${q.expectedValue}</td>
+                      <td style="padding: 6px 8px; font-family: monospace; font-weight: bold; color: ${q.isNumericMatch ? '#047857' : '#be123c'};">${q.studentValue}</td>
+                    </tr>
+                  </table>
+                  <p style="margin: 4px 0 0 0; font-size: 12px; color: #334155; line-height: 1.5;"><span style="font-weight: bold; color: #475569;">步驟評核:</span> ${q.analysis}</p>
+                  ${!q.isNumericMatch ? `<p style="margin: 4px 0 0 0; font-size: 12px; color: #be123c; font-weight: bold;"><span style="font-weight: bold;">扣分指正:</span> ${q.deductionReason}</p>` : ''}
+                </div>
+              `;
+                });
+
+                pageDiv.innerHTML = `
+              <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 257mm; font-family: sans-serif;">
+                <div>
+                  <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                      <h1 style="font-size: 22px; font-weight: 900; color: #1e3a8a; margin: 0; font-family: sans-serif;">小測批改報告及學習反饋</h1>
+                      <p style="font-size: 12px; color: #4b5563; margin: 4px 0 0 0;">AI 智能視覺多模態系統自動核對</p>
+                    </div>
+                    <div style="text-align: right;">
+                      <div style="font-size: 13px; font-weight: bold; color: #3b82f6;">小測標題: ${report.quizTitle || '功課小測'}</div>
+                      <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">課題分類: ${report.quizTopic || '未分類'}</div>
+                    </div>
+                  </div>
+                  <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                      <span style="font-size: 11px; color: #1e40af; font-weight: bold; display: block; letter-spacing: 0.5px;">STUDENT INFO</span>
+                      <span style="font-size: 18px; font-weight: 900; color: #1e3a8a;">${report.studentName}</span>
+                      <span style="font-size: 13px; color: #1e40af; font-weight: bold; margin-left: 8px;">(${report.classNum || '班級'} - ${report.studentId || '學號'})</span>
+                    </div>
+                    <div style="text-align: right;">
+                      <span style="font-size: 11px; color: #1e40af; display: block; font-weight: bold;">總得分 / 總分</span>
+                      <span style="font-size: 24px; font-weight: 900; color: #2563eb;">${report.totalScore} / ${report.maxScore}</span>
+                    </div>
+                  </div>
+                  <h3 style="font-size: 14px; font-weight: bold; color: #1e293b; border-left: 3px solid #2563eb; padding-left: 8px; margin-bottom: 12px;">逐題精確數值核對</h3>
+                  <div style="margin-bottom: 20px;">${qListHtml}</div>
+                </div>
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: auto; background-color: #f8fafc; border-radius: 8px; padding: 12px; page-break-inside: avoid;">
+                  <h3 style="font-size: 12px; font-weight: bold; color: #1e293b; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">AI 智能綜合評價與改進建議</h3>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 12px; line-height: 1.5;">
+                    <div>
+                      <strong style="color: #047857; display: block; margin-bottom: 4px;">✓ 優點與掌握良好概念:</strong>
+                      <p style="margin: 0; color: #334155;">${report.feedback.strengths || '表現優異，概念清晰。'}</p>
+                      <strong style="color: #b91c1c; display: block; margin-top: 8px; margin-bottom: 4px;">✗ 數值計算盲區:</strong>
+                      <p style="margin: 0; color: #334155;">${report.feedback.weaknesses || '無明顯常犯數值錯誤。'}</p>
+                    </div>
+                    <div style="border-left: 1px solid #e2e8f0; padding-left: 15px;">
+                      <strong style="color: #4f46e5; display: block; margin-bottom: 4px;">💡 針對性優化改進方案:</strong>
+                      <p style="margin: 0; color: #334155;">${report.feedback.suggestions || '保持當前學習節奏。'}</p>
+                    </div>
+                  </div>
+                  <div style="text-align: center; font-size: 10px; color: #94a3b8; margin-top: 14px; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                    此批改報告經由 AI 進行視覺多模態與標準數值比對。頁碼來源：PDF 考卷第 ${report.associatedPages?.join(', ') || '未知'} 頁。
+                  </div>
+                </div>
+              </div>
+            `;
+                container.appendChild(pageDiv);
+            });
+
+            // 預留些許時間給 DOM 完成完整排版渲染並初始化圖示
+            await new Promise(r => setTimeout(r, 400));
             lucide.createIcons();
+
+            // 💡 關鍵變動：切換主 body 狀態，將介面替換為高保真預覽列印畫面
+            document.body.classList.add('print-preview-active');
+            
+            // 嘗試自動彈出系統列印（如未受 Iframe 安全限制攔截）
+            try {
+                window.print();
+            } catch (err) {
+                console.warn("直接調用 window.print() 被沙盒攔截。已呈現全畫面向量 A4 預覽，教師可使用 Ctrl+P 快捷鍵列印。", err);
+            }
         }
     </script>
 </body>
