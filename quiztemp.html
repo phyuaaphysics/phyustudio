@@ -1,405 +1,1499 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PH studio | Mechanics Quiz</title>
-    
-    <!-- iOS Web App 設定 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="PH quiz">
-    
-    <!-- Tailwind CSS (修正為標準 CDN 引入方式) -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PH Studio - 學生登入與考試診斷系統</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- MathJax 數學公式渲染 -->
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            },
-            svg: { fontCache: 'global' }
-        };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
+    <!-- Lucide Icons for responsive elements -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- KaTeX CSS & JS for elegant LaTeX equations rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <style>
+        /* 引入 Cinzel、Inter、Shippori Mincho 與 Sofia Sans 字型 */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Shippori+Mincho:wght@700&family=Sofia+Sans:wght@700;800;900&display=swap');
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-image: url('https://i.ibb.co/jPCXrCmc/1.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
-        /* 針對 iOS 瀏海屏避開頂部狀態列 */
-        .safe-padding-top {
-            padding-top: calc(1.5rem + env(safe-area-inset-top));
+
+        .cinzel-title {
+            font-family: 'Cinzel', serif;
         }
-        /* 選項選中效果：契合主網頁 Tiffany Blue (#81D8D0) 色調 */
-        .option-card input:checked + .option-content {
-            border-color: #81D8D0;
-            background-color: rgba(129, 216, 208, 0.12);
-            box-shadow: 0 0 0 2px rgba(129, 216, 208, 0.3);
+
+        .shippori-title {
+            font-family: 'Shippori Mincho', serif;
+            font-weight: 700;
+        }
+
+        .sofia-font {
+            font-family: 'Sofia Sans', sans-serif;
+        }
+
+        /* 減少玻璃透明度，提高遮罩實色（更清晰易讀） */
+        .crystal-panel {
+            background: rgba(255, 255, 255, 0.78);
+            /* 淡白色重度磨砂 */
+            backdrop-filter: blur(30px) saturate(160%);
+            -webkit-backdrop-filter: blur(30px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        /* 对称淺色膠囊型輸入框 */
+        .pill-input {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            color: #0f172a;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pill-input:focus {
+            background: rgba(255, 255, 255, 0.85);
+            border-color: rgba(16, 185, 129, 0.5);
+            /* 薄荷綠邊框 */
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+            outline: none;
+        }
+
+        .pill-input::placeholder {
+            color: rgba(15, 23, 42, 0.5);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        /* 漸進式淡入動畫 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* OS 風格擬真彈性阻尼進場動畫 */
+        @keyframes osDamping {
+            0% {
+                opacity: 0;
+                transform: translateY(60px) scale(0.95);
+                filter: blur(8px);
+            }
+            55% {
+                opacity: 0.9;
+                transform: translateY(-6px) scale(1.01);
+                filter: blur(0px);
+            }
+            75% {
+                transform: translateY(2px) scale(0.997);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+        .animate-os-damping {
+            animation: osDamping 1.1s cubic-bezier(0.25, 1, 0.2, 1) forwards;
+        }
+
+        /* iOS 級別阻尼淡入動畫 (用於 Menu Card 展開) */
+        @keyframes iosMenuEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(35px) scale(0.96);
+                filter: blur(10px);
+            }
+            60% {
+                transform: translateY(-3px) scale(1.006);
+                filter: blur(0px);
+            }
+            80% {
+                transform: translateY(1px) scale(0.998);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+        .animate-ios-menu {
+            animation: iosMenuEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* iOS 級別阻尼淡出動畫 (用於 Login Section 退出) */
+        @keyframes iosLoginExit {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.94) translateY(-30px);
+                filter: blur(12px);
+            }
+        }
+        .animate-ios-exit {
+            animation: iosLoginExit 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* iOS 級別超慢阻尼影音遮罩進場動畫 (淡入與優雅縮小回彈) */
+        @keyframes iosOverlayEntrance {
+            0% {
+                opacity: 0;
+                transform: scale(1.08);
+                backdrop-filter: blur(0px) saturate(100%);
+                -webkit-backdrop-filter: blur(0px) saturate(100%);
+                background-color: rgba(255, 255, 255, 0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                backdrop-filter: blur(30px) saturate(160%);
+                -webkit-backdrop-filter: blur(30px) saturate(160%);
+                background-color: rgba(255, 255, 255, 0.9);
+            }
+        }
+        .animate-ios-overlay-enter {
+            animation: iosOverlayEntrance 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* iOS 級別超慢阻尼影音遮罩退場動畫 (淡入與優雅放大消散) */
+        @keyframes iosOverlayExit {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+                backdrop-filter: blur(30px) saturate(160%);
+                -webkit-backdrop-filter: blur(30px) saturate(160%);
+                background-color: rgba(255, 255, 255, 0.9);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.08);
+                backdrop-filter: blur(0px) saturate(100%);
+                -webkit-backdrop-filter: blur(0px) saturate(100%);
+                background-color: rgba(255, 255, 255, 0);
+            }
+        }
+        .animate-ios-overlay-exit {
+            animation: iosOverlayExit 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* iOS 級別阻尼彈簧動畫 (學生個人檔案專用) */
+        @keyframes iosProfileEntrance {
+            0% {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        @keyframes iosProfileExit {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+        }
+        .animate-profile-enter {
+            animation: iosProfileEntrance 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .animate-profile-exit {
+            animation: iosProfileExit 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        /* iOS 級別日曆展開／收合動畫 */
+        #calendar-panel {
+            transition: all 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .calendar-collapsed {
+            max-height: 0 !important;
+            transform: scale-y(0) !important;
+            opacity: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            border-top-width: 0 !important;
+            border-bottom-width: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .calendar-day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* profile iframe 满版适配 */
+        #profile-iframe, #membership-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        /* 🆕 呼吸灯泡闪烁动画 (僅光影閃爍，不縮放) */
+        @keyframes sparkle {
+            0%, 100% {
+                opacity: 1;
+                text-shadow: 0 0 0px currentColor;
+            }
+            50% {
+                opacity: 0.4;
+                text-shadow: 0 0 12px currentColor, 0 0 24px currentColor;
+            }
+        }
+        .sparkle-text {
+            display: inline-block;
+            animation: sparkle 2s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-12">
+<body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 relative">
 
-    <!-- 頂部導航列 (iOS 容器優化，視覺契合 Tiffany Blue) -->
-    <header class="bg-white/85 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 safe-padding-top pb-3 px-4 flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-            <div class="w-2.5 h-6 bg-[#81D8D0] rounded-full"></div>
-            <span class="font-bold text-lg tracking-wide text-slate-800">力學單元小測</span>
+    <!-- 頂部磨砂背景裝飾，確保邊角美觀 -->
+    <div class="absolute inset-0 bg-black/5 pointer-events-none"></div>
+
+    <!-- Header Brand (置頂，在登入狀態下顯現，非登入時隱性融入) -->
+    <header class="w-full max-w-4xl flex justify-end items-center py-2 z-10 shrink-0">
+        <div id="secure-badge" class="text-[10px] tracking-widest text-slate-800/80 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-sm">
+            SECURE CHANNEL
         </div>
-        <!-- 右上角 X 返回主頁按鈕 -->
-        <a href="https://phyuaaphysics.github.io/phyustudio/home.html" 
-           class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-200 active:scale-95"
-           aria-label="返回首頁">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </a>
     </header>
 
-    <main class="max-w-xl w-full mx-auto px-4 mt-6 flex-grow">
-        
-        <!-- 學生資料卡 (對接 PH studio 登入欄位) -->
-        <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl mb-6 border border-slate-800 relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-[#81D8D0] opacity-10 rounded-full blur-2xl"></div>
-            <h3 class="text-xs font-semibold uppercase tracking-widest text-[#81D8D0] mb-3">學生考試認證電子憑證</h3>
-            <div class="grid grid-cols-3 gap-3 text-center">
-                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
-                    <p class="text-[10px] text-slate-400">班級</p>
-                    <p id="info-class" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
-                </div>
-                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
-                    <p class="text-[10px] text-slate-400">座號</p>
-                    <p id="info-no" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
-                </div>
-                <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
-                    <p class="text-[10px] text-slate-400">姓名</p>
-                    <p id="info-name" class="font-bold text-base mt-0.5 text-slate-100">讀取中...</p>
-                </div>
-            </div>
-            
-            <!-- 備用手動修正欄位 (當雙向讀取皆失敗時浮現) -->
-            <div id="credentials-fallback" class="hidden mt-4 pt-4 border-t border-white/10 text-xs">
-                <p class="mb-2 text-amber-300 font-medium">⚠️ 系統未偵測到本地登入紀錄，請手動校對資訊：</p>
-                <div class="grid grid-cols-3 gap-2 text-slate-800">
-                    <input type="text" id="fallback-class" placeholder="班級 (如: 4A)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
-                    <input type="number" id="fallback-no" placeholder="座號 (如: 4)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
-                    <input type="text" id="fallback-name" placeholder="姓名 (如: 陳大文)" class="rounded-xl px-3 py-2 text-xs bg-slate-800 text-white border border-slate-700 focus:outline-none focus:border-[#81D8D0]">
-                </div>
-            </div>
-        </div>
+    <!-- Main Portal Section (置頂排版，極大化空間利用率) -->
+    <main class="w-full max-w-4xl flex-1 flex flex-col items-center justify-start mt-2 mb-6 z-10">
 
-        <!-- 答題進度條 -->
-        <div class="mb-6 bg-slate-200 h-1.5 rounded-full overflow-hidden">
-            <div id="progress-bar" class="bg-[#81D8D0] h-full w-0 transition-all duration-300"></div>
-        </div>
+        <!-- ========================================== -->
+        <!-- SECTION 1: 極致美學登入面板 (預設隱藏以防 token 驗證時閃爍) -->
+        <!-- ========================================== -->
+        <div id="login-section" class="crystal-panel w-full max-w-[440px] p-10 md:p-12 text-center rounded-[2.5rem] animate-os-damping mt-6 shadow-2xl hidden">
 
-        <!-- 測驗內容表單 -->
-        <form id="quiz-form" class="space-y-6">
-            
-            <!-- 題目 1 -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 1 題</span>
-                    <span class="text-slate-400 text-xs">牛頓第一定律</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    根據牛頓第一運動定律，當物體所受合力為零（$\sum F = 0$）時，物體會如何運動？
-                </p>
-                <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q1" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 立即停止運動並保持靜止
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q1" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 保持靜止或作等速度直線運動
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q1" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 必定作等加速度運動
-                        </div>
-                    </label>
+            <!-- 官方 APP ICON (直角矩形置中，不使用圓角) -->
+            <div class="flex justify-center mb-8">
+                <div class="w-14 h-14 bg-white/30 p-0.5 border border-white/40 shadow-inner flex items-center justify-center">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="PH Logo" class="w-full h-full" />
                 </div>
             </div>
 
-            <!-- 題目 2 -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 2 題</span>
-                    <span class="text-slate-400 text-xs">牛頓第二定律計算</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    一個質量 $m = 4 \text{ kg}$ 的物體受到 $F = 12 \text{ N}$ 的水平外力作用。若不計任何摩擦阻力，該物體產生的加速度大小為多少？
-                </p>
-                <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q2" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> $2 \text{ m/s}^2$
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q2" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> $3 \text{ m/s}^2$
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q2" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> $48 \text{ m/s}^2$
-                        </div>
-                    </label>
-                </div>
+            <!-- 標題：Shippori Mincho 襯線字型與優雅寬字距 -->
+            <div class="mb-10">
+                <h2 class="text-2xl md:text-[2rem] font-bold tracking-[0.15em] text-slate-900 shippori-title leading-tight">
+                    線上批改報告中心
+                </h2>
+                <h3 class="text-xs tracking-[0.4em] text-black cinzel-title mt-3.5 uppercase">
+                    STUDENT ASSESSMENT REPORTS CENTRE
+                </h3>
+
+                <div class="w-6 h-[1px] bg-white/30 mx-auto mt-4"></div>
             </div>
 
-            <!-- 題目 3 -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 3 題</span>
-                    <span class="text-slate-400 text-xs">拋體運動</span>
-                </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    在不計任何空氣阻力下，一物體自高處作「水平拋體運動」。關於其水平方向與鉛直方向的運動性質，下列敘述何者正確？
-                </p>
-                <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q3" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 水平方向為等速度運動，鉛直方向為自由落體運動
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q3" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 水平方向為等加速度運動，鉛直方向為等速度運動
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q3" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 水平方向與鉛直方向皆為等速度運動
-                        </div>
-                    </label>
-                </div>
-            </div>
+            <!-- 登入表單 -->
+            <form id="login-form" class="space-y-5">
 
-            <!-- 題目 4 -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 4 題</span>
-                    <span class="text-slate-400 text-xs">牛頓第三定律</span>
+                <!-- 帳號輸入膠囊 -->
+                <div class="relative">
+                    <input type="text" id="username" required placeholder="Username" class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide" />
                 </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    當人用力向前推牆壁時，人會感受到牆壁給予人一個向後的反作用力。關於此作用力與反作用力，下列何者正確？
-                </p>
-                <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q4" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 作用力與反作用力大小相等、方向相反，可互相抵消
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q4" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 兩力分別作用在牆壁與人身上，因為作用物體不同，故不可抵消
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q4" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 人推牆壁的作用力會先產生，隨後才產生牆壁推人的反作用力
-                        </div>
-                    </label>
-                </div>
-            </div>
 
-            <!-- 題目 5 -->
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-                <div class="flex items-center space-x-2 mb-3">
-                    <span class="bg-slate-100 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">第 5 題</span>
-                    <span class="text-slate-400 text-xs">機械能守恆</span>
+                <!-- 密碼輸入膠囊 -->
+                <div class="relative">
+                    <input type="password" id="password" required placeholder="Password" class="pill-input w-full px-6 py-3.5 rounded-full text-sm font-light tracking-wide" />
+                    <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-800/45 hover:text-slate-900 transition">
+                        <i data-lucide="eye" id="pw-icon" class="w-4 h-4"></i>
+                    </button>
                 </div>
-                <p class="font-medium text-slate-800 leading-relaxed mb-4">
-                    一個小球自高空自由落下（忽略一切摩擦阻力），在下落至地面前的過程中，其能量如何轉化？
-                </p>
-                <div class="space-y-3 options">
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q5" value="A" class="sr-only" required>
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">A</span> 動能增加，重力位能減少，機械能總量不變
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q5" value="B" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">B</span> 動能減少，重力位能增加，機械能總量不變
-                        </div>
-                    </label>
-                    <label class="option-card block relative cursor-pointer">
-                        <input type="radio" name="q5" value="C" class="sr-only">
-                        <div class="option-content border border-slate-200 rounded-2xl p-4 transition-all duration-150 hover:bg-slate-50">
-                            <span class="font-bold text-slate-400 mr-2">C</span> 動能與重力位能同時增加，機械能總量增加
-                        </div>
-                    </label>
-                </div>
-            </div>
 
-            <!-- 提交按鈕 -->
-            <div class="pt-4">
-                <button type="submit" id="submit-btn" class="w-full bg-[#81D8D0] text-slate-900 font-bold py-4 rounded-2xl shadow-lg shadow-[#81D8D0]/25 hover:opacity-95 active:scale-[0.99] transition-all duration-150 flex items-center justify-center space-x-2">
-                    <span>交卷並上傳成績</span>
+                <!-- 錯誤訊息提示區 -->
+                <div id="error-msg" class="hidden bg-rose-50/70 border border-rose-300 text-rose-800 p-3.5 rounded-2xl text-xs text-left flex items-start space-x-2 animate-fadeIn shadow-sm">
+                    <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-rose-400"></i>
+                    <span id="error-text" class="leading-relaxed font-medium"></span>
+                </div>
+
+                <!-- 登入按鈕膠囊 (對稱高質感深色對比按鈕) -->
+                <button type="submit" id="submit-btn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-[0.25em] uppercase py-4 rounded-full shadow-md hover:shadow-lg transition duration-300 transform active:scale-98 flex items-center justify-center space-x-2">
+                    <span>Login & Verify</span>
                 </button>
-            </div>
-        </form>
 
-        <!-- 結果反饋彈出卡片 -->
-        <div id="result-modal" class="hidden mt-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-xl transition-all duration-300">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center bg-[#81D8D0]/20 text-slate-800 font-bold text-2xl">✓</div>
-                <div>
-                    <h4 class="font-bold text-lg text-slate-800">上傳成功</h4>
-                    <p class="text-xs text-slate-500">測驗成績已無縫同步至雲端試算表</p>
+            </form>
+
+            <!-- 底部安全圖示 -->
+            <div class="flex justify-center mt-10">
+                <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-400/20 flex items-center justify-center text-emerald-600 shadow-sm">
+                    <i data-lucide="cloud" class="w-4 h-4"></i>
                 </div>
             </div>
-            <div class="bg-slate-50 rounded-2xl p-5 mb-4 text-center">
-                <p class="text-slate-500 text-xs tracking-wider uppercase">本次測驗得分</p>
-                <p class="text-4xl font-extrabold text-slate-800 mt-1"><span id="user-score">0</span> <span class="text-base font-medium text-slate-400">/ 100 分</span></p>
-            </div>
-            <div class="mt-6">
-                <a href="https://phyuaaphysics.github.io/phyustudio/home.html" class="block text-center w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-3.5 rounded-2xl transition-all duration-150">
-                    返回物理首頁
-                </a>
-            </div>
+
         </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 2: 學生學籍資料卡片 & 課室版面 (登入成功) -->
+        <!-- ========================================== -->
+        <div id="card-section" class="w-full hidden space-y-4">
+
+            <!-- 頂部高質感導航工具列 -->
+            <div class="flex justify-end items-center px-1">
+                <!-- 右側：精簡功能快捷按鈕 (僅保留登出與關機重定向功能) -->
+                <div class="flex items-center space-x-2">
+                    <!-- 登出/返回系統按鈕 -->
+                    <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-rose-500/20 hover:border-rose-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-rose-600 transition" title="登出系統">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    </button>
+
+                    <!-- 系統關機符號 (重定向回首頁) -->
+                    <button id="power-btn" class="w-7 h-7 rounded-full bg-white/40 hover:bg-white/60 border border-slate-900/[0.08] flex items-center justify-center text-slate-500 hover:text-slate-800 transition" title="返回主頁面">
+                        <i data-lucide="power" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 核心面板一：學生帳戶資訊卡（會員狀態置於底部新行，右對齊） -->
+            <div class="crystal-panel rounded-2xl p-4 flex flex-col gap-3">
+
+                <!-- 第一行：左側（學生資訊） + 右側（班別、學號、日曆） -->
+                <div class="flex flex-row justify-between items-center gap-4">
+                    <!-- 左側：帳戶名稱與身份標誌 — 點擊整個區域開啟學生檔案 iframe -->
+                    <div id="student-profile-trigger" class="flex items-center space-x-4 cursor-pointer select-none">
+                        <!-- 薄荷綠圓形學士帽圖示 -->
+                        <div class="w-11 h-11 bg-emerald-500/10 border border-emerald-400/20 rounded-full flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
+                            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 id="card-real-name" class="text-xl font-bold tracking-wide text-slate-900 shippori-title">--</h3>
+                            <p class="text-[9px] text-slate-500 font-medium tracking-widest uppercase">學生個人帳戶</p>
+                        </div>
+                    </div>
+
+                    <!-- 右側：班級、學號、日曆按鈕（不含會員狀態） -->
+                    <div class="flex items-center gap-3 md:gap-4 text-right pr-1 shrink-0 flex-wrap justify-end">
+                        <!-- 班別 -->
+                        <div>
+                            <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">班別</p>
+                            <p id="card-class" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+                        </div>
+
+                        <!-- 垂直精細分割線 -->
+                        <div class="w-[1px] h-6 bg-slate-900/10 hidden sm:block"></div>
+
+                        <!-- 學號 -->
+                        <div>
+                            <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">學號</p>
+                            <p id="card-class-no" class="text-base font-extrabold text-emerald-800 tracking-wide">--</p>
+                        </div>
+
+                        <!-- 垂直精細分割線 -->
+                        <div class="w-[1px] h-6 bg-slate-900/10 hidden sm:block"></div>
+
+                        <!-- 日曆展開/收合按鈕 -->
+                        <button id="calendar-toggle-btn" class="w-9 h-9 rounded-full bg-white/60 hover:bg-emerald-50/80 hover:text-emerald-700 border border-slate-900/[0.08] flex items-center justify-center text-slate-700 transition duration-300 active:scale-90 shadow-sm" title="開啟學業日曆">
+                            <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 第二行：會員狀態（新行，放大，靠右對齊） -->
+                <div class="flex flex-col items-end w-full pt-2 border-t border-slate-900/10 mt-1">
+                    <div class="flex items-center gap-1">
+                        <p class="text-[9px] tracking-wider text-slate-500 uppercase font-medium">會員狀態</p>
+                        <button id="membership-info-trigger" class="w-3.5 h-3.5 rounded-full bg-slate-200 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-[9px] font-bold text-slate-600 transition" title="點擊了解更多">?</button>
+                    </div>
+                    <p id="card-membership" class="text-2xl md:text-3xl font-black text-slate-850 tracking-wide sofia-font text-right">--</p>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- iOS 風格折疊日曆主面板 -->
+            <!-- ========================================== -->
+            <div id="calendar-panel" class="crystal-panel rounded-2xl p-4 origin-top calendar-collapsed overflow-hidden space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-900/5 pb-2">
+                    <button id="cal-prev-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                    <h4 id="cal-month-year" class="text-sm font-bold text-slate-800 shippori-title tracking-wide">--</h4>
+                    <button id="cal-next-month" class="p-1.5 hover:bg-slate-200/50 rounded-full text-slate-600 transition active:scale-90">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <div id="calendar-days" class="grid grid-cols-7 gap-1">
+                    <!-- JS 動態寫入 -->
+                </div>
+                <!-- 狀態圖例與重設按鈕 -->
+                <div class="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-900/5">
+                    <span class="flex items-center gap-1.5 font-medium text-slate-600">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shadow-sm"></span>
+                        有發布批改報告日期
+                    </span>
+                    <button id="cal-reset-btn" class="px-3 py-1 rounded-full bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 border border-slate-200 text-[10px] font-bold transition active:scale-95 shadow-sm">
+                        顯示全部學業
+                    </button>
+                </div>
+            </div>
+
+            <!-- 核心面板二：動態學業課程列表 (已連接登分表欄 F 課題標題，點擊即可查看批改診斷) -->
+            <div id="topics-container" class="crystal-panel rounded-2xl overflow-hidden divide-y divide-slate-900/[0.05]">
+                <!-- 這裡將透過 JS 依據試算表與身分權限動態載入課程 -->
+            </div>
+
+            <!-- 底層資料註腳標記 -->
+            <div class="flex justify-between items-center px-4 text-[10px] text-slate-500/70 uppercase tracking-widest">
+                <span>學員代碼識別: <span id="card-student-id" class="font-mono bg-white/40 px-2 py-0.5 rounded ml-1 text-slate-800 border border-white/50">--</span></span>
+                <span>Verified Secure Node</span>
+            </div>
+
+        </div>
+
     </main>
 
+    <!-- ========================================== -->
+    <!-- SECTION 3: 內置診斷式考試批改報告彈窗 (淡色超重度磨砂 - LaTeX Math 支援) -->
+    <!-- ========================================== -->
+    <div id="report-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900 bg-slate-50/95 backdrop-blur-xl">
+        <!-- 頂部控制列 -->
+        <header class="p-4 bg-white/90 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm">
+            <div class="flex items-center space-x-3">
+                <span class="text-xs tracking-widest text-indigo-700 font-bold bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-400/20 shadow-sm">DIAGNOSTIC REPORT</span>
+                <h1 id="report-overlay-title" class="text-sm font-bold tracking-wide text-slate-950 truncate max-w-xs sm:max-w-md">--</h1>
+            </div>
+            <button id="close-report-btn" class="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-700 hover:text-white bg-slate-200/50 hover:bg-rose-500/80 hover:border-rose-500/30 border border-slate-300 rounded-lg transition duration-200">
+                ✕
+            </button>
+        </header>
+
+        <!-- 批改診斷核心內容 (滾動區域) -->
+        <main class="flex-1 w-full overflow-y-auto p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
+            <!-- 頂部統計面板 -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-left space-y-1">
+                    <span id="report-topic-num" class="text-xs font-bold text-indigo-600 tracking-wider">--</span>
+                    <h2 id="report-topic-title" class="text-xl md:text-2xl font-bold text-slate-900 shippori-title leading-tight">--</h2>
+                    <p class="text-xs text-slate-500">考卷批改報告與逐行解題思路診斷</p>
+                </div>
+                <div class="flex items-center space-x-4 shrink-0">
+                    <div class="text-right">
+                        <p class="text-[10px] tracking-wider text-slate-400 uppercase font-bold">考卷得分</p>
+                        <p class="text-3xl font-black text-slate-900"><span id="report-score" class="text-indigo-600">--</span> / <span id="report-total">--</span></p>
+                    </div>
+                    <div class="w-[1px] h-10 bg-slate-200"></div>
+                    <div class="text-center">
+                        <p class="text-[10px] tracking-wider text-slate-400 uppercase font-bold">答對率</p>
+                        <p id="report-percentage" class="text-3xl font-black text-emerald-600">--%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 動態問題與逐行步驟詳細批改卡片 -->
+            <div id="report-questions-container" class="space-y-6">
+                <!-- 由 JS 動態依 JSON 生成診斷模組 -->
+            </div>
+        </main>
+
+        <!-- 播放器底部宣告 -->
+        <footer class="p-3 bg-white/90 text-center text-[10px] text-slate-400 tracking-wider uppercase border-t border-slate-200/50">
+            &copy; 2026 PH Studio. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECTION 4: 學生個人檔案 iframe 滿版彈窗 (iOS 級阻尼轉場) -->
+    <!-- ========================================== -->
+    <div id="profile-overlay" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-xl">
+        <!-- 右上角懸浮 iOS 風延形半透明圓形關閉按鈕 -->
+        <button id="close-profile-btn" class="absolute top-6 right-6 w-11 h-11 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white text-xl font-light transition duration-200 z-50 border border-white/20 shadow-lg active:scale-90" title="關閉檔案">
+            ✕
+        </button>
+        <!-- 佔全屏 iframe 內容區 -->
+        <iframe id="profile-iframe" src="https://phyuaaphysics.github.io/phyustudio/studentprofile.html" class="w-full h-full border-none" allowfullscreen loading="lazy"></iframe>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🆕 SECTION 5: 會員狀態介紹 membership iframe 滿版彈窗 (iOS 級阻尼轉場) -->
+    <!-- ========================================== -->
+    <div id="membership-overlay" class="fixed inset-0 z-50 hidden bg-black/45 backdrop-blur-xl">
+        <!-- 右上角懸浮 iOS 風格半透明圓形關閉按鈕 -->
+        <button id="close-membership-btn" class="absolute top-6 right-6 w-11 h-11 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white text-xl font-light transition duration-200 z-50 border border-white/20 shadow-lg active:scale-90" title="關閉會員說明">
+            ✕
+        </button>
+        <!-- 佔全屏 iframe 內容區 -->
+        <iframe id="membership-iframe" src="https://phyuaaphysics.github.io/phyustudio/membership.html" class="w-full h-full border-none" allowfullscreen loading="lazy"></iframe>
+    </div>
+
+    <!-- Footer Info (極簡低對比) -->
+    <footer class="w-full max-w-6xl text-center py-2 text-[10px] tracking-[0.2em] uppercase text-slate-500/60 z-10 shrink-0">
+        <p>&copy; 2026 PH Studio. All rights reserved.</p>
+    </footer>
+
     <script>
-        // === 1. 設定測驗中繼資料 ===
-        const CONFIG = {
-            bigTopic: "力學",
-            smallTopic: "拋體",
-            quizName: "Quiz01"
-        };
+        // =======================================================
+        // ⚙️ Google Apps Script 部署正式網址 (分流管理)
+        // =======================================================
+        // 擁有學生帳密驗證資料庫的原 Auth 端點：
+        const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
+        // 🚀 學生 roster 試算表 JSON 調取端點 (NAME分頁)
+        const ROSTER_JSON_URL = "https://docs.google.com/spreadsheets/d/1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU/gviz/tq?tqx=out:json&sheet=NAME";
+        // 🚀 登分表試算表對接端點 (登分表分頁)
+        const MARKS_JSON_URL = "https://docs.google.com/spreadsheets/d/1b-MSCBVezT-j5xLpWKKmNGp30tQ6GcLXVCvffVfOHvw/gviz/tq?tqx=out:json&sheet=%E7%99%BB%E5%88%86%E8%A1%A8";
 
-        // 🚀 使用您提供的新部署作業網址進行對接 🚀
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxTk3NT4rn1G3LdGt3NIEHoqEzNcuzEO4jfxHiitJPwA4ZsodbA3h4b6_uVW3aK3j5o/exec"; 
+        // DOM Elements
+        const loginSection = document.getElementById('login-section');
+        const cardSection = document.getElementById('card-section');
+        const loginForm = document.getElementById('login-form');
+        const errorMsg = document.getElementById('error-msg');
+        const errorText = document.getElementById('error-text');
+        const submitBtn = document.getElementById('submit-btn');
+        const togglePwBtn = document.getElementById('toggle-pw');
+        const passwordInput = document.getElementById('password');
+        const pwIcon = document.getElementById('pw-icon');
+        const secureBadge = document.getElementById('secure-badge');
+        const topicsContainer = document.getElementById('topics-container');
 
-        // 題目解答對應表
-        const answerKey = { q1: "B", q2: "B", q3: "A", q4: "B", q5: "A" };
-        const totalQuestions = Object.keys(answerKey).length;
+        // 🚀 日曆相關 DOM 節點
+        const calendarToggleBtn = document.getElementById('calendar-toggle-btn');
+        const calendarPanel = document.getElementById('calendar-panel');
 
-        // === 2. 提取 Local Storage & URL 參數雙重保險設計 ===
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        let studentClass = urlParams.get('class') || localStorage.getItem('user_class');
-        let studentNo = urlParams.get('classNo') || localStorage.getItem('user_class_no');
-        let realName = urlParams.get('realName') || localStorage.getItem('user_real_name');
+        // 🚀 全域日曆與課程篩選器暫存數據
+        let calendarCurrentDate = new Date();
+        let activeLessonDatesSet = new Set();
+        let filteredDateStr = null; // 儲存篩選 ISO 字串 (如 "2026-03-12")
+        let isCalendarFirstLoad = true;
+        let globalTopicRows = [];
+        let globalUserRole = "";
 
-        const infoClassEl = document.getElementById('info-class');
-        const infoNoEl = document.getElementById('info-no');
-        const infoNameEl = document.getElementById('info-name');
-        const fallbackSection = document.getElementById('credentials-fallback');
-        let hasAuth = true;
-
-        if (studentClass && studentNo && realName) {
-            infoClassEl.innerText = studentClass;
-            infoNoEl.innerText = studentNo;
-            infoNameEl.innerText = realName;
-        } else {
-            // 兩者皆無時（例如單獨測試此網頁），轉為手動校對輸入狀態
-            infoClassEl.innerText = "手動輸入";
-            infoNoEl.innerText = "手動輸入";
-            infoNameEl.innerText = "手動輸入";
-            fallbackSection.classList.remove('hidden');
-            hasAuth = false;
+        // =======================================================
+        // 🔍 終極容錯數據解析與日期格式化方法
+        // =======================================================
+        function cleanVal(val) {
+            if (val === null || val === undefined) return "";
+            const str = String(val).trim();
+            if (str === "null" || str === "undefined" || str === "N/A" || str === "無名氏" || str === "無ID資料" || str === "--")
+                return "";
+            return str;
         }
 
-        // === 3. 進度條動態響應 ===
-        const form = document.getElementById('quiz-form');
-        form.addEventListener('change', () => {
-            const formData = new FormData(form);
-            let answered = 0;
-            for (let key in answerKey) {
-                if (formData.get(key)) answered++;
-            }
-            document.getElementById('progress-bar').style.width = `${(answered / totalQuestions) * 100}%`;
-        });
+        // 🚀 消除全形與半形空白、特殊不可見字元，保證比對完全一致
+        function stripAllSpaces(str) {
+            if (!str) return "";
+            return String(str).replace(/[\s\u3000]/g, ""); // 移除所有半形及日文/中文全形空白 (\u3000)
+        }
 
-        // === 4. 表單提交 & 傳送至最新版 code.gs ===
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+        // 將試算表或各種非標準日期格式轉換為乾淨的 "YYYY-MM-DD" 標準索引字串
+        function getIsoDateString(dateStr) {
+            if (!dateStr) return null;
+            const str = String(dateStr).trim();
 
-            // 提取最終寫入屬性
-            let finalClass = hasAuth ? studentClass : document.getElementById('fallback-class').value.trim();
-            let finalNo = hasAuth ? studentNo : document.getElementById('fallback-no').value.trim();
-            let finalName = hasAuth ? realName : document.getElementById('fallback-name').value.trim();
-
-            if (!finalClass || !finalNo || !finalName) {
-                alert('請完整填寫或確認您的班級、座號與真實姓名！');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                return;
+            if (str.includes("T") || str.includes("Z") || str.includes(":")) {
+                try {
+                    const d = new Date(str);
+                    if (!isNaN(d.getTime())) {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const date = String(d.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${date}`;
+                    }
+                } catch (e) {}
             }
 
-            // 計算得分 (每題 20 分，共 100 分)
-            let score = 0;
-            const formData = new FormData(form);
-            for (let key in answerKey) {
-                if (formData.get(key) === answerKey[key]) {
-                    score += 20; 
+            const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+            if (matchYMD) {
+                const y = matchYMD[1];
+                const m = String(parseInt(matchYMD[2], 10)).padStart(2, '0');
+                const d = String(parseInt(matchYMD[3], 10)).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            const matchCnYMD = str.match(/(\d+)年(\d+)月(\d+)日/);
+            if (matchCnYMD) {
+                const y = matchCnYMD[1];
+                const m = String(parseInt(matchCnYMD[2], 10)).padStart(2, '0');
+                const d = String(parseInt(matchCnYMD[3], 10)).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            return null;
+        }
+
+        // 解決 Google Sheets 時區序列化偏差，將日期格式化為中文字串
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return "";
+            const str = String(dateStr).trim();
+            const matchYMD = str.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+            if (matchYMD) {
+                return `${matchYMD[1]}年${parseInt(matchYMD[2], 10)}月${parseInt(matchYMD[3], 10)}日`;
+            }
+            return str;
+        }
+
+        // 學生資料統一取值與回寫 (配合指定扁平鍵)
+        function getStudentDetails() {
+            let realName = cleanVal(localStorage.getItem("user_real_name"));
+            let studentClass = cleanVal(localStorage.getItem("user_class"));
+            let classNo = cleanVal(localStorage.getItem("user_class_no"));
+            let studentId = cleanVal(localStorage.getItem("user_username"));
+
+            if (!realName || !studentClass || !classNo || !studentId) {
+                try {
+                    const rawInfo = localStorage.getItem("userInfo");
+                    if (rawInfo && rawInfo !== "undefined" && rawInfo !== "null") {
+                        const userInfo = JSON.parse(rawInfo);
+                        if (!realName) realName = cleanVal(userInfo.real_name || userInfo.realName || userInfo.name);
+                        if (!studentClass) studentClass = cleanVal(userInfo.class || userInfo.studentClass);
+                        if (!classNo) classNo = cleanVal(userInfo.class_no || userInfo.classNo);
+                        if (!studentId) studentId = cleanVal(userInfo.student_id || userInfo.studentId || userInfo.username);
+                    }
+                } catch (e) {
+                    console.error("解析 userInfo 失敗", e);
                 }
             }
 
-            const submitBtn = document.getElementById('submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.innerText = "正在儲存並同步成績...";
+            if (!realName) realName = "";
+            if (!studentClass) studentClass = "";
+            if (!classNo) classNo = "";
+            if (!studentId) studentId = "無ID資料";
 
-            // 封裝對應最新 code.gs 欄位的 JSON
-            const payload = {
-                quiz_name: CONFIG.quizName,        // 對應 params.quiz_name
-                class: finalClass,                 // 對應 params.class
-                class_no: Number(finalNo),         // 對應 params.class_no
-                real_name: finalName,              // 對應 params.real_name
-                big_topic: CONFIG.bigTopic,        // 對應 params.big_topic
-                small_topic: CONFIG.smallTopic,    // 對應 params.small_topic
-                score: score,                      // 對應 params.score
-                fullmarks: 100                     // 對應 params.fullmarks
-            };
+            return { realName, studentClass, classNo, studentId };
+        }
 
-            // 傳送 POST 數據
-            fetch(GAS_URL, {
-                method: "POST",
-                mode: "no-cors", // 完美解決跨域傳輸限制
-                headers: {
-                    "Content-Type": "text/plain"
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(() => {
-                // 表單退場，展示成績卡片
-                form.classList.add('hidden');
-                document.getElementById('user-score').innerText = score;
-                document.getElementById('result-modal').classList.remove('hidden');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            })
-            .catch(error => {
-                console.error("寫入錯誤:", error);
-                alert("傳送失敗，請確認網路連線狀態後重試！");
-                submitBtn.disabled = false;
-                submitBtn.innerText = "交卷並上傳成績";
+        // Page Load Setup
+        document.addEventListener("DOMContentLoaded", async () => {
+            lucide.createIcons();
+
+            document.getElementById('power-btn').addEventListener('click', () => {
+                window.location.href = 'https://phyuaaphysics.github.io/phyustudio/home.html';
             });
+
+            calendarToggleBtn.addEventListener('click', () => {
+                calendarPanel.classList.toggle('calendar-collapsed');
+                calendarToggleBtn.classList.toggle('bg-emerald-100');
+                calendarToggleBtn.classList.toggle('text-emerald-700');
+                calendarToggleBtn.classList.toggle('border-emerald-200');
+            });
+
+            document.getElementById('cal-prev-month').addEventListener('click', (e) => {
+                e.stopPropagation();
+                calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+                renderCalendar();
+            });
+
+            document.getElementById('cal-next-month').addEventListener('click', (e) => {
+                e.stopPropagation();
+                calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+                renderCalendar();
+            });
+
+            document.getElementById('cal-reset-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                filteredDateStr = null;
+                renderCalendar();
+                executeFilterRender();
+            });
+
+            const profileTrigger = document.getElementById('student-profile-trigger');
+            const profileOverlay = document.getElementById('profile-overlay');
+            const closeProfileBtn = document.getElementById('close-profile-btn');
+
+            if (profileTrigger) {
+                profileTrigger.addEventListener('click', () => {
+                    const iframe = document.getElementById('profile-iframe');
+                    if (iframe) {
+                        iframe.src = "https://phyuaaphysics.github.io/phyustudio/studentprofile.html";
+                    }
+                    profileOverlay.classList.remove('hidden', 'animate-profile-exit');
+                    profileOverlay.classList.add('animate-profile-enter');
+                });
+            }
+
+            if (closeProfileBtn) {
+                closeProfileBtn.addEventListener('click', () => {
+                    profileOverlay.classList.remove('animate-profile-enter');
+                    profileOverlay.classList.add('animate-profile-exit');
+                    setTimeout(() => {
+                        profileOverlay.classList.add('hidden');
+                    }, 350);
+                });
+            }
+
+            const membershipInfoTrigger = document.getElementById('membership-info-trigger');
+            const membershipOverlay = document.getElementById('membership-overlay');
+            const closeMembershipBtn = document.getElementById('close-membership-btn');
+
+            if (membershipInfoTrigger) {
+                membershipInfoTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const iframe = document.getElementById('membership-iframe');
+                    if (iframe) {
+                        iframe.src = "https://phyuaaphysics.github.io/phyustudio/membership.html";
+                    }
+                    membershipOverlay.classList.remove('hidden', 'animate-profile-exit');
+                    membershipOverlay.classList.add('animate-profile-enter');
+                });
+            }
+
+            if (closeMembershipBtn) {
+                closeMembershipBtn.addEventListener('click', () => {
+                    membershipOverlay.classList.remove('animate-profile-enter');
+                    membershipOverlay.classList.add('animate-profile-exit');
+                    setTimeout(() => {
+                        membershipOverlay.classList.add('hidden');
+                    }, 350);
+                });
+            }
+
+            // 直接驗證 Token 與使用者資訊，若有認證快取則跳過登入
+            const jwtToken = localStorage.getItem("jwt_token") || localStorage.getItem("userToken");
+            const details = getStudentDetails();
+
+            if (details.studentId !== "無ID資料" && jwtToken) {
+                showStudentCard(false);
+            } else {
+                loginSection.classList.remove('hidden');
+            }
         });
+
+        // Toggle password field visibility
+        togglePwBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                pwIcon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                passwordInput.type = 'password';
+                pwIcon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        });
+
+        // Form Submission & Request Authentication
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            errorMsg.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Checking Credentials...</span>
+                `;
+
+            const username = document.getElementById('username').value.trim();
+            const password = passwordInput.value;
+
+            try {
+                const response = await fetch(GAS_AUTH_URL, {
+                    method: "POST",
+                    mode: "cors",
+                    redirect: "follow",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8"
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem("jwt_token", data.token || "mock-token");
+                    localStorage.setItem("user_role", data.role || "student");
+                    localStorage.setItem("user_username", username);
+
+                    if (data.identity_tag) {
+                        localStorage.setItem("user_class", cleanVal(data.identity_tag.class));
+                        localStorage.setItem("user_class_no", cleanVal(data.identity_tag.class_no));
+                        localStorage.setItem("user_real_name", cleanVal(data.identity_tag.real_name));
+                    } else {
+                        localStorage.setItem("user_class", "");
+                        localStorage.setItem("user_class_no", "");
+                        localStorage.setItem("user_real_name", "");
+                    }
+
+                    localStorage.setItem("userToken", data.token || "mock-token");
+                    localStorage.setItem("userRole", data.role || "student");
+                    localStorage.setItem("userInfo", JSON.stringify({
+                        real_name: localStorage.getItem("user_real_name"),
+                        class: localStorage.getItem("user_class"),
+                        class_no: localStorage.getItem("user_class_no"),
+                        username: username
+                    }));
+
+                    showStudentCard(true);
+                    loginForm.reset();
+                } else {
+                    showError(data.message || "驗證失敗，請檢查輸入帳號或密碼");
+                }
+            } catch (err) {
+                console.error("Fetch error details:", err);
+                showError("無法連線至安全性認點。請確認您的網際網路連線狀態。");
+            } finally {
+                resetSubmitBtn();
+            }
+        });
+
+        function resetSubmitBtn() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                    <span>Login & Verify</span>
+                `;
+            lucide.createIcons();
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear();
+            cardSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
+            if (secureBadge) secureBadge.classList.remove('hidden');
+        });
+
+        // Update and draw the beautiful Student Card interface
+        function showStudentCard(animate = false) {
+            const details = getStudentDetails();
+
+            document.getElementById('card-real-name').innerText = details.realName || "--";
+            document.getElementById('card-class').innerText = details.studentClass || "--";
+            document.getElementById('card-class-no').innerText = details.classNo || "--";
+            document.getElementById('card-student-id').innerText = details.studentId || "--";
+
+            if (animate) {
+                loginSection.classList.remove('hidden');
+                loginSection.classList.add('animate-ios-exit');
+                if (secureBadge) secureBadge.classList.add('hidden');
+
+                setTimeout(() => {
+                    loginSection.classList.add('hidden');
+                    loginSection.classList.remove('animate-ios-exit');
+
+                    cardSection.classList.remove('hidden');
+                    cardSection.classList.add('animate-ios-menu');
+
+                    fetchTopics();
+                    fetchAndDisplayMembership();
+                }, 520);
+            } else {
+                loginSection.classList.add('hidden');
+                cardSection.classList.remove('hidden');
+                cardSection.classList.add('animate-ios-menu');
+                if (secureBadge) secureBadge.classList.add('hidden');
+
+                fetchTopics();
+                fetchAndDisplayMembership();
+            }
+        }
+
+        // 格式化會員狀態字體顏色 (Sofia Sans + 專屬顏色樣式 + 呼吸燈)
+        function formatMembershipHTML(val) {
+            const clean = cleanVal(val);
+            if (!clean || clean === "--") return "--";
+            const upper = clean.toUpperCase();
+            
+            if (upper.includes("PH CORE")) {
+                return clean.replace(/CORE/gi, '<span class="text-gray-400 font-extrabold sparkle-text">CORE</span>');
+            }
+            if (upper.includes("PH PLUS")) {
+                return clean.replace(/PLUS/gi, '<span class="text-blue-500 font-extrabold sparkle-text">PLUS</span>');
+            }
+            if (upper.includes("PH PRIME")) {
+                return clean.replace(/PRIME/gi, '<span class="text-red-500 font-extrabold sparkle-text">PRIME</span>');
+            }
+            if (upper.includes("PH ULTRA")) {
+                return clean.replace(/ULTRA/gi, '<span class="text-purple-600 font-extrabold sparkle-text">ULTRA</span>');
+            }
+            return clean;
+        }
+
+        // 異步獲取與顯示會員狀態 (比對 Roster 表 D/E 欄)
+        async function fetchAndDisplayMembership() {
+            const details = getStudentDetails();
+            const currentStudentName = details.realName.trim();
+            if (!currentStudentName) return;
+
+            const cachedMembership = localStorage.getItem("user_membership");
+            if (cachedMembership) {
+                document.getElementById('card-membership').innerHTML = formatMembershipHTML(cachedMembership);
+            } else {
+                document.getElementById('card-membership').innerHTML = "--";
+            }
+
+            try {
+                const response = await fetch(ROSTER_JSON_URL);
+                const text = await response.text();
+
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                const jsonString = text.substring(jsonStart, jsonEnd);
+                const rawJsonData = JSON.parse(jsonString);
+
+                if (rawJsonData.table && rawJsonData.table.rows) {
+                    const rows = rawJsonData.table.rows;
+                    
+                    const getCellValue = (cell) => {
+                        if (!cell) return "";
+                        if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
+                        if (cell.f !== null && cell.f !== undefined) return String(cell.f).trim();
+                        return "";
+                    };
+
+                    let foundMembership = "";
+                    for (let i = 1; i < rows.length; i++) {
+                        const r = rows[i];
+                        if (r.c) {
+                            const name = cleanVal(getCellValue(r.c[3])); // D 欄真實姓名
+                            if (stripAllSpaces(name) === stripAllSpaces(currentStudentName)) {
+                                foundMembership = cleanVal(getCellValue(r.c[4])); // E 欄會員狀態
+                                break;
+                            }
+                        }
+                    }
+
+                    if (foundMembership) {
+                        localStorage.setItem("user_membership", foundMembership);
+                        document.getElementById('card-membership').innerHTML = formatMembershipHTML(foundMembership);
+                    } else {
+                        localStorage.setItem("user_membership", "普通會員");
+                        document.getElementById('card-membership').innerHTML = formatMembershipHTML("普通會員");
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch membership status:", err);
+            }
+        }
+
+        // 動態日曆渲染邏輯 (iOS 風格極簡版)
+        function renderCalendar() {
+            const calendarDays = document.getElementById('calendar-days');
+            const monthYearLabel = document.getElementById('cal-month-year');
+            if (!calendarDays || !monthYearLabel) return;
+
+            const year = calendarCurrentDate.getFullYear();
+            const month = calendarCurrentDate.getMonth();
+
+            const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+            monthYearLabel.innerText = `${year}年 ${monthNames[month]}`;
+
+            calendarDays.innerHTML = "";
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = "p-1";
+                calendarDays.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const dayCell = document.createElement('div');
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                const hasLesson = activeLessonDatesSet.has(dateStr);
+                const isSelected = (filteredDateStr === dateStr);
+
+                dayCell.className =
+                    "calendar-day-cell relative text-[11px] font-semibold h-8 w-8 mx-auto flex flex-col items-center justify-center rounded-full";
+
+                if (hasLesson) {
+                    if (isSelected) {
+                        dayCell.className += " bg-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold scale-105";
+                    } else {
+                        dayCell.className += " bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300/40 cursor-pointer font-bold";
+                    }
+
+                    const dot = document.createElement('span');
+                    dot.className = `w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? 'bg-white' : 'bg-emerald-500'}`;
+
+                    dayCell.appendChild(document.createTextNode(day));
+                    dayCell.appendChild(dot);
+
+                    dayCell.addEventListener('click', () => {
+                        if (filteredDateStr === dateStr) {
+                            filteredDateStr = null;
+                        } else {
+                            filteredDateStr = dateStr;
+                        }
+                        renderCalendar();
+                        executeFilterRender();
+                    });
+                } else {
+                    dayCell.className += " text-slate-700 hover:bg-slate-200/50 cursor-pointer";
+                    dayCell.appendChild(document.createTextNode(day));
+
+                    dayCell.addEventListener('click', () => {
+                        if (filteredDateStr) {
+                            filteredDateStr = null;
+                            renderCalendar();
+                            executeFilterRender();
+                        }
+                    });
+                }
+
+                calendarDays.appendChild(dayCell);
+            }
+        }
+
+        // =======================================================
+        // 🚀 核心優化：連接「登分表」並智慧提取欄位 E 性質與日期
+        // =======================================================
+        async function fetchTopics() {
+            const details = getStudentDetails();
+            const currentStudentName = details.realName.trim();
+            const userRole = (localStorage.getItem("user_role") || "student").toLowerCase();
+
+            topicsContainer.innerHTML = `
+                    <div class="p-8 text-center text-sm text-slate-500/80">
+                        <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>正在為您構建個人學業批改清單...</span>
+                    </div>
+                `;
+
+            if (!currentStudentName) {
+                topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">暫無有效的登入身份。</div>`;
+                return;
+            }
+
+            try {
+                const response = await fetch(MARKS_JSON_URL);
+                const text = await response.text();
+
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                const jsonString = text.substring(jsonStart, jsonEnd);
+                const rawJsonData = JSON.parse(jsonString);
+
+                const matchedTopics = [];
+                activeLessonDatesSet.clear(); // 清空舊的日曆點
+
+                if (rawJsonData.table && rawJsonData.table.rows) {
+                    const rows = rawJsonData.table.rows;
+                    
+                    const getCellValue = (cell) => {
+                        if (!cell) return "";
+                        if (cell.v !== null && cell.v !== undefined) return String(cell.v).trim();
+                        if (cell.f !== null && cell.f !== undefined) return String(cell.f).trim();
+                        return "";
+                    };
+
+                    // 從索引 1 開始（跳過標題列）
+                    for (let i = 1; i < rows.length; i++) {
+                        const r = rows[i];
+                        if (r.c) {
+                            const studentName = cleanVal(getCellValue(r.c[0])); // 欄 A：真名
+                            const topicTitle = cleanVal(getCellValue(r.c[5]));  // 欄 F：課題標題
+                            const quizScore = cleanVal(getCellValue(r.c[7]));   // 欄 H：小測學生得分
+                            const totalScore = cleanVal(getCellValue(r.c[8]));  // 欄 I：小測總分
+                            const gradingJson = cleanVal(getCellValue(r.c[9])); // 欄 J：批改詳情 JSON
+                            const topicNum = cleanVal(getCellValue(r.c[10]));   // 欄 K：課題編號
+                            const examMeta = cleanVal(getCellValue(r.c[4]));    // 欄 E：性質 (YYYY-MM-DD)
+                            
+                            if (stripAllSpaces(studentName) === stripAllSpaces(currentStudentName) && topicTitle) {
+                                // 💡 提取性質與日期 (例如: "小測 (2026-07-11)" 或 "大考（2026-07-11）")
+                                let type = "小測";
+                                let dateStr = "";
+                                if (examMeta) {
+                                    const match = examMeta.match(/^([^(（]+)[(（]([0-9]{4}-[0-9]{2}-[0-9]{2})[)）]/);
+                                    if (match) {
+                                        type = match[1].trim();
+                                        dateStr = match[2].trim();
+                                    } else {
+                                        type = examMeta;
+                                    }
+                                }
+
+                                // 💡 將提取的日期轉換為標準 ISO 字串並同步匯入日曆
+                                const isoDate = getIsoDateString(dateStr);
+                                if (isoDate) {
+                                    activeLessonDatesSet.add(isoDate);
+                                }
+
+                                matchedTopics.push({
+                                    topicNum: topicNum || `課題 #${i}`, // K 欄
+                                    title: topicTitle,                 // F 欄
+                                    score: parseFloat(quizScore) || 0, // H 欄
+                                    total: parseFloat(totalScore) || 0,// I 欄
+                                    gradingDetails: gradingJson,       // J 欄
+                                    type: type,                        // 提取出的考卷性質 (如：小測)
+                                    date: dateStr,                      // 提取出的考卷日期 (如：2026-07-11)
+                                    isoDate: isoDate,
+                                    index: i
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // 更新日曆首載日期為最新考卷日期
+                if (isCalendarFirstLoad && activeLessonDatesSet.size > 0) {
+                    const sortedDates = Array.from(activeLessonDatesSet).sort();
+                    const latestIso = sortedDates[sortedDates.length - 1];
+                    if (latestIso) {
+                        calendarCurrentDate = new Date(latestIso);
+                    }
+                    isCalendarFirstLoad = false;
+                }
+
+                renderCalendar();
+
+                // 如果有日曆過濾器，根據日曆過濾
+                let displayTopics = matchedTopics;
+                if (filteredDateStr) {
+                    displayTopics = matchedTopics.filter(t => t.isoDate === filteredDateStr);
+                }
+
+                renderMatchedTopics(displayTopics);
+
+            } catch (err) {
+                console.error("Failed to load marks dataset:", err);
+                topicsContainer.innerHTML = `
+                    <div class="p-8 text-center text-sm text-rose-500 flex flex-col items-center justify-center space-y-2">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                        <span>動態載入批改數據失敗。請確認您的網路連線或稍後再試。</span>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        // 渲染匹配課題列表
+        function renderMatchedTopics(topics) {
+            topicsContainer.innerHTML = "";
+
+            if (topics.length === 0) {
+                topicsContainer.innerHTML = `<div class="p-10 text-center text-sm text-slate-500">目前沒有符合該日期或您專屬的考試批改紀錄。</div>`;
+                return;
+            }
+
+            topics.forEach((topic) => {
+                const title = topic.title;
+                const topicNum = topic.topicNum;
+                const score = topic.score;
+                const total = topic.total;
+                const type = topic.type;
+                const displayDate = topic.date ? formatDisplayDate(topic.date) : "無發布日期";
+                
+                // 計算答對百分比，判定視覺分級
+                const percentage = total > 0 ? (score / total) * 100 : 0;
+
+                let rowBgClass = "";
+                let iconCircleClass = "";
+                let iconName = "";
+                let statusText = "";
+                let textClass = "";
+
+                // 💡 根據答對百分比進行精確視覺分級
+                if (percentage === 100) {
+                    // 得分率 100% 呈現極致深翠綠色
+                    rowBgClass = "bg-emerald-900/90 hover:bg-emerald-850/90 text-emerald-50 border-l-4 border-emerald-400 cursor-pointer shadow-sm";
+                    iconCircleClass = "border-emerald-50/40 text-emerald-300 bg-emerald-950/40";
+                    iconName = "check-circle";
+                    textClass = "text-emerald-300 font-black";
+                } else if (percentage >= 80) {
+                    // 得分率 80-100 (不含100) 呈現極致淺翠綠色
+                    rowBgClass = "bg-emerald-100/95 hover:bg-emerald-200/95 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
+                    iconCircleClass = "border-emerald-300/30 text-emerald-600 bg-emerald-500/10";
+                    iconName = "check-circle";
+                    textClass = "text-emerald-700 font-bold";
+                } else if (percentage >= 60) {
+                    // 得分率為 60-80，呈現淡黃色
+                    rowBgClass = "bg-amber-100/95 hover:bg-amber-200/95 text-amber-950 border-l-4 border-amber-500 cursor-pointer shadow-sm";
+                    iconCircleClass = "border-amber-300/30 text-amber-600 bg-amber-500/10";
+                    iconName = "help-circle";
+                    textClass = "text-amber-700 font-bold";
+                } else if (percentage >= 40) {
+                    // 得分率為 40-60，呈現淡紅色
+                    rowBgClass = "bg-rose-100/95 hover:bg-rose-200/95 text-rose-950 border-l-4 border-rose-400 cursor-pointer shadow-sm";
+                    iconCircleClass = "border-rose-300/30 text-rose-600 bg-rose-500/10";
+                    iconName = "alert-circle";
+                    textClass = "text-rose-700 font-bold";
+                } else {
+                    // 得分率 below 40，呈現深紅色
+                    rowBgClass = "bg-rose-900/90 hover:bg-rose-850/90 text-rose-50 border-l-4 border-rose-500 cursor-pointer shadow-sm";
+                    iconCircleClass = "border-rose-50/40 text-rose-300 bg-rose-950/40";
+                    iconName = "alert-circle";
+                    textClass = "text-rose-300 font-black";
+                }
+
+                // 💡 menu 中 Review 等狀態字樣統一改成得分百分比
+                statusText = percentage.toFixed(0) + "%";
+
+                const rowEl = document.createElement("div");
+                rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
+
+                // 💡 點擊欄位中完美整合、顯眼顯示提取出來的[性質]、[日期]、[分數百分比]數據
+                rowEl.innerHTML = `
+                        <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
+                            <span class="w-8 h-8 rounded-lg border ${iconCircleClass} flex items-center justify-center shrink-0">
+                                <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
+                            </span>
+                            <div class="flex flex-col flex-1 min-w-0">
+                                <span class="text-[9px] opacity-70 font-semibold tracking-wider uppercase">${type} | ${displayDate} | 成績: ${score} / ${total} (得分率 ${percentage.toFixed(0)}%)</span>
+                                <span class="text-sm md:text-base font-bold truncate leading-tight">
+                                    <span class="opacity-80 font-bold mr-1.5">${topicNum}</span> ${title}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1 ${textClass} text-xs font-bold tracking-widest group-hover:translate-x-1 transition duration-300 shrink-0 ml-3">
+                            <span>${statusText}</span>
+                            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                        </div>
+                    `;
+
+                rowEl.addEventListener("click", () => {
+                    openReportOverlay(topicNum, `${type} - ${title}`, score, total, topic.gradingDetails);
+                });
+
+                topicsContainer.appendChild(rowEl);
+            });
+
+            lucide.createIcons();
+        }
+
+        // =======================================================
+        // 🚀 LaTeX 數學公式動態翻譯與清洗
+        // =======================================================
+        function cleanMathExpression(expr) {
+            if (!expr) return "";
+            let latex = String(expr).trim();
+            // 進行常見簡化，使其完美相容 LaTeX 高端渲染
+            latex = latex.replace(/\*/g, '\\cdot ');
+            latex = latex.replace(/theta/g, '\\theta ');
+            latex = latex.replace(/Crms/g, 'C_{\\text{rms}}');
+            latex = latex.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
+            latex = latex.replace(/approx/g, '\\approx ');
+            latex = latex.replace(/1\/2/g, '\\frac{1}{2}');
+            latex = latex.replace(/\^2/g, '^2');
+            latex = latex.replace(/10\^14/g, '10^{14}');
+            latex = latex.replace(/m\/s\^-2/g, '\\text{m/s}^{-2}');
+            latex = latex.replace(/m\/s/g, '\\text{m/s}');
+            latex = latex.replace(/°C/g, '^\\circ\\text{C}');
+            return `$${latex}$`;
+        }
+
+        // =======================================================
+        // 🎬 打開考試批改與診斷報告容器 (JSON 解析與 LaTeX 渲染)
+        // =======================================================
+        function openReportOverlay(topicNum, title, score, total, gradingJsonStr) {
+            // 設定標題與統計
+            document.getElementById('report-overlay-title').innerText = title;
+            document.getElementById('report-topic-num').innerText = topicNum;
+            document.getElementById('report-topic-title').innerText = title;
+            document.getElementById('report-score').innerText = score;
+            document.getElementById('report-total').innerText = total;
+
+            const percentage = total > 0 ? (score / total) * 100 : 0;
+            const percentageEl = document.getElementById('report-percentage');
+            percentageEl.innerText = percentage.toFixed(0);
+
+            // 動態配置得分率顏色樣式
+            if (percentage === 100) {
+                percentageEl.className = "text-3xl font-black text-emerald-600";
+            } else if (percentage >= 50) {
+                percentageEl.className = "text-3xl font-black text-amber-500";
+            } else {
+                percentageEl.className = "text-3xl font-black text-rose-600";
+            }
+
+            // 解析批改 JSON (欄位 J)
+            let gradingList = [];
+            try {
+                let cleanJson = String(gradingJsonStr).trim();
+                if (cleanJson.startsWith('"') && cleanJson.endsWith('"')) {
+                    cleanJson = cleanJson.substring(1, cleanJson.length - 1);
+                }
+                cleanJson = cleanJson.replace(/\\"/g, '"').replace(/""/g, '"');
+                gradingList = JSON.parse(cleanJson);
+            } catch (e) {
+                console.error("Failed to parse Column J JSON:", e, gradingJsonStr);
+                gradingList = [];
+            }
+
+            const questionsContainer = document.getElementById('report-questions-container');
+            questionsContainer.innerHTML = "";
+
+            if (!Array.isArray(gradingList) || gradingList.length === 0) {
+                questionsContainer.innerHTML = `
+                    <div class="p-8 text-center bg-white rounded-3xl border border-slate-100 text-slate-500">
+                        <i data-lucide="help-circle" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                        <span>本課題目前尚無各題詳細批改紀錄，請等待老師上傳試卷數據。</span>
+                    </div>
+                `;
+            } else {
+                gradingList.forEach((q) => {
+                    const qCard = document.createElement('div');
+                    qCard.className = "bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-5 text-left animate-fade-in";
+
+                    // 題號頭部
+                    const headerHtml = `
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/50 px-2.5 py-1 rounded-full uppercase">題號 ${q.qid || '--'}</span>
+                                <span class="text-sm font-semibold text-slate-800">${q.topic || '物理考題'}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[9px] font-bold text-slate-400 tracking-wider block uppercase">得分</span>
+                                <p class="text-lg font-black text-slate-900">${q.score || 0} <span class="text-xs text-slate-400 font-medium">/ ${q.fullMark || 0}</span></p>
+                            </div>
+                        </div>
+                    `;
+
+                    // 答案對比
+                    const matchClass = q.isNumericMatch ? 'bg-emerald-50/70 text-emerald-900 border-emerald-100' : 'bg-amber-50/70 text-amber-900 border-amber-100';
+                    const matchText = q.isNumericMatch ? '數值相符' : '數值偏差';
+                    const matchIcon = q.isNumericMatch ? 'check-circle' : 'alert-circle';
+
+                    const answersHtml = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs">
+                                <p class="font-bold text-slate-400 mb-1">標準答案 (Expected)</p>
+                                <p class="font-mono font-bold text-slate-800 text-sm">${q.expectedValue || '--'}</p>
+                            </div>
+                            <div class="p-3 ${matchClass} rounded-2xl border text-xs relative overflow-hidden">
+                                <div class="absolute top-2.5 right-3 flex items-center space-x-1 opacity-70">
+                                    <span class="text-[8px] font-bold uppercase tracking-wider">${matchText}</span>
+                                </div>
+                                <p class="font-bold opacity-60 mb-1">學生作答 (Submitted)</p>
+                                <p class="font-mono font-bold text-sm">${q.studentValue || '（無作答）'}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // 診斷說明與扣分原因
+                    const diagnosisHtml = `
+                        <div class="space-y-2.5 text-xs">
+                            <div class="p-3.5 bg-indigo-50/30 rounded-2xl border border-indigo-100/50">
+                                <p class="font-bold text-indigo-900 flex items-center gap-1.5 mb-1.5">
+                                    <i data-lucide="brain" class="w-3.5 h-3.5 text-indigo-500"></i>
+                                    診斷分析 (Diagnostic Analysis)
+                                </p>
+                                <p class="text-slate-700 leading-relaxed">${q.analysis || '老師未寫入分析評論。'}</p>
+                            </div>
+                            ${q.deductionReason ? `
+                            <div class="p-3.5 bg-rose-50/30 rounded-2xl border border-rose-100/50">
+                                <p class="font-bold text-rose-900 flex items-center gap-1.5 mb-1.5">
+                                    <i data-lucide="slash" class="w-3.5 h-3.5 text-rose-400"></i>
+                                    扣分原因 (Deduction Reason)
+                                </p>
+                                <p class="text-slate-700 leading-relaxed">${q.deductionReason}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+
+                    // 逐行解題步驟診斷 (表格)
+                    let lineByLineHtml = "";
+                    if (Array.isArray(q.lineByLineAnalysis) && q.lineByLineAnalysis.length > 0) {
+                        let rowsHtml = "";
+                        q.lineByLineAnalysis.forEach(line => {
+                            const isCorrectBadge = line.isCorrect 
+                                ? '<span class="text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-bold text-[9px]">正確</span>'
+                                : '<span class="text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full font-bold text-[9px]">出錯</span>';
+                            
+                            const mathFormatted = cleanMathExpression(line.expression);
+
+                            rowsHtml += `
+                                <tr class="hover:bg-slate-50/50 transition">
+                                    <td class="p-2.5 text-center text-slate-400 font-mono font-bold">${line.lineNumber}</td>
+                                    <td class="p-2.5 font-mono text-slate-800 math-expression">${mathFormatted}</td>
+                                    <td class="p-2.5 text-center">${isCorrectBadge}</td>
+                                    <td class="p-2.5 text-slate-600 leading-relaxed">${line.comment}</td>
+                                </tr>
+                            `;
+                        });
+
+                        lineByLineHtml = `
+                            <div class="space-y-2">
+                                <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase flex items-center gap-1.5">
+                                    <i data-lucide="list-ordered" class="w-3.5 h-3.5"></i>
+                                    逐行步驟診斷 (Step Diagnosis)
+                                </h4>
+                                <div class="overflow-x-auto rounded-2xl border border-slate-100">
+                                    <table class="w-full text-left border-collapse text-xs">
+                                        <thead>
+                                            <tr class="bg-slate-50 border-b border-slate-100">
+                                                <th class="p-2.5 font-bold text-slate-500 w-10 text-center">行</th>
+                                                <th class="p-2.5 font-bold text-slate-500 w-1/3">步驟算式 (Expression)</th>
+                                                <th class="p-2.5 font-bold text-slate-500 text-center w-14">判定</th>
+                                                <th class="p-2.5 font-bold text-slate-500">步驟評語 (Comment)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 bg-white">
+                                            ${rowsHtml}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    qCard.innerHTML = headerHtml + answersHtml + diagnosisHtml + lineByLineHtml;
+                    questionsContainer.appendChild(qCard);
+                });
+            }
+
+            // 開啟 Overlay 動畫
+            const overlay = document.getElementById('report-overlay');
+            overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
+            overlay.classList.add('animate-ios-overlay-enter');
+
+            // 觸發 KaTeX 對報告內容進行美麗的 LaTeX 解析
+            setTimeout(() => {
+                if (window.renderMathInElement) {
+                    window.renderMathInElement(questionsContainer, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                }
+                lucide.createIcons();
+            }, 50);
+        }
+
+        // 關閉報告
+        document.getElementById('close-report-btn').addEventListener('click', () => {
+            const overlay = document.getElementById('report-overlay');
+            overlay.classList.remove('animate-ios-overlay-enter');
+            overlay.classList.add('animate-ios-overlay-exit');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 730);
+        });
+
+        function showError(msg) {
+            errorText.innerText = msg;
+            errorMsg.classList.remove('hidden');
+            lucide.createIcons();
+        }
     </script>
+
 </body>
 </html>
