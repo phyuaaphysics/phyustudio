@@ -278,6 +278,19 @@
             display: inline-block;
             animation: sparkle 2s ease-in-out infinite;
         }
+
+        /* iOS 風格流暢旋轉動畫 */
+        @keyframes ios-spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .animate-spin {
+            animation: ios-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 relative">
@@ -364,8 +377,13 @@
 
             <!-- 頂部高質感導航工具列 -->
             <div class="flex justify-end items-center px-1">
-                <!-- 右側：精簡功能快捷按鈕 (僅保留登出與關機重定向功能) -->
+                <!-- 右側：精簡功能快捷按鈕 (刷新、登出與關機重定向功能) -->
                 <div class="flex items-center space-x-2">
+                    <!-- 刷新課程狀態按鈕 -->
+                    <button id="refresh-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-emerald-500/20 hover:border-emerald-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-emerald-600 transition" title="刷新課程狀態">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    </button>
+
                     <!-- 登出/返回系統按鈕 -->
                     <button id="logout-btn" class="w-7 h-7 rounded-full bg-white/50 hover:bg-rose-500/20 hover:border-rose-500/30 border border-slate-900/[0.08] flex items-center justify-center text-slate-800 hover:text-rose-600 transition" title="登出系統">
                         <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
@@ -472,6 +490,32 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     <span>正在為您構建個人專屬課堂清單...</span>
+                </div>
+            </div>
+
+            <!-- 🚀 iOS 風格分頁控制區 -->
+            <div id="pagination-container" class="hidden flex flex-col items-center gap-3 py-4">
+                <!-- 分頁導航 -->
+                <div class="flex items-center justify-center gap-2">
+                    <!-- 上一頁按鈕 -->
+                    <button id="page-prev-btn" class="w-9 h-9 rounded-full bg-white/70 hover:bg-emerald-50 border border-slate-200/50 flex items-center justify-center text-slate-600 hover:text-emerald-600 transition duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/70 disabled:hover:text-slate-600 shadow-sm">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+
+                    <!-- 頁碼按鈕區域 -->
+                    <div id="page-numbers" class="flex items-center gap-1.5">
+                        <!-- 動態生成 -->
+                    </div>
+
+                    <!-- 下一頁按鈕 -->
+                    <button id="page-next-btn" class="w-9 h-9 rounded-full bg-white/70 hover:bg-emerald-50 border border-slate-200/50 flex items-center justify-center text-slate-600 hover:text-emerald-600 transition duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/70 disabled:hover:text-slate-600 shadow-sm">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- 頁碼指示文字 -->
+                <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <span id="page-info-text">--</span>
                 </div>
             </div>
 
@@ -701,6 +745,11 @@
         let globalTopicRows = [];
         let globalUserRole = "";
         let globalRecords = [];
+
+        // 🚀 分頁狀態
+        const ITEMS_PER_PAGE = 10;
+        let currentPage = 1;
+        let totalItems = 0;
 
         // =======================================================
         // 🔍 終極容錯數據解析與時區偏移日期格式化方法
@@ -1115,6 +1164,37 @@
             if (secureBadge) secureBadge.classList.remove('hidden');
         });
 
+        // Handle refresh button click - manually refresh course session status
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            const refreshBtn = document.getElementById('refresh-btn');
+
+            // Add spinning animation
+            refreshBtn.classList.add('animate-spin');
+
+            // Refresh topics and membership data
+            fetchTopics();
+            fetchAndDisplayMembership();
+
+            // Remove animation after a short delay
+            setTimeout(() => {
+                refreshBtn.classList.remove('animate-spin');
+            }, 600);
+        });
+
+        // 🚀 分頁導航按鈕事件監聽
+        document.getElementById('page-prev-btn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                goToPage(currentPage - 1);
+            }
+        });
+
+        document.getElementById('page-next-btn').addEventListener('click', () => {
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            if (currentPage < totalPages) {
+                goToPage(currentPage + 1);
+            }
+        });
+
         // Update and draw the beautiful Student Card interface (帶阻尼淡出/展開 iOS 級動畫)
         function showStudentCard(animate = false) {
             const details = getStudentDetails();
@@ -1512,15 +1592,26 @@
                 });
             }
 
+            // 🚀 分頁邏輯：重置頁碼並計算總頁數
+            currentPage = 1;
+            totalItems = displayRows.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+            // 計算當前頁的項目範圍
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const paginatedRows = displayRows.slice(startIndex, endIndex);
+
             topicsContainer.innerHTML = "";
 
             if (displayRows.length === 0) {
                 topicsContainer.innerHTML = `<div class="p-10 text-center text-sm text-slate-500">該日期沒有排定任何補課課程。</div>`;
+                document.getElementById('pagination-container').classList.add('hidden');
                 return;
             }
 
-            // 遍歷渲染符合篩選的課程列
-            displayRows.forEach(row => {
+            // 遍歷渲染當前頁的課程列
+            paginatedRows.forEach(row => {
                 const session = String(row[1] || "").trim();
                 const title = String(row[2] || "").trim();
                 const ytLink = String(row[3] || "").trim();
@@ -1612,6 +1703,242 @@
             });
 
             lucide.createIcons();
+
+            // 🚀 渲染分頁控制
+            renderPagination(totalPages);
+        }
+
+        // =======================================================
+        // 🚀 iOS 風格分頁渲染函數
+        // =======================================================
+        function renderPagination(totalPages) {
+            const paginationContainer = document.getElementById('pagination-container');
+            const pageNumbers = document.getElementById('page-numbers');
+            const pageInfoText = document.getElementById('page-info-text');
+            const prevBtn = document.getElementById('page-prev-btn');
+            const nextBtn = document.getElementById('page-next-btn');
+
+            // 如果只有一頁或沒有內容，隱藏分頁控制
+            if (totalPages <= 1) {
+                paginationContainer.classList.add('hidden');
+                return;
+            }
+
+            paginationContainer.classList.remove('hidden');
+
+            // 更新按鈕狀態
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+
+            // 渲染頁碼按鈕 (最多顯示 5 個，相邻页码 + ... 省略)
+            pageNumbers.innerHTML = '';
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            // 確保顯示至少 5 個頁碼（如果總頁數 >= 5）
+            if (endPage - startPage < 4) {
+                if (startPage === 1) {
+                    endPage = Math.min(totalPages, startPage + 4);
+                } else {
+                    startPage = Math.max(1, endPage - 4);
+                }
+            }
+
+            // 左側省略號
+            if (startPage > 1) {
+                const firstBtn = createPageBtn(1, 1 === currentPage);
+                pageNumbers.appendChild(firstBtn);
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.className = 'px-1 text-slate-400 text-xs font-medium';
+                    dots.textContent = '...';
+                    pageNumbers.appendChild(dots);
+                }
+            }
+
+            // 中間頁碼
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = createPageBtn(i, i === currentPage);
+                pageNumbers.appendChild(btn);
+            }
+
+            // 右側省略號
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.className = 'px-1 text-slate-400 text-xs font-medium';
+                    dots.textContent = '...';
+                    pageNumbers.appendChild(dots);
+                }
+                const lastBtn = createPageBtn(totalPages, totalPages === currentPage);
+                pageNumbers.appendChild(lastBtn);
+            }
+
+            // 更新頁碼指示文字
+            const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+            const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+            pageInfoText.textContent = `${startItem} - ${endItem} / 共 ${totalItems} 項`;
+
+            lucide.createIcons();
+        }
+
+        // 創建單個頁碼按鈕
+        function createPageBtn(pageNum, isActive) {
+            const btn = document.createElement('button');
+            if (isActive) {
+                btn.className = 'w-9 h-9 rounded-full bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-500/30 flex items-center justify-center transition duration-200';
+                btn.textContent = pageNum;
+            } else {
+                btn.className = 'w-9 h-9 rounded-full bg-white/70 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 text-xs font-semibold border border-slate-200/50 flex items-center justify-center transition duration-200';
+                btn.textContent = pageNum;
+                btn.addEventListener('click', () => goToPage(pageNum));
+            }
+            return btn;
+        }
+
+        // 跳轉到指定頁碼
+        function goToPage(pageNum) {
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            if (pageNum < 1 || pageNum > totalPages) return;
+
+            currentPage = pageNum;
+
+            // 重新渲染當前頁
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            let displayRows = [];
+
+            // 獲取過濾後的數據
+            if (filteredDateStr && globalTopicRows.length > 1) {
+                const userRole = (localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student").toLowerCase();
+                const dataRows = globalTopicRows.slice(1);
+                displayRows = dataRows.filter(row => {
+                    const rowRole = String(row[0] || "").trim().toLowerCase();
+                    return rowRole === userRole;
+                });
+                displayRows = displayRows.filter(row => {
+                    const rawDate = String(row[5] || "").trim();
+                    return getIsoDateString(rawDate) === filteredDateStr;
+                });
+            } else if (globalTopicRows.length > 1) {
+                const userRole = (localStorage.getItem("user_role") || localStorage.getItem("userRole") || "student").toLowerCase();
+                displayRows = globalTopicRows.slice(1).filter(row => {
+                    const rowRole = String(row[0] || "").trim().toLowerCase();
+                    return rowRole === userRole;
+                });
+            }
+
+            const paginatedRows = displayRows.slice(startIndex, endIndex);
+
+            // 清空並重新渲染
+            topicsContainer.innerHTML = '';
+
+            // 重新獲取 watchedSessions
+            const details = getStudentDetails();
+            const currentStudentName = details.realName.trim();
+            const watchedSessions = new Set();
+
+            let finalRecords = globalRecords;
+            if (globalRecords && !Array.isArray(globalRecords) && Array.isArray(globalRecords.record)) {
+                finalRecords = globalRecords.record;
+            }
+
+            if (Array.isArray(finalRecords)) {
+                finalRecords.forEach((row, idx) => {
+                    if (idx === 0) return;
+                    const rowName = String(row[3] || "").trim();
+                    const rowSession = String(row[4] || "").trim();
+                    if (currentStudentName && stripAllSpaces(rowName) === stripAllSpaces(currentStudentName) && rowSession) {
+                        watchedSessions.add(rowSession);
+                    }
+                });
+            }
+
+            paginatedRows.forEach(row => {
+                const session = String(row[1] || "").trim();
+                const title = String(row[2] || "").trim();
+                const ytLink = String(row[3] || "").trim();
+                const status = String(row[4] || "").trim().toLowerCase();
+
+                const isActive = (status === "active");
+                const isWatched = watchedSessions.has(session);
+                const isClickable = isActive || isWatched;
+
+                let rowBgClass = "";
+                if (isWatched) {
+                    rowBgClass = "bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 border-l-4 border-emerald-500 cursor-pointer shadow-sm";
+                } else if (isActive) {
+                    rowBgClass = "bg-rose-100/90 hover:bg-rose-200/90 text-rose-950 border-l-4 border-rose-500 cursor-pointer shadow-sm";
+                } else {
+                    rowBgClass = "opacity-60 bg-rose-100/40 text-rose-900/60 border-l-4 border-rose-300/50 cursor-not-allowed";
+                }
+
+                const rowEl = document.createElement("div");
+                rowEl.className = `group flex justify-between items-center px-5 py-3 transition duration-300 ${rowBgClass}`;
+
+                let iconName = "lock";
+                let iconCircleClass = "border-slate-400/20 text-slate-500 bg-slate-400/10";
+                if (isWatched) {
+                    iconName = "check-circle-2";
+                    iconCircleClass = "border-emerald-500/30 text-emerald-600 bg-emerald-500/20";
+                } else if (isActive) {
+                    iconName = "layers";
+                    iconCircleClass = "border-rose-400/20 text-rose-700 bg-rose-500/10";
+                } else {
+                    iconName = "lock";
+                    iconCircleClass = "border-rose-300/20 text-rose-400/50 bg-rose-500/5";
+                }
+
+                let statusText = "LOCKED";
+                let rightIcon = "lock";
+                let textClass = "text-rose-900/40";
+                if (isWatched) {
+                    statusText = "COMPLETED";
+                    rightIcon = "check";
+                    textClass = "text-emerald-700 font-bold";
+                } else if (isActive) {
+                    statusText = "ENTER";
+                    rightIcon = "chevron-right";
+                    textClass = "text-rose-700";
+                }
+
+                const rawDate = String(row[5] || "").trim();
+                const date = formatDisplayDate(rawDate);
+
+                rowEl.innerHTML = `
+                    <div class="flex items-center space-x-4 text-left flex-1 min-w-0">
+                        <span class="w-8 h-8 rounded-lg border ${iconCircleClass} flex items-center justify-center shrink-0">
+                            <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <div class="flex flex-col flex-1 min-w-0">
+                            <span class="text-xs text-slate-500 font-medium tracking-wide">${date || ''}</span>
+                            <span class="text-sm md:text-base font-bold text-slate-800 truncate leading-tight">
+                                <span class="text-emerald-600 font-bold mr-1.5">${session}</span> ${title}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1 ${textClass} text-xs font-bold tracking-widest ${isClickable ? "group-hover:translate-x-1" : ""} transition duration-300 shrink-0 ml-3">
+                        <span>${statusText}</span>
+                        <i data-lucide="${rightIcon}" class="w-3 h-3"></i>
+                    </div>
+                `;
+
+                if (isClickable) {
+                    rowEl.addEventListener("click", () => {
+                        if (ytLink) {
+                            openVideoWindow(session, title, ytLink, isWatched);
+                        } else {
+                            alert("本堂課程尚未配置影片網址。");
+                        }
+                    });
+                }
+
+                topicsContainer.appendChild(rowEl);
+            });
+
+            lucide.createIcons();
+            renderPagination(Math.ceil(totalItems / ITEMS_PER_PAGE));
         }
 
         // =======================================================
