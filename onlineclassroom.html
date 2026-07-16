@@ -555,6 +555,7 @@
         <!-- 播放器置頂控制列 -->
         <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shadow-slate-200">
             <div class="flex items-center space-x-3">
+                <span id="membership-tier-badge" class="hidden text-xs tracking-widest font-bold px-2.5 py-1 rounded border shadow-sm">ULTRA</span>
                 <span class="text-xs tracking-widest text-emerald-700 font-bold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-400/20 shadow-sm">ONLINE STREAM</span>
                 <h1 id="video-overlay-title" class="text-sm font-bold tracking-wide text-slate-950 truncate max-w-xs sm:max-w-md">--</h1>
             </div>
@@ -574,11 +575,35 @@
             <div class="w-full max-w-4xl aspect-video relative flex items-center justify-center">
                 <!-- YouTube API 專屬容器 -->
                 <div id="video-overlay-player" class="w-full h-full rounded-2xl shadow-2xl border border-slate-300 bg-black"></div>
+                
+                <!-- 🚀 中途打卡提示彈窗 (僅 PH Core) -->
+                <div id="mid-video-check-overlay" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30 rounded-2xl">
+                    <div class="w-20 h-20 bg-amber-500/10 border-2 border-amber-500/50 rounded-full flex items-center justify-center text-amber-400 mb-4 relative">
+                        <i data-lucide="fingerprint" class="w-10 h-10"></i>
+                        <!-- 倒數計時環 -->
+                        <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center border-2 border-amber-500/50">
+                            <span id="mid-check-timer" class="text-amber-400 text-xs font-bold">30</span>
+                        </div>
+                    </div>
+                    <h4 class="text-lg font-bold text-amber-400 mb-2">🚨 PH Core 學習防呆打卡</h4>
+                    <p class="text-slate-300 text-sm max-w-sm mb-1">系統偵測到你正在觀看基礎補習影片</p>
+                    <p class="text-slate-400 text-xs max-w-sm mb-4">請在倒數結束前完成打卡，否則將重啟影片！</p>
+                    <button id="mid-video-check-confirm-btn" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-full transition duration-200 flex items-center space-x-2 shadow-lg shadow-amber-500/30">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span>我正在專心看課，完成打卡！</span>
+                    </button>
+                </div>
+                
+                <!-- 🚀 快進鎖定提示 (僅教學提示，不阻擋) -->
+                <div id="ff-lock-overlay" class="hidden absolute top-4 right-4 bg-slate-800/80 text-white text-[10px] px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 z-40 shadow-sm opacity-70">
+                    <i data-lucide="info" class="w-3 h-3"></i>
+                    <span>首次觀看</span>
+                </div>
             </div>
 
             <!-- 自訂播放與簽到按鈕 -->
             <div class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-                <!-- 播放與暫停獨立按鈕 -->
+                <!-- 左側：播放控制 -->
                 <div class="flex items-center space-x-3">
                     <button id="custom-play-btn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md transition duration-200 transform active:scale-95">
                         <i data-lucide="play-circle" class="w-4 h-4"></i>
@@ -590,7 +615,16 @@
                     </button>
                 </div>
 
-                <!-- 完成簽到按鈕 -->
+                <!-- 中間：速度選擇器 -->
+                <div id="speed-selector-container" class="flex items-center space-x-2 bg-white/50 rounded-full px-4 py-2 border border-slate-200/50">
+                    <i data-lucide="gauge" class="w-4 h-4 text-slate-600"></i>
+                    <span class="text-xs text-slate-600 font-medium mr-1">速度：</span>
+                    <div id="speed-buttons" class="flex items-center space-x-1">
+                        <!-- 動態生成速度按鈕 -->
+                    </div>
+                </div>
+
+                <!-- 右側：簽到按鈕 -->
                 <button id="attendance-btn" class="hidden px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse">
                     <i data-lucide="check-circle" class="w-4 h-4"></i>
                     <span>完成簽到 (Finish & Take Attendance)</span>
@@ -751,6 +785,18 @@
         let currentPage = 1;
         let totalItems = 0;
 
+        // 🚀 會員等級狀態常量與變量
+        const MEMBERSHIP_TIERS = {
+            CORE: 'core',       // < 40% - 固定1.0x，中途隨機打卡
+            PLUS: 'plus',       // 40-65% - 固定1.0x，完成後打卡
+            PRIME: 'prime',    // 65-80% - 可調速(1.25-2.0x)，完成後打卡
+            ULTRA: 'ultra'     // > 80% - 完全自由，無需打卡
+        };
+
+        let currentMembershipTier = MEMBERSHIP_TIERS.PLUS; // 預設值
+        let midVideoCheckTriggered = false; // 追蹤是否已觸發中途打卡
+        let pendingMidVideoCheck = false; // 是否正在等待中途打卡確認
+
         // =======================================================
         // 🔍 終極容錯數據解析與時區偏移日期格式化方法
         // =======================================================
@@ -866,6 +912,100 @@
             if (!studentId) studentId = "無ID資料";
 
             return { realName, studentClass, classNo, studentId };
+        }
+
+        // =======================================================
+        // 🚀 會員等級檢測與權限判定
+        // =======================================================
+        function detectMembershipTier() {
+            const cachedMembership = localStorage.getItem("user_membership") || "";
+            const upperMembership = cachedMembership.toUpperCase();
+
+            if (upperMembership.includes("ULTRA")) {
+                return MEMBERSHIP_TIERS.ULTRA;
+            }
+            if (upperMembership.includes("PRIME")) {
+                return MEMBERSHIP_TIERS.PRIME;
+            }
+            if (upperMembership.includes("PLUS")) {
+                return MEMBERSHIP_TIERS.PLUS;
+            }
+            if (upperMembership.includes("CORE")) {
+                return MEMBERSHIP_TIERS.CORE;
+            }
+            return MEMBERSHIP_TIERS.PLUS; // 預設為 Plus
+        }
+
+        // 根據會員等級獲取速度權限
+        function getAllowedSpeeds(tier, isFirstWatch) {
+            // 複習模式全部解鎖
+            if (!isFirstWatch) {
+                return [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+            }
+
+            // 首次觀看根據等級
+            switch (tier) {
+                case MEMBERSHIP_TIERS.ULTRA:
+                    return [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]; // 完全自由
+                case MEMBERSHIP_TIERS.PRIME:
+                    return [1.0, 1.25, 1.5, 2.0]; // 可調速但不建議低於1x
+                case MEMBERSHIP_TIERS.PLUS:
+                case MEMBERSHIP_TIERS.CORE:
+                default:
+                    return [1.0]; // 固定1.0x
+            }
+        }
+
+        // 根據會員等級判斷是否允許快進
+        function canFastForward(tier, isFirstWatch) {
+            if (!isFirstWatch) return true; // 複習模式全部可快進
+
+            switch (tier) {
+                case MEMBERSHIP_TIERS.ULTRA:
+                    return true; // 完全自由
+                case MEMBERSHIP_TIERS.PRIME:
+                case MEMBERSHIP_TIERS.PLUS:
+                case MEMBERSHIP_TIERS.CORE:
+                default:
+                    return false; // 首次觀看禁止快進
+            }
+        }
+
+        // 根據會員等級判斷是否需要考勤打卡
+        function needsAttendanceCheck(tier, isFirstWatch) {
+            if (!isFirstWatch) return false; // 複習模式不需要
+
+            switch (tier) {
+                case MEMBERSHIP_TIERS.ULTRA:
+                    return false; // Ultra 完全免除
+                case MEMBERSHIP_TIERS.CORE:
+                case MEMBERSHIP_TIERS.PLUS:
+                case MEMBERSHIP_TIERS.PRIME:
+                default:
+                    return true; // 其他等級需要完成後打卡
+            }
+        }
+
+        // 根據會員等級判斷是否需要中途隨機打卡 (僅 Core)
+        function needsMidVideoCheck(tier, isFirstWatch) {
+            if (!isFirstWatch) return false;
+
+            return tier === MEMBERSHIP_TIERS.CORE;
+        }
+
+        // 獲取會員等級顯示文字
+        function getMembershipTierDisplay(tier) {
+            switch (tier) {
+                case MEMBERSHIP_TIERS.ULTRA:
+                    return { text: "🌌 ULTRA", color: "bg-purple-500/20 text-purple-300 border-purple-500/30" };
+                case MEMBERSHIP_TIERS.PRIME:
+                    return { text: "🔥 PRIME", color: "bg-orange-500/20 text-orange-300 border-orange-500/30" };
+                case MEMBERSHIP_TIERS.PLUS:
+                    return { text: "⚡ PLUS", color: "bg-sky-500/20 text-sky-300 border-sky-500/30" };
+                case MEMBERSHIP_TIERS.CORE:
+                default:
+                    return { text: "🛡️ CORE", color: "bg-slate-500/20 text-slate-300 border-slate-500/30" };
+            }
         }
 
         // 非同步加載 YouTube Iframe API 
@@ -1950,6 +2090,10 @@
             currentTitle = title;
             currentVideoWatched = isWatched; // 🚀 設定全域變數，供播放控制邏輯讀取
 
+            // 🚀 檢測會員等級
+            currentMembershipTier = detectMembershipTier();
+            const isFirstWatch = !isWatched;
+
             let videoId = "";
             try {
                 const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -1967,6 +2111,9 @@
             document.getElementById('video-overlay-title').innerText = title;
             document.getElementById('video-player-large-title').innerText = title;
 
+            // 🚀 更新會員等級徽章
+            updateMembershipBadge();
+
             // 🚀 執行優雅的 iOS 阻尼淡入與回彈縮放轉場
             const overlay = document.getElementById('video-overlay');
             overlay.classList.remove('hidden', 'animate-ios-overlay-exit');
@@ -1980,10 +2127,19 @@
 
             // 重設安全播放機制
             maxWatchedTime = 0;
+            midVideoCheckTriggered = false;
+            pendingMidVideoCheck = false;
             if (timeCheckInterval) clearInterval(timeCheckInterval);
             if (attendanceTimer) clearInterval(attendanceTimer);
 
-            // 🚀 若已完成報到，直接顯示已完成報到狀態，不隱藏，亦無倒數計時
+            // 🚀 隱藏所有特殊彈窗
+            document.getElementById('mid-video-check-overlay').classList.add('hidden');
+            document.getElementById('ff-lock-overlay').classList.add('hidden');
+
+            // 🚀 根據會員等級和觀看狀態設置 UI
+            setupMembershipUI(isFirstWatch);
+
+            // 🚀 若已完成報到，直接顯示已完成報到狀態
             if (isWatched) {
                 btn.classList.remove('hidden');
                 btn.disabled = true;
@@ -1991,7 +2147,12 @@
                     "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
                 btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
             } else {
-                btn.classList.add('hidden');
+                // 🚀 根據會員等級決定簽到按鈕顯示
+                if (needsAttendanceCheck(currentMembershipTier, isFirstWatch)) {
+                    btn.classList.add('hidden'); // 不預先顯示，等影片結束後顯示
+                } else if (currentMembershipTier === MEMBERSHIP_TIERS.ULTRA) {
+                    btn.classList.add('hidden'); // Ultra 不需要簽到
+                }
             }
 
             if (isYtApiReady) {
@@ -2029,32 +2190,261 @@
             }, 50);
         }
 
+        // =======================================================
+        // 🚀 根據會員等級更新 UI 顯示
+        // =======================================================
+        function updateMembershipBadge() {
+            const badge = document.getElementById('membership-tier-badge');
+            const tierDisplay = getMembershipTierDisplay(currentMembershipTier);
+
+            badge.textContent = tierDisplay.text;
+            badge.className = `text-xs tracking-widest font-bold px-2.5 py-1 rounded border shadow-sm ${tierDisplay.color}`;
+            badge.classList.remove('hidden');
+        }
+
+        // =======================================================
+        // 🚀 根據會員等級和觀看狀態設置播放器 UI
+        // =======================================================
+        function setupMembershipUI(isFirstWatch) {
+            const tier = currentMembershipTier;
+            const allowedSpeeds = getAllowedSpeeds(tier, isFirstWatch);
+            const canFF = canFastForward(tier, isFirstWatch);
+            const needsAttendance = needsAttendanceCheck(tier, isFirstWatch);
+            const needsMidCheck = needsMidVideoCheck(tier, isFirstWatch);
+
+            // 🚀 設置速度選擇器
+            setupSpeedSelector(allowedSpeeds, isFirstWatch);
+
+            // 🚀 設置快進鎖定提示
+            const ffOverlay = document.getElementById('ff-lock-overlay');
+            if (!canFF && isFirstWatch) {
+                ffOverlay.classList.remove('hidden');
+            } else {
+                ffOverlay.classList.add('hidden');
+            }
+        }
+
+        // =======================================================
+        // 🚀 設置速度選擇器按鈕
+        // =======================================================
+        function setupSpeedSelector(allowedSpeeds, isFirstWatch) {
+            const container = document.getElementById('speed-buttons');
+            container.innerHTML = '';
+
+            const speedLabels = {
+                0.5: '0.5x',
+                0.75: '0.75x',
+                1.0: '1.0x',
+                1.25: '1.25x',
+                1.5: '1.5x',
+                1.75: '1.75x',
+                2.0: '2.0x'
+            };
+
+            let currentSpeed = 1.0;
+
+            // 設置當前速度
+            if (ytPlayer && typeof ytPlayer.getPlaybackRate === 'function') {
+                currentSpeed = ytPlayer.getPlaybackRate();
+            }
+
+            allowedSpeeds.forEach((speed, index) => {
+                const btn = document.createElement('button');
+                const isActive = Math.abs(speed - currentSpeed) < 0.01;
+                const label = speedLabels[speed] || `${speed}x`;
+
+                if (isActive) {
+                    btn.className = 'px-2.5 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full shadow-sm';
+                } else {
+                    btn.className = 'px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium rounded-full transition';
+                    btn.addEventListener('click', () => changePlaybackSpeed(speed));
+                }
+
+                btn.textContent = label;
+                container.appendChild(btn);
+            });
+
+            // 如果只有一個速度且不是1.0x，添加當前速度顯示
+            if (allowedSpeeds.length === 1 && allowedSpeeds[0] !== 1.0) {
+                const currentBtn = document.createElement('button');
+                currentBtn.className = 'px-2.5 py-1 bg-slate-200 text-slate-500 text-xs font-medium rounded-full cursor-not-allowed';
+                currentBtn.textContent = '1.0x';
+                container.appendChild(currentBtn);
+            }
+        }
+
+        // =======================================================
+        // 🚀 改變播放速度
+        // =======================================================
+        function changePlaybackSpeed(speed) {
+            const isFirstWatch = !currentVideoWatched;
+            const allowedSpeeds = getAllowedSpeeds(currentMembershipTier, isFirstWatch);
+
+            // 檢查是否允許此速度，如果不在允許列表中則靜默忽略
+            if (!allowedSpeeds.includes(speed)) {
+                // 只更新 UI 顯示當前允許的速度，按鈕點擊已被禁用所以這裡理論上不會觸發
+                return;
+            }
+
+            if (ytPlayer && typeof ytPlayer.setPlaybackRate === 'function') {
+                ytPlayer.setPlaybackRate(speed);
+                // 更新按鈕狀態
+                setupSpeedSelector(allowedSpeeds, isFirstWatch);
+            }
+        }
+
         // 影片安全偵測定時器
         function startTimeTracking() {
             if (timeCheckInterval) clearInterval(timeCheckInterval);
             timeCheckInterval = setInterval(() => {
                 if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
                     const currentTime = ytPlayer.getCurrentTime();
+                    const isFirstWatch = !currentVideoWatched;
+                    const allowedSpeeds = getAllowedSpeeds(currentMembershipTier, isFirstWatch);
+                    const canFF = canFastForward(currentMembershipTier, isFirstWatch);
 
                     // 🚀 若此影片為「已觀看完成」狀態，則直接退出定時器，完全解鎖進度條與播放速度限制
                     if (currentVideoWatched) {
                         return;
                     }
 
-                    // 鎖定播放速度：如果播放速度不為 1倍速，強制重設回 1 倍速
-                    if (typeof ytPlayer.getPlaybackRate === 'function' && ytPlayer.getPlaybackRate() !== 1) {
-                        ytPlayer.setPlaybackRate(1);
+                    // 🚀 根據會員等級鎖定播放速度
+                    if (typeof ytPlayer.getPlaybackRate === 'function') {
+                        const currentSpeed = ytPlayer.getPlaybackRate();
+                        // 如果當前速度不在允許列表中，強制重設為允許的速度
+                        if (!allowedSpeeds.includes(currentSpeed)) {
+                            const defaultSpeed = allowedSpeeds.includes(1.0) ? 1.0 : allowedSpeeds[0];
+                            ytPlayer.setPlaybackRate(defaultSpeed);
+                        }
                     }
 
-                    // 鎖定進度條快進：防止向前跳轉超過已觀看時間
-                    if (currentTime > maxWatchedTime + 2.5) {
-                        ytPlayer.seekTo(maxWatchedTime, true);
+                    // 🚀 根據會員等級鎖定快進
+                    if (!canFF) {
+                        // 鎖定進度條快進：防止向前跳轉超過已觀看時間
+                        if (currentTime > maxWatchedTime + 2.5) {
+                            ytPlayer.seekTo(maxWatchedTime, true);
+                            // 顯示快進鎖定提示
+                            showFastForwardLockHint();
+                        } else {
+                            maxWatchedTime = Math.max(maxWatchedTime, currentTime);
+                        }
                     } else {
+                        // Ultra 等級：允許自由快進
                         maxWatchedTime = Math.max(maxWatchedTime, currentTime);
                     }
+
+                    // 🚀 PH Core 中途隨機打卡檢測
+                    checkMidVideoAttendance(currentTime);
                 }
             }, 500);
         }
+
+        // =======================================================
+        // 🚀 顯示快進鎖定提示
+        // =======================================================
+        function showFastForwardLockHint() {
+            const ffOverlay = document.getElementById('ff-lock-overlay');
+            ffOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                if (canFastForward(currentMembershipTier, !currentVideoWatched)) {
+                    ffOverlay.classList.add('hidden');
+                }
+            }, 1500);
+        }
+
+        // =======================================================
+        // 🚀 PH Core 中途隨機打卡檢測
+        // =======================================================
+        let midVideoCheckInterval = null;
+        
+        function checkMidVideoAttendance(currentTime) {
+            // 只在首次觀看且需要中途打卡時執行
+            if (currentVideoWatched) return;
+            if (!needsMidVideoCheck(currentMembershipTier, !currentVideoWatched)) return;
+            if (midVideoCheckTriggered) return;
+            if (pendingMidVideoCheck) return;
+
+            const duration = (ytPlayer && typeof ytPlayer.getDuration === 'function') ? ytPlayer.getDuration() : 0;
+            if (duration <= 0) return;
+
+            // 在影片 30%-70% 的區間內隨機觸發一次打卡
+            const progress = currentTime / duration;
+            const shouldTrigger = progress >= 0.3 && progress <= 0.7;
+
+            // 50% 機率在達到區間時觸發
+            if (shouldTrigger && Math.random() < 0.3) {
+                triggerMidVideoCheck();
+            }
+        }
+
+        let midVideoCheckTimer = null;
+        let midVideoCheckTimeLeft = 30;
+
+        function triggerMidVideoCheck() {
+            if (midVideoCheckTriggered || pendingMidVideoCheck) return;
+            
+            pendingMidVideoCheck = true;
+            midVideoCheckTimeLeft = 30;
+            
+            // 暫停影片播放
+            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                ytPlayer.pauseVideo();
+            }
+
+            // 顯示打卡彈窗
+            const overlay = document.getElementById('mid-video-check-overlay');
+            overlay.classList.remove('hidden');
+            
+            // 更新倒數顯示
+            updateMidCheckTimerDisplay();
+            
+            // 啟動 30 秒倒數
+            if (midVideoCheckTimer) clearInterval(midVideoCheckTimer);
+            midVideoCheckTimer = setInterval(() => {
+                midVideoCheckTimeLeft--;
+                updateMidCheckTimerDisplay();
+                
+                if (midVideoCheckTimeLeft <= 0) {
+                    // 時間到，重啟影片
+                    clearInterval(midVideoCheckTimer);
+                    dismissMidVideoCheck(true);
+                }
+            }, 1000);
+            
+            lucide.createIcons();
+        }
+
+        function updateMidCheckTimerDisplay() {
+            const timerEl = document.getElementById('mid-check-timer');
+            if (timerEl) {
+                timerEl.textContent = `${midVideoCheckTimeLeft}`;
+            }
+        }
+
+        function dismissMidVideoCheck(restart = false) {
+            clearInterval(midVideoCheckTimer);
+            pendingMidVideoCheck = false;
+            
+            // 如果是超時重啟，重置 maxWatchedTime
+            if (restart) {
+                maxWatchedTime = 0;
+            }
+
+            // 隱藏打卡彈窗
+            const overlay = document.getElementById('mid-video-check-overlay');
+            overlay.classList.add('hidden');
+
+            // 恢復播放
+            if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                ytPlayer.playVideo();
+            }
+        }
+
+        // 中途打卡確認按鈕事件
+        document.getElementById('mid-video-check-confirm-btn').addEventListener('click', () => {
+            midVideoCheckTriggered = true;
+            dismissMidVideoCheck(false);
+        });
 
         // 影片安全偵測定時器停止
         function stopTimeTracking() {
@@ -2072,12 +2462,31 @@
                 stopTimeTracking();
             }
 
+            // 🚀 如果正在等待中途打卡確認，阻止播放
+            if (event.data === YT.PlayerState.PLAYING && pendingMidVideoCheck) {
+                if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                    ytPlayer.pauseVideo();
+                }
+                return;
+            }
+
             // YT.PlayerState.ENDED 代表影片完全播放結束
             if (event.data === YT.PlayerState.ENDED) {
-                // 🚀 只有在尚未觀看過該影片時，才需要啟動 2 分鐘簽到倒數機制
+                // 🚀 只有在尚未觀看過該影片時，才需要處理
                 if (!currentVideoWatched) {
-                    const duration = (ytPlayer && typeof ytPlayer.getDuration === 'function') ? ytPlayer.getDuration() :
-                        0;
+                    const duration = (ytPlayer && typeof ytPlayer.getDuration === 'function') ? ytPlayer.getDuration() : 0;
+
+                    // 🚀 檢查是否需要考勤打卡（Ultra 等級顯示可選打卡按鈕）
+                    if (currentMembershipTier === MEMBERSHIP_TIERS.ULTRA) {
+                        // Ultra 等級：顯示可選打卡按鈕
+                        const btn = document.getElementById('attendance-btn');
+                        btn.classList.remove('hidden');
+                        btn.disabled = false;
+                        btn.className = "px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse";
+                        btn.innerHTML = `<i data-lucide="crown" class="w-4 h-4"></i><span>✨ ULTRA 尊享：自願打卡留念</span>`;
+                        lucide.createIcons();
+                        return;
+                    }
 
                     // 🚀 核心安全驗證防護：影片播放結束時，判定其累計最大有效播放時間是否達到總長度的 90%
                     // 防止學生直接拖動 YouTube 進度條至末尾強行觸發簽到
@@ -2145,11 +2554,17 @@
 
         // 自訂 Play 按鈕事件
         document.getElementById('custom-play-btn').addEventListener('click', () => {
+            // 🚀 如果正在等待中途打卡確認，不允許播放
+            if (pendingMidVideoCheck) {
+                return;
+            }
+
             if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
                 const playBtnSpan = document.querySelector('#custom-play-btn span');
                 if (playBtnSpan && playBtnSpan.innerText === "重新播放") {
                     // 重設簽到機制與觀看紀錄，重新回到 0 秒開始
                     maxWatchedTime = 0;
+                    midVideoCheckTriggered = false;
                     if (attendanceTimer) clearInterval(attendanceTimer);
 
                     // 🚀 重新播放時，若是已觀看完成之課程，保持其已簽到樣式，不隱藏按鈕
@@ -2162,6 +2577,8 @@
                         btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
                     } else {
                         document.getElementById('attendance-btn').classList.add('hidden');
+                        // 🚀 重新設置會員 UI（因為是重新開始）
+                        setupMembershipUI(true);
                     }
 
                     playBtnSpan.innerText = "播放 (Play)";
@@ -2190,6 +2607,10 @@
             if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
                 ytPlayer.stopVideo();
             }
+
+            // 🚀 重置會員相關狀態
+            pendingMidVideoCheck = false;
+            midVideoCheckTriggered = false;
 
             setTimeout(() => {
                 overlay.classList.add('hidden');
@@ -2312,7 +2733,7 @@
 
                 const rows = rawJsonData.table.rows;
 
-                // 解析學籍名單：欄 A = role, 欄 B = class, 欄 C = class_no, 欄 D = real_name
+                // 解析學籍名單：欄 A = role, 欄 B = class, 欄 C = class_no, 欄 D = real_name, 欄 E = membership
                 const parsedStudentList = rows.map((r, index) => {
                     // 排除試算表第 0 列 (標題列) 的純文字標頭判定
                     if (index === 0) return null;
@@ -2322,7 +2743,8 @@
                         role: cleanVal(getCellValue(r.c[0])),
                         class: cleanVal(getCellValue(r.c[1])),
                         classNo: cleanVal(getCellValue(r.c[2])),
-                        name: cleanVal(getCellValue(r.c[3]))
+                        name: cleanVal(getCellValue(r.c[3])),
+                        membership: cleanVal(getCellValue(r.c[4]))
                     };
                 }).filter(item => item !== null && item.name !== "");
 
@@ -2416,15 +2838,29 @@
                 } else {
                     matchingStudents.forEach(student => {
                         const tr = document.createElement('tr');
-                        tr.className = "hover:bg-slate-50/80 transition duration-150 border-b border-slate-200/40";
+                        
+                        // 🚀 檢測是否為 Ultra 會員，套用淡紫色背景
+                        const isUltra = student.membership && student.membership.toUpperCase().includes('ULTRA');
+                        const isPrime = student.membership && student.membership.toUpperCase().includes('PRIME');
+                        const isPlus = student.membership && student.membership.toUpperCase().includes('PLUS');
+                        
+                        let rowBgClass = "hover:bg-slate-50/80 transition duration-150 border-b border-slate-200/40";
+                        if (isUltra) {
+                            rowBgClass = "bg-purple-50/50 hover:bg-purple-100/50 transition duration-150 border-b border-purple-200/40";
+                        } else if (isPrime) {
+                            rowBgClass = "hover:bg-orange-50/50 transition duration-150 border-b border-orange-200/40";
+                        } else if (isPlus) {
+                            rowBgClass = "hover:bg-sky-50/50 transition duration-150 border-b border-sky-200/40";
+                        }
+
+                        tr.className = rowBgClass;
 
                         // 拼接出席勾選
                         let sessionCellsHtml = "";
                         sessionList.forEach(session => {
                             const cleanStudentName = stripAllSpaces(student.name);
                             const cleanSession = stripAllSpaces(session);
-                            const hasCompleted = attendanceMap[`${cleanStudentName}_${cleanSession}`] ===
-                                true;
+                            const hasCompleted = attendanceMap[`${cleanStudentName}_${cleanSession}`] === true;
 
                             if (hasCompleted) {
                                 sessionCellsHtml += `
@@ -2433,18 +2869,30 @@
                                         </td>
                                     `;
                             } else {
-                                sessionCellsHtml += `
-                                        <td class="p-3 text-center text-rose-500 font-extrabold text-sm select-none">
-                                            ✕
-                                        </td>
-                                    `;
+                                // 🚀 Ultra 學生顯示 "-" 而非 ✕
+                                if (isUltra) {
+                                    sessionCellsHtml += `
+                                            <td class="p-3 text-center text-purple-400 font-medium text-sm select-none">
+                                                —
+                                            </td>
+                                        `;
+                                } else {
+                                    sessionCellsHtml += `
+                                            <td class="p-3 text-center text-rose-400 font-medium text-sm select-none">
+                                                ✕
+                                            </td>
+                                        `;
+                                }
                             }
                         });
+
+                        // 🚀 Ultra 學生姓名顯示特殊標記
+                        const nameCellClass = isUltra ? "p-3 font-bold text-purple-700" : "p-3 font-bold text-slate-900";
 
                         tr.innerHTML = `
                                 <td class="p-3 font-semibold text-slate-800">${student.class || '--'}</td>
                                 <td class="p-3 text-slate-600 font-medium">${student.classNo || '--'}</td>
-                                <td class="p-3 font-bold text-slate-900">${student.name || '--'}</td>
+                                <td class="${nameCellClass}">${student.name || '--'}${isUltra ? ' 🌌' : ''}</td>
                                 ${sessionCellsHtml}
                             `;
                         tableBody.appendChild(tr);
