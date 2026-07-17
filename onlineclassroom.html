@@ -278,6 +278,36 @@
             display: inline-block;
             animation: sparkle 2s ease-in-out infinite;
         }
+
+        /* 🆕 課堂列表 Tab 切換進場動畫（iOS 阻尼彈簧） */
+        .tab-entering {
+            animation: tabEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes tabEnter {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.97);
+                filter: blur(6px);
+            }
+            60% {
+                transform: translateY(-3px) scale(1.01);
+                filter: blur(0px);
+            }
+            80% {
+                transform: translateY(1px) scale(0.999);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+
+        /* 🆕 Tier 膠囊已選中展開狀態 */
+        .tier-capsule-active-core  { background: rgba(75,85,99,0.25) !important; border-color: rgba(75,85,99,0.5) !important; box-shadow: 0 0 0 2px rgba(75,85,99,0.15); transform: scale(1.06); }
+        .tier-capsule-active-plus  { background: rgba(29,78,216,0.2) !important;  border-color: rgba(29,78,216,0.5) !important; box-shadow: 0 0 0 2px rgba(29,78,216,0.15); transform: scale(1.06); }
+        .tier-capsule-active-prime { background: rgba(220,38,38,0.2) !important;  border-color: rgba(220,38,38,0.5) !important; box-shadow: 0 0 0 2px rgba(220,38,38,0.15); transform: scale(1.06); }
+        .tier-capsule-active-ultra { background: rgba(147,51,234,0.2) !important; border-color: rgba(147,51,234,0.5) !important; box-shadow: 0 0 0 2px rgba(147,51,234,0.15); transform: scale(1.06); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-6 text-slate-800 relative">
@@ -432,7 +462,7 @@
                         <p class="text-[8px] tracking-wider text-slate-500 uppercase font-bold leading-none">會員</p>
                         <button id="membership-info-trigger" class="w-3 h-3 rounded-full bg-slate-200 hover:bg-emerald-500 hover:text-white flex items-center justify-center text-[8px] font-bold text-slate-600 transition leading-none" title="點擊了解更多">?</button>
                     </div>
-                    <p id="card-membership" class="font-black sofia-font text-right leading-none w-full" style="font-size: clamp(1rem, 2.5vw, 1.75rem); letter-spacing: 0.02em;">--</p>
+                    <p id="card-membership" class="font-black sofia-font text-right leading-none w-full" style="font-size: clamp(1rem, 2.5vw, 1.75rem); letter-spacing: -0.01em;">--</p>
                 </div>
 
             </div>
@@ -469,14 +499,37 @@
             </div>
 
             <!-- 核心面板二：動態學業課程列表 -->
-            <div id="topics-container" class="crystal-panel rounded-2xl overflow-hidden divide-y divide-slate-900/[0.05]">
-                <!-- 這裡將透過 JS 依據試算表與身分權限動態載入課程 -->
-                <div class="p-8 text-center text-sm text-slate-500/80">
-                    <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>正在為您構建個人專屬課堂清單...</span>
+            <!-- 頂部膠囊列：FRONT 固定顯示，四個 Tier 膠囊可展開/收合各自區段 -->
+            <div id="topics-container" class="crystal-panel rounded-2xl overflow-hidden">
+                <!-- 頂部 Tab 膠囊列（獨立一行） -->
+                <div id="topics-tabs" class="px-4 pt-4 pb-2 flex flex-wrap gap-2 items-center border-b border-slate-200/40">
+                    <!-- ALL tab — 預設展開，尺寸稍大 -->
+                    <button id="tab-all" class="topic-tab px-4 py-2 rounded-full text-xs font-extrabold tracking-widest uppercase transition-all duration-200 bg-emerald-500/20 text-emerald-800 border border-emerald-400/40 shadow-sm scale-105" data-tier="all" title="所有學生適用">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5 inline-block mr-1 align-middle"></i>ALL
+                    </button>
+                    <!-- 四個 Tier 膠囊 — 已報名 tier 尺寸稍大 -->
+                    <button id="tab-core" class="topic-tab tier-capsule px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-200 bg-gray-200/70 text-gray-600 border border-gray-300/40 hover:bg-gray-300/80" data-tier="core" title="CORE 專屬影片">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 inline-block mr-1 align-middle"></i>CORE
+                    </button>
+                    <button id="tab-plus" class="topic-tab tier-capsule px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-200 bg-blue-100/70 text-blue-700 border border-blue-300/40 hover:bg-blue-200/80" data-tier="plus" title="PLUS 專屬影片">
+                        <i data-lucide="star" class="w-3.5 h-3.5 inline-block mr-1 align-middle"></i>PLUS
+                    </button>
+                    <button id="tab-prime" class="topic-tab tier-capsule px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-200 bg-red-100/70 text-red-700 border border-red-300/40 hover:bg-red-200/80" data-tier="prime" title="PRIME 專屬影片">
+                        <i data-lucide="gem" class="w-3.5 h-3.5 inline-block mr-1 align-middle"></i>PRIME
+                    </button>
+                    <button id="tab-ultra" class="topic-tab tier-capsule px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-200 bg-purple-100/70 text-purple-700 border border-purple-300/40 hover:bg-purple-200/80" data-tier="ultra" title="ULTRA 專屬影片">
+                        <i data-lucide="crown" class="w-3.5 h-3.5 inline-block mr-1 align-middle"></i>ULTRA
+                    </button>
+                </div>
+                <!-- 動態內容區：JS 注入 FRONT 區段 + 四個 Tier 區段 (各自可獨立展開/收合) -->
+                <div id="topics-body" class="divide-y divide-slate-900/[0.05]">
+                    <div class="p-8 text-center text-sm text-slate-500/80">
+                        <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>正在為您構建個人專屬課堂清單...</span>
+                    </div>
                 </div>
             </div>
 
@@ -570,10 +623,18 @@
     <!-- ========================================== -->
     <div id="attendance-overlay" class="fixed inset-0 z-50 hidden flex flex-col justify-between text-slate-900">
         <!-- 頂部控制列 -->
-        <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex justify-between items-center shadow-sm shrink-0">
+        <header class="p-4 bg-slate-100/80 backdrop-blur border-b border-slate-200/80 flex flex-wrap justify-between items-center shadow-sm shrink-0 gap-3">
             <div class="flex items-center space-x-3">
                 <span class="text-xs tracking-widest text-indigo-700 font-bold bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-400/20 shadow-sm">ATTENDANCE REPORT</span>
                 <h1 class="text-sm font-bold tracking-wide text-slate-950 shippori-title">出席數據查閱</h1>
+            </div>
+            <!-- 🆕 [v17] Tier 出席按鈕：BASIC / CORE / PLUS / PRIME / ULTRA -->
+            <div id="attendance-tier-tabs" class="flex flex-wrap items-center gap-2">
+                <button class="attendance-tier-tab px-3 py-1.5 rounded-full text-[10px] font-extrabold tracking-widest uppercase border transition-all duration-200 bg-emerald-500/20 text-emerald-800 border-emerald-400/40 scale-105" data-tier="all">BASIC</button>
+                <button class="attendance-tier-tab px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase border transition-all duration-200 bg-gray-200/70 text-gray-600 border-gray-300/40 hover:bg-gray-300/80" data-tier="core">CORE</button>
+                <button class="attendance-tier-tab px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase border transition-all duration-200 bg-blue-100/70 text-blue-700 border-blue-300/40 hover:bg-blue-200/80" data-tier="plus">PLUS</button>
+                <button class="attendance-tier-tab px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase border transition-all duration-200 bg-red-100/70 text-red-700 border-red-300/40 hover:bg-red-200/80" data-tier="prime">PRIME</button>
+                <button class="attendance-tier-tab px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase border transition-all duration-200 bg-purple-100/70 text-purple-700 border-purple-300/40 hover:bg-purple-200/80" data-tier="ultra">ULTRA</button>
             </div>
             <div class="flex items-center space-x-2">
                 <!-- PDF Export Button -->
@@ -590,8 +651,8 @@
         <!-- 內容主區域 -->
         <main class="flex-1 w-full overflow-hidden p-4 md:p-6 space-y-4 max-w-7xl mx-auto flex flex-col justify-start min-h-0">
             <div class="text-left space-y-1 shrink-0">
-                <h2 class="text-xl md:text-2xl font-bold text-slate-950 shippori-title tracking-wide">全班出席狀態一覽表</h2>
-                <p class="text-xs text-slate-500">本表展示您所屬群組 (Role) 所有同學的補課完成進度。完成之課程將以綠色勾號顯示。</p>
+                <h2 id="attendance-title" class="text-xl md:text-2xl font-bold text-slate-950 shippori-title tracking-wide">全班出席狀態一覽表 (BASIC)</h2>
+                <p id="attendance-subtitle" class="text-xs text-slate-500">本表展示您所屬群組 (Role) 所有同學的補課完成進度。完成之課程將以綠色勾號顯示。</p>
             </div>
 
             <!-- 數據加載狀態 -->
@@ -651,9 +712,9 @@
         // 擁有學生帳密驗證資料庫的原 Auth 端點：
         const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
         // 指向 Loader 載入課程端點：
-        const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycby0FWs-1C-zee5s9P4QLe8__FuR7Zr3G0fIbjMtCGv61hqcpk68XlaQANzKb3h7JxI/exec";
+        const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbwa6zwwQ3_VA6McR5loEGzPNpO61hJ_aL0afhSUrfHqW9g2FpwokFS6s1la3tiGRIY/exec";
         // 指向您全新指定的專屬簽到 Record 儲存端點（最新 ID 綁定）：
-        const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbx_TGZzwkLS2-igfam2c9NetRG9s1zNYbTd5F-HlYCD3K0ew0Q2utfvlX3q03kdtCj8/exec";
+        const GAS_ATTENDANCE_URL = "https://script.google.com/macros/s/AKfycbzUiFopIeRla1MVY0V8Vz8K0ovpzNV1ESupmpQEyP4xTCs7dO8pd4bx-3sqv37_lzU/exec";
 
         // 🚀 學生 roster 試算表 JSON 調取端點 (NAME分頁)
         const ROSTER_JSON_URL = "https://docs.google.com/spreadsheets/d/1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU/gviz/tq?tqx=out:json&sheet=NAME";
@@ -670,6 +731,7 @@
         const pwIcon = document.getElementById('pw-icon');
         const secureBadge = document.getElementById('secure-badge');
         const topicsContainer = document.getElementById('topics-container');
+        const topicsBody = document.getElementById('topics-body');
 
         // 🚀 日曆相關 DOM 節點
         const calendarToggleBtn = document.getElementById('calendar-toggle-btn');
@@ -686,6 +748,8 @@
         let currentSession = "";
         let currentTitle = "";
         let currentVideoWatched = false; // 🚀 追蹤目前點開的影片是否為「已看過」
+        let currentTier = "all"; // 🆕 [v17] 追蹤當前影片所屬 tier（all/core/plus/prime/ultra）
+        let currentAttendanceTier = "all"; // 🆕 [v17] 出席查閱當前選中的 tier (BASIC/CORE/PLUS/PRIME/ULTRA)
 
         // 🚀 全域日曆與課程篩選器暫存數據
         let calendarCurrentDate = new Date();
@@ -695,9 +759,30 @@
         let globalTopicRows = [];
         let globalUserRole = "";
         let globalRecords = [];
+        // 🆕 [v16] 各 Tier 專屬影片資料: core / plus / prime / ultra
+        let globalTierRows = {}; // { core: [...], plus: [...], prime: [...], ultra: [...] }
+        // 🆕 [v17] 當前 tier 簽到紀錄（從 attendance GAS 拉取，僅一份在記憶體）
+        let currentTierRecords = [];
+        // 🆕 [v17] 各 tier 的 watched sessions（從 attendance GAS 抓取）
+        // key: 'all' | 'core' | 'plus' | 'prime' | 'ultra'
+        // value: Map<session, Set<studentName>> — 每個 session 有哪些學生看過
+        const tierWatchedSessionsMap = {
+            all:   new Map(),
+            core:  new Map(),
+            plus:  new Map(),
+            prime: new Map(),
+            ultra: new Map()
+        };
 
         // 🚀 [Teacher/Admin] 各 Role 區段的獨立分頁狀態: role -> { currentPage, perPage }
         const rolePaginationMap = new Map();
+
+        // 🆕 [v16] 各 Tier 區段獨立分頁: tier -> { currentPage, perPage }
+        const tierPaginationMap = new Map();
+        // 🆕 [v16] 各 Tier 展開/收合狀態: tier -> boolean (true = 已展開)
+        const tierExpandMap = new Map();
+        // 🆕 [v16] 當前顯示的 Tab：'all' | 'core' | 'plus' | 'prime' | 'ultra'
+        let activeTab = 'all';
 
         // =======================================================
         // 🔍 終極容錯數據解析與時區偏移日期格式化方法
@@ -1111,6 +1196,14 @@
             if (typeof rolePaginationMap !== "undefined" && rolePaginationMap && rolePaginationMap.clear) {
                 rolePaginationMap.clear();
             }
+            // 🆕 [v16] 重設 Tab 狀態
+            activeTab = 'all';
+            if (typeof tierPaginationMap !== "undefined" && tierPaginationMap && tierPaginationMap.clear) {
+                tierPaginationMap.clear();
+            }
+            if (typeof tierExpandMap !== "undefined" && tierExpandMap && tierExpandMap.clear) {
+                tierExpandMap.clear();
+            }
             cardSection.classList.add('hidden');
             loginSection.classList.remove('hidden');
             if (secureBadge) secureBadge.classList.remove('hidden');
@@ -1346,7 +1439,7 @@
 
         // 重新觸發課程篩選與列表渲染
         function executeFilterRender() {
-            renderTopics(globalTopicRows, globalUserRole, globalRecords);
+            renderTopics(globalTopicRows, globalUserRole, globalRecords, globalTierRows);
         }
 
         // =======================================================
@@ -1362,7 +1455,7 @@
                 return;
             }
 
-            topicsContainer.innerHTML = `
+            topicsBody.innerHTML = `
                     <div class="p-8 text-center text-sm text-slate-500/80">
                         <svg class="animate-spin h-5 w-5 mx-auto mb-3 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1384,6 +1477,8 @@
                     // 🚀 安全解構：偵測回傳的數據結構，分別讀取課程列表與觀看紀錄
                     let topicRows = [];
                     let records = [];
+                    // 🆕 [v16] Tier 專屬影片資料
+                    let tierRows = {};
 
                     if (resData.data) {
                         if (Array.isArray(resData.data)) {
@@ -1395,6 +1490,11 @@
                         if (resData.data.record && Array.isArray(resData.data.record)) {
                             records = resData.data.record;
                         }
+
+                        // 🆕 [v16] 解析四個 Tier 資料：core / plus / prime / ultra
+                        if (resData.data.tiers && typeof resData.data.tiers === 'object') {
+                            tierRows = resData.data.tiers;
+                        }
                     }
 
                     // 備用方案：如根節點也存在紀錄則採用之
@@ -1402,7 +1502,7 @@
                         records = resData.records || resData.record || [];
                     }
 
-                    renderTopics(topicRows, userRole, records);
+                    renderTopics(topicRows, userRole, records, tierRows);
                 } else {
                     if (resData.requireLogin) {
                         localStorage.clear();
@@ -1411,23 +1511,27 @@
                         if (secureBadge) secureBadge.classList.remove('hidden');
                         showError("認證已過期，請重新登入！");
                     } else {
-                        topicsContainer.innerHTML =
+                        topicsBody.innerHTML =
                             `<div class="p-8 text-center text-sm text-rose-800 font-medium">數據加載失敗: ${resData.msg}</div>`;
                     }
                 }
             } catch (err) {
                 console.error("Fetch topics error:", err);
-                topicsContainer.innerHTML =
+                topicsBody.innerHTML =
                     `<div class="p-8 text-center text-sm text-rose-800 font-medium">連線異常，無法與課室資料庫同步。</div>`;
             }
         }
 
         // 渲染課室排版 (淡綠與淡紅視覺特徵強化，未完成項目皆以清晰淡紅高對比顯示)
-        function renderTopics(rows, userRole, records = []) {
+        // 🆕 [v16] 支援 Tier 專屬影片：FRONT 區段 + 四個 Tier 區段 (各自展開/收合 + 獨立分頁)
+        // 🆕 [v17] 改為 async：渲染前需先 await fetchAllTierWatchedSessions 取得 tier 簽到資料
+        async function renderTopics(rows, userRole, records = [], tierRows = {}) {
             // 備份參數至全域，供日曆篩選與回呼使用
             globalTopicRows = rows;
             globalUserRole = userRole;
             globalRecords = records;
+            // 🆕 [v16] 保存 Tier 影片資料
+            globalTierRows = tierRows;
 
             // 🚀 安全防禦：確保 rows 是一個陣列，防止 rows.slice 發生錯誤
             let finalRows = rows;
@@ -1437,13 +1541,13 @@
 
             if (!Array.isArray(finalRows)) {
                 console.error("rows is not an array:", rows);
-                topicsContainer.innerHTML =
+                topicsBody.innerHTML =
                     `<div class="p-8 text-center text-sm text-slate-500">課程資料讀取異常，請重新登入或聯繫管理員。</div>`;
                 return;
             }
 
             if (finalRows.length <= 1) {
-                topicsContainer.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
+                topicsBody.innerHTML = `<div class="p-8 text-center text-sm text-slate-500">當前沒有可用的課堂主題。</div>`;
                 return;
             }
 
@@ -1494,7 +1598,7 @@
             renderCalendar();
 
             if (allowedRows.length === 0) {
-                topicsContainer.innerHTML =
+                topicsBody.innerHTML =
                     `<div class="p-8 text-center text-sm text-slate-500 font-medium">您的權限無法存取目前的課程。</div>`;
                 return;
             }
@@ -1504,28 +1608,13 @@
             // =======================================================
             const details = getStudentDetails();
             const currentStudentName = details.realName.trim();
-            const watchedSessions = new Set();
 
-            let finalRecords = records;
-            if (records && !Array.isArray(records) && Array.isArray(records.record)) {
-                finalRecords = records.record;
-            }
+            // 🆕 [v17] 從 attendance GAS 抓取所有 tier 的簽到紀錄，建立每個 tier 的 watched sessions
+            // tierWatchedSessionsMap[tier] = Map<session, Set<studentName>>（包含所有學生）
+            await fetchAllTierWatchedSessions();
 
-            if (Array.isArray(finalRecords)) {
-                finalRecords.forEach((row, idx) => {
-                    if (idx === 0) return; // 略過標題
-
-                    // 欄 D: user_real_name (index 3)
-                    // 欄 E: session (index 4)
-                    const rowName = String(row[3] || "").trim();
-                    const rowSession = String(row[4] || "").trim();
-
-                    if (currentStudentName && stripAllSpaces(rowName) === stripAllSpaces(currentStudentName) &&
-                        rowSession) {
-                        watchedSessions.add(rowSession);
-                    }
-                });
-            }
+            // 🆕 [v17] watchedSessions 改用 tierWatchedSessionsMap.all（從 attendance GAS 抓回）
+            const watchedSessions = tierWatchedSessionsMap.all;
 
             // 🚀 實施日曆日期篩選邏輯：若 filteredDateStr 存在，僅保留符合篩選日期的列
             let displayRows = allowedRows;
@@ -1536,51 +1625,306 @@
                 });
             }
 
-            topicsContainer.innerHTML = "";
+            topicsBody.innerHTML = "";
 
-            if (displayRows.length === 0) {
-                topicsContainer.innerHTML = `<div class="p-10 text-center text-sm text-slate-500">該日期沒有排定任何補課課程。</div>`;
-                return;
-            }
+            // 🆕 [v16] ALL 包裝層始終存在，Tier 包裝層並行渲染（各自靠 display 控制顯隱）
+            const sectionAll = document.createElement('div');
+            sectionAll.id = 'section-all';
+            sectionAll.style.display = (activeTab === 'all') ? 'block' : 'none';
+            if (activeTab === 'all') sectionAll.classList.add('tab-entering');
 
             // 🚀 [Teacher/Admin] 依 Role 分組，每組獨立區段 + 獨立分頁
-            if (userRole === "teacher" || userRole === "admin") {
-                const groupedByRole = {};
-                displayRows.forEach(row => {
-                    const role = String(row[0] || "").trim() || "未分類";
-                    if (!groupedByRole[role]) groupedByRole[role] = [];
-                    groupedByRole[role].push(row);
-                });
+            let hasAnyAllSection = false;
+            if (displayRows.length > 0) {
+                if (userRole === "teacher" || userRole === "admin") {
+                    const groupedByRole = {};
+                    displayRows.forEach(row => {
+                        const role = String(row[0] || "").trim() || "未分類";
+                        if (!groupedByRole[role]) groupedByRole[role] = [];
+                        groupedByRole[role].push(row);
+                    });
 
-                const sortedRoles = Object.keys(groupedByRole).sort();
-                let hasAnySection = false;
-                sortedRoles.forEach(role => {
-                    const rowsForRole = groupedByRole[role];
-                    if (rowsForRole.length === 0) return;
-                    renderRoleSection(role, rowsForRole, watchedSessions);
-                    hasAnySection = true;
-                });
-
-                if (!hasAnySection) {
-                    topicsContainer.innerHTML = `<div class="p-10 text-center text-sm text-slate-500">該日期沒有排定任何補課課程。</div>`;
+                    const sortedRoles = Object.keys(groupedByRole).sort();
+                    sortedRoles.forEach(role => {
+                        const rowsForRole = groupedByRole[role];
+                        if (rowsForRole.length === 0) return;
+                        renderRoleSection(role, rowsForRole, watchedSessions, sectionAll);
+                        hasAnyAllSection = true;
+                    });
+                } else {
+                    // 🆕 [Student] 也使用 renderRoleSection
+                    renderRoleSection(userRole, displayRows, watchedSessions, sectionAll);
+                    hasAnyAllSection = true;
                 }
-            } else {
-                // 🆕 [Student] 也使用 renderRoleSection，保持與 Teacher/Admin 一致的分頁 UI
-                renderRoleSection(userRole, displayRows, watchedSessions);
             }
+            // ALL 無內容時顯示提示（仍在 DOM 中，供日曆篩選後空狀態使用）
+            if (!hasAnyAllSection) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.className = "p-10 text-center text-sm text-slate-500";
+                emptyMsg.textContent = displayRows.length === 0 ? '該日期沒有排定任何補課課程。' : '您的權限無法存取目前的課程。';
+                sectionAll.appendChild(emptyMsg);
+            }
+            topicsBody.appendChild(sectionAll);
+
+            // 🆕 [v16] 渲染四個 Tier 專屬影片區段（CORE / PLUS / PRIME / ULTRA）
+            renderAllTierSections(watchedSessions);
+
+            // 🆕 [v16] 更新膠囊按鈕視覺狀態（當前 Tab 高亮 + 尺寸）
+            const allCapsules = document.querySelectorAll('.topic-tab');
+            const TIER_KEYS = ['core', 'plus', 'prime', 'ultra'];
+            allCapsules.forEach(btn => {
+                const t = btn.dataset.tier;
+                // 重置所有膠囊
+                btn.classList.remove('bg-emerald-500/20', 'border-emerald-400/40', 'shadow-sm', 'scale-105',
+                    'tier-capsule-active-core', 'tier-capsule-active-plus',
+                    'tier-capsule-active-prime', 'tier-capsule-active-ultra',
+                    'scale-105', 'scale-100');
+                if (t === 'all') {
+                    if (activeTab === 'all') {
+                        btn.classList.add('bg-emerald-500/20', 'border-emerald-400/40', 'shadow-sm', 'scale-105');
+                    }
+                    // ALL 永遠稍大
+                    btn.classList.add('scale-105');
+                } else {
+                    if (activeTab === t) {
+                        btn.classList.add(`tier-capsule-active-${t}`);
+                    }
+                }
+            });
+
+            // 🆕 [v16] 直接綁定每個膠囊按鈕：單一 Tab 互斥切換（iOS 阻尼進場動畫）
+            document.querySelectorAll('.topic-tab').forEach(btn => {
+                // 移除舊監聽（防止重複綁定）
+                btn.replaceWith(btn.cloneNode(true));
+            });
+            document.querySelectorAll('.topic-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tier = btn.dataset.tier;
+                    if (tier === activeTab) return;
+                    activeTab = tier;
+                    // 清除所有 Tier 展開狀態（改由 activeTab 決定顯示哪個）
+                    TIER_KEYS.forEach(k => tierExpandMap.set(k, false));
+                    renderTopics(globalTopicRows, globalUserRole, globalRecords, globalTierRows);
+                });
+            });
 
             lucide.createIcons();
         }
 
+        // 🆕 [v16] 渲染所有 Tier 專屬影片區段（CORE / PLUS / PRIME / ULTRA）
+        // 🆕 [v16] 與 FRONT 同樣邏輯：teacher/admin 顯示所有 role，一般用戶只顯示對應 role 的課堂
+        function renderAllTierSections(watchedSessions) {
+            const TIERS = [
+                { key: 'core', label: 'CORE', icon: 'zap',     bgClass: 'bg-gray-200/70 text-gray-600 border-gray-300/40 hover:bg-gray-300/80',    expandedBg: 'bg-gray-100/80',  accentClass: 'text-gray-600' },
+                { key: 'plus', label: 'PLUS',  icon: 'star',    bgClass: 'bg-blue-100/70 text-blue-700 border-blue-300/40 hover:bg-blue-200/80',        expandedBg: 'bg-blue-50/60',   accentClass: 'text-blue-700' },
+                { key: 'prime', label: 'PRIME', icon: 'gem',     bgClass: 'bg-red-100/70 text-red-700 border-red-300/40 hover:bg-red-200/80',         expandedBg: 'bg-red-50/60',    accentClass: 'text-red-700' },
+                { key: 'ultra', label: 'ULTRA', icon: 'crown',  bgClass: 'bg-purple-100/70 text-purple-700 border-purple-300/40 hover:bg-purple-200/80', expandedBg: 'bg-purple-50/60', accentClass: 'text-purple-700' },
+            ];
+
+            TIERS.forEach(tier => {
+                const tierData = globalTierRows[tier.key];
+                // 跳過空資料
+                if (!Array.isArray(tierData) || tierData.length <= 1) return;
+
+                // 初始化展開/收合狀態（預設 false = 收合）
+                if (!tierExpandMap.has(tier.key)) {
+                    tierExpandMap.set(tier.key, false);
+                }
+
+                // 🆕 [v16] Role 篩選：teacher/admin 看全部；其他用戶只看到自己 role 對應的課堂
+                const dataRows = tierData.slice(1);
+                const roleFilteredRows = dataRows.filter(row => {
+                    const rowRole = String(row[0] || "").trim().toLowerCase();
+                    if (globalUserRole === "teacher" || globalUserRole === "admin") return true;
+                    return rowRole === (globalUserRole || "").toLowerCase();
+                });
+
+                // 🆕 [v16] 日期篩選：與 FRONT 行為一致
+                let finalTierRows = roleFilteredRows;
+                if (filteredDateStr) {
+                    finalTierRows = roleFilteredRows.filter(row => {
+                        const rawDate = String(row[5] || "").trim();
+                        return getIsoDateString(rawDate) === filteredDateStr;
+                    });
+                }
+
+                // 篩選後無資料則跳過此 Tier（仍隱藏 wrapper，不渲染空殼）
+                if (finalTierRows.length === 0) return;
+
+                // 🆕 [v16] 每個 Tier 包進獨立包裝層，控制顯示/隱藏 + 進場動畫
+                const wrapper = document.createElement('div');
+                wrapper.id = `section-${tier.key}`;
+                const isActive = activeTab === tier.key;
+                wrapper.style.display = isActive ? 'block' : 'none';
+                if (isActive) wrapper.classList.add('tab-entering');
+
+                // 🆕 [v17] 從 tierWatchedSessionsMap 取出對應 tier 的 watched set（不是 FRONT 的）
+                const tierWatchedSet = tierWatchedSessionsMap[tier.key] || new Map();
+
+                // 🆕 [v17] 計算此 tier 的 viewStudents：
+                //   - teacher/admin: 該 tier membership 的所有學生
+                //   - student: 只有自己（如果自己是該 tier 成員）
+                //   - 學生視圖也要按 role 過濾（PLUS 學生看不到 ULTRA 學生的 FRONT row，所以 tier viewStudents 也只算同 role）
+                const details = getStudentDetails();
+                const currentStudent = details ? stripAllSpaces(details.realName.trim()) : "";
+                const tierMembershipKey = tier.key.toUpperCase();
+                const currentRoleLower = (globalUserRole || "").toLowerCase();
+                // teacher/admin: 不按 role 過濾；student: 按自己 role 過濾
+                const isTeacherAdmin = (globalUserRole === "teacher" || globalUserRole === "admin");
+                const tierViewStudents = cachedStudentList
+                    .filter(s => {
+                        const matchMembership = String(s.membership || "").toUpperCase().includes(tierMembershipKey);
+                        const matchRole = isTeacherAdmin || (String(s.role || "").toLowerCase() === currentRoleLower);
+                        return matchMembership && matchRole;
+                    })
+                    .map(s => stripAllSpaces(s.name || ""));
+                const studentViewStudents = tierViewStudents.includes(currentStudent) ? [currentStudent] : [];
+                const viewStudents = isTeacherAdmin ? tierViewStudents : studentViewStudents;
+
+                // Tier 區段內容附加到包裝層
+                renderTierSection(tier.key, tier.label, tier.icon, tier.bgClass, tier.expandedBg, tier.accentClass, finalTierRows, tierWatchedSet, wrapper, viewStudents);
+
+                topicsBody.appendChild(wrapper);
+            });
+        }
+
+        // 🆕 [v16] 渲染單一 Tier 區段（CORE / PLUS / PRIME / ULTRA 各自獨立）
+        // 🆕 [v16] container 參數：指定附加目標（預設 topicsBody，支援傳入包裝層）
+        // 🆕 [v17] viewStudents：此 tier 中可見的學生名單（用於課程顏色計算）
+        function renderTierSection(tierKey, tierLabel, tierIcon, tierBgClass, expandedBg, accentClass, tierRows, watchedSessions, container, viewStudents = []) {
+            const PER_PAGE = 10;
+
+            // 初始化分頁狀態
+            if (!tierPaginationMap.has(tierKey)) {
+                tierPaginationMap.set(tierKey, { currentPage: 1, perPage: PER_PAGE });
+            }
+            const state = tierPaginationMap.get(tierKey);
+            const totalPages = Math.max(1, Math.ceil(tierRows.length / state.perPage));
+            if (state.currentPage > totalPages) state.currentPage = totalPages;
+            if (state.currentPage < 1) state.currentPage = 1;
+
+            const startIdx = (state.currentPage - 1) * state.perPage;
+            const pageRows = tierRows.slice(startIdx, startIdx + state.perPage);
+
+            // 🆕 [v16] 展開條件：activeTab 對應此 Tier 時永遠展開，否則依手動狀態
+            const isExpanded = (activeTab === tierKey) || (tierExpandMap.get(tierKey) || false);
+
+            const section = document.createElement('div');
+            section.className = `tier-section tier-section-${tierKey}`;
+
+            // 區段標頭（點擊可展開/收合）
+            const header = document.createElement('div');
+            header.className = `px-4 py-2.5 flex items-center justify-between cursor-pointer select-none border-t border-slate-200/40 hover:${tierBgClass.split(' ')[0]}/20 transition duration-200 ${isExpanded ? expandedBg : ''}`;
+            header.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="${tierIcon}" class="w-3.5 h-3.5 ${accentClass}"></i>
+                        <span class="text-[10px] font-extrabold tracking-[0.15em] uppercase ${accentClass}">${tierLabel}</span>
+                        <span class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">共 ${tierRows.length} 堂</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="${isExpanded ? 'chevron-up' : 'chevron-down'}" class="w-3.5 h-3.5 text-slate-400 transition-transform"></i>
+                    </div>
+                `;
+            header.addEventListener('click', () => {
+                // 🆕 [v16] 點擊區段標頭：切換到該 Tier Tab
+                if (activeTab === tierKey) return; // 已展開，不重複渲染
+                activeTab = tierKey;
+                renderTopics(globalTopicRows, globalUserRole, globalRecords, globalTierRows);
+            });
+            section.appendChild(header);
+
+            // 展開時顯示課程內容
+            if (isExpanded) {
+                const contentDiv = document.createElement('div');
+                contentDiv.className = `border-t border-slate-200/40 ${expandedBg}`;
+
+                // 課程列
+                const rowsContainer = document.createElement('div');
+                rowsContainer.className = "divide-y divide-slate-900/[0.05]";
+                pageRows.forEach(row => {
+                    rowsContainer.appendChild(createTopicRow(row, watchedSessions, tierKey, viewStudents));
+                });
+                contentDiv.appendChild(rowsContainer);
+
+                // 分頁控制
+                if (totalPages > 0) {
+                    const paginationDiv = document.createElement('div');
+                    paginationDiv.className = "flex items-center justify-between px-4 py-2 bg-slate-50/50 border-t border-slate-200/40";
+
+                    const isFirst = state.currentPage === 1;
+                    const isLast = state.currentPage === totalPages;
+
+                    paginationDiv.innerHTML = `
+                            <button class="tier-pg-prev flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest transition duration-200 ${isFirst ? 'text-slate-300 cursor-not-allowed' : `${accentClass} hover:${tierBgClass.split(' ')[0]}/20 active:scale-95`}" ${isFirst ? 'disabled' : ''}>
+                                <i data-lucide="chevron-left" class="w-3 h-3"></i>
+                                <span>上一頁</span>
+                            </button>
+                            <span class="text-[10px] text-slate-600 font-bold tracking-widest">
+                                第 <span class="${accentClass}">${state.currentPage}</span> / ${totalPages} 頁
+                            </span>
+                            <button class="tier-pg-next flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest transition duration-200 ${isLast ? 'text-slate-300 cursor-not-allowed' : `${accentClass} hover:${tierBgClass.split(' ')[0]}/20 active:scale-95`}" ${isLast ? 'disabled' : ''}>
+                                <span>下一頁</span>
+                                <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                            </button>
+                        `;
+
+                    const prevBtn = paginationDiv.querySelector('.tier-pg-prev');
+                    const nextBtn = paginationDiv.querySelector('.tier-pg-next');
+
+                    if (!isFirst) {
+                        prevBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            state.currentPage--;
+                            renderTopics(globalTopicRows, globalUserRole, globalRecords, globalTierRows);
+                        });
+                    }
+                    if (!isLast) {
+                        nextBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            state.currentPage++;
+                            renderTopics(globalTopicRows, globalUserRole, globalRecords, globalTierRows);
+                        });
+                    }
+
+                    contentDiv.appendChild(paginationDiv);
+                }
+
+                section.appendChild(contentDiv);
+            }
+
+            (container || topicsBody).appendChild(section);
+        }
+
         // 🆕 抽出「單一課程列」DOM 建構邏輯，供 Student 與 Teacher/Admin 共用
-        function createTopicRow(row, watchedSessions) {
+        // 🆕 [v17] viewStudents: 當前可見的學生名單（FRONT section 根據 role 過濾，Tier section 只有自己）
+        // 🆕 [v17] watchedSessions: Map<session, Set<studentName>>（包含所有學生的觀看記錄）
+        //   - FRONT (tier==="all")：計算 viewStudents 中有多少人看過 → 決定顏色
+        //   - Tier sections：檢查 currentStudent 是否在 viewStudents 中且已看過
+        function createTopicRow(row, watchedSessions, tier, viewStudents = []) {
             const session = String(row[1] || "").trim();
             const title = String(row[2] || "").trim();
             const ytLink = String(row[3] || "").trim();
             const status = String(row[4] || "").trim().toLowerCase(); // active / inactive
+            const currentRowTier = tier || "all"; // 🆕 [v17] 預設 ALL
+            const cleanSession = stripAllSpaces(session);
 
             const isActive = (status === "active");
-            const isWatched = watchedSessions.has(session);
+
+            // 🆕 [v17] 根據 tier 決定是否已觀看
+            let isWatched = false;
+            if (tier === "all") {
+                // FRONT section：計算 viewStudents 中有多少人看過了
+                const sessionWatchedSet = watchedSessions instanceof Map ? (watchedSessions.get(cleanSession) || new Set()) : new Set();
+                const watchedCount = viewStudents.filter(name => sessionWatchedSet.has(stripAllSpaces(name))).length;
+                isWatched = (viewStudents.length > 0 && watchedCount === viewStudents.length);
+            } else {
+                // Tier section：檢查當前學生是否觀看
+                const details = getStudentDetails();
+                const currentStudent = details ? stripAllSpaces(details.realName.trim()) : "";
+                const sessionWatchedSet = watchedSessions instanceof Map ? (watchedSessions.get(cleanSession) || new Set()) : new Set();
+                isWatched = (currentStudent && viewStudents.includes(currentStudent) && sessionWatchedSet.has(currentStudent));
+            }
+
             const isClickable = isActive || isWatched;
 
             // 🚀 實施日曆高亮與顏色對齊 (已看過用淡綠色，未看過用淡紅色)
@@ -1654,7 +1998,7 @@
             if (isClickable) {
                 rowEl.addEventListener("click", () => {
                     if (ytLink) {
-                        openVideoWindow(session, title, ytLink, isWatched);
+                        openVideoWindow(session, title, ytLink, isWatched, currentRowTier);
                     } else {
                         alert("本堂課程尚未配置影片網址。");
                     }
@@ -1665,8 +2009,15 @@
         }
 
         // 🆕 [Teacher/Admin] 渲染單一 Role 區段 (含標頭、課程列、獨立分頁)
-        function renderRoleSection(role, rows, watchedSessions) {
+        // 🆕 [v16] container 參數：指定附加目標，預設 topicsBody（支援傳入 sectionAll 包裝層）
+        // 🆕 [v17] viewStudents：屬於此 role 的學生名單（用於 FRONT 課程顏色計算）
+        function renderRoleSection(role, rows, watchedSessions, container) {
             const PER_PAGE = 10;
+            // 🆕 [v17] 從 cachedStudentList 取得屬於此 role 的所有學生名單
+            const viewStudents = cachedStudentList
+                .filter(s => String(s.role || "").toLowerCase() === String(role || "").toLowerCase())
+                .map(s => stripAllSpaces(s.name || ""));
+
             if (!rolePaginationMap.has(role)) {
                 rolePaginationMap.set(role, { currentPage: 1, perPage: PER_PAGE });
             }
@@ -1703,7 +2054,7 @@
             const rowsContainer = document.createElement('div');
             rowsContainer.className = "divide-y divide-slate-900/[0.05]";
             pageRows.forEach(row => {
-                rowsContainer.appendChild(createTopicRow(row, watchedSessions));
+                rowsContainer.appendChild(createTopicRow(row, watchedSessions, "all", viewStudents));
             });
             section.appendChild(rowsContainer);
 
@@ -1734,29 +2085,31 @@
             if (!isFirst) {
                 prevBtn.addEventListener('click', () => {
                     state.currentPage--;
-                    renderTopics(globalTopicRows, globalUserRole, globalRecords);
+                    renderTopics(globalTopicRows, globalUserRole, globalRecords, globalTierRows);
                 });
             }
             if (!isLast) {
                 nextBtn.addEventListener('click', () => {
                     state.currentPage++;
-                    renderTopics(globalTopicRows, globalUserRole, globalRecords);
+                    renderTopics(globalTopicRows, globalUserRole, globalRecords, globalTierRows);
                 });
             }
 
             section.appendChild(paginationDiv);
 
-            topicsContainer.appendChild(section);
+            (container || topicsBody).appendChild(section);
         }
 
         // =======================================================
         // 🎬 在同頁打開全新的 Container 進行影音播放 (無外部 Window)
+        // 🆕 [v17] tier 參數：標示當前影片所屬 tier，供簽到分流使用
         // =======================================================
-        function openVideoWindow(session, title, url, isWatched) {
+        function openVideoWindow(session, title, url, isWatched, tier) {
             // 紀錄當前播放課程細節
             currentSession = session;
             currentTitle = title;
             currentVideoWatched = isWatched; // 🚀 設定全域變數，供播放控制邏輯讀取
+            currentTier = tier || "all"; // 🆕 [v17] 紀錄當前影片所屬 tier
 
             let videoId = "";
             try {
@@ -2052,7 +2405,8 @@
                         real_name: realName,
                         class: studentClass,
                         class_no: classNo,
-                        role: userRole
+                        role: userRole,
+                        tier: currentTier // 🆕 [v17] 標示當前影片所屬 tier (all/core/plus/prime/ultra)
                     })
                 });
 
@@ -2066,6 +2420,14 @@
                         `;
                     btn.className =
                         "px-6 py-2.5 bg-slate-500 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
+
+                    // 🆕 [v17] 即時更新本地 tierWatchedSessionsMap（不用等下次 fetch）
+                    const cleanSession = stripAllSpaces(currentSession);
+                    const cleanName = stripAllSpaces(realName);
+                    if (!tierWatchedSessionsMap[currentTier].has(cleanSession)) {
+                        tierWatchedSessionsMap[currentTier].set(cleanSession, new Set());
+                    }
+                    tierWatchedSessionsMap[currentTier].get(cleanSession).add(cleanName);
 
                     // 刷新主題列表
                     fetchTopics();
@@ -2088,6 +2450,14 @@
         // 🚀 出席數據查閱：獲取全班名單並與 attendance record 對比渲染表格
         // 🆕 [Teacher/Admin] 依 Role 分組，每組獨立表格與獨立 Export PDF 按鈕
         // ====================================================================
+        // 🆕 [v17] 出席數據查閱：先取名單緩存，再依當前 tier 切換渲染
+        // 設計：
+        //   - 學生名單從 ROSTER_JSON_URL 抓取一次並緩存
+        //   - 出席紀錄從 attendance GAS 抓取（每切一個 tier 拉一次）
+        //   - 切換 tier 時呼叫 renderAttendanceForCurrentTier 即時重繪
+        // ====================================================================
+        let cachedStudentList = []; // 緩存學生名單（含 membership）
+
         async function fetchStudentRosterAndRender() {
             const loader = document.getElementById('attendance-table-loader');
             const tableContainer = document.getElementById('attendance-table-container');
@@ -2115,10 +2485,25 @@
             };
 
             try {
+                // 🆕 [v17] 點擊 Tier 按鈕：呼叫 attendance GAS 抓取新 tier 的紀錄再重繪
+                document.querySelectorAll('.attendance-tier-tab').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+                document.querySelectorAll('.attendance-tier-tab').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        currentAttendanceTier = btn.dataset.tier || "all";
+                        updateAttendanceTabStyles();
+                        // 切換 tier → 從 attendance GAS 拉該 tier 的紀錄，再渲染
+                        fetchAttendanceForTier(currentAttendanceTier).then(() => {
+                            renderAttendanceForCurrentTier();
+                        });
+                    });
+                });
+                updateAttendanceTabStyles();
+
                 const response = await fetch(ROSTER_JSON_URL);
                 const text = await response.text();
 
-                // 提取 Google Visualization API 回傳的 JSON payload
                 const jsonStart = text.indexOf('{');
                 const jsonEnd = text.lastIndexOf('}') + 1;
                 const jsonString = text.substring(jsonStart, jsonEnd);
@@ -2130,78 +2515,22 @@
 
                 const rows = rawJsonData.table.rows;
 
-                // 解析學籍名單：欄 A = role, 欄 B = class, 欄 C = class_no, 欄 D = real_name
-                const parsedStudentList = rows.map((r, index) => {
+                // 解析學籍名單：欄 A = role, 欄 B = class, 欄 C = class_no, 欄 D = real_name, 欄 E = membership
+                cachedStudentList = rows.map((r, index) => {
                     if (index === 0) return null;
                     if (!r.c) return null;
                     return {
                         role: cleanVal(getCellValue(r.c[0])),
                         class: cleanVal(getCellValue(r.c[1])),
                         classNo: cleanVal(getCellValue(r.c[2])),
-                        name: cleanVal(getCellValue(r.c[3]))
+                        name: cleanVal(getCellValue(r.c[3])),
+                        membership: cleanVal(getCellValue(r.c[4]))
                     };
                 }).filter(item => item !== null && item.name !== "");
 
-                // 解析 attendance record 重建 attendanceMap 映射圖
-                // 欄 D (index 3) 為姓名，欄 E (index 4) 為 session
-                const attendanceMap = {}; // Key: "姓名_Session" => true
-
-                let recordRows = globalRecords;
-                if (globalRecords && globalRecords.record && Array.isArray(globalRecords.record)) {
-                    recordRows = globalRecords.record;
-                }
-
-                if (Array.isArray(recordRows)) {
-                    recordRows.forEach((row, idx) => {
-                        if (idx === 0) return; // 略過標題
-                        const rowName = String(row[3] || "").trim();
-                        const rowSession = String(row[4] || "").trim();
-                        const cleanRowName = stripAllSpaces(rowName);
-                        const cleanRowSession = stripAllSpaces(rowSession);
-                        if (cleanRowName && cleanRowSession) {
-                            attendanceMap[`${cleanRowName}_${cleanRowSession}`] = true;
-                        }
-                    });
-                }
-
-                // 清空容器
-                tableContainer.innerHTML = "";
-
-                if (currentUserRole === "teacher" || currentUserRole === "admin") {
-                    // 🆕 [Teacher/Admin] 依 Role 分組，每組獨立表格 + 獨立 Export PDF 按鈕
-                    const groupedByRole = {};
-                    parsedStudentList.forEach(student => {
-                        const role = (student.role || "未分類").toLowerCase();
-                        if (!groupedByRole[role]) groupedByRole[role] = [];
-                        groupedByRole[role].push(student);
-                    });
-
-                    // 排序每個群組內的學生
-                    Object.values(groupedByRole).forEach(group => {
-                        group.sort((a, b) => {
-                            if (a.class !== b.class) return String(a.class).localeCompare(String(b.class));
-                            return (parseFloat(a.classNo) || 0) - (parseFloat(b.classNo) || 0);
-                        });
-                    });
-
-                    const sortedRoles = Object.keys(groupedByRole).sort();
-                    sortedRoles.forEach(role => {
-                        const students = groupedByRole[role];
-                        const sessions = getSessionsForRole(role);
-                        renderAttendanceRoleSection(role, students, sessions, attendanceMap);
-                    });
-                } else {
-                    // Student: 渲染單一 Role 區段
-                    const matchingStudents = parsedStudentList.filter(student => {
-                        return student.role.toLowerCase() === currentUserRole;
-                    });
-                    matchingStudents.sort((a, b) => {
-                        if (a.class !== b.class) return String(a.class).localeCompare(String(b.class));
-                        return (parseFloat(a.classNo) || 0) - (parseFloat(b.classNo) || 0);
-                    });
-                    const sessions = getSessionsForRole(currentUserRole);
-                    renderAttendanceRoleSection(currentUserRole, matchingStudents, sessions, attendanceMap);
-                }
+                // 🆕 首次渲染：先從 attendance GAS 抓當前 tier 的紀錄再渲染
+                await fetchAttendanceForTier(currentAttendanceTier);
+                renderAttendanceForCurrentTier();
 
                 loader.classList.add('hidden');
                 tableContainer.classList.remove('hidden');
@@ -2216,6 +2545,227 @@
                     `;
                 lucide.createIcons();
             }
+        }
+
+        // 🆕 [v17] 從 attendance GAS 拉取指定 tier 的簽到紀錄，存到 currentTierRecords
+        async function fetchAttendanceForTier(tier) {
+            const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken") || "";
+            try {
+                const url = `${GAS_ATTENDANCE_URL}?action=getAttendance&tier=${encodeURIComponent(tier)}&token=${encodeURIComponent(token)}`;
+                const response = await fetch(url, { method: "GET", mode: "cors", redirect: "follow" });
+                const resData = await response.json();
+                if (resData.result === "success" && Array.isArray(resData.records)) {
+                    currentTierRecords = resData.records;
+                } else {
+                    currentTierRecords = [];
+                }
+            } catch (err) {
+                console.error(`Failed to fetch attendance for tier=${tier}:`, err);
+                currentTierRecords = [];
+            }
+        }
+
+        // 🆕 [v17] 拉取所有 tier 的簽到紀錄，建立 tierWatchedSessionsMap
+        // - tierWatchedSessionsMap[tier] = Map<session, Set<studentName>>
+        // - ALL 區段：统计有多少符合角色的学生观看了该 session
+        // - Tier 區段：检查当前学生是否观看了该 session
+        async function fetchAllTierWatchedSessions() {
+            const token = localStorage.getItem("jwt_token") || localStorage.getItem("userToken") || "";
+            const tiers = ["all", "core", "plus", "prime", "ultra"];
+
+            // 先清空
+            tiers.forEach(t => tierWatchedSessionsMap[t].clear());
+
+            // 並行抓取所有 tier 紀錄（不過濾 studentName，加入所有學生的記錄）
+            const promises = tiers.map(async (tierKey) => {
+                try {
+                    const url = `${GAS_ATTENDANCE_URL}?action=getAttendance&tier=${encodeURIComponent(tierKey)}&token=${encodeURIComponent(token)}`;
+                    const response = await fetch(url, { method: "GET", mode: "cors", redirect: "follow" });
+                    const resData = await response.json();
+                    if (resData.result === "success" && Array.isArray(resData.records)) {
+                        resData.records.forEach((row, idx) => {
+                            if (idx === 0) return; // 略過標題
+                            const rowName = String(row[3] || "").trim();
+                            const rowSession = String(row[4] || "").trim();
+                            if (!rowName || !rowSession) return;
+                            const cleanName = stripAllSpaces(rowName);
+                            const cleanSession = stripAllSpaces(rowSession);
+                            if (!tierWatchedSessionsMap[tierKey].has(cleanSession)) {
+                                tierWatchedSessionsMap[tierKey].set(cleanSession, new Set());
+                            }
+                            tierWatchedSessionsMap[tierKey].get(cleanSession).add(cleanName);
+                        });
+                    }
+                } catch (err) {
+                    console.error(`fetchAllTierWatchedSessions: failed for tier=${tierKey}`, err);
+                }
+            });
+            await Promise.all(promises);
+        }
+
+        // 🆕 [v17] 依當前 selected tier 重繪出席表
+        function renderAttendanceForCurrentTier() {
+            const tableContainer = document.getElementById('attendance-table-container');
+            const titleEl = document.getElementById('attendance-title');
+            const subEl = document.getElementById('attendance-subtitle');
+            if (!tableContainer) return;
+
+            // 使用 currentTierRecords（在切換 tier 時已從 attendance GAS 抓取）
+            const tierRecords = currentTierRecords || [];
+
+            // 重建 attendanceMap
+            const attendanceMap = {};
+            if (Array.isArray(tierRecords)) {
+                tierRecords.forEach((row, idx) => {
+                    if (idx === 0) return;
+                    const rowName = String(row[3] || "").trim();
+                    const rowSession = String(row[4] || "").trim();
+                    const cleanRowName = stripAllSpaces(rowName);
+                    const cleanRowSession = stripAllSpaces(rowSession);
+                    if (cleanRowName && cleanRowSession) {
+                        attendanceMap[`${cleanRowName}_${cleanRowSession}`] = true;
+                    }
+                });
+            }
+
+            // 篩選要顯示的學生
+            // - BASIC (currentAttendanceTier === "all")：全部學生
+            // - 其他 tier：只顯示 membership 對應該 tier 的學生
+            const tierUpper = currentAttendanceTier.toUpperCase();
+            const filteredStudents = (currentAttendanceTier === "all")
+                ? cachedStudentList.slice()
+                : cachedStudentList.filter(s => {
+                    const mem = String(s.membership || "").toUpperCase();
+                    return mem.includes("PH " + tierUpper) || mem === tierUpper || mem.includes(tierUpper);
+                });
+
+            // 排序
+            filteredStudents.sort((a, b) => {
+                if (a.class !== b.class) return String(a.class).localeCompare(String(b.class));
+                return (parseFloat(a.classNo) || 0) - (parseFloat(b.classNo) || 0);
+            });
+
+            // 取得對應 tier 的 session 列表
+            const sessions = getSessionsForAttendanceTier(currentAttendanceTier);
+
+            // 更新標題
+            const TIER_DISPLAY = { all: "BASIC", core: "CORE", plus: "PLUS", prime: "PRIME", ultra: "ULTRA" };
+            if (titleEl) titleEl.textContent = `全班出席狀態一覽表 (${TIER_DISPLAY[currentAttendanceTier] || "BASIC"})`;
+            if (subEl) {
+                if (currentAttendanceTier === "all") {
+                    subEl.textContent = "本表展示您所屬群組 (Role) 所有同學的補課完成進度。ULTRA 學生會以淡紫色高亮並顯示徽章。";
+                } else {
+                    subEl.textContent = `本表只顯示 ${TIER_DISPLAY[currentAttendanceTier]} 會員的紀錄，記錄其在 ${TIER_DISPLAY[currentAttendanceTier]} 影片的簽到狀態。`;
+                }
+            }
+
+            // 清空並渲染
+            tableContainer.innerHTML = "";
+
+            // 學生依 role 分組（teacher/admin 用）/ 學生單一 role
+            const currentUserRole = (localStorage.getItem("user_role") || "student").toLowerCase();
+            if (currentUserRole === "teacher" || currentUserRole === "admin") {
+                const groupedByRole = {};
+                filteredStudents.forEach(student => {
+                    const role = (student.role || "未分類").toLowerCase();
+                    if (!groupedByRole[role]) groupedByRole[role] = [];
+                    groupedByRole[role].push(student);
+                });
+                Object.values(groupedByRole).forEach(group => {
+                    group.sort((a, b) => {
+                        if (a.class !== b.class) return String(a.class).localeCompare(String(b.class));
+                        return (parseFloat(a.classNo) || 0) - (parseFloat(b.classNo) || 0);
+                    });
+                });
+                const sortedRoles = Object.keys(groupedByRole).sort();
+                if (sortedRoles.length === 0) {
+                    tableContainer.innerHTML = `<div class="crystal-panel rounded-2xl p-12 text-center text-sm text-slate-500">此 Tier 暫無 ${TIER_DISPLAY[currentAttendanceTier]} 會員資料。</div>`;
+                    return;
+                }
+                sortedRoles.forEach(role => {
+                    renderAttendanceRoleSection(role, groupedByRole[role], sessions, attendanceMap, currentAttendanceTier);
+                });
+            } else {
+                // 學生模式：依自己 role 過濾
+                const matchingStudents = filteredStudents.filter(s => s.role.toLowerCase() === currentUserRole);
+                if (matchingStudents.length === 0) {
+                    tableContainer.innerHTML = `<div class="crystal-panel rounded-2xl p-12 text-center text-sm text-slate-500">您並非 ${TIER_DISPLAY[currentAttendanceTier]} 會員，無相關出席紀錄。</div>`;
+                    return;
+                }
+                renderAttendanceRoleSection(currentUserRole, matchingStudents, sessions, attendanceMap, currentAttendanceTier);
+            }
+        }
+
+        // 🆕 [v17] 更新 Tier 按鈕的視覺狀態（active highlight）
+        function updateAttendanceTabStyles() {
+            const TIER_ACTIVE_CLASSES = {
+                all:   ['bg-emerald-500/20', 'text-emerald-800', 'border-emerald-400/40', 'scale-105'],
+                core:  ['bg-gray-200/70', 'text-gray-600', 'border-gray-300/40'],
+                plus:  ['bg-blue-100/70', 'text-blue-700', 'border-blue-300/40'],
+                prime: ['bg-red-100/70', 'text-red-700', 'border-red-300/40'],
+                ultra: ['bg-purple-100/70', 'text-purple-700', 'border-purple-300/40']
+            };
+            const TIER_INACTIVE_CLASSES = {
+                all:   ['bg-emerald-500/20', 'text-emerald-800', 'border-emerald-400/40', 'scale-105'],
+                core:  ['bg-gray-200/70', 'text-gray-600', 'border-gray-300/40', 'hover:bg-gray-300/80'],
+                plus:  ['bg-blue-100/70', 'text-blue-700', 'border-blue-300/40', 'hover:bg-blue-200/80'],
+                prime: ['bg-red-100/70', 'text-red-700', 'border-red-300/40', 'hover:bg-red-200/80'],
+                ultra: ['bg-purple-100/70', 'text-purple-700', 'border-purple-300/40', 'hover:bg-purple-200/80']
+            };
+            const ACTIVE_TIER_BG = {
+                all:   'bg-emerald-500/30 border-emerald-500 shadow-md',
+                core:  'bg-gray-300/80 border-gray-500 shadow-md',
+                plus:  'bg-blue-200/80 border-blue-500 shadow-md',
+                prime: 'bg-red-200/80 border-red-500 shadow-md',
+                ultra: 'bg-purple-200/80 border-purple-500 shadow-md'
+            };
+            document.querySelectorAll('.attendance-tier-tab').forEach(btn => {
+                const t = btn.dataset.tier;
+                // 移除所有狀態 class
+                btn.classList.remove(
+                    'bg-emerald-500/30', 'bg-gray-300/80', 'bg-blue-200/80', 'bg-red-200/80', 'bg-purple-200/80',
+                    'border-emerald-500', 'border-gray-500', 'border-blue-500', 'border-red-500', 'border-purple-500',
+                    'shadow-md', 'scale-105'
+                );
+                // 套用基本 tier 顏色
+                (TIER_INACTIVE_CLASSES[t] || []).forEach(c => btn.classList.add(c));
+                // 若為當前選中，加上高亮
+                if (t === currentAttendanceTier) {
+                    ACTIVE_TIER_BG[t].split(' ').forEach(c => btn.classList.add(c));
+                }
+            });
+        }
+
+        // 🆕 [v17] 取得當前 attendance tier 對應的 session 列表
+        function getSessionsForAttendanceTier(tier) {
+            const sessionList = [];
+            if (tier === "all") {
+                // FRONT session
+                if (globalTopicRows && globalTopicRows.length > 1) {
+                    globalTopicRows.slice(1).forEach(row => {
+                        const session = String(row[1] || "").trim();
+                        if (session && !sessionList.includes(session)) sessionList.push(session);
+                    });
+                }
+            } else {
+                // Tier session
+                const tierData = globalTierRows && globalTierRows[tier];
+                if (Array.isArray(tierData) && tierData.length > 1) {
+                    tierData.slice(1).forEach(row => {
+                        const session = String(row[1] || "").trim();
+                        if (session && !sessionList.includes(session)) sessionList.push(session);
+                    });
+                }
+            }
+            sessionList.sort((a, b) => {
+                const getNum = (str) => {
+                    const match = String(str).match(/\d+/g);
+                    if (!match) return 0;
+                    return parseFloat(match[match.length - 1]) || 0;
+                };
+                return getNum(b) - getNum(a);
+            });
+            return sessionList;
         }
 
         // 🆕 取得指定 Role 的所有課程 Session (依數字大小正序)
@@ -2246,12 +2796,14 @@
         }
 
         // 🆕 渲染單一 Role 的出席區段 (含 Role 標頭、學生表格、獨立 Export PDF 按鈕)
-        function renderAttendanceRoleSection(role, students, sessionList, attendanceMap) {
+        // 🆕 [v17] viewTier 參數：標示當前選中的 tier，供 ULTRA 學生特殊處理
+        function renderAttendanceRoleSection(role, students, sessionList, attendanceMap, viewTier) {
             const tableContainer = document.getElementById('attendance-table-container');
 
             const section = document.createElement('div');
             section.className = "role-attendance-section crystal-panel rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col";
             section.dataset.role = role;
+            section.dataset.viewTier = viewTier || "all";
 
             // 區段標頭
             const header = document.createElement('div');
@@ -2309,8 +2861,12 @@
                 tbody.innerHTML = `<tr><td colspan="${3 + sessionList.length}" class="p-8 text-center text-slate-500 font-medium">該群組暫無學生名單資料。</td></tr>`;
             } else {
                 students.forEach(student => {
+                    // 🆕 [v17] ULTRA 學生特殊處理：淡紫色 row + 姓名左邊 badge
+                    const isUltra = (viewTier === "all") &&
+                        String(student.membership || "").toUpperCase().includes("ULTRA");
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50/80 transition duration-150 border-b border-slate-200/40";
+                    tr.className = "hover:bg-slate-50/80 transition duration-150 border-b border-slate-200/40 " +
+                        (isUltra ? "bg-purple-50/70 hover:bg-purple-100/80 " : "");
 
                     let sessionCellsHtml = "";
                     sessionList.forEach(session => {
@@ -2320,14 +2876,24 @@
                         if (hasCompleted) {
                             sessionCellsHtml += `<td class="p-3 text-center text-emerald-600 font-extrabold text-sm select-none">✓</td>`;
                         } else {
-                            sessionCellsHtml += `<td class="p-3 text-center text-rose-500 font-extrabold text-sm select-none">✕</td>`;
+                            // 🆕 [v17] ULTRA 學生未簽到顯示「−」而非「✕」
+                            if (isUltra) {
+                                sessionCellsHtml += `<td class="p-3 text-center text-purple-500 font-extrabold text-lg select-none">−</td>`;
+                            } else {
+                                sessionCellsHtml += `<td class="p-3 text-center text-rose-500 font-extrabold text-sm select-none">✕</td>`;
+                            }
                         }
                     });
+
+                    // 🆕 [v17] ULTRA 學生姓名左邊加 badge
+                    const ultraBadge = isUltra
+                        ? `<span class="inline-flex items-center px-1.5 py-0.5 ml-2 bg-purple-500/20 text-purple-700 text-[9px] font-extrabold tracking-widest rounded-full border border-purple-400/40" style="filter:drop-shadow(0 0 6px rgba(168,85,247,0.5));">ULTRA</span>`
+                        : "";
 
                     tr.innerHTML = `
                             <td class="p-3 font-semibold text-slate-800">${student.class || '--'}</td>
                             <td class="p-3 text-slate-600 font-medium">${student.classNo || '--'}</td>
-                            <td class="p-3 font-bold text-slate-900">${student.name || '--'}</td>
+                            <td class="p-3 font-bold text-slate-900">${student.name || '--'}${ultraBadge}</td>
                             ${sessionCellsHtml}
                         `;
                     tbody.appendChild(tr);
