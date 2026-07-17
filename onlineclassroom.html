@@ -2645,9 +2645,6 @@
                 return (parseFloat(a.classNo) || 0) - (parseFloat(b.classNo) || 0);
             });
 
-            // 取得對應 tier 的 session 列表
-            const sessions = getSessionsForAttendanceTier(currentAttendanceTier);
-
             // 更新標題
             const TIER_DISPLAY = { all: "BASIC", core: "CORE", plus: "PLUS", prime: "PRIME", ultra: "ULTRA" };
             if (titleEl) titleEl.textContent = `全班出席狀態一覽表 (${TIER_DISPLAY[currentAttendanceTier] || "BASIC"})`;
@@ -2683,7 +2680,9 @@
                     return;
                 }
                 sortedRoles.forEach(role => {
-                    renderAttendanceRoleSection(role, groupedByRole[role], sessions, attendanceMap, currentAttendanceTier);
+                    // 🆕 [v18] 每個 role 只看到自己 role + 當前 tier 的課堂 session（由小到大排序）
+                    const roleSessions = getSessionsForRoleAndTier(role, currentAttendanceTier);
+                    renderAttendanceRoleSection(role, groupedByRole[role], roleSessions, attendanceMap, currentAttendanceTier);
                 });
             } else {
                 // 學生模式：依自己 role 過濾
@@ -2692,7 +2691,7 @@
                     tableContainer.innerHTML = `<div class="crystal-panel rounded-2xl p-12 text-center text-sm text-slate-500">您並非 ${TIER_DISPLAY[currentAttendanceTier]} 會員，無相關出席紀錄。</div>`;
                     return;
                 }
-                renderAttendanceRoleSection(currentUserRole, matchingStudents, sessions, attendanceMap, currentAttendanceTier);
+                renderAttendanceRoleSection(currentUserRole, matchingStudents, getSessionsForRoleAndTier(currentUserRole, currentAttendanceTier), attendanceMap, currentAttendanceTier);
             }
         }
 
@@ -2736,54 +2735,39 @@
             });
         }
 
-        // 🆕 [v17] 取得當前 attendance tier 對應的 session 列表
-        function getSessionsForAttendanceTier(tier) {
-            const sessionList = [];
-            if (tier === "all") {
-                // FRONT session
-                if (globalTopicRows && globalTopicRows.length > 1) {
-                    globalTopicRows.slice(1).forEach(row => {
-                        const session = String(row[1] || "").trim();
-                        if (session && !sessionList.includes(session)) sessionList.push(session);
-                    });
-                }
-            } else {
-                // Tier session
-                const tierData = globalTierRows && globalTierRows[tier];
-                if (Array.isArray(tierData) && tierData.length > 1) {
-                    tierData.slice(1).forEach(row => {
-                        const session = String(row[1] || "").trim();
-                        if (session && !sessionList.includes(session)) sessionList.push(session);
-                    });
-                }
-            }
-            sessionList.sort((a, b) => {
-                const getNum = (str) => {
-                    const match = String(str).match(/\d+/g);
-                    if (!match) return 0;
-                    return parseFloat(match[match.length - 1]) || 0;
-                };
-                return getNum(b) - getNum(a);
-            });
-            return sessionList;
-        }
-
-        // 🆕 取得指定 Role 的所有課程 Session (依數字大小正序)
-        function getSessionsForRole(role) {
+        // 🆕 [v18] 取得指定 Role + Tier 的所有課程 Session（由小至大排序）
+        // - BASIC (tier="all")：從 FRONT course sheet 讀取，過濾 role
+        // - CORE/PLUS/PRIME/ULTRA：從對應 tier course sheet 讀取，過濾 role
+        function getSessionsForRoleAndTier(role, tier) {
             const sessionList = [];
             const targetRole = (role || "").toLowerCase();
-            if (globalTopicRows && globalTopicRows.length > 1) {
-                const dataRows = globalTopicRows.slice(1);
-                dataRows.forEach(row => {
-                    const rowRole = String(row[0] || "").trim().toLowerCase();
-                    if (rowRole === targetRole) {
-                        const session = String(row[1] || "").trim();
-                        if (session && !sessionList.includes(session)) {
-                            sessionList.push(session);
-                        }
-                    }
-                });
+            const tierKey = (tier || "all");
+
+            let dataRows = [];
+            if (tierKey === "all") {
+                // FRONT course sheet
+                if (globalTopicRows && globalTopicRows.length > 1) {
+                    dataRows = globalTopicRows.slice(1);
+                }
+            } else {
+                // Tier course sheet
+                const tierData = globalTierRows && globalTierRows[tierKey];
+                if (Array.isArray(tierData) && tierData.length > 1) {
+                    dataRows = tierData.slice(1);
+                }
             }
+
+            dataRows.forEach(row => {
+                const rowRole = String(row[0] || "").trim().toLowerCase();
+                if (rowRole === targetRole) {
+                    const session = String(row[1] || "").trim();
+                    if (session && !sessionList.includes(session)) {
+                        sessionList.push(session);
+                    }
+                }
+            });
+
+            // 由小至大排序
             sessionList.sort((a, b) => {
                 const getNum = (str) => {
                     const match = String(str).match(/\d+/g);
