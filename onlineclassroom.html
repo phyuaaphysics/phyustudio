@@ -2154,6 +2154,10 @@
             if (timeCheckInterval) clearInterval(timeCheckInterval);
             if (attendanceTimer) clearInterval(attendanceTimer);
 
+            // 🚀 檢查是否為 ULTRA 會員
+            const membership = localStorage.getItem("user_membership") || "";
+            const isUltra = membership.toUpperCase().includes("ULTRA");
+
             // 🚀 若已完成報到，直接顯示已完成報到狀態，不隱藏，亦無倒數計時
             if (isWatched) {
                 btn.classList.remove('hidden');
@@ -2162,7 +2166,20 @@
                     "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
                 btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
             } else {
-                btn.classList.add('hidden');
+                // 未觀看：顯示簽到按鈕（ULTRA 與非 ULTRA 皆顯示，但樣式稍有不同）
+                btn.classList.remove('hidden');
+                btn.disabled = false;
+                if (isUltra) {
+                    // ULTRA 專屬簽到按鈕（紫金配色，無脈衝動畫）
+                    btn.className =
+                        "px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95";
+                    btn.innerHTML = `<i data-lucide="crown" class="w-4 h-4"></i><span>完成簽到 (ULTRA 紀念)</span>`;
+                } else {
+                    // 一般會員簽到按鈕（原有樣式）
+                    btn.className =
+                        "px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse";
+                    btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>完成簽到 (Finish & Take Attendance)</span>`;
+                }
             }
 
             if (isYtApiReady) {
@@ -2253,6 +2270,14 @@
             if (event.data === YT.PlayerState.ENDED) {
                 // 🚀 只有在尚未觀看過該影片時，才需要啟動 2 分鐘簽到倒數機制
                 if (!currentVideoWatched) {
+                    // 🚀 檢查是否為 ULTRA 會員（不需簽到監聽，但按鈕已存在，可手動點）
+                    const membership = localStorage.getItem("user_membership") || "";
+                    const isUltra = membership.toUpperCase().includes("ULTRA");
+                    if (isUltra) {
+                        // ULTRA 會員不觸發倒數，但按鈕仍可手動點擊
+                        return;
+                    }
+
                     const duration = (ytPlayer && typeof ytPlayer.getDuration === 'function') ? ytPlayer.getDuration() :
                         0;
 
@@ -2338,7 +2363,21 @@
                             "px-6 py-2.5 bg-emerald-600 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-md cursor-not-allowed";
                         btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4"></i><span>已完成報到 (Completed)</span>`;
                     } else {
-                        document.getElementById('attendance-btn').classList.add('hidden');
+                        // 未觀看時，顯示簽到按鈕（ULTRA 與非 ULTRA 皆顯示）
+                        const membership = localStorage.getItem("user_membership") || "";
+                        const isUltra = membership.toUpperCase().includes("ULTRA");
+                        const btn = document.getElementById('attendance-btn');
+                        btn.classList.remove('hidden');
+                        btn.disabled = false;
+                        if (isUltra) {
+                            btn.className =
+                                "px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95";
+                            btn.innerHTML = `<i data-lucide="crown" class="w-4 h-4"></i><span>完成簽到 (ULTRA 紀念)</span>`;
+                        } else {
+                            btn.className =
+                                "px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full flex items-center space-x-2 text-xs font-bold shadow-lg transition duration-300 transform active:scale-95 animate-pulse";
+                            btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>完成簽到 (Finish & Take Attendance)</span>`;
+                        }
                     }
 
                     playBtnSpan.innerText = "播放 (Play)";
