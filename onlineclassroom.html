@@ -2013,10 +2013,20 @@
         // 🆕 [v17] viewStudents：屬於此 role 的學生名單（用於 FRONT 課程顏色計算）
         function renderRoleSection(role, rows, watchedSessions, container) {
             const PER_PAGE = 10;
-            // 🆕 [v17] 從 cachedStudentList 取得屬於此 role 的所有學生名單
-            const viewStudents = cachedStudentList
-                .filter(s => String(s.role || "").toLowerCase() === String(role || "").toLowerCase())
-                .map(s => stripAllSpaces(s.name || ""));
+            // 🆕 [v17] 根據使用者角色決定 viewStudents
+            // 教師/管理員：該 Role 下所有學生
+            // 一般學生：僅自己
+            let viewStudents;
+            const currentUserRole = (localStorage.getItem("user_role") || "student").toLowerCase();
+            if (currentUserRole === "teacher" || currentUserRole === "admin") {
+                viewStudents = cachedStudentList
+                    .filter(s => String(s.role || "").toLowerCase() === String(role || "").toLowerCase())
+                    .map(s => stripAllSpaces(s.name || ""));
+            } else {
+                const details = getStudentDetails();
+                const currentStudent = details ? stripAllSpaces(details.realName.trim()) : "";
+                viewStudents = currentStudent ? [currentStudent] : [];
+            }
 
             if (!rolePaginationMap.has(role)) {
                 rolePaginationMap.set(role, { currentPage: 1, perPage: PER_PAGE });
@@ -2192,6 +2202,12 @@
 
         // 影片安全偵測定時器
         function startTimeTracking() {
+            // 🚀 修正：ULTRA 會員完全解鎖播放器限制
+            const membership = localStorage.getItem("user_membership") || "";
+            if (membership.toUpperCase().includes("ULTRA")) {
+                return; // ULTRA 會員直接跳過所有限制
+            }
+
             if (timeCheckInterval) clearInterval(timeCheckInterval);
             timeCheckInterval = setInterval(() => {
                 if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
