@@ -15,6 +15,52 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         .md-body { color: #334155; line-height: 1.75; font-size: 15px; }
+
+        /* 自訂進度條 overlay（在 video 下方，黑色玻璃） */
+        #yt-progress-overlay {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .yt-progress-track {
+            background: rgba(255, 255, 255, 0.15);
+            height: 6px;
+            border-radius: 999px;
+            position: relative;
+            overflow: hidden;
+        }
+        .yt-locked-bar {
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.6), rgba(251, 191, 36, 0.9));
+            height: 100%;
+            border-radius: 999px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .yt-progress-bar {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            height: 100%;
+            border-radius: 999px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 1;
+        }
+        .yt-fs-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            transition: all 0.2s;
+        }
+        .yt-fs-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        .yt-fs-btn:active {
+            transform: scale(0.95);
+        }
         .md-body h1, .md-body h2, .md-body h3, .md-body h4 { font-weight: 800; color: #0f172a; margin-top: 1.5em; margin-bottom: 0.5em; line-height: 1.3; }
         .md-body h1 { font-size: 1.75rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3em; }
         .md-body h2 { font-size: 1.4rem; }
@@ -486,6 +532,28 @@
                             color: #fff;
                             box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
                         }
+
+                        /* 會員狀態 chip：玻璃白底 + 4 種等級文字重點色（仿 PH CORE 樣式） */
+                        .membership-chip {
+                            background: rgba(255, 255, 255, 0.78);
+                            backdrop-filter: blur(24px) saturate(160%);
+                            -webkit-backdrop-filter: blur(24px) saturate(160%);
+                            border: 1px solid rgba(255, 255, 255, 0.6);
+                            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06),
+                                        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+                            color: #0f172a;
+                        }
+                        .membership-chip:hover {
+                            background: rgba(255, 255, 255, 0.92);
+                            transform: translateY(-1px);
+                            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1),
+                                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+                        }
+                        /* 等級文字主色（4 種） */
+                        .membership-tier-text { color: #475569; }       /* CORE 預設深灰 */
+                        body.dark-mode .membership-chip { background: rgba(15, 23, 42, 0.7); border-color: rgba(255,255,255,0.08); }
+                        body.dark-mode .membership-chip .text-slate-500 { color: rgba(255,255,255,0.55) !important; }
+                        body.dark-mode .membership-chip .text-slate-400 { color: rgba(255,255,255,0.45) !important; }
                     </style>
                     <button id="sync-button" onclick="manualSync()" class="sync-btn">
                         <i class="fas fa-cloud-upload-alt"></i>
@@ -568,6 +636,25 @@
         <div id="card-detail-body" class="relative z-10 flex-1 overflow-y-auto px-4 md:px-10 pb-[max(env(safe-area-inset-bottom),20px)] pt-2"></div>
     </div>
 
+    <!-- 會員說明 overlay（iOS 級進場） -->
+    <div id="membership-overlay" class="fixed inset-0 z-[320] bg-black/60 backdrop-blur-md flex flex-col opacity-0 pointer-events-none transition-opacity duration-500 ease-in-out" onclick="if(event.target===this) closeMembershipInfo()">
+        <div class="flex items-center justify-between px-5 md:px-10 pt-[max(env(safe-area-inset-top),16px)] pb-3 shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center shrink-0">
+                    <i class="fas fa-crown text-amber-300 text-sm"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-[10px] font-extrabold text-white/60 uppercase tracking-[0.2em]">Membership</div>
+                    <div class="text-base font-extrabold text-white truncate">會員等級說明</div>
+                </div>
+            </div>
+            <button onclick="closeMembershipInfo()" class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md hover:bg-white/25 ring-1 ring-white/20 flex items-center justify-center text-white transition-colors shrink-0" aria-label="關閉">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <iframe id="membership-iframe" src="https://phyuaaphysics.github.io/phyustudio/membership.html" class="w-full flex-1 border-none bg-white" allowfullscreen loading="lazy"></iframe>
+    </div>
+
     <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
         <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
             <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
@@ -617,6 +704,20 @@
         </nav>
     </div>
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
+
+    <!-- 浮動會員狀態膠囊（右下，dock 上方，點擊開啟會員說明 overlay） -->
+    <button id="membership-chip" onclick="openMembershipInfo()" title="會員狀態"
+            class="membership-chip group fixed right-4 md:right-6 z-[180] flex flex-col items-end justify-center px-4 py-1.5 rounded-2xl transition-all active:scale-95 leading-none"
+            style="bottom: calc(env(safe-area-inset-bottom, 0px) + 110px);">
+        <div class="flex items-center gap-1">
+            <span class="text-[8px] font-bold tracking-widest text-slate-500 uppercase">會員</span>
+            <span class="w-3 h-3 rounded-full bg-slate-200 group-hover:bg-emerald-500 group-hover:text-white flex items-center justify-center text-[8px] font-bold text-slate-600 transition leading-none">?</span>
+        </div>
+        <div class="flex items-center gap-1.5 mt-0.5">
+            <span class="text-[10px] font-bold text-slate-400 tracking-tight">PH</span>
+            <span id="membership-chip-label" class="text-base font-black tracking-tight leading-none membership-tier-text">CORE</span>
+        </div>
+    </button>
 
     <script>
         // ===== 全局配置 =====
@@ -859,6 +960,50 @@
         }
         function isUltra() { return getMembership().includes('ULTRA'); }
 
+        // 取得顯示用等級（若 localStorage 沒值，預設為 CORE）
+        function getDisplayMembership() {
+            const m = getMembership();
+            if (!m) return 'CORE';  // 預設 CORE
+            if (m.includes('ULTRA')) return 'ULTRA';
+            if (m.includes('PRIME')) return 'PRIME';
+            if (m.includes('PLUS'))  return 'PLUS';
+            if (m.includes('CORE'))  return 'CORE';
+            return m;
+        }
+
+        // 等級 → 文字主色（PH CORE 樣式，玻璃白底 + 等級字染主色）
+        const MEMBERSHIP_TIER_COLOR = {
+            CORE:  '#475569',  // slate-600
+            PLUS:  '#1d4ed8',  // blue-700
+            PRIME: '#b91c1c',  // red-700
+            ULTRA: '#7e22ce'   // purple-700
+        };
+
+        // 更新頂部 chip（依 localStorage 套用文字顏色 + 文字）
+        function updateMembershipChip() {
+            const tier = getDisplayMembership();
+            const label = document.getElementById('membership-chip-label');
+            if (label) {
+                label.textContent = tier;
+                label.style.color = MEMBERSHIP_TIER_COLOR[tier] || MEMBERSHIP_TIER_COLOR.CORE;
+            }
+            console.log(`[membership] 顯示等級：${tier}`);
+        }
+
+        // 開啟會員說明 overlay
+        function openMembershipInfo() {
+            const overlay = document.getElementById('membership-overlay');
+            if (!overlay) return;
+            overlay.classList.remove('pointer-events-none', 'opacity-0');
+            overlay.classList.add('opacity-100');
+        }
+        function closeMembershipInfo() {
+            const overlay = document.getElementById('membership-overlay');
+            if (!overlay) return;
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            overlay.classList.remove('opacity-100');
+        }
+
         // ---- YT Player ----
         window.__ytSetupPlayer = function (yt, targetId, autoplay) {
             try { if (__ytPlayer && __ytPlayer.destroy) __ytPlayer.destroy(); } catch (e) {}
@@ -883,10 +1028,11 @@
                     playerVars: {
                         rel: 0,
                         modestbranding: 1,
-                        controls: 0,
-                        disablekb: 1,
-                        fs: 0,
+                        controls: 1,              // 顯示原生進度條（可看進度）
+                        disablekb: 1,            // 禁用鍵盤控制
+                        fs: 1,                   // 允許全螢幕按鈕
                         playsinline: 1,
+                        iv_load_policy: 3,       // 不顯示註釋
                         autoplay: autoplay ? 1 : 0
                     },
                     events: {
@@ -914,23 +1060,94 @@
         }
 
         function startYTTimeTracking() {
-            if (isUltra() || __ytCurrentWatched) return;
+            if (__ytCurrentWatched) return;  // 已看過：跳過限制（ULTRA / 已簽到）
             if (__ytWatchCheckInterval) clearInterval(__ytWatchCheckInterval);
+            const locked = !isUltra();   // CORE/PLUS/PRIME 鎖定；ULTRA 完全自由
             __ytWatchCheckInterval = setInterval(() => {
                 if (!__ytPlayer || typeof __ytPlayer.getCurrentTime !== 'function') return;
                 if (__ytCurrentWatched) return;
                 const t = __ytPlayer.getCurrentTime();
-                try {
-                    if (typeof __ytPlayer.getPlaybackRate === 'function' && __ytPlayer.getPlaybackRate() !== 1) {
-                        __ytPlayer.setPlaybackRate(1);
+                const dur = (typeof __ytPlayer.getDuration === 'function') ? __ytPlayer.getDuration() : 0;
+
+                // ULTRA / 已看過：只更新進度條，不做防快轉
+                if (locked) {
+                    // 鎖 1x 播放速度
+                    try {
+                        if (typeof __ytPlayer.getPlaybackRate === 'function' && __ytPlayer.getPlaybackRate() !== 1) {
+                            __ytPlayer.setPlaybackRate(1);
+                        }
+                    } catch (e) {}
+                    // 防快轉
+                    if (t > __ytMaxWatchedTime + 2.5) {
+                        try { __ytPlayer.seekTo(__ytMaxWatchedTime, true); } catch (e) {}
+                    } else {
+                        __ytMaxWatchedTime = Math.max(__ytMaxWatchedTime, t);
                     }
-                } catch (e) {}
-                if (t > __ytMaxWatchedTime + 2.5) {
-                    try { __ytPlayer.seekTo(__ytMaxWatchedTime, true); } catch (e) {}
                 } else {
                     __ytMaxWatchedTime = Math.max(__ytMaxWatchedTime, t);
                 }
+
+                // 更新自訂 overlay 進度條
+                updateProgressOverlay(t, dur, locked);
             }, 500);
+        }
+
+        // 格式化秒數為 mm:ss
+        function formatTime(sec) {
+            sec = Math.max(0, Math.floor(sec || 0));
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${m}:${String(s).padStart(2, '0')}`;
+        }
+
+        // 更新自訂進度條 overlay（在 video 下方）
+        // t = 當前時間, dur = 總長, locked = true 表示 CORE/PLUS/PRIME 鎖定
+        function updateProgressOverlay(t, dur, locked) {
+            const overlay = document.getElementById('yt-progress-overlay');
+            if (!overlay) return;
+            const percent = dur > 0 ? (t / dur) * 100 : 0;
+            const lockedPercent = dur > 0 ? (__ytMaxWatchedTime / dur) * 100 : 0;
+            const cur = overlay.querySelector('.yt-cur-time');
+            const total = overlay.querySelector('.yt-total-time');
+            const bar = overlay.querySelector('.yt-progress-bar');
+            const lockBar = overlay.querySelector('.yt-locked-bar');
+            const status = overlay.querySelector('.yt-lock-status');
+            const tierBadge = overlay.querySelector('.yt-tier-badge');
+            if (cur) cur.textContent = formatTime(t);
+            if (total) total.textContent = formatTime(dur);
+            if (bar) bar.style.width = percent + '%';
+            if (lockBar) lockBar.style.width = lockedPercent + '%';
+            if (status) {
+                if (__ytCurrentWatched) {
+                    status.textContent = '✓ 已解鎖';
+                    status.className = 'yt-lock-status text-[10px] font-bold uppercase tracking-widest text-emerald-400';
+                } else if (locked) {
+                    status.textContent = '🔒 防快轉';
+                    status.className = 'yt-lock-status text-[10px] font-bold uppercase tracking-widest text-amber-300';
+                } else {
+                    status.textContent = '✓ 自由';
+                    status.className = 'yt-lock-status text-[10px] font-bold uppercase tracking-widest text-emerald-300';
+                }
+            }
+            if (tierBadge) {
+                const tier = getDisplayMembership();
+                tierBadge.textContent = 'PH ' + tier;
+            }
+        }
+
+        // 全螢幕切換（自製按鈕，呼叫 YT iframe 的 fullscreen API）
+        function toggleFullscreen() {
+            if (!__ytPlayer) return;
+            try {
+                const iframe = __ytPlayer.getIframe && __ytPlayer.getIframe();
+                if (iframe && iframe.requestFullscreen) {
+                    iframe.requestFullscreen();
+                } else if (iframe && iframe.webkitRequestFullscreen) {
+                    iframe.webkitRequestFullscreen();
+                }
+            } catch (e) {
+                console.warn('[yt-fs] 全螢幕失敗：', e);
+            }
         }
 
         function stopYTTimeTracking() {
@@ -1240,7 +1457,17 @@
             });
         }
 
-        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        function toggleDock() {
+            document.getElementById('dock-nav-wrapper').classList.toggle('collapsed');
+            // 會員 chip 跟著 dock 收合：dock 收起時下沉
+            const chip = document.getElementById('membership-chip');
+            if (chip) {
+                const collapsed = document.getElementById('dock-nav-wrapper').classList.contains('collapsed');
+                chip.style.bottom = collapsed
+                    ? `calc(env(safe-area-inset-bottom, 0px) + 24px)`
+                    : `calc(env(safe-area-inset-bottom, 0px) + 110px)`;
+            }
+        }
         function toggleFilter() { document.getElementById('filter-bar').classList.toggle('collapsed'); }
         function scrollSlider(id, offset) {
             const el = document.getElementById(id);
@@ -1480,6 +1707,27 @@
             return `
                 <div class="aspect-video bg-black relative" id="${id}-wrap">
                     <div id="${id}" class="w-full h-full"></div>
+                    <!-- 右下角全螢幕按鈕（覆蓋在 YouTube 原生 controls 上） -->
+                    <button onclick="toggleFullscreen()" title="全螢幕"
+                            class="yt-fs-btn absolute bottom-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center z-10">
+                        <i class="fas fa-expand text-xs"></i>
+                    </button>
+                </div>
+                <!-- 自訂進度條 overlay（顯示當前/總時長、防快轉範圍、等級） -->
+                <div id="yt-progress-overlay" class="px-4 py-3 border-t border-slate-100 flex flex-col gap-2">
+                    <div class="flex items-center justify-between text-[11px] text-white/80 font-mono">
+                        <span class="yt-cur-time">0:00</span>
+                        <span class="yt-lock-status text-[10px] font-bold uppercase tracking-widest">載入中</span>
+                        <span class="yt-total-time">0:00</span>
+                    </div>
+                    <div class="yt-progress-track">
+                        <div class="yt-locked-bar"></div>
+                        <div class="yt-progress-bar"></div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="yt-tier-badge text-[9px] font-bold uppercase tracking-widest text-white/40">PH CORE</span>
+                        <span class="text-[9px] text-white/40 font-medium">點擊右下放大鍵進入全螢幕</span>
+                    </div>
                 </div>`;
         }
 
@@ -1590,7 +1838,10 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeCardDetail();
+            if (e.key === 'Escape') {
+                closeCardDetail();
+                closeMembershipInfo();
+            }
         });
 
         function setFilter(filterType) {
@@ -1754,6 +2005,7 @@
         }, { passive: true });
 
         document.addEventListener('DOMContentLoaded', initData);
+        document.addEventListener('DOMContentLoaded', updateMembershipChip);
     </script>
 </body>
 </html>
