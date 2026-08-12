@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Lumina Studio</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+        .md-body { color: #334155; line-height: 1.75; font-size: 15px; }
+        .md-body h1, .md-body h2, .md-body h3, .md-body h4 { font-weight: 800; color: #0f172a; margin-top: 1.5em; margin-bottom: 0.5em; line-height: 1.3; }
+        .md-body h1 { font-size: 1.75rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3em; }
+        .md-body h2 { font-size: 1.4rem; }
+        .md-body h3 { font-size: 1.15rem; }
+        .md-body h4 { font-size: 1rem; }
+        .md-body p { margin: 0.8em 0; }
+        .md-body a { color: #0284c7; text-decoration: underline; text-underline-offset: 3px; }
+        .md-body a:hover { color: #0369a1; }
+        .md-body ul, .md-body ol { padding-left: 1.5em; margin: 0.6em 0; }
+        .md-body li { margin: 0.3em 0; }
+        .md-body ul li { list-style-type: disc; }
+        .md-body ol li { list-style-type: decimal; }
+        .md-body code { background: #f1f5f9; padding: 0.15em 0.4em; border-radius: 4px; font-family: 'Consolas','Monaco',monospace; font-size: 0.9em; color: #be185d; }
+        .md-body pre { background: #0f172a; color: #e2e8f0; padding: 1em; border-radius: 12px; overflow-x: auto; margin: 1em 0; }
+        .md-body pre code { background: transparent; color: inherit; padding: 0; }
+        .md-body blockquote { border-left: 4px solid #cbd5e1; padding-left: 1em; color: #64748b; margin: 1em 0; font-style: italic; }
+        .md-body table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        .md-body th, .md-body td { border: 1px solid #e2e8f0; padding: 0.5em 0.8em; text-align: left; }
+        .md-body th { background: #f8fafc; font-weight: 700; }
+        .md-body img { max-width: 100%; border-radius: 8px; margin: 0.5em 0; }
+        .md-body hr { border: none; border-top: 2px dashed #e2e8f0; margin: 1.5em 0; }
+        .md-body strong { font-weight: 800; color: #0f172a; }
+
+        #card-detail-modal {
+            transform: scale(0.96) translateY(12px);
+            opacity: 0;
+            transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: opacity, transform;
+        }
+        #card-detail-modal.modal-open {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        #card-detail-modal.modal-closing {
+            transform: scale(0.98) translateY(6px);
+            opacity: 0;
+            transition: opacity 300ms cubic-bezier(0.32, 0, 0.67, 0), transform 340ms cubic-bezier(0.32, 0, 0.67, 0);
+        }
+        .detail-pane {
+            animation: paneEnter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .detail-pane.pane-back {
+            animation: paneEnterBack 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes paneEnter {
+            0%   { opacity: 0; transform: translateX(28px) scale(0.985); }
+            100% { opacity: 1; transform: translateX(0)    scale(1);     }
+        }
+        @keyframes paneEnterBack {
+            0%   { opacity: 0; transform: translateX(-28px) scale(0.985); }
+            100% { opacity: 1; transform: translateX(0)     scale(1);     }
+        }
+        .detail-item {
+            animation: itemPop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes itemPop {
+            0%   { opacity: 0; transform: translateY(14px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0)    scale(1);    }
+        }
+        .media-fade-in { animation: mediaIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        @keyframes mediaIn {
+            0%   { opacity: 0; transform: translateY(8px) scale(0.99); }
+            100% { opacity: 1; transform: translateY(0)  scale(1);    }
+        }
+        #card-detail-bg {
+            animation: bgFade 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes bgFade {
+            0%   { opacity: 0; transform: scale(1.04); }
+            100% { opacity: 1; transform: scale(1);    }
+        }
+        .header-text-swap { animation: textIn 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        @keyframes textIn {
+            0%   { opacity: 0; transform: translateY(4px); }
+            100% { opacity: 1; transform: translateY(0);  }
+        }
+        #card-detail-back { transition: transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 360ms ease, width 360ms ease, margin 360ms ease; }
+        #card-detail-back.entering { animation: backIn 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        @keyframes backIn {
+            0%   { opacity: 0; transform: translateX(-12px) scale(0.6) rotate(-90deg); }
+            100% { opacity: 1; transform: translateX(0)      scale(1)   rotate(0);     }
+        }
+        body.is-closing .detail-item { animation: itemOut 280ms cubic-bezier(0.32, 0, 0.67, 0) both; }
+        @keyframes itemOut {
+            0%   { opacity: 1; transform: translateY(0)    scale(1);    }
+            100% { opacity: 0; transform: translateY(8px)  scale(0.97); }
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        
+        :root {
+            --glacier-deep: #0f172a;
+            --glacier-primary: #0284c7; 
+            --glacier-ice: #38bdf8;
+            --glacier-bg: #eef2f6;
+            --glacier-glass: rgba(224, 242, 254, 0.85); 
+            --glacier-nav-glass: rgba(255, 255, 255, 0.75);
+        }
+        body.dark-mode {
+            --glacier-deep: #f8fafc;
+            --glacier-primary: #38bdf8; 
+            --glacier-ice: #0284c7;
+            --glacier-bg: #090d16; 
+            --glacier-glass: rgba(15, 23, 42, 0.85); 
+            --glacier-nav-glass: rgba(15, 23, 42, 0.75);
+            color: #cbd5e1;
+        }
+        #dark-mode-toggle:checked + .theme-track {
+            background-color: #1e293b;
+            border-color: #0f172a;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-stars {
+            opacity: 1 !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-knob {
+            transform: translateX(0px) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-sun {
+            transform: scale(0) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-moon {
+            transform: scale(1) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-cloud {
+            transform: translateX(48px) !important;
+            opacity: 0 !important;
+        }
+        body, .logo-bar, .filter-bar, .hero-container-framed, #page-content, .dock-nav, .filter-capsule, .nav-btn, .sync-btn {
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+        }
+        body.dark-mode .hero-container-framed {
+            background-color: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        body.dark-mode .hero-gradient-overlay {
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
+        }
+        body.dark-mode .filter-capsule {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(56, 189, 248, 0.1);
+            color: #cbd5e1;
+        }
+        body.dark-mode .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+        body.dark-mode .nav-btn {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        body.dark-mode .sync-btn {
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        body.dark-mode .dock-nav {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        body.dark-mode .logo-bar .text-sky-800 {
+            color: #38bdf8 !important;
+        }
+        body.dark-mode .logo-bar .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+        body.dark-mode .card-name {
+            color: #cbd5e1;
+        }
+        html { 
+            scroll-behavior: smooth;
+            height: 100%;
+            overflow: hidden; 
+        }
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--glacier-bg);
+            color: #334155;
+            -webkit-tap-highlight-color: transparent;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 0;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .logo-bar {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 120;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.1);
+            padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+            padding-bottom: 12px;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #main-logo {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: left center;
+            will-change: transform;
+        }
+        .scrolled #main-logo { transform: scale(0.75); }
+        .filter-bar {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 68px);
+            left: 0;
+            width: 100%;
+            z-index: 110;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.05);
+        }
+        .filter-bar.collapsed {
+            transform: translateY(-56px);
+            opacity: 0.9;
+        }
+        .filter-capsule {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(14, 165, 233, 0.1);
+            color: var(--glacier-deep);
+        }
+        .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+        .filter-toggle-trigger {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            background: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            border-radius: 0 0 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(14, 165, 233, 0.05);
+            border-top: none;
+            color: var(--glacier-primary);
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        .filter-bar.collapsed .filter-toggle-trigger i {
+            transform: rotate(180deg);
+        }
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
+        .slider-wrapper { position: relative; width: 100%; }
+        .slider-container { 
+            display: flex;
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory; 
+            gap: 12px; 
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.2s;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .slider-wrapper:hover .nav-btn { opacity: 1; }
+        .nav-btn.prev { left: -12px; }
+        .nav-btn.next { right: -12px; }
+        .slider-item { scroll-snap-align: start; flex: 0 0 auto; }
+        .poster-card {
+            aspect-ratio: 2/3;
+            border-radius: 12px; overflow: hidden; background: #cbd5e1;
+            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+            will-change: transform;
+        }
+        .poster-card.brick {
+            aspect-ratio: 3/4;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            background: #000;
+        }
+        .card-name {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--glacier-deep);
+            line-height: 1.3;
+            max-width: 100%;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-break: break-word;
+        }
+        .hero-container-framed {
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
+            overflow: hidden; position: relative; background-color: #fff;
+            transition: all 0.4s ease;
+        }
+        .hero-gradient-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 40%, rgba(238,242,246,0.9) 95%);
+            pointer-events: none;
+        }
+        .section-hidden { display: none !important; }
+        .dock-wrapper {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+            width: auto;
+            min-width: 340px;
+        }
+        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
+        .dock-nav {
+            background-color: var(--glacier-nav-glass);
+            backdrop-filter: blur(28px) saturate(210%);
+            -webkit-backdrop-filter: blur(28px) saturate(210%);
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 14px;
+            border-radius: 42px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+            display: flex; align-items: center; justify-content: center; gap: 14px;
+        }
+        .dock-toggle-btn {
+            width: 32px;
+            height: 32px; display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
+        }
+        .dock-content { display: flex; align-items: center; gap: 14px; }
+        .dock-item {
+            display: flex;
+            flex-direction: column; align-items: center; gap: 5px;
+            color: #94a3b8; transition: all 0.3s; min-width: 58px;
+        }
+        .dock-item i { font-size: 1.6rem; }
+        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
+        .dock-item.active { color: var(--glacier-primary); }
+        .dock-item.dock-deck-active {
+            color: #059669;
+        }
+        .dock-item.dock-deck-active i {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dock-item.dock-deck-active span {
+            color: #059669;
+            opacity: 1;
+            font-weight: 700;
+        }
+        .dock-item.dock-deck-active:hover {
+            color: #047857;
+        }
+        .dock-item.dock-deck-active:hover i {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform: translateY(-2px);
+        }
+        .dock-trigger-bar {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px; height: 5px;
+            background: rgba(15, 23, 42, 0.2);
+            border-radius: 10px;
+            z-index: 199; cursor: pointer; display: none;
+        }
+        .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
+        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px; }
+        .sync-btn {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            color: var(--glacier-primary);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+        }
+        .sync-btn:hover { background: rgba(255, 255, 255, 0.8); transform: translateY(-1px); }
+        .sync-btn:active { transform: scale(0.96); }
+        .sync-btn.loading i { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 12px;
+            color: var(--glacier-primary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+        @keyframes qr-scan-line {
+            0% { transform: translateY(-130px); }
+            50% { transform: translateY(130px); }
+            100% { transform: translateY(-130px); }
+        }
+        @media (max-width: 768px) {
+            .hero-container-framed { border-radius: 0; }
+            .dock-wrapper { width: 92%; max-width: 400px; }
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
+            .nav-btn { display: none !important; }
+            .sync-btn { padding: 6px 12px; font-size: 9px; }
+        }
+    </style>
+</head>
+<body class="pb-40 hide-scrollbar">
+
+    <header id="header-root">
+        <div class="logo-bar px-6" id="logo-nav-bar"> 
+            <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
+                <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
+                </div>
+                <div class="flex items-center gap-3 md:gap-4">
+                    <button id="grid-view-btn" onclick="toggleGridView()" title="切換磚牆檢視"
+                            class="w-10 h-10 rounded-full bg-white/40 dark:bg-slate-800/60 hover:bg-white/80 dark:hover:bg-slate-700 ring-1 ring-slate-200 dark:ring-slate-700 flex items-center justify-center text-sky-800 dark:text-sky-300 transition-all active:scale-90">
+                        <i class="fas fa-grip text-base"></i>
+                    </button>
+                    <style>
+                        #grid-view-btn.is-grid {
+                            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                            color: #fff;
+                            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+                        }
+                    </style>
+                    <button id="sync-button" onclick="manualSync()" class="sync-btn">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>與雲端同步</span>
+                    </button>
+                    <div class="flex items-center">
+                        <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
+                            <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
+                            <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
+                                <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
+                                    <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                </div>
+                                <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
+                                    <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
+                                    <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
+                                        <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
+                                    </div>
+                                </div>
+                                <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
+                                    <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-6 text-sky-800 opacity-60">
+                        <i class="fas fa-search text-xl cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="filter-bar px-6" id="filter-bar">
+            <div id="filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
+                <button class="filter-capsule active" onclick="setFilter('all')">載入中...</button>
+            </div>
+            <div class="filter-toggle-trigger" onclick="toggleFilter()">
+                <i class="fas fa-chevron-up text-[10px]" id="filter-chevron"></i>
+            </div>
+        </div>
+    </header>
+
+    <div id="page-content">
+        <div id="view-home">
+            <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6 pt-2">
+                <div class="loader">正在從數據庫獲取內容...</div>
+            </main>
+        </div>
+    </div>
+
+    <div id="card-detail-modal" class="fixed inset-0 z-[280] flex flex-col pointer-events-none" onclick="if(event.target===this) closeCardDetail()">
+        <div id="card-detail-bg" class="absolute inset-0 bg-slate-900 bg-cover bg-center bg-no-repeat" style="display:none; opacity:0;"></div>
+        <div class="relative z-10 flex items-center justify-between px-5 md:px-10 pt-[max(env(safe-area-inset-top),16px)] pb-3 shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <button id="card-detail-back" onclick="cardDetailBack()" class="w-0 h-10 opacity-0 overflow-hidden rounded-xl bg-white/85 hover:bg-white ring-1 ring-white/40 flex items-center justify-center text-slate-500 hover:text-slate-800 shrink-0 backdrop-blur-md" aria-label="返回">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </button>
+                <div id="card-detail-icon" class="w-10 h-10 rounded-xl bg-white/85 ring-1 ring-white/40 flex items-center justify-center shrink-0 backdrop-blur-md">
+                    <i class="fas fa-folder-open text-emerald-600 text-sm"></i>
+                </div>
+                <div class="min-w-0">
+                    <div id="card-detail-eyebrow" class="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em]">Volume</div>
+                    <div id="card-detail-title" class="text-lg md:text-xl font-extrabold text-slate-800 truncate">--</div>
+                </div>
+            </div>
+            <button onclick="closeCardDetail()" class="w-10 h-10 rounded-full bg-white/85 hover:bg-white ring-1 ring-white/40 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shrink-0 backdrop-blur-md" aria-label="關閉">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="card-detail-loading" class="relative z-10 flex-1 flex flex-col items-center justify-center text-slate-700 text-xs tracking-widest uppercase" style="display:none;">
+            <i class="fas fa-circle-notch fa-spin text-3xl mb-4 text-emerald-500"></i>
+            載入選單中...
+        </div>
+        <div id="card-detail-body" class="relative z-10 flex-1 overflow-y-auto px-4 md:px-10 pb-[max(env(safe-area-inset-bottom),20px)] pt-2"></div>
+    </div>
+
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
+        <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
+            <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
+            </h3>
+            <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
+                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+                <canvas id="qr-canvas" class="hidden"></canvas>
+                <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
+                    <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
+                </div>
+            </div>
+            <div class="mt-4 w-full flex justify-center">
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
+                    <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
+                    <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQRFile(this)">
+                </label>
+            </div>
+            <p class="text-slate-400 text-xs mt-4 text-center px-4 leading-relaxed font-light">
+                請將相機對準 QR Code 或直接上傳條碼相片。<br>相機啟動時請允許相機存取權限。
+            </p>
+            <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
+        </div>
+    </div>
+
+    <div id="dock-nav-wrapper" class="dock-wrapper">
+        <nav class="dock-nav">
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+            <div class="dock-content">
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/home.html')" id="dock-home" class="dock-item">
+                    <i class="fas fa-home"></i><span class="uppercase">主頁</span>
+                </button>
+                <button onclick="openCardDeck()" id="dock-deck" class="dock-item dock-deck-active">
+                    <i class="fas fa-book-open"></i><span class="uppercase">功課題解</span>
+                </button>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
+                    <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
+                </button>
+                <button onclick="openQRScanner()" class="dock-item">
+                    <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
+                </button>
+            </div>
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+        </nav>
+    </div>
+    <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
+
+    <script>
+        // ===== 全局配置 =====
+        const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
+        const SHEET_NAME = 'HWMENU';
+        const DETAIL_SPREADSHEET_ID = '1HUjN9M9u7-vFt3dR9zbfNjgeFfyIWitxnEJiZ7mqesA';
+        const DETAIL_VERSION_RANGE = 'B2';
+        const detailSheetUrl = (volName) =>
+            `https://docs.google.com/spreadsheets/d/${DETAIL_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(volName)}&_=${Date.now()}&v=${Math.random().toString(36).slice(2, 8)}`;
+        const detailVersionUrl = () =>
+            `https://docs.google.com/spreadsheets/d/${DETAIL_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=VERSION&_=${Date.now()}`;
+        const buildSheetUrl = () => 
+            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
+
+        let rawData = [];
+        let lastScrollY = window.scrollY;
+        let qrStream = null;
+        let qrAnimationId = null;
+        var __detailCache = {};
+        const DETAIL_VERSION_KEY = 'hwmenu_detail_version_v1';
+        const DETAIL_DATA_KEY = 'hwmenu_detail_data_v1';
+        const CACHE_KEY = 'hwmenu_cached_v1';
+        const VERSION_KEY = 'hwmenu_version_v1';
+        const CACHE_DATA_KEY = 'hwmenu_cached_data_v1';
+        let isRendered = false;
+        var __ytPlayer = null;
+        var __ytWatchCheckInterval = null;
+        var __ytMaxWatchedTime = 0;
+        var __ytCurrentWatched = false;
+        var __ytFullyWatchedSession = false;
+        var __ytAttendanceTimer = null;
+        var __ytAttendanceUnlocked = false;
+        var __ytLastVideoKey = '';
+        let __detailItems = [];
+        let __detailVolName = '';
+        let __detailBgUrl = '';
+        let __viewMode = 'slider';
+
+        // ===== 輔助函數 =====
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        function escapeAttr(str) { return escapeHtml(str); }
+
+        function parseCSV(text) {
+            const rows = [];
+            let row = [];
+            let cell = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                const next = text[i + 1];
+                if (inQuotes) {
+                    if (ch === '"' && next === '"') {
+                        cell += '"';
+                        i++;
+                    } else if (ch === '"') {
+                        inQuotes = false;
+                    } else {
+                        cell += ch;
+                    }
+                } else {
+                    if (ch === '"') {
+                        inQuotes = true;
+                    } else if (ch === ',') {
+                        row.push(cell.trim());
+                        cell = '';
+                    } else if (ch === '\n' || ch === '\r') {
+                        row.push(cell.trim());
+                        rows.push(row);
+                        row = [];
+                        cell = '';
+                        if (ch === '\r' && next === '\n') i++;
+                    } else {
+                        cell += ch;
+                    }
+                }
+            }
+            if (cell.length > 0 || row.length > 0) {
+                row.push(cell.trim());
+                rows.push(row);
+            }
+            return rows;
+        }
+
+        function parseCardCSV(text) {
+            return parseCSV(text)
+                .slice(1)
+                .filter(r => r[0])
+                .map(r => ({
+                    name:     r[0] ?? '',
+                    category: r[1] ?? '',
+                    order:    parseInt(r[2], 10) || 0,
+                    bg:       r[3] ?? '',
+                    img:      r[4] ?? ''
+                }));
+        }
+
+        function parseDetailCSV(text) {
+            const INACTIVE_STATUS = new Set(['INACTIVE', 'DISABLED', 'OFF', 'FALSE', 'NO', 'HIDDEN']);
+            const rows = parseCSV(text);
+            const result = [];
+            for (const r of rows) {
+                if (!r || !r[0]) continue;
+                if (!r[4] || !String(r[4]).trim()) continue;
+                if (String(r[1] || '').trim() === '1' &&
+                    !String(r[2] || '').trim() &&
+                    !String(r[3] || '').trim() &&
+                    !String(r[4] || '').trim()) {
+                    continue;
+                }
+                const status = String(r[3] || '').toUpperCase().trim();
+                if (INACTIVE_STATUS.has(status)) continue;
+                result.push({
+                    id:     String(r[0]).trim(),
+                    type:   String(r[1] || 'ITEM').trim(),
+                    range:  String(r[2] || '').trim(),
+                    status: status || 'ACTIVE',
+                    url:    r[4]
+                });
+            }
+            return result;
+        }
+
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    const toggleInput = document.getElementById('dark-mode-toggle');
+                    if (toggleInput) toggleInput.checked = true;
+                });
+            }
+        })();
+
+        async function fetchDetailVersion() {
+            try {
+                const r = await fetch(detailVersionUrl(), { cache: 'no-store' });
+                if (!r.ok) return null;
+                const txt = await r.text();
+                const firstLine = txt.split('\n')[0] || '';
+                const cells = firstLine.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                return cells[0] || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function preloadAllDetails() {
+            if (!rawData || rawData.length === 0) return;
+            const volNames = [...new Set(rawData.map(d => d.name).filter(Boolean))];
+            const serverVer = await fetchDetailVersion().catch(() => null);
+            const localVer  = localStorage.getItem(DETAIL_VERSION_KEY);
+            console.log(`[preload] detail version: server=${serverVer}  local=${localVer}  vols=${volNames.length}`);
+            if (!serverVer) {
+                const cached = localStorage.getItem(DETAIL_DATA_KEY);
+                if (cached) {
+                    try {
+                        __detailCache = JSON.parse(cached);
+                        console.log('[preload] ⚠ 版本檢查失敗，使用本地快取（' + Object.keys(__detailCache).length + ' 個 vol）');
+                        return;
+                    } catch (e) {
+                        console.warn('[preload] 本地快取解析失敗', e);
+                    }
+                }
+                console.warn('[preload] 無快取且版本檢查失敗，跳過預載');
+                return;
+            }
+            if (serverVer && serverVer === localVer) {
+                const cached = localStorage.getItem(DETAIL_DATA_KEY);
+                if (cached) {
+                    try {
+                        const map = JSON.parse(cached);
+                        __detailCache = map;
+                        console.log('[preload] ✓ 詳情 sheet 用 localStorage 快取（' + Object.keys(map).length + ' 個 vol）');
+                        return;
+                    } catch (e) {}
+                }
+            }
+            if (serverVer && serverVer !== localVer) {
+                console.log(`[preload] ⟳ 詳情版本變更 (${localVer} → ${serverVer})，清掉詳情快取`);
+                localStorage.removeItem(DETAIL_DATA_KEY);
+            }
+            const map = {};
+            await Promise.all(volNames.map(async (vol) => {
+                try {
+                    const r = await fetch(detailSheetUrl(vol), { cache: 'no-store' });
+                    if (!r.ok) return;
+                    const csv = await r.text();
+                    const items = parseDetailCSV(csv);
+                    if (items.length > 0) map[vol] = items;
+                } catch (e) {
+                    console.warn(`[preload] ${vol} 抓取失敗：`, e);
+                }
+            }));
+            __detailCache = map;
+            try {
+                localStorage.setItem(DETAIL_DATA_KEY, JSON.stringify(map));
+                if (serverVer) localStorage.setItem(DETAIL_VERSION_KEY, serverVer);
+                console.log(`[preload] ✓ 詳情 sheet 全抓完成（${Object.keys(map).length} 個 vol），已寫入 localStorage`);
+            } catch (e) {
+                console.warn('[preload] localStorage 寫入失敗：', e);
+            }
+        }
+
+        function getCachedDetail(volName) {
+            if (__detailCache[volName]) return __detailCache[volName];
+            try {
+                const cached = localStorage.getItem(DETAIL_DATA_KEY);
+                if (cached) {
+                    const map = JSON.parse(cached);
+                    __detailCache = map;
+                    if (map[volName]) return map[volName];
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function getMembership() {
+            try { return (localStorage.getItem('user_membership') || '').toUpperCase(); }
+            catch (e) { return ''; }
+        }
+        function isUltra() { return getMembership().includes('ULTRA'); }
+
+        // ---- YT Player ----
+        window.__ytSetupPlayer = function (yt, targetId, autoplay) {
+            try { if (__ytPlayer && __ytPlayer.destroy) __ytPlayer.destroy(); } catch (e) {}
+            stopYTTimeTracking();
+            clearYTAttendanceTimer();
+            __ytMaxWatchedTime = 0;
+            __ytFullyWatchedSession = false;
+            __ytAttendanceUnlocked = false;
+            __ytCurrentWatched = false;
+            let retryCount = 0;
+            const MAX_RETRIES = 30;
+            const tryCreate = () => {
+                if (typeof YT === 'undefined' || !YT.Player) {
+                    if (retryCount++ < MAX_RETRIES) {
+                        return setTimeout(tryCreate, 100);
+                    }
+                    console.warn('[YT] 加載超時，請檢查網路或廣告攔截器');
+                    return;
+                }
+                __ytPlayer = new YT.Player(targetId, {
+                    videoId: yt,
+                    playerVars: {
+                        rel: 0,
+                        modestbranding: 1,
+                        controls: 0,
+                        disablekb: 1,
+                        fs: 0,
+                        playsinline: 1,
+                        autoplay: autoplay ? 1 : 0
+                    },
+                    events: {
+                        onReady: (e) => {
+                            if (autoplay) { try { e.target.playVideo(); } catch (err) {} }
+                        },
+                        onStateChange: onYTStateChange
+                    }
+                });
+            };
+            tryCreate();
+        };
+
+        function onYTStateChange(event) {
+            if (!__ytPlayer) return;
+            const state = event.data;
+            if (state === 1) {
+                startYTTimeTracking();
+            } else if (state === 2 || state === 0) {
+                stopYTTimeTracking();
+            }
+            if (state === 0) {
+                handleYTEnded();
+            }
+        }
+
+        function startYTTimeTracking() {
+            if (isUltra() || __ytCurrentWatched) return;
+            if (__ytWatchCheckInterval) clearInterval(__ytWatchCheckInterval);
+            __ytWatchCheckInterval = setInterval(() => {
+                if (!__ytPlayer || typeof __ytPlayer.getCurrentTime !== 'function') return;
+                if (__ytCurrentWatched) return;
+                const t = __ytPlayer.getCurrentTime();
+                try {
+                    if (typeof __ytPlayer.getPlaybackRate === 'function' && __ytPlayer.getPlaybackRate() !== 1) {
+                        __ytPlayer.setPlaybackRate(1);
+                    }
+                } catch (e) {}
+                if (t > __ytMaxWatchedTime + 2.5) {
+                    try { __ytPlayer.seekTo(__ytMaxWatchedTime, true); } catch (e) {}
+                } else {
+                    __ytMaxWatchedTime = Math.max(__ytMaxWatchedTime, t);
+                }
+            }, 500);
+        }
+
+        function stopYTTimeTracking() {
+            if (__ytWatchCheckInterval) {
+                clearInterval(__ytWatchCheckInterval);
+                __ytWatchCheckInterval = null;
+            }
+        }
+
+        function handleYTEnded() {
+            if (__ytCurrentWatched || __ytFullyWatchedSession) return;
+            if (isUltra()) {
+                renderYTAttendanceButton('ready');
+                return;
+            }
+            const dur = (typeof __ytPlayer.getDuration === 'function') ? __ytPlayer.getDuration() : 0;
+            if (dur > 0 && __ytMaxWatchedTime >= dur * 0.9) {
+                __ytFullyWatchedSession = true;
+                startYTAttendanceCountdown(120);
+            } else {
+                renderYTAttendanceButton('incomplete');
+            }
+        }
+
+        function startYTAttendanceCountdown(seconds) {
+            let left = seconds;
+            renderYTAttendanceButton('counting', left);
+            if (__ytAttendanceTimer) clearInterval(__ytAttendanceTimer);
+            __ytAttendanceTimer = setInterval(() => {
+                left--;
+                if (left <= 0) {
+                    clearInterval(__ytAttendanceTimer);
+                    __ytAttendanceTimer = null;
+                    renderYTAttendanceButton('timeout');
+                } else {
+                    renderYTAttendanceButton('counting', left);
+                }
+            }, 1000);
+        }
+
+        function clearYTAttendanceTimer() {
+            if (__ytAttendanceTimer) { clearInterval(__ytAttendanceTimer); __ytAttendanceTimer = null; }
+        }
+
+        function renderYTAttendanceButton(kind, secondsLeft) {
+            const stage = document.getElementById('media-stage');
+            if (!stage) return;
+            let existing = document.getElementById('yt-attendance-bar');
+            if (!existing) {
+                existing = document.createElement('div');
+                existing.id = 'yt-attendance-bar';
+                existing.className = 'px-5 py-3 border-t border-slate-100 flex items-center justify-center';
+                stage.appendChild(existing);
+            }
+            if (kind === 'counting') {
+                const m = Math.floor(secondsLeft / 60);
+                const s = secondsLeft % 60;
+                const txt = `完成簽到 (剩餘 ${m}分${String(s).padStart(2,'0')}秒)`;
+                existing.innerHTML = `<button id="yt-attendance-btn" onclick="onYTAttendanceConfirm()"
+                    class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full text-xs font-extrabold shadow-lg active:scale-95 flex items-center gap-2 animate-pulse">
+                    <i class="fas fa-check-circle"></i><span>${txt}</span></button>`;
+                __ytAttendanceUnlocked = true;
+            } else if (kind === 'ready') {
+                existing.innerHTML = `<button id="yt-attendance-btn" onclick="onYTAttendanceConfirm()"
+                    class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-extrabold shadow-md active:scale-95 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i><span>完成簽到 (ULTRA 會員免倒數)</span></button>`;
+                __ytAttendanceUnlocked = true;
+            } else if (kind === 'timeout') {
+                existing.innerHTML = `<button disabled
+                    class="px-5 py-2.5 bg-rose-600 text-white rounded-full text-xs font-extrabold shadow-md cursor-not-allowed flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle"></i><span>超時，請重新播放</span></button>`;
+                __ytAttendanceUnlocked = false;
+            } else {
+                existing.innerHTML = `<button disabled
+                    class="px-5 py-2.5 bg-rose-600 text-white rounded-full text-xs font-extrabold shadow-md cursor-not-allowed flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle"></i><span>未完整觀看 (請重播並完整看完)</span></button>`;
+                __ytAttendanceUnlocked = false;
+            }
+        }
+
+        function onYTAttendanceConfirm() {
+            if (!__ytAttendanceUnlocked) return;
+            clearYTAttendanceTimer();
+            __ytCurrentWatched = true;
+            const stage = document.getElementById('media-stage');
+            const bar = document.getElementById('yt-attendance-bar');
+            if (bar) {
+                bar.innerHTML = `<div class="flex items-center gap-2 text-emerald-600 text-xs font-extrabold">
+                    <i class="fas fa-check-circle text-base"></i><span>已記錄簽到 ✓ (之後接 gs)</span></div>`;
+            }
+            console.log('[yt-attendance] 簽到完成 (待串接 GAS)：', {
+                vol: __detailVolName,
+                videoKey: __ytLastVideoKey,
+                maxWatched: __ytMaxWatchedTime
+            });
+        }
+
+        function teardownYTPlayer() {
+            stopYTTimeTracking();
+            clearYTAttendanceTimer();
+            try { if (__ytPlayer && __ytPlayer.destroy) __ytPlayer.destroy(); } catch (e) {}
+            __ytPlayer = null;
+            __ytMaxWatchedTime = 0;
+            __ytFullyWatchedSession = false;
+            __ytAttendanceUnlocked = false;
+            const bar = document.getElementById('yt-attendance-bar');
+            if (bar) bar.remove();
+        }
+
+        async function fetchVersion() {
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
+                const r = await fetch(url, { cache: 'no-store' });
+                if (!r.ok) return null;
+                const txt = await r.text();
+                const firstLine = txt.split('\n')[0] || '';
+                const cells = firstLine.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                return cells[0] || null;
+            } catch (e) {
+                console.warn('[version] fetch failed:', e);
+                return null;
+            }
+        }
+
+        function renderFromCache() {
+            try {
+                const cached = localStorage.getItem(CACHE_DATA_KEY);
+                if (!cached) return false;
+                rawData = JSON.parse(cached);
+                if (!Array.isArray(rawData) || rawData.length === 0) return false;
+                renderFilters();
+                renderContent();
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function initData(force = false) {
+            const mainArea = document.getElementById('main-content-area');
+            if (mainArea && !isRendered) {
+                mainArea.innerHTML = `<div class="loader">正在從數據庫獲取內容...</div>`;
+            }
+            const serverVersion = await fetchVersion();
+            const localVersion = localStorage.getItem(VERSION_KEY);
+            console.log(`[init] server=${serverVersion}  local=${localVersion}  force=${force}`);
+            if (!force && serverVersion && serverVersion === localVersion) {
+                if (renderFromCache()) {
+                    console.log('[init] ✓ 使用 localStorage 快取（版本一致）');
+                    isRendered = true;
+                    return;
+                }
+            }
+            if (serverVersion && serverVersion !== localVersion) {
+                console.log(`[init] ⟳ 版本變更 (${localVersion} → ${serverVersion})，清掉快取`);
+                localStorage.removeItem(CACHE_KEY);
+                localStorage.removeItem(CACHE_DATA_KEY);
+            }
+            try {
+                const response = await fetch(buildSheetUrl(), { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const csvText = await response.text();
+                rawData = parseCardCSV(csvText);
+                if (rawData.length === 0) {
+                    if (mainArea) mainArea.innerHTML = `<div class="loader">HWMENU 沒有可顯示的卡片。</div>`;
+                    return;
+                }
+                try {
+                    localStorage.setItem(CACHE_KEY, csvText);
+                    localStorage.setItem(CACHE_DATA_KEY, JSON.stringify(rawData));
+                    if (serverVersion) localStorage.setItem(VERSION_KEY, serverVersion);
+                    console.log('[init] ✓ 已寫入 localStorage 快取');
+                } catch (e) {
+                    console.warn('[init] localStorage 寫入失敗（可能 quota 滿）:', e);
+                }
+                renderFilters();
+                renderContent();
+                isRendered = true;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                if (renderFromCache()) {
+                    console.log('[init] ⚠ 網路失敗，使用舊快取');
+                    isRendered = true;
+                } else {
+                    if (mainArea) mainArea.innerHTML = `<div class="loader">載入失敗，請檢查網路連線或工作表權限。</div>`;
+                }
+            }
+            if (rawData && rawData.length > 0) {
+                preloadAllDetails().catch(e => console.warn('[preload] 失敗：', e));
+            }
+        }
+
+        async function manualSync() {
+            const btn = document.getElementById('sync-button');
+            btn.classList.add('loading');
+            const label = btn.querySelector('span');
+            const originalLabel = label.innerText;
+            label.innerText = '同步中...';
+            await initData(true);
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                label.innerText = originalLabel || '與雲端同步';
+            }, 800);
+        }
+
+        function renderFilters() {
+            const filters = ['all', ...new Set(rawData.map(d => d.category).filter(f => f))];
+            const container = document.getElementById('filter-container');
+            container.innerHTML = filters.map(f => `
+                <button class="filter-capsule ${f === 'all' ? 'active' : ''}" 
+                        data-filter="${escapeAttr(f)}" 
+                        onclick="setFilter('${escapeAttr(f)}')">
+                    ${f === 'all' ? '全部' : escapeHtml(f)}
+                </button>
+            `).join('');
+        }
+
+        function toggleGridView() {
+            __viewMode = (__viewMode === 'slider') ? 'grid' : 'slider';
+            const btn = document.getElementById('grid-view-btn');
+            if (btn) {
+                const icon = btn.querySelector('i');
+                if (__viewMode === 'grid') {
+                    icon.className = 'fas fa-list-ul text-base';
+                    btn.classList.add('is-grid');
+                } else {
+                    icon.className = 'fas fa-grip text-base';
+                    btn.classList.remove('is-grid');
+                }
+            }
+            if (typeof renderContent === 'function') renderContent();
+        }
+
+        function renderContent() {
+            const mainArea = document.getElementById('main-content-area');
+            mainArea.innerHTML = '';
+            if (__viewMode === 'grid') {
+                renderGridView();
+            } else {
+                renderSliderView();
+            }
+        }
+
+        function renderGridView() {
+            const mainArea = document.getElementById('main-content-area');
+            const all = [...rawData].sort((a, b) => {
+                if (a.category !== b.category) return a.category.localeCompare(b.category, 'zh-Hant');
+                return a.order - b.order;
+            });
+            const sectionId = `grid-${Math.random().toString(36).slice(2, 11)}`;
+            mainArea.innerHTML = `
+                <section id="${sectionId}" data-group="all" class="dynamic-section">
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-0">
+                        ${all.map(item => `
+                            <div class="cursor-pointer" onclick="openCardDetail('${escapeAttr(item.name)}', '${escapeAttr(item.img)}', '${escapeAttr(item.bg)}')">
+                                <div class="poster-card brick overflow-hidden">
+                                    <img src="${escapeAttr(item.img)}"
+                                         class="w-full h-full object-cover"
+                                         alt="${escapeAttr(item.name)}"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>`;
+        }
+
+        function renderSliderView() {
+            const mainArea = document.getElementById('main-content-area');
+            const categories = [...new Set(rawData.map(d => d.category).filter(c => c))];
+            categories.forEach(cat => {
+                const itemsInCat = rawData
+                    .filter(d => d.category === cat)
+                    .sort((a, b) => a.order - b.order);
+                if (itemsInCat.length === 0) return;
+                const sectionId = `sec-${Math.random().toString(36).slice(2, 11)}`;
+                const sliderId = `slider-${Math.random().toString(36).slice(2, 11)}`;
+                const sectionHtml = `
+                    <section id="${sectionId}" data-group="${escapeAttr(cat)}" class="dynamic-section">
+                        <h2 class="section-title">${escapeHtml(cat)}</h2>
+                        <div class="slider-wrapper">
+                            <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
+                                <i class="fas fa-chevron-left text-xs text-slate-400"></i>
+                            </button>
+                            <div class="slider-container hide-scrollbar" id="${sliderId}">
+                                ${itemsInCat.map(item => `
+                                    <div class="slider-item w-32 md:w-56 cursor-pointer" onclick="openCardDetail('${escapeAttr(item.name)}', '${escapeAttr(item.img)}', '${escapeAttr(item.bg)}')">
+                                        <div class="poster-card">
+                                            <img src="${escapeAttr(item.img)}"
+                                                 class="w-full h-full object-cover"
+                                                 alt="${escapeAttr(item.name)}"
+                                                 loading="lazy"
+                                                 onerror="this.onerror=null;this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                        </div>
+                                        <div class="card-name" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
+                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                            </button>
+                        </div>
+                    </section>
+                `;
+                mainArea.insertAdjacentHTML('beforeend', sectionHtml);
+            });
+        }
+
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        function toggleFilter() { document.getElementById('filter-bar').classList.toggle('collapsed'); }
+        function scrollSlider(id, offset) {
+            const el = document.getElementById(id);
+            if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+        function scrollToHome() {
+            setFilter('all');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function openCardDeck() {
+            setFilter('all');
+            const el = document.getElementById('main-content-area');
+            if (el) {
+                const y = el.getBoundingClientRect().top + window.scrollY - 120;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+        function handleNavigation(url) {
+            if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
+            window.location.href = url;
+        }
+
+        function youtubeId(url) {
+            if (!url) return null;
+            const m = String(url).match(
+                /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/
+            );
+            return m ? m[1] : null;
+        }
+
+        function groupByHW(items) {
+            const groups = new Map();
+            for (const it of items) {
+                if (!groups.has(it.id)) groups.set(it.id, []);
+                groups.get(it.id).push(it);
+            }
+            return [...groups.entries()].map(([id, list]) => ({ id, list }));
+        }
+
+        function typeStyle(type) {
+            const t = String(type || 'ITEM').toUpperCase();
+            return {
+                VIDEOS:   { bg: 'bg-emerald-100', icon: 'fa-circle-play',      text: 'text-emerald-600', label: '練習系列' },
+                FILES:    { bg: 'bg-amber-100',   icon: 'fa-file-lines',       text: 'text-amber-700',   label: '練習文件' },
+                LINKS:    { bg: 'bg-sky-100',     icon: 'fa-link',             text: 'text-sky-700',     label: '相關連結' },
+                NOTES:    { bg: 'bg-violet-100',  icon: 'fa-note-sticky',      text: 'text-violet-700',  label: '課堂筆記' },
+                QUIZ:     { bg: 'bg-orange-100',  icon: 'fa-circle-question',  text: 'text-orange-700',  label: '測驗題目' },
+                PAST:     { bg: 'bg-slate-100',   icon: 'fa-clock-rotate-left',text: 'text-slate-600',   label: '歷屆試題' },
+            }[t] || { bg: 'bg-emerald-100', icon: 'fa-bookmark', text: 'text-emerald-600', label: '練習系列' };
+        }
+
+        function setHeader(eyebrow, title, showBack) {
+            const eyebrowEl = document.getElementById('card-detail-eyebrow');
+            const titleEl   = document.getElementById('card-detail-title');
+            const backBtn   = document.getElementById('card-detail-back');
+            eyebrowEl.textContent = eyebrow;
+            titleEl.textContent = title;
+            eyebrowEl.classList.remove('header-text-swap');
+            titleEl.classList.remove('header-text-swap');
+            void eyebrowEl.offsetWidth;
+            eyebrowEl.classList.add('header-text-swap');
+            titleEl.classList.add('header-text-swap');
+            if (showBack) {
+                backBtn.classList.remove('entering');
+                backBtn.style.width = '';
+                backBtn.style.opacity = '';
+                backBtn.style.marginRight = '';
+                void backBtn.offsetWidth;
+                backBtn.classList.add('entering');
+            } else {
+                backBtn.classList.remove('entering');
+                backBtn.style.width = '0px';
+                backBtn.style.opacity = '0';
+                backBtn.style.marginRight = '0px';
+            }
+        }
+
+        async function openCardDetail(volName, imgUrl, bgUrl) {
+            const modal = document.getElementById('card-detail-modal');
+            const bodyEl = document.getElementById('card-detail-body');
+            const loadingEl = document.getElementById('card-detail-loading');
+            const bgLayer = document.getElementById('card-detail-bg');
+            __detailVolName = volName;
+            __detailBgUrl = bgUrl || '';
+            document.body.classList.remove('is-closing');
+            if (bgLayer) {
+                if (bgUrl) {
+                    bgLayer.style.backgroundImage = `url("${bgUrl.replace(/"/g, '\\"')}")`;
+                    bgLayer.style.display = '';
+                } else {
+                    bgLayer.style.backgroundImage = '';
+                    bgLayer.style.display = 'none';
+                }
+                bgLayer.style.animation = 'none';
+                void bgLayer.offsetWidth;
+                bgLayer.style.animation = '';
+            }
+            setHeader('Volume', volName, false);
+            bodyEl.innerHTML = '';
+            loadingEl.style.display = '';
+            modal.classList.remove('modal-open', 'modal-closing');
+            modal.classList.remove('pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.add('modal-open');
+            let items = getCachedDetail(volName);
+            let fromCache = !!items;
+            if (!items) {
+                console.log(`[openCardDetail] 快取 miss：${volName}，現抓`);
+                try {
+                    const r = await fetch(detailSheetUrl(volName), { cache: 'no-store' });
+                    if (r.ok) {
+                        const csv = await r.text();
+                        items = parseDetailCSV(csv);
+                        __detailCache[volName] = items;
+                    }
+                } catch (e) {
+                    console.warn(`[openCardDetail] 抓取失敗：${volName}`, e);
+                }
+            } else {
+                console.log(`[openCardDetail] ✓ 用快取：${volName} (${items.length} items)`);
+            }
+            loadingEl.style.display = 'none';
+            if (!items || items.length === 0) {
+                bodyEl.innerHTML = renderEmptyDetail(volName, fromCache ? 'empty' : 'not-found', '');
+                bodyEl.classList.remove('detail-pane', 'pane-back');
+                void bodyEl.offsetWidth;
+                bodyEl.classList.add('detail-pane');
+                return;
+            }
+            __detailItems = items;
+            renderHWList();
+        }
+
+        function renderHWList(direction = 'forward') {
+            const bodyEl = document.getElementById('card-detail-body');
+            const groups = groupByHW(__detailItems);
+            bodyEl.classList.remove('detail-pane', 'pane-back');
+            void bodyEl.offsetWidth;
+            bodyEl.classList.add(direction === 'back' ? 'pane-back' : 'detail-pane');
+            bodyEl.innerHTML = groups.map(({ id, list }, idx) => {
+                const it0 = list[0];
+                const access = checkAccess(it0.status);
+                const ts = typeStyle(it0.type);
+                const sectionCount = list.length;
+                const sectionLabel = sectionCount > 1 ? `${sectionCount} 個段落` : (it0.range || ts.label);
+                const delay = Math.min(idx, 8) * 60;
+                if (!access.allowed) {
+                    return `
+                        <div class="detail-item flex items-center gap-4 px-5 py-4 rounded-2xl mb-2 w-full bg-white/30 opacity-60 ring-1 ring-white/15 backdrop-blur-md cursor-not-allowed"
+                             style="animation-delay:${delay}ms;">
+                            <div class="w-11 h-11 rounded-xl bg-slate-200 flex items-center justify-center shrink-0">
+                                <i class="fas fa-lock text-slate-400 text-base"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-base font-extrabold text-slate-500 tracking-tight">${escapeHtml(id)}</div>
+                                <div class="text-[11px] text-slate-400 font-medium mt-0.5">需要角色：${escapeHtml(access.required)}</div>
+                            </div>
+                        </div>`;
+                }
+                return `
+                    <button onclick="openHWDetail('${escapeAttr(id)}')"
+                            class="detail-item group flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-all mb-2 w-full
+                                   bg-white/85 hover:bg-white ring-1 ring-white/40 hover:ring-emerald-300/60 hover:shadow-lg hover:scale-[1.005] active:scale-[0.995] cursor-pointer backdrop-blur-md"
+                            style="animation-delay:${delay}ms;">
+                        <div class="w-11 h-11 rounded-xl ${ts.bg} flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                            <i class="fas ${ts.icon} ${ts.text} text-base"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-base font-extrabold text-slate-800 tracking-tight">${escapeHtml(id)}</div>
+                            <div class="text-[11px] text-slate-500 font-medium mt-0.5">${escapeHtml(sectionLabel)}</div>
+                        </div>
+                        <span class="text-[11px] font-extrabold tracking-[0.2em] uppercase text-emerald-600 group-hover:text-emerald-700 flex items-center gap-1 shrink-0 transition-transform group-hover:translate-x-0.5">Enter <i class="fas fa-chevron-right text-[9px]"></i></span>
+                    </button>`;
+            }).join('');
+        }
+
+        function openHWDetail(hwId) {
+            teardownYTPlayer();
+            const group = __detailItems.filter(it => it.id === hwId);
+            if (!group.length) return;
+            const access = checkAccess(group[0].status);
+            if (!access.allowed) return;
+            const ts = typeStyle(group[0].type);
+            setHeader(group[0].id, `${group.length} 段內容 · ${ts.label}`, true);
+            document.getElementById('card-detail-icon').innerHTML = `<i class="fas ${ts.icon} ${ts.text} text-sm"></i>`;
+            const type = String(group[0].type || '').toUpperCase();
+            if (type === 'NOTES') {
+                renderNotesView(group);
+            } else {
+                renderMediaView(group, ts);
+            }
+        }
+
+        function cardDetailBack() {
+            setHeader('Volume', __detailVolName, false);
+            document.getElementById('card-detail-icon').innerHTML = `<i class="fas fa-folder-open text-emerald-600 text-sm"></i>`;
+            renderHWList('back');
+        }
+
+        function renderMediaView(group, ts) {
+            const bodyEl = document.getElementById('card-detail-body');
+            const firstYt = youtubeId(group[0].url);
+            bodyEl.classList.remove('detail-pane', 'pane-back');
+            void bodyEl.offsetWidth;
+            bodyEl.classList.add('detail-pane');
+            bodyEl.innerHTML = `
+                <div class="flex gap-2 overflow-x-auto hide-scrollbar mb-4 pb-1">
+                    ${group.map((g, i) => {
+                        const active = i === 0;
+                        return `<button data-tab="${i}" onclick="switchMediaTab(${i})"
+                            class="shrink-0 px-4 py-2 rounded-full text-xs font-extrabold transition-all
+                                   ${active ? 'bg-emerald-600 text-white shadow-md' : 'bg-white/70 text-slate-600 hover:bg-white ring-1 ring-white/40'}">
+                            ${escapeHtml(g.range || `${i + 1}`)}
+                        </button>`;
+                    }).join('')}
+                </div>
+                <div id="media-stage" class="media-fade-in bg-white/90 backdrop-blur-md rounded-3xl overflow-hidden ring-1 ring-white/40 shadow-xl">
+                    ${firstYt ? renderYTFrame(firstYt) : renderExternalLink(group[0], ts)}
+                    <div id="media-caption" class="px-5 py-4 border-t border-slate-100">
+                        <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">${escapeHtml(ts.label)}</div>
+                        <div class="text-sm font-bold text-slate-800 mt-0.5">${escapeHtml(group[0].range || group[0].id)}</div>
+                    </div>
+                </div>`;
+            window.__mediaGroup = group;
+            __ytLastVideoKey = `${__detailVolName}::${group[0].id}::${group[0].range || '0'}`;
+        }
+
+        function renderYTFrame(yt, autoplay = false) {
+            const id = `yt-player-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+            window.__currentYTFrameId = id;
+            window.__currentYTId = yt;
+            setTimeout(() => {
+                if (window.__ytSetupPlayer) window.__ytSetupPlayer(yt, id, !!autoplay);
+            }, 60);
+            return `
+                <div class="aspect-video bg-black relative" id="${id}-wrap">
+                    <div id="${id}" class="w-full h-full"></div>
+                </div>`;
+        }
+
+        function renderExternalLink(g, ts) {
+            return `
+                <div class="aspect-video flex flex-col items-center justify-center bg-slate-100 text-slate-500 p-6 text-center">
+                    <i class="fas fa-link text-3xl mb-3 text-slate-400"></i>
+                    <div class="text-sm font-bold mb-2">${escapeHtml(ts.label)}</div>
+                    <a href="${escapeAttr(g.url)}" target="_blank" rel="noopener"
+                       class="text-xs text-emerald-600 underline">在新分頁開啟 →</a>
+                </div>`;
+        }
+
+        function switchMediaTab(idx) {
+            teardownYTPlayer();
+            const group = window.__mediaGroup || [];
+            const g = group[idx];
+            if (!g) return;
+            const yt = youtubeId(g.url);
+            const stage = document.getElementById('media-stage');
+            const ts = typeStyle(g.type);
+            stage.classList.remove('media-fade-in');
+            void stage.offsetWidth;
+            stage.classList.add('media-fade-in');
+            stage.innerHTML = `
+                ${yt ? renderYTFrame(yt, true) : renderExternalLink(g, ts)}
+                <div class="px-5 py-4 border-t border-slate-100">
+                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">${escapeHtml(ts.label)}</div>
+                    <div class="text-sm font-bold text-slate-800 mt-0.5">${escapeHtml(g.range || g.id)}</div>
+                </div>`;
+            document.querySelectorAll('[data-tab]').forEach(b => {
+                if (Number(b.dataset.tab) === idx) {
+                    b.className = 'shrink-0 px-4 py-2 rounded-full text-xs font-extrabold transition-all bg-emerald-600 text-white shadow-md';
+                } else {
+                    b.className = 'shrink-0 px-4 py-2 rounded-full text-xs font-extrabold transition-all bg-white/70 text-slate-600 hover:bg-white ring-1 ring-white/40';
+                }
+            });
+            __ytLastVideoKey = `${__detailVolName}::${g.id}::${g.range || '0'}`;
+        }
+
+        function renderNotesView(group) {
+            const bodyEl = document.getElementById('card-detail-body');
+            bodyEl.classList.remove('detail-pane', 'pane-back');
+            void bodyEl.offsetWidth;
+            bodyEl.classList.add('detail-pane');
+            const md = group.map(g => g.url).join('\n\n---\n\n');
+            const html = (typeof marked !== 'undefined')
+                ? marked.parse(md, { gfm: true, breaks: true })
+                : `<pre>${escapeHtml(md)}</pre>`;
+            bodyEl.innerHTML = `
+                <div class="media-fade-in bg-white/95 backdrop-blur-md rounded-3xl p-6 md:p-10 ring-1 ring-white/40 shadow-xl">
+                    <div class="md-body">${html}</div>
+                </div>
+                <div class="text-[10px] text-white/60 text-center mt-3 tracking-widest uppercase">
+                    ${group.length} 段筆記 · 來源 ${escapeHtml(group[0].id)}
+                </div>`;
+        }
+
+        function closeCardDetail() {
+            teardownYTPlayer();
+            const modal = document.getElementById('card-detail-modal');
+            document.body.classList.add('is-closing');
+            modal.classList.remove('modal-open');
+            modal.classList.add('modal-closing');
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none');
+                modal.classList.remove('modal-closing');
+                document.body.classList.remove('is-closing');
+            }, 340);
+        }
+
+        function renderEmptyDetail(volName, kind, rawCSV) {
+            const firstLine = (rawCSV || '').split('\n')[0] || '(empty)';
+            const csvLen = (rawCSV || '').length;
+            console.warn(`[card-detail] EMPTY ${volName} kind=${kind} bytes=${csvLen} firstLine="${firstLine}"`);
+            if (kind === 'not-found') {
+                return `
+                    <div class="text-center py-16 px-4">
+                        <div class="w-16 h-16 rounded-2xl bg-white/35 ring-1 ring-white/30 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-folder-tree text-2xl text-rose-300 drop-shadow"></i>
+                        </div>
+                        <div class="text-base font-bold text-white mb-2 drop-shadow">${escapeHtml(volName)} 還沒建立分頁</div>
+                        <p class="text-xs text-white/85 leading-relaxed mb-4">詳情表裡找不到這個 Volume，<br>可能要先去試算表補上對應 tab。</p>
+                        <div class="text-[10px] text-white/70 font-mono mb-4">debug: ${csvLen} bytes, first="${escapeHtml(firstLine.slice(0, 60))}"</div>
+                        <button onclick="closeCardDetail()"
+                                class="text-[11px] font-bold text-white bg-white/35 hover:bg-white/50 ring-1 ring-white/30 px-5 py-2 rounded-full uppercase tracking-widest transition-colors">
+                            <i class="fas fa-times mr-1"></i> 關閉
+                        </button>
+                    </div>`;
+            }
+            return `
+                <div class="text-center py-16 px-4">
+                    <div class="w-16 h-16 rounded-2xl bg-white/35 ring-1 ring-white/30 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-folder-open text-2xl text-white/80 drop-shadow"></i>
+                    </div>
+                    <div class="text-base font-bold text-white mb-2 drop-shadow">${escapeHtml(volName)} 暫時沒有內容</div>
+                    <p class="text-xs text-white/85 mb-3">這個 Volume 還沒放任何選單項目。</p>
+                    <div class="text-[10px] text-white/70 font-mono px-4 break-all">debug: ${csvLen} bytes, first="${escapeHtml(firstLine.slice(0, 60))}"</div>
+                </div>`;
+        }
+
+        function checkAccess(status) {
+            const s = String(status || 'ACTIVE').toUpperCase().trim();
+            if (s === 'ACTIVE' || s === '') return { allowed: true, reason: 'active' };
+            const role = (typeof localStorage !== 'undefined' && localStorage.getItem('user_role')) || 'User';
+            if (s === role.toUpperCase()) return { allowed: true, reason: 'role-match' };
+            return { allowed: false, reason: `需要 ${s} 角色`, required: s };
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCardDetail();
+        });
+
+        function setFilter(filterType) {
+            const buttons = document.querySelectorAll('.filter-capsule');
+            buttons.forEach(btn => {
+                if(btn.dataset.filter === filterType) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            const sections = document.querySelectorAll('.dynamic-section');
+            if (filterType === 'all') {
+                sections.forEach(sec => sec.classList.remove('section-hidden'));
+            } else {
+                sections.forEach(sec => {
+                    if (sec.getAttribute('data-group') === filterType) sec.classList.remove('section-hidden');
+                    else sec.classList.add('section-hidden');
+                });
+            }
+        }
+
+        // ---- QR Scanner ----
+        async function openQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('qr-video');
+            const errMsg = document.getElementById('qr-error-msg');
+            errMsg.classList.add('hidden');
+            errMsg.innerText = "";
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.classList.add('opacity-100');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                qrStream = stream;
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                try {
+                    await video.play();
+                } catch(playErr) {
+                    console.warn("Video play interrupted, attempting fallback options", playErr);
+                }
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            } catch (err) {
+                console.error("Camera access failed:", err);
+                errMsg.innerText = "相機不可用（可能被瀏覽器安全政策限制、未授權，或未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按鈕進行解碼。";
+                errMsg.classList.remove('hidden');
+            }
+        }
+
+        function closeQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.classList.remove('opacity-100');
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+            const video = document.getElementById('qr-video');
+            if (video) video.srcObject = null;
+            if (qrAnimationId) {
+                cancelAnimationFrame(qrAnimationId);
+                qrAnimationId = null;
+            }
+            document.getElementById('qr-file-input').value = "";
+        }
+
+        function tickQRScanner() {
+            const video = document.getElementById('qr-video');
+            const canvasElement = document.getElementById('qr-canvas');
+            if (!video || !canvasElement) return;
+            const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
+            if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                try {
+                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "attemptBoth",
+                    });
+                    if (code) {
+                        let resultText = code.data.trim();
+                        let finalUrl = '';
+                        if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                            finalUrl = resultText;
+                        } else {
+                            if (resultText.startsWith('/')) {
+                                resultText = resultText.substring(1);
+                            }
+                            finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                        }
+                        closeQRScanner();
+                        window.location.href = finalUrl;
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error drawing or extracting canvas pixels", e);
+                }
+            }
+            if (qrStream) {
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            }
+        }
+
+        function handleQRFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const errMsg = document.getElementById('qr-error-msg');
+            errMsg.classList.add('hidden');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvasElement = document.getElementById('qr-canvas');
+                    const canvas = canvasElement.getContext('2d');
+                    canvasElement.width = img.width;
+                    canvasElement.height = img.height;
+                    canvas.drawImage(img, 0, 0);
+                    try {
+                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "attemptBoth",
+                        });
+                        if (code) {
+                            let resultText = code.data.trim();
+                            let finalUrl = '';
+                            if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                                finalUrl = resultText;
+                            } else {
+                                if (resultText.startsWith('/')) {
+                                    resultText = resultText.substring(1);
+                                }
+                                finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                            }
+                            closeQRScanner();
+                            window.location.href = finalUrl;
+                        } else {
+                            errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
+                            errMsg.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Manual QR decode error:", err);
+                        errMsg.innerText = "相片讀取失敗，請重新嘗試。";
+                        errMsg.classList.remove('hidden');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ---- Scroll handlers ----
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+            if (currentScrollY > 30) document.body.classList.add('scrolled');
+            else document.body.classList.remove('scrolled');
+            const filterBar = document.getElementById('filter-bar');
+            if (currentScrollY > lastScrollY && currentScrollY > 150) {
+                if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
+            } else if (currentScrollY < lastScrollY) {
+                if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', initData);
+    </script>
+</body>
+</html>
