@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PH studio | Debug Login</title>
+</head>
+<body style="font-family:monospace;padding:20px;background:#1a1a1a;color:#0f0;">
+    <h2 style="color:#0ff;">GAS 端點調試</h2>
+    <p>URL: <span id="url"></span></p>
+    <hr>
+    <div>
+        <label>Username: <input id="u" type="text" value="test"></label><br><br>
+        <label>Password: <input id="p" type="password" value="test"></label><br><br>
+        <button onclick="testDirect()">直接測試 GAS（無前端邏輯）</button>
+    </div>
+    <hr>
+    <pre id="log" style="white-space:pre-wrap;word-break:break-all;background:#000;padding:15px;border-radius:8px;max-height:500px;overflow:auto;"></pre>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
+        document.getElementById('url').innerText = GAS_URL;
+        
+        const logEl = document.getElementById('log');
+        function log(msg, data) {
+            const time = new Date().toLocaleTimeString();
+            const line = `[${time}] ${msg}` + (data !== undefined ? '\n' + JSON.stringify(data, null, 2) : '');
+            logEl.innerText += line + '\n\n';
+            console.log(msg, data);
+        }
+
+        async function testDirect() {
+            const userVal = document.getElementById('u').value.trim();
+            const passVal = document.getElementById('p').value;
+            logEl.innerText = '';
+            
+            log('=== 開始測試 ===');
+            log('用戶名: ' + userVal);
+            log('密碼長度: ' + passVal.length);
+            
+            const payload = { username: userVal, password: passVal };
+            log('發送 payload:', payload);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                log('⏰ 15 秒超時！');
+            }, 15000);
+            
+            const t0 = performance.now();
+            try {
+                log('發送 fetch...');
+                const response = await fetch(GAS_URL, {
+                    method: "POST",
+                    mode: "cors",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const elapsed = (performance.now() - t0).toFixed(0);
+                log(`✅ 收到回應，耗時 ${elapsed} ms`);
+                log('HTTP 狀態: ' + response.status);
+                log('Content-Type: ' + response.headers.get('Content-Type'));
+                
+                const text = await response.text();
+                log('原始回應文字:', text);
+                
+                try {
+                    const json = JSON.parse(text);
+                    log('解析後 JSON:', json);
+                    if (json.success) {
+                        log('🎉 驗證成功！role=' + json.role);
+                    } else {
+                        log('❌ 驗證失敗: ' + json.message);
+                    }
+                } catch (e) {
+                    log('⚠️ JSON 解析失敗: ' + e.message);
+                }
+            } catch (err) {
+                clearTimeout(timeoutId);
+                const elapsed = (performance.now() - t0).toFixed(0);
+                log(`💥 請求失敗，耗時 ${elapsed} ms`);
+                log('錯誤類型: ' + err.name);
+                log('錯誤訊息: ' + err.message);
+                if (err.name === 'AbortError') {
+                    log('原因：被 AbortController 中斷（超時）');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
