@@ -7,7 +7,7 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    A
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -777,6 +777,69 @@
             catch (e) { return null; }
         }
 
+        // ===== Token 健康檢查快取（避免每次點擊都重打 loader） =====
+        const TOKEN_CHECK_TTL_MS = 5 * 60 * 1000;   // 5 分鐘內重用同一份檢查結果
+        const TOKEN_LOCAL_SAFETY_SEC = 5 * 60;     // JWT 自身還剩 ≥ 5 分鐘就不打 loader
+        const _tokenCheck = { ok: false, checkedAt: 0, source: 'none' };
+
+        /**
+         * 輕量 token 健康檢查（背景跑，不阻塞 UI）
+         * 規則：
+         *  1) 沒 token → 標記需要登入
+         *  2) JWT 自身 exp - now >= TOKEN_LOCAL_SAFETY_SEC → 直接視為有效，不打 loader
+         *  3) 5 分鐘內已 check 過 → 重用結果
+         *  4) 否則背景打一次 checkVersion；不論成功 / 失敗都更新快取
+         * 任何業務請求拿到 401 / requireLogin 時應呼叫 invalidateTokenCheck() 清掉快取。
+         */
+        async function precheckToken() {
+            const now = Date.now();
+            const tok = getStoredToken();
+
+            // 1) 沒 token
+            if (!tok) {
+                _tokenCheck.ok = false; _tokenCheck.checkedAt = now; _tokenCheck.source = 'no-token';
+                return { ok: false, reason: 'no-token' };
+            }
+            // 2) 本地 JWT 還有足夠壽命 → 不打 loader
+            const p = decodeJwtPayload(tok);
+            if (p && p.exp && (p.exp - Math.floor(now / 1000)) > TOKEN_LOCAL_SAFETY_SEC) {
+                _tokenCheck.ok = true; _tokenCheck.checkedAt = now; _tokenCheck.source = 'jwt-local';
+                return { ok: true, reason: 'jwt-local' };
+            }
+            // 3) in-memory 快取
+            if (_tokenCheck.ok && (now - _tokenCheck.checkedAt) < TOKEN_CHECK_TTL_MS) {
+                return { ok: true, reason: 'cache', source: _tokenCheck.source };
+            }
+            // 4) 真的打一次 loader（背景）
+            try {
+                const json = await callLoaderCheckVersion('HWMENU');
+                _tokenCheck.ok = !!(json && json.version);
+                _tokenCheck.checkedAt = Date.now();
+                _tokenCheck.source = 'loader';
+                return { ok: _tokenCheck.ok, reason: _tokenCheck.ok ? 'loader' : 'loader-fail' };
+            } catch (e) {
+                _tokenCheck.checkedAt = Date.now();
+                if (e && (e.requireLogin || /Token|未提供|過期|簽章/.test(e.message || ''))) {
+                    _tokenCheck.ok = false; _tokenCheck.source = 'requireLogin';
+                    return { ok: false, reason: 'requireLogin' };
+                }
+                // 其他錯誤（網路、暫時性）→ 樂觀放行（已有 token 過了本地檢查），但標記 checked
+                _tokenCheck.ok = true; _tokenCheck.source = 'loader-soft-fail';
+                return { ok: true, reason: 'loader-soft-fail' };
+            }
+        }
+
+        function invalidateTokenCheck() {
+            _tokenCheck.ok = false;
+            _tokenCheck.checkedAt = 0;
+            _tokenCheck.source = 'invalidated';
+        }
+
+        // 在背景（不打斷 UI）做一次 precheck；第一次進站時呼叫
+        function backgroundPrecheckToken() {
+            precheckToken().catch(() => {});
+        }
+
         // 透過 loader 呼叫 action（GET）。若 requireLogin 或 401 → 自動跳出登入 modal → 重試
         async function callLoader(action, params = {}) {
             const token = getStoredToken();
@@ -796,6 +859,8 @@
             catch (e) { throw { network: true, message: 'Loader 回應非 JSON' }; }
 
             if (json && json.result === 'error' && (json.requireLogin || /Token|未提供|過期|簽章/.test(json.msg || ''))) {
+                // 標記快取失效（避免其他併發請求還以為 token 有效）
+                invalidateTokenCheck();
                 // 嘗試重新登入
                 const newToken = await promptLoginAndGetToken();
                 if (!newToken) throw { requireLogin: true, message: '用戶取消登入' };
@@ -955,6 +1020,10 @@
             } else {
                 setStoredUser({ username, role: json.role });
             }
+            // 新 token：標記快取 ok，TTL 重新計算（5 分鐘內不再打 checkVersion）
+            _tokenCheck.ok = true;
+            _tokenCheck.checkedAt = Date.now();
+            _tokenCheck.source = 'fresh-login';
             return json.token;
         }
 
@@ -2270,6 +2339,8 @@
 
         document.addEventListener('DOMContentLoaded', initData);
         document.addEventListener('DOMContentLoaded', updateMembershipChip);
+        // 進站時背景預檢 token 狀態（不打斷 UI）
+        document.addEventListener('DOMContentLoaded', backgroundPrecheckToken);
     </script>
 </body>
 </html>
