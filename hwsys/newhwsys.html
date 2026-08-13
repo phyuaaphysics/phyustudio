@@ -1135,20 +1135,53 @@
             }
         }
 
-        // 全螢幕切換（自製按鈕，呼叫 YT iframe 的 fullscreen API）
+        // 全螢幕切換：偵測當前狀態自動決定進入/退出
         function toggleFullscreen() {
             if (!__ytPlayer) return;
+            const iframe = __ytPlayer.getIframe && __ytPlayer.getIframe();
+            if (!iframe) return;
+
+            // 判斷目前 iframe（或它的祖先）是否在全螢幕
+            const fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+            const iframeIsFs = fsEl === iframe;
+            const inFs = !!fsEl;  // 文件內任何元素在全螢幕也算
+
             try {
-                const iframe = __ytPlayer.getIframe && __ytPlayer.getIframe();
-                if (iframe && iframe.requestFullscreen) {
-                    iframe.requestFullscreen();
-                } else if (iframe && iframe.webkitRequestFullscreen) {
-                    iframe.webkitRequestFullscreen();
+                if (iframeIsFs) {
+                    // 已全螢幕 → 退出
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    else if (document.msExitFullscreen) document.msExitFullscreen();
+                } else {
+                    // 進入全螢幕
+                    if (iframe.requestFullscreen) iframe.requestFullscreen();
+                    else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+                    else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
                 }
             } catch (e) {
-                console.warn('[yt-fs] 全螢幕失敗：', e);
+                console.warn('[yt-fs] 全螢幕切換失敗：', e);
             }
         }
+
+        // 監聽 fullscreenchange，自動更新按鈕 icon
+        function updateFSButtonIcon() {
+            const btn = document.querySelector('.yt-fs-btn');
+            if (!btn) return;
+            const fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+            const icon = btn.querySelector('i');
+            if (icon) {
+                if (fsEl) {
+                    icon.className = 'fas fa-compress text-xs';
+                    btn.title = '退出全螢幕';
+                } else {
+                    icon.className = 'fas fa-expand text-xs';
+                    btn.title = '全螢幕';
+                }
+            }
+        }
+        document.addEventListener('fullscreenchange', updateFSButtonIcon);
+        document.addEventListener('webkitfullscreenchange', updateFSButtonIcon);
+        document.addEventListener('msfullscreenchange', updateFSButtonIcon);
 
         function stopYTTimeTracking() {
             if (__ytWatchCheckInterval) {
