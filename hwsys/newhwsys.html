@@ -7,7 +7,7 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+    A
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -242,9 +242,6 @@
             height: 100%;
             overflow-y: auto;
             padding-top: 0;
-            -webkit-overflow-scrolling: touch;   /* iOS 慣性滾動：手機不能 scroll 的元兇 */
-            overscroll-behavior: contain;        /* 防止滾動穿透 */
-            touch-action: pan-y;                 /* 明確告訴瀏覽器垂直 pan */
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -518,31 +515,6 @@
 </head>
 <body class="pb-40 hide-scrollbar">
 
-    <!-- 💎 登入覆蓋層 (守衛流程觸發，無 Token 時顯示) 💎 -->
-    <div id="login-overlay" class="fixed inset-0 z-[400] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500" style="background:rgba(15,23,42,0.55); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
-        <div class="login-card w-[90%] max-w-[420px] rounded-[2.5rem] p-10 sm:p-12 flex flex-col items-center text-center space-y-7 relative" style="background: rgba(255,255,255,0.78); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); border:1px solid rgba(255,255,255,0.6); box-shadow: 0 20px 60px rgba(15,23,42,0.25);">
-            <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-16 w-16 rounded-2xl shadow-md">
-            <div>
-                <h1 class="text-2xl font-extrabold tracking-tight" style="color:#0f172a;">Lumina Studio</h1>
-                <p class="text-[10px] font-bold tracking-[0.3em] uppercase mt-1" style="color:#94a3b8;">Authentication Required</p>
-            </div>
-            <div class="w-full flex flex-col items-center space-y-3 pt-2">
-                <input type="text" id="login-username" placeholder="USERNAME" onkeydown="if(event.key === 'Enter') doLogin()"
-                       class="w-full max-w-[280px] h-10 px-6 rounded-full text-center text-[10px] tracking-[0.25em] font-medium"
-                       style="background: rgba(255,255,255,0.6); border:1px solid rgba(15,23,42,0.08); color:#0f172a; outline:none;"
-                       autocomplete="off">
-                <input type="password" id="login-password" placeholder="PASSWORD" onkeydown="if(event.key === 'Enter') doLogin()"
-                       class="w-full max-w-[280px] h-10 px-6 rounded-full text-center text-[10px] tracking-[0.25em] font-medium"
-                       style="background: rgba(255,255,255,0.6); border:1px solid rgba(15,23,42,0.08); color:#0f172a; outline:none;">
-                <p id="login-error" class="text-rose-500 text-[9px] tracking-widest min-h-[14px] opacity-0 transition-opacity duration-300">帳號或密碼錯誤</p>
-            </div>
-            <button id="login-btn" onclick="doLogin()"
-                    class="w-full max-w-[280px] h-10 rounded-full text-[10px] font-semibold tracking-[0.25em] uppercase transition active:scale-95"
-                    style="background:#0f172a; color:#fff;">LOGIN &amp; ENTER</button>
-            <p class="text-[9px] tracking-widest" style="color:#94a3b8;">守衛驗證 · Token 2hr TTL</p>
-        </div>
-    </div>
-
     <header id="header-root">
         <div class="logo-bar px-6" id="logo-nav-bar"> 
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
@@ -661,15 +633,6 @@
             <i class="fas fa-circle-notch fa-spin text-3xl mb-4 text-emerald-500"></i>
             載入選單中...
         </div>
-        <style>
-            /* 🛡️ iOS 滾動修復：card-detail-body 是 OS window 唯一滾動容器 */
-            #card-detail-body {
-                -webkit-overflow-scrolling: touch;
-                overscroll-behavior: contain;
-                touch-action: pan-y;
-                min-height: 0;
-            }
-        </style>
         <div id="card-detail-body" class="relative z-10 flex-1 overflow-y-auto px-4 md:px-10 pb-[max(env(safe-area-inset-bottom),20px)] pt-2"></div>
     </div>
 
@@ -758,16 +721,242 @@
 
     <script>
         // ===== 全局配置 =====
+        // 改用 loader.gs（GAS Web App）作為唯一讀取入口；gviz 公開讀取已關閉
+        const LOADER_URL = 'https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec';  // loader.gs Web App
+        const GUARD_URL  = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';  // guard.gs Web App
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         const SHEET_NAME = 'HWMENU';
         const DETAIL_SPREADSHEET_ID = '1HUjN9M9u7-vFt3dR9zbfNjgeFfyIWitxnEJiZ7mqesA';
         const DETAIL_VERSION_RANGE = 'B2';
-        const detailSheetUrl = (volName) =>
-            `https://docs.google.com/spreadsheets/d/${DETAIL_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(volName)}&_=${Date.now()}&v=${Math.random().toString(36).slice(2, 8)}`;
-        const detailVersionUrl = () =>
-            `https://docs.google.com/spreadsheets/d/${DETAIL_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=VERSION&_=${Date.now()}`;
-        const buildSheetUrl = () => 
-            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
+        const JWT_STORAGE_KEY = 'ph_jwt_token_v1';
+        const USER_STORAGE_KEY = 'ph_user_payload_v1';
+        // 預留舊 URL 形狀（不再使用，但保留變數以免破壞其他函式）
+        const detailSheetUrl = (volName) => volName;     // 已棄用：改為 callLoaderGetTopic(volName)
+        const detailVersionUrl = () => null;             // 已棄用：改為 callLoaderCheckVersion(topicId)
+        const buildSheetUrl = () => null;                // 已棄用：改為 callLoaderGetTopic(SHEET_NAME)
+
+        // ===== Token / 登入 助手 =====
+        function getStoredToken() {
+            try { return localStorage.getItem(JWT_STORAGE_KEY) || ''; } catch (e) { return ''; }
+        }
+        function setStoredToken(t) {
+            try {
+                if (t) localStorage.setItem(JWT_STORAGE_KEY, t);
+                else   localStorage.removeItem(JWT_STORAGE_KEY);
+            } catch (e) {}
+        }
+        function decodeJwtPayload(token) {
+            try {
+                const parts = (token || '').split('.');
+                if (parts.length !== 3) return null;
+                const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                const padded = b64 + '==='.slice((b64.length + 3) % 4);
+                const json = decodeURIComponent(escape(atob(padded)));
+                return JSON.parse(json);
+            } catch (e) { return null; }
+        }
+        function isTokenExpired(token) {
+            const p = decodeJwtPayload(token);
+            if (!p || !p.exp) return true;
+            return Math.floor(Date.now() / 1000) >= p.exp;
+        }
+        function setStoredUser(payload) {
+            try {
+                if (payload) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(payload));
+                else         localStorage.removeItem(USER_STORAGE_KEY);
+                // 同步一些舊 localStorage（向下相容）
+                if (payload && payload.role)      localStorage.setItem('user_role', payload.role);
+                if (payload && payload.class)     localStorage.setItem('user_class', payload.class);
+                if (payload && payload.class_no)  localStorage.setItem('user_class_no', payload.class_no);
+                if (payload && payload.real_name) localStorage.setItem('user_real_name', payload.real_name);
+                if (payload && payload.username)  localStorage.setItem('user_username', payload.username);
+            } catch (e) {}
+        }
+        function getStoredUser() {
+            try { return JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || 'null'); }
+            catch (e) { return null; }
+        }
+
+        // 透過 loader 呼叫 action（GET）。若 requireLogin 或 401 → 自動跳出登入 modal → 重試
+        async function callLoader(action, params = {}) {
+            const token = getStoredToken();
+            const url = new URL(LOADER_URL);
+            url.searchParams.set('action', action);
+            if (token) url.searchParams.set('token', token);
+            for (const k of Object.keys(params)) {
+                if (params[k] != null) url.searchParams.set(k, params[k]);
+            }
+            let resp, json;
+            try {
+                resp = await fetch(url.toString(), { method: 'GET', cache: 'no-store', redirect: 'follow' });
+            } catch (e) {
+                throw { network: true, message: 'Loader 連線失敗：' + e.message };
+            }
+            try { json = await resp.json(); }
+            catch (e) { throw { network: true, message: 'Loader 回應非 JSON' }; }
+
+            if (json && json.result === 'error' && (json.requireLogin || /Token|未提供|過期|簽章/.test(json.msg || ''))) {
+                // 嘗試重新登入
+                const newToken = await promptLoginAndGetToken();
+                if (!newToken) throw { requireLogin: true, message: '用戶取消登入' };
+                // 拿到新 token 再打一次
+                const url2 = new URL(LOADER_URL);
+                url2.searchParams.set('action', action);
+                url2.searchParams.set('token', newToken);
+                for (const k of Object.keys(params)) {
+                    if (params[k] != null) url2.searchParams.set(k, params[k]);
+                }
+                const resp2 = await fetch(url2.toString(), { method: 'GET', cache: 'no-store', redirect: 'follow' });
+                const json2 = await resp2.json();
+                if (json2 && json2.result === 'error') {
+                    throw { requireLogin: true, message: json2.msg || '仍無法通過驗證' };
+                }
+                return json2;
+            }
+            if (json && json.result === 'error') {
+                throw { message: json.msg || 'Loader 錯誤' };
+            }
+            return json;
+        }
+
+        // loader: 抓某 topicId（= sheet name）的 2D 資料
+        async function callLoaderGetTopic(topicId) {
+            return await callLoader('getTopic', { topicId });
+        }
+        async function callLoaderCheckVersion(topicId) {
+            return await callLoader('checkVersion', { topicId });
+        }
+
+        // 將 loader 2D array 轉成 CSV 字串（讓既有 parseCardCSV / parseDetailCSV 可以直接吃）
+        function rowsToCSV(rows) {
+            if (!Array.isArray(rows) || rows.length === 0) return '';
+            const escape = (v) => {
+                if (v == null) return '';
+                const s = String(v);
+                if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+                return s;
+            };
+            return rows.map(r => (r || []).map(escape).join(',')).join('\n');
+        }
+
+        // ===== 登入 Modal（token 失效時自動彈出） =====
+        let __loginResolver = null;
+        function ensureLoginModal() {
+            if (document.getElementById('login-modal')) return;
+            const div = document.createElement('div');
+            div.id = 'login-modal';
+            div.className = 'fixed inset-0 z-[400] bg-black/70 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300';
+            div.innerHTML = `
+                <div class="w-full max-w-sm mx-4 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl ring-1 ring-white/40 overflow-hidden">
+                    <div class="px-6 pt-6 pb-2 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-sky-100 ring-1 ring-sky-200 flex items-center justify-center">
+                            <i class="fas fa-user-shield text-sky-600"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em]">PH Guard</div>
+                            <div class="text-base font-extrabold text-slate-800">需要登入以繼續</div>
+                        </div>
+                    </div>
+                    <p class="px-6 text-xs text-slate-500 leading-relaxed">你的登入階段已失效，請輸入帳號密碼以取得新 Token。</p>
+                    <form id="login-form" class="px-6 py-4 space-y-3">
+                        <label class="block">
+                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">帳號 Username</span>
+                            <input id="login-username" type="text" autocomplete="username"
+                                   class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-sky-400 outline-none text-sm" required>
+                        </label>
+                        <label class="block">
+                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">密碼 Password</span>
+                            <input id="login-password" type="password" autocomplete="current-password"
+                                   class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-sky-400 outline-none text-sm" required>
+                        </label>
+                        <div id="login-error" class="hidden text-xs text-rose-600 font-semibold"></div>
+                        <button id="login-submit" type="submit"
+                                class="w-full py-2.5 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white text-sm font-extrabold tracking-wider shadow-md active:scale-95 transition">
+                            登入並繼續
+                        </button>
+                        <button id="login-cancel" type="button"
+                                class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+                            取消
+                        </button>
+                    </form>
+                </div>`;
+            document.body.appendChild(div);
+            document.getElementById('login-cancel').addEventListener('click', () => {
+                if (__loginResolver) { const r = __loginResolver; __loginResolver = null; r(null); }
+                hideLoginModal();
+            });
+            document.getElementById('login-form').addEventListener('submit', onLoginSubmit);
+        }
+        function showLoginModal() {
+            ensureLoginModal();
+            const m = document.getElementById('login-modal');
+            m.classList.remove('opacity-0', 'pointer-events-none');
+            m.classList.add('opacity-100');
+            setTimeout(() => { const u = document.getElementById('login-username'); if (u) u.focus(); }, 50);
+        }
+        function hideLoginModal() {
+            const m = document.getElementById('login-modal');
+            if (!m) return;
+            m.classList.add('opacity-0', 'pointer-events-none');
+            m.classList.remove('opacity-100');
+        }
+        async function onLoginSubmit(ev) {
+            ev.preventDefault();
+            const u = (document.getElementById('login-username').value || '').trim();
+            const p = (document.getElementById('login-password').value || '');
+            const err = document.getElementById('login-error');
+            const btn = document.getElementById('login-submit');
+            err.classList.add('hidden');
+            if (!u || !p) { err.textContent = '請輸入帳號與密碼'; err.classList.remove('hidden'); return; }
+            btn.disabled = true; btn.textContent = '驗證中...';
+            try {
+                const token = await guardLogin(u, p);
+                if (!token) throw new Error('登入失敗');
+                if (__loginResolver) { const r = __loginResolver; __loginResolver = null; r(token); }
+                hideLoginModal();
+                // 清空密碼欄
+                document.getElementById('login-password').value = '';
+            } catch (e) {
+                err.textContent = (e && e.message) || '登入失敗，請重試';
+                err.classList.remove('hidden');
+            } finally {
+                btn.disabled = false; btn.textContent = '登入並繼續';
+            }
+        }
+        function promptLoginAndGetToken() {
+            showLoginModal();
+            return new Promise((resolve) => { __loginResolver = resolve; });
+        }
+
+        async function guardLogin(username, password) {
+            // Apps Script doPost：直接送 text/plain 字串（避免 CORS preflight）
+            const resp = await fetch(GUARD_URL, {
+                method: 'POST',
+                cache: 'no-store',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ username, password }),
+                redirect: 'follow'
+            });
+            let json;
+            try { json = await resp.json(); }
+            catch (e) { throw new Error('Guard 回應非 JSON'); }
+            if (!json || !json.success) {
+                throw new Error((json && json.message) || '帳號或密碼錯誤');
+            }
+            setStoredToken(json.token);
+            if (json.identity_tag) {
+                setStoredUser({
+                    username: username,
+                    role: json.role,
+                    class:    json.identity_tag.class || '',
+                    class_no: json.identity_tag.class_no || '',
+                    real_name:json.identity_tag.real_name || ''
+                });
+            } else {
+                setStoredUser({ username, role: json.role });
+            }
+            return json.token;
+        }
 
         let rawData = [];
         let lastScrollY = window.scrollY;
@@ -790,242 +979,6 @@
         var __ytLastVideoKey = '';
         let __detailItems = [];
         let __detailVolName = '';
-
-        // ============================================================
-        // 🛡️ GAS 守衛層 (詳情內容走 token 驗證的 GAS loader)
-        //   - GAS_AUTH_URL   : guard.gs  (登入發 token)
-        //   - GAS_LOADER_URL : loader.gs (驗 token + 讀資料)
-        //   - 主頁 VOL 封面 / metadata 仍走 gviz (公開)
-        //   - 詳情內容 (每個 vol 分頁) 改走 GAS
-        // ============================================================
-        const GAS_AUTH_URL   = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
-        const GAS_LOADER_URL = "https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec";
-        const _detailPending = { name: null, imgUrl: null, bgUrl: null };  // 登入成功後要自動續開
-
-        // 走 GAS loader 抓單一 vol 的詳情 (回傳 2D 陣列，給 parseDetailCSV 用)
-        async function fetchDetailSheetViaLoader(volName) {
-            const token = localStorage.getItem('jwt_token');
-            if (!token) return { ok: false, reason: 'no_token' };
-            try {
-                const url = `${GAS_LOADER_URL}?action=getTopic&topicId=${encodeURIComponent(volName)}&token=${encodeURIComponent(token)}&_=${Date.now()}`;
-                const res  = await fetch(url, { method: 'GET', mode: 'cors', redirect: 'follow' });
-                const data = await res.json();
-                if (data.result === 'success' && Array.isArray(data.data)) {
-                    return { ok: true, rows: data.data };
-                }
-                if (data.requireLogin || /Token/i.test(data.msg || '')) {
-                    return { ok: false, reason: 'invalid_token', msg: data.msg };
-                }
-                return { ok: false, reason: 'unknown', msg: data.msg };
-            } catch (e) {
-                console.warn('[Guard] loader 連線失敗:', e);
-                return { ok: false, reason: 'network', msg: e.toString() };
-            }
-        }
-
-        // 走 GAS loader 抓詳情版本 (從 VERSION 分頁第一列讀出版本字串)
-        async function fetchDetailVersionViaLoader() {
-            const token = localStorage.getItem('jwt_token');
-            if (!token) return null;
-            try {
-                const url = `${GAS_LOADER_URL}?action=getVersionManifest&token=${encodeURIComponent(token)}&_=${Date.now()}`;
-                const res  = await fetch(url, { method: 'GET', mode: 'cors', redirect: 'follow' });
-                const data = await res.json();
-                if (data.result !== 'success') {
-                    if (data.requireLogin) {
-                        localStorage.removeItem('jwt_token');
-                        localStorage.removeItem('userToken');
-                    }
-                    return null;
-                }
-                // manifest = [{name, version}, ...]，回傳整體 hash 當版本字串
-                const manifest = data.manifest || [];
-                if (manifest.length === 0) return null;
-                return manifest.map(m => `${m.name}:${m.version}`).join('|');
-            } catch (e) {
-                return null;
-            }
-        }
-
-        // 顯示登入 overlay
-        function showLoginOverlay() {
-            const overlay = document.getElementById('login-overlay');
-            if (!overlay) return;
-            overlay.classList.remove('opacity-0', 'pointer-events-none');
-            overlay.classList.add('opacity-100', 'pointer-events-auto');
-            setTimeout(() => {
-                const u = document.getElementById('login-username');
-                if (u) u.focus();
-            }, 200);
-        }
-
-        // 隱藏登入 overlay
-        function hideLoginOverlay() {
-            const overlay = document.getElementById('login-overlay');
-            if (!overlay) return;
-            overlay.classList.add('opacity-0', 'pointer-events-none');
-            overlay.classList.remove('opacity-100', 'pointer-events-auto');
-        }
-
-        // 登入
-        async function doLogin() {
-            const usernameEl = document.getElementById('login-username');
-            const passwordEl = document.getElementById('login-password');
-            const errorEl    = document.getElementById('login-error');
-            const btn        = document.getElementById('login-btn');
-
-            const username = usernameEl ? usernameEl.value.trim() : '';
-            const password = passwordEl ? passwordEl.value : '';
-
-            if (!username || !password) {
-                if (errorEl) { errorEl.textContent = '請輸入帳號與密碼'; errorEl.style.opacity = '1'; }
-                return;
-            }
-
-            btn.disabled = true;
-            const oldText = btn.textContent;
-            btn.textContent = 'Verifying...';
-            if (errorEl) errorEl.style.opacity = '0';
-
-            try {
-                const response = await fetch(GAS_AUTH_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    redirect: 'follow',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await response.json();
-                if (data.success && data.token) {
-                    localStorage.setItem('jwt_token', data.token);
-                    localStorage.setItem('userToken', data.token);
-                    if (data.role) localStorage.setItem('user_role', data.role);
-                    hideLoginOverlay();
-                    if (usernameEl) usernameEl.value = '';
-                    if (passwordEl) passwordEl.value = '';
-                    // 🛡️ 登入成功 → 背景預載所有 vol 詳情（之後點別卡可走 cache）
-                    if (typeof preloadAllDetails === 'function' && typeof rawData !== 'undefined' && rawData.length > 0) {
-                        preloadAllDetails().catch(e => console.warn('[preload] 登入後預載失敗：', e));
-                    }
-                    // 若登入是從守衛流程觸發，自動續開
-                    if (_detailPending.name) {
-                        const pending = { ..._detailPending };
-                        _detailPending.name = null;
-                        setTimeout(() => openCardDetailGuarded(pending.name, pending.imgUrl, pending.bgUrl), 300);
-                    }
-                } else {
-                    if (errorEl) {
-                        errorEl.textContent = data.message || '帳號或密碼錯誤';
-                        errorEl.style.opacity = '1';
-                    }
-                }
-            } catch (err) {
-                if (errorEl) {
-                    errorEl.textContent = '無法連線至認證中心，請稍後再試。';
-                    errorEl.style.opacity = '1';
-                }
-            } finally {
-                btn.disabled = false;
-                btn.textContent = oldText;
-            }
-        }
-
-        // 守衛版開詳情：先驗 token，再用 GAS loader 抓資料
-        async function openCardDetailGuarded(volName, imgUrl, bgUrl) {
-            const token = localStorage.getItem('jwt_token');
-            if (!token) {
-                _detailPending.name  = volName;
-                _detailPending.imgUrl = imgUrl;
-                _detailPending.bgUrl  = bgUrl;
-                showLoginOverlay();
-                return;
-            }
-
-            // 先開 modal（顯示 loading）
-            const modal = document.getElementById('card-detail-modal');
-            const bodyEl = document.getElementById('card-detail-body');
-            const loadingEl = document.getElementById('card-detail-loading');
-            const bgLayer = document.getElementById('card-detail-bg');
-            __detailVolName = volName;
-            __detailBgUrl = bgUrl || '';
-            document.body.classList.remove('is-closing');
-            if (bgLayer) {
-                if (bgUrl) {
-                    bgLayer.style.backgroundImage = `url("${bgUrl.replace(/"/g, '\\"')}")`;
-                    bgLayer.style.display = '';
-                } else {
-                    bgLayer.style.backgroundImage = '';
-                    bgLayer.style.display = 'none';
-                }
-                bgLayer.style.animation = 'none';
-                void bgLayer.offsetWidth;
-                bgLayer.style.animation = '';
-            }
-            if (typeof setHeader === 'function') setHeader('Volume', volName, false);
-            if (bodyEl) bodyEl.innerHTML = '';
-            if (loadingEl) loadingEl.style.display = '';
-            if (modal) {
-                modal.classList.remove('modal-open', 'modal-closing', 'pointer-events-none');
-                void modal.offsetWidth;
-                modal.classList.add('modal-open');
-            }
-
-            // 走 GAS loader 抓資料
-            const guard = await fetchDetailSheetViaLoader(volName);
-
-            if (guard.ok) {
-                const items = parseDetailCSVFromRows(guard.rows);
-                __detailCache[volName] = items;
-                if (loadingEl) loadingEl.style.display = 'none';
-                if (bodyEl) {
-                    if (!items || items.length === 0) {
-                        bodyEl.innerHTML = typeof renderEmptyDetail === 'function'
-                            ? renderEmptyDetail(volName, 'empty', '')
-                            : '<div class="p-12 text-center text-slate-400">暫無內容</div>';
-                    } else {
-                        __detailItems = items;
-                        // 用既有 renderHWList 渲染（它從 __detailItems 取資料）
-                        if (typeof renderHWList === 'function') renderHWList();
-                        else bodyEl.innerHTML = '';
-                    }
-                    bodyEl.classList.remove('detail-pane', 'pane-back');
-                    void bodyEl.offsetWidth;
-                    bodyEl.classList.add('detail-pane');
-                }
-                return;
-            }
-
-            // 失敗處理
-            if (guard.reason === 'invalid_token' || guard.reason === 'no_token') {
-                console.warn('[Guard] token 無效，要求重新登入:', guard.msg);
-                localStorage.removeItem('jwt_token');
-                localStorage.removeItem('userToken');
-            } else if (guard.reason === 'network') {
-                console.warn('[Guard] loader 連不上，請檢查網路');
-            }
-            _detailPending.name  = volName;
-            _detailPending.imgUrl = imgUrl;
-            _detailPending.bgUrl  = bgUrl;
-            if (loadingEl) loadingEl.style.display = 'none';
-            showLoginOverlay();
-        }
-
-        // 把 GAS 的 2D 陣列轉成 parseDetailCSV 輸出的相同結構
-        // parseDetailCSV 是吃 CSV 文字，這裡我們走另一條路徑：直接生成等價的 items 結構
-        // 為了相容，輸出「CSV 文字」然後丟回 parseDetailCSV
-        function parseDetailCSVFromRows(rows) {
-            // rows 是 2D 陣列（每格是字串或值），轉成 CSV 文字
-            // 用簡單的 escape：含逗號/換行/雙引號的格子包雙引號
-            if (!Array.isArray(rows) || rows.length === 0) return [];
-            const esc = v => {
-                if (v === null || v === undefined) return '';
-                const s = String(v);
-                if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-                return s;
-            };
-            const csv = rows.map(r => r.map(esc).join(',')).join('\n');
-            return parseDetailCSV(csv);
-        }
         let __detailBgUrl = '';
         let __viewMode = 'slider';
 
@@ -1145,8 +1098,15 @@
         })();
 
         async function fetchDetailVersion() {
-            // 🛡️ 走 GAS loader 拿 VERSION manifest（取代原本公開 gviz）
-            return await fetchDetailVersionViaLoader();
+            // loader.gs 沒有獨立的「詳情版」分頁；改抓 Sheet2 整體 manifest，從中找 version
+            // 為保持向後相容：嘗試抓名為 'VERSION' 的 topicId（如果存在）；若不存在則回傳 null，沿用本地快取。
+            try {
+                const json = await callLoaderCheckVersion('VERSION').catch(() => null);
+                if (json && json.version) return json.version;
+            } catch (e) {
+                // VERSION 分頁不存在或抓不到 → 視為無版本，回 null
+            }
+            return null;
         }
 
         async function preloadAllDetails() {
@@ -1185,16 +1145,12 @@
                 localStorage.removeItem(DETAIL_DATA_KEY);
             }
             const map = {};
-            // 🛡️ 走 GAS loader 抓每個 vol 的詳情（取代原本公開 gviz）
             await Promise.all(volNames.map(async (vol) => {
                 try {
-                    const guard = await fetchDetailSheetViaLoader(vol);
-                    if (!guard.ok) {
-                        console.warn(`[preload] ${vol} 抓取失敗：`, guard.reason, guard.msg || '');
-                        // 第一次失敗且沒 token → 跳過（之後點卡片會觸發守衛）
-                        return;
-                    }
-                    const items = parseDetailCSVFromRows(guard.rows);
+                    const json = await callLoaderGetTopic(vol);
+                    const rows = (json && json.data) || [];
+                    const csv = rowsToCSV(rows);
+                    const items = parseDetailCSV(csv);
                     if (items.length > 0) map[vol] = items;
                 } catch (e) {
                     console.warn(`[preload] ${vol} 抓取失敗：`, e);
@@ -1560,14 +1516,20 @@
         }
 
         async function fetchVersion() {
+            // 改用 loader.gs 的 checkVersion（HWMENU topicId），它會在 A 欄找 VER/VERSION 並回傳右側 cell
+            // 若 sheet 第一行第一格本來就是 version，loader 找不到 VER 標籤，會回 '1.0.0'，
+            // 因此我們也備援：若 loader 回的是預設版本，再多打一次 getTopic 取第一格真實值
             try {
-                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
-                const r = await fetch(url, { cache: 'no-store' });
-                if (!r.ok) return null;
-                const txt = await r.text();
-                const firstLine = txt.split('\n')[0] || '';
-                const cells = firstLine.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                return cells[0] || null;
+                const json = await callLoaderCheckVersion(SHEET_NAME);
+                const v = (json && json.version) || null;
+                if (v && v !== '1.0.0') return v;
+                // 備援：取第一格
+                const t = await callLoaderGetTopic(SHEET_NAME).catch(() => null);
+                if (t && Array.isArray(t.data) && t.data[0]) {
+                    const cell = String(t.data[0][0] || '').trim();
+                    if (cell) return cell;
+                }
+                return v;
             } catch (e) {
                 console.warn('[version] fetch failed:', e);
                 return null;
@@ -1609,9 +1571,10 @@
                 localStorage.removeItem(CACHE_DATA_KEY);
             }
             try {
-                const response = await fetch(buildSheetUrl(), { cache: 'no-store' });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const csvText = await response.text();
+                // 改用 loader.gs 抓 HWMENU，回傳 2D 陣列 → 轉成 CSV → 餵 parseCardCSV
+                const json = await callLoaderGetTopic(SHEET_NAME);
+                const rows = (json && json.data) || [];
+                const csvText = rowsToCSV(rows);
                 rawData = parseCardCSV(csvText);
                 if (rawData.length === 0) {
                     if (mainArea) mainArea.innerHTML = `<div class="loader">HWMENU 沒有可顯示的卡片。</div>`;
@@ -1849,10 +1812,59 @@
             }
         }
 
-        // 🛡️ 卡片 onclick 入口：對外保留同名 openCardDetail，內部走守衛流程
-        //    守衛層 openCardDetailGuarded 會自己處理 token 檢查 + GAS loader + cache + 必要時彈登入
         async function openCardDetail(volName, imgUrl, bgUrl) {
-            return openCardDetailGuarded(volName, imgUrl, bgUrl);
+            const modal = document.getElementById('card-detail-modal');
+            const bodyEl = document.getElementById('card-detail-body');
+            const loadingEl = document.getElementById('card-detail-loading');
+            const bgLayer = document.getElementById('card-detail-bg');
+            __detailVolName = volName;
+            __detailBgUrl = bgUrl || '';
+            document.body.classList.remove('is-closing');
+            if (bgLayer) {
+                if (bgUrl) {
+                    bgLayer.style.backgroundImage = `url("${bgUrl.replace(/"/g, '\\"')}")`;
+                    bgLayer.style.display = '';
+                } else {
+                    bgLayer.style.backgroundImage = '';
+                    bgLayer.style.display = 'none';
+                }
+                bgLayer.style.animation = 'none';
+                void bgLayer.offsetWidth;
+                bgLayer.style.animation = '';
+            }
+            setHeader('Volume', volName, false);
+            bodyEl.innerHTML = '';
+            loadingEl.style.display = '';
+            modal.classList.remove('modal-open', 'modal-closing');
+            modal.classList.remove('pointer-events-none');
+            void modal.offsetWidth;
+            modal.classList.add('modal-open');
+            let items = getCachedDetail(volName);
+            let fromCache = !!items;
+            if (!items) {
+                console.log(`[openCardDetail] 快取 miss：${volName}，現抓`);
+                try {
+                    const json = await callLoaderGetTopic(volName);
+                    const rows = (json && json.data) || [];
+                    const csv = rowsToCSV(rows);
+                    items = parseDetailCSV(csv);
+                    __detailCache[volName] = items;
+                } catch (e) {
+                    console.warn(`[openCardDetail] 抓取失敗：${volName}`, e);
+                }
+            } else {
+                console.log(`[openCardDetail] ✓ 用快取：${volName} (${items.length} items)`);
+            }
+            loadingEl.style.display = 'none';
+            if (!items || items.length === 0) {
+                bodyEl.innerHTML = renderEmptyDetail(volName, fromCache ? 'empty' : 'not-found', '');
+                bodyEl.classList.remove('detail-pane', 'pane-back');
+                void bodyEl.offsetWidth;
+                bodyEl.classList.add('detail-pane');
+                return;
+            }
+            __detailItems = items;
+            renderHWList();
         }
 
         function renderHWList(direction = 'forward') {
