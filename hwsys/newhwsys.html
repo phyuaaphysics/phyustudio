@@ -511,6 +511,89 @@
             .nav-btn { display: none !important; }
             .sync-btn { padding: 6px 12px; font-size: 9px; }
         }
+
+        /* ===== 登入 Modal（PH studio Launch 風格） ===== */
+        .ph-login-overlay {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ph-login-card {
+            background: rgba(255, 255, 255, 0.78) !important;
+            backdrop-filter: blur(40px) saturate(190%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(190%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow:
+                0 4px 30px rgba(0, 0, 0, 0.04),
+                0 30px 70px rgba(27, 54, 93, 0.12),
+                inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+            transform: scale(0.85) translateY(30px);
+            opacity: 0;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, "Inter", "Noto Sans TC", sans-serif;
+            color: #1b365d;
+        }
+        .ph-login-card.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .ph-login-input {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #1b365d;
+            transition: all 0.3s ease;
+        }
+        .ph-login-input::placeholder {
+            color: rgba(27, 54, 93, 0.4);
+        }
+        .ph-login-input:focus {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            outline: none;
+        }
+        .ph-login-btn {
+            background: rgba(226, 232, 240, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            color: #1b365d;
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .ph-login-btn:hover {
+            background: #1b365d;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(27, 54, 93, 0.2);
+        }
+        .ph-login-btn:active { transform: scale(0.97); }
+        .ph-login-btn:disabled {
+            opacity: 0.6; cursor: not-allowed; transform: none;
+        }
+        .ph-login-btn-primary {
+            background: #1b365d;
+            color: #ffffff;
+            border: 1px solid #1b365d;
+        }
+        .ph-login-btn-primary:hover {
+            background: #ffffff;
+            color: #1b365d;
+            box-shadow: 0 4px 15px rgba(27, 54, 93, 0.2);
+        }
+        .ph-login-error {
+            color: #b91c1c;
+            font-size: 9px;
+            letter-spacing: 0.2em;
+            min-height: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .ph-login-error.show { opacity: 1; }
+        .ph-login-spinner {
+            width: 28px; height: 28px;
+            border: 2px solid rgba(27, 54, 93, 0.15);
+            border-top-color: #81D8D0;
+            border-radius: 50%;
+            animation: phSpin 0.8s linear infinite;
+        }
+        @keyframes phSpin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="pb-40 hide-scrollbar">
@@ -730,10 +813,12 @@
         const DETAIL_VERSION_RANGE = 'B2';
         const JWT_STORAGE_KEY = 'ph_jwt_token_v1';
         const USER_STORAGE_KEY = 'ph_user_payload_v1';
-        // 預留舊 URL 形狀（不再使用，但保留變數以免破壞其他函式）
-        const detailSheetUrl = (volName) => volName;     // 已棄用：改為 callLoaderGetTopic(volName)
-        const detailVersionUrl = () => null;             // 已棄用：改為 callLoaderCheckVersion(topicId)
-        const buildSheetUrl = () => null;                // 已棄用：改為 callLoaderGetTopic(SHEET_NAME)
+        // HWMENU 走 gviz 公開直連（首頁卡片牆免登入就看得到）
+        const buildSheetUrl = () =>
+            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
+        // 進到任何 vol 才走 loader/guard；VERSION 仍走 gviz 公開（只給出版本字串）
+        const detailVersionUrl = () =>
+            `https://docs.google.com/spreadsheets/d/${DETAIL_SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=VERSION&_=${Date.now()}`;
 
         // ===== Token / 登入 助手 =====
         function getStoredToken() {
@@ -839,43 +924,43 @@
             return rows.map(r => (r || []).map(escape).join(',')).join('\n');
         }
 
-        // ===== 登入 Modal（token 失效時自動彈出） =====
+        // ===== 登入 Modal（PH studio Launch 風格） =====
         let __loginResolver = null;
         function ensureLoginModal() {
             if (document.getElementById('login-modal')) return;
             const div = document.createElement('div');
             div.id = 'login-modal';
-            div.className = 'fixed inset-0 z-[400] bg-black/70 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300';
+            div.className = 'ph-login-overlay fixed inset-0 z-[400] flex items-center justify-center opacity-0 pointer-events-none';
             div.innerHTML = `
-                <div class="w-full max-w-sm mx-4 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl ring-1 ring-white/40 overflow-hidden">
-                    <div class="px-6 pt-6 pb-2 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-sky-100 ring-1 ring-sky-200 flex items-center justify-center">
-                            <i class="fas fa-user-shield text-sky-600"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em]">PH Guard</div>
-                            <div class="text-base font-extrabold text-slate-800">需要登入以繼續</div>
-                        </div>
+                <div class="ph-login-card w-[90%] max-w-[380px] rounded-[2.2rem] p-9 sm:p-10 flex flex-col items-center text-center space-y-7">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png"
+                         onerror="this.style.display='none'"
+                         alt="PH" class="w-16 h-16 sm:w-20 sm:h-20 rounded-none shadow-lg border border-white/30">
+                    <div class="space-y-1 uppercase select-none">
+                        <h2 class="text-[#1b365d]">
+                            <span class="block text-xl sm:text-2xl font-semibold tracking-[0.15em] leading-none">Self-Directed</span>
+                            <span class="block text-[10px] sm:text-xs font-medium tracking-[0.25em] mt-2 opacity-80 leading-none">Learning Platform</span>
+                        </h2>
                     </div>
-                    <p class="px-6 text-xs text-slate-500 leading-relaxed">你的登入階段已失效，請輸入帳號密碼以取得新 Token。</p>
-                    <form id="login-form" class="px-6 py-4 space-y-3">
-                        <label class="block">
-                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">帳號 Username</span>
-                            <input id="login-username" type="text" autocomplete="username"
-                                   class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-sky-400 outline-none text-sm" required>
-                        </label>
-                        <label class="block">
-                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">密碼 Password</span>
-                            <input id="login-password" type="password" autocomplete="current-password"
-                                   class="mt-1 w-full px-3 py-2 rounded-xl bg-slate-50 ring-1 ring-slate-200 focus:ring-2 focus:ring-sky-400 outline-none text-sm" required>
-                        </label>
-                        <div id="login-error" class="hidden text-xs text-rose-600 font-semibold"></div>
+                    <p class="text-[10px] font-semibold tracking-[0.22em] uppercase text-[#1b365d]/55 -mt-3">
+                        登入以繼續 PH Guard
+                    </p>
+                    <form id="login-form" class="w-full flex flex-col items-center space-y-3" autocomplete="off">
+                        <input id="login-username" type="text" placeholder="USERNAME"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault(); document.getElementById('login-password').focus();}"
+                               class="ph-login-input w-full max-w-[270px] h-10 px-6 rounded-full text-center text-[10px] tracking-[0.25em] font-medium"
+                               autocomplete="username" required>
+                        <input id="login-password" type="password" placeholder="PASSWORD"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault(); document.getElementById('login-form').requestSubmit();}"
+                               class="ph-login-input w-full max-w-[270px] h-10 px-6 rounded-full text-center text-[10px] tracking-[0.25em] font-medium"
+                               autocomplete="current-password" required>
+                        <p id="login-error" class="ph-login-error uppercase">帳號或密碼錯誤</p>
                         <button id="login-submit" type="submit"
-                                class="w-full py-2.5 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white text-sm font-extrabold tracking-wider shadow-md active:scale-95 transition">
-                            登入並繼續
+                                class="ph-login-btn ph-login-btn-primary w-full max-w-[270px] h-10 rounded-full text-[10px] font-semibold tracking-[0.25em] uppercase mt-2">
+                            Login &amp; Browse
                         </button>
                         <button id="login-cancel" type="button"
-                                class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+                                class="ph-login-btn w-full max-w-[270px] h-10 rounded-full text-[10px] font-semibold tracking-[0.25em] uppercase -mt-1">
                             取消
                         </button>
                     </form>
@@ -890,13 +975,20 @@
         function showLoginModal() {
             ensureLoginModal();
             const m = document.getElementById('login-modal');
+            const card = m.querySelector('.ph-login-card');
             m.classList.remove('opacity-0', 'pointer-events-none');
             m.classList.add('opacity-100');
-            setTimeout(() => { const u = document.getElementById('login-username'); if (u) u.focus(); }, 50);
+            // 觸發進場動畫
+            requestAnimationFrame(() => {
+                setTimeout(() => { if (card) card.classList.add('active'); }, 30);
+            });
+            setTimeout(() => { const u = document.getElementById('login-username'); if (u) u.focus(); }, 120);
         }
         function hideLoginModal() {
             const m = document.getElementById('login-modal');
             if (!m) return;
+            const card = m.querySelector('.ph-login-card');
+            if (card) card.classList.remove('active');
             m.classList.add('opacity-0', 'pointer-events-none');
             m.classList.remove('opacity-100');
         }
@@ -906,21 +998,21 @@
             const p = (document.getElementById('login-password').value || '');
             const err = document.getElementById('login-error');
             const btn = document.getElementById('login-submit');
-            err.classList.add('hidden');
-            if (!u || !p) { err.textContent = '請輸入帳號與密碼'; err.classList.remove('hidden'); return; }
-            btn.disabled = true; btn.textContent = '驗證中...';
+            err.classList.remove('show');
+            if (!u || !p) { err.textContent = '請輸入帳號與密碼'; err.classList.add('show'); return; }
+            const originalLabel = btn.textContent;
+            btn.disabled = true; btn.innerHTML = '<span class="inline-flex items-center gap-2"><span class="ph-login-spinner"></span> 驗證中</span>';
             try {
                 const token = await guardLogin(u, p);
                 if (!token) throw new Error('登入失敗');
                 if (__loginResolver) { const r = __loginResolver; __loginResolver = null; r(token); }
                 hideLoginModal();
-                // 清空密碼欄
                 document.getElementById('login-password').value = '';
             } catch (e) {
                 err.textContent = (e && e.message) || '登入失敗，請重試';
-                err.classList.remove('hidden');
+                err.classList.add('show');
             } finally {
-                btn.disabled = false; btn.textContent = '登入並繼續';
+                btn.disabled = false; btn.textContent = originalLabel;
             }
         }
         function promptLoginAndGetToken() {
@@ -1003,6 +1095,8 @@
             } else {
                 setStoredUser({ username, role: json.role });
             }
+            // 登入成功：背景預載所有 vol，登入後切換詳情會瞬間顯示
+            try { preloadAllDetails().catch(() => {}); } catch (e) {}
             return json.token;
         }
 
@@ -1146,19 +1240,25 @@
         })();
 
         async function fetchDetailVersion() {
-            // loader.gs 沒有獨立的「詳情版」分頁；改抓 Sheet2 整體 manifest，從中找 version
-            // 為保持向後相容：嘗試抓名為 'VERSION' 的 topicId（如果存在）；若不存在則回傳 null，沿用本地快取。
             try {
-                const json = await callLoaderCheckVersion('VERSION').catch(() => null);
-                if (json && json.version) return json.version;
+                const r = await fetch(detailVersionUrl(), { cache: 'no-store' });
+                if (!r.ok) return null;
+                const txt = await r.text();
+                const firstLine = txt.split('\n')[0] || '';
+                const cells = firstLine.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                return cells[0] || null;
             } catch (e) {
-                // VERSION 分頁不存在或抓不到 → 視為無版本，回 null
+                return null;
             }
-            return null;
         }
 
         async function preloadAllDetails() {
             if (!rawData || rawData.length === 0) return;
+            // 訪客沒 token：跳過預載，點進 vol 時才走 loader/guard
+            if (!getStoredToken()) {
+                console.log('[preload] 訪客模式（無 token），跳過詳情預載');
+                return;
+            }
             const volNames = [...new Set(rawData.map(d => d.name).filter(Boolean))];
             const serverVer = await fetchDetailVersion().catch(() => null);
             const localVer  = localStorage.getItem(DETAIL_VERSION_KEY);
@@ -1564,20 +1664,14 @@
         }
 
         async function fetchVersion() {
-            // 改用 loader.gs 的 checkVersion（HWMENU topicId），它會在 A 欄找 VER/VERSION 並回傳右側 cell
-            // 若 sheet 第一行第一格本來就是 version，loader 找不到 VER 標籤，會回 '1.0.0'，
-            // 因此我們也備援：若 loader 回的是預設版本，再多打一次 getTopic 取第一格真實值
             try {
-                const json = await callLoaderCheckVersion(SHEET_NAME);
-                const v = (json && json.version) || null;
-                if (v && v !== '1.0.0') return v;
-                // 備援：取第一格
-                const t = await callLoaderGetTopic(SHEET_NAME).catch(() => null);
-                if (t && Array.isArray(t.data) && t.data[0]) {
-                    const cell = String(t.data[0][0] || '').trim();
-                    if (cell) return cell;
-                }
-                return v;
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
+                const r = await fetch(url, { cache: 'no-store' });
+                if (!r.ok) return null;
+                const txt = await r.text();
+                const firstLine = txt.split('\n')[0] || '';
+                const cells = firstLine.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                return cells[0] || null;
             } catch (e) {
                 console.warn('[version] fetch failed:', e);
                 return null;
@@ -1619,10 +1713,9 @@
                 localStorage.removeItem(CACHE_DATA_KEY);
             }
             try {
-                // 改用 loader.gs 抓 HWMENU，回傳 2D 陣列 → 轉成 CSV → 餵 parseCardCSV
-                const json = await callLoaderGetTopic(SHEET_NAME);
-                const rows = (json && json.data) || [];
-                const csvText = rowsToCSV(rows);
+                const response = await fetch(buildSheetUrl(), { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const csvText = await response.text();
                 rawData = parseCardCSV(csvText);
                 if (rawData.length === 0) {
                     if (mainArea) mainArea.innerHTML = `<div class="loader">HWMENU 沒有可顯示的卡片。</div>`;
