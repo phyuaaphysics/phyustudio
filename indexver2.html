@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PH studio | Launch</title>
+    
+    <!-- Favicon -->
+    <link class="favicon" rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    <link class="shortcut icon" rel="shortcut icon" href="https://phyuaaphysics.github.io/phyustudio/favicon.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#81D8D0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PH studio">
+    <link class="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
+    
+    <!-- 外部 Manifest 連結 -->
+    <link class="manifest" rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes formulaFade {
+            0% { opacity: 0; transform: scale(0.85) translateY(10px); filter: blur(4px); }
+            20% { opacity: 0.4; transform: scale(1) translateY(0); filter: blur(0px); }
+            80% { opacity: 0.4; transform: scale(1.05) translateY(-5px); filter: blur(0px); }
+            100% { opacity: 0; transform: scale(1.1) translateY(-15px); filter: blur(2px); }
+        }
+
+        .fade-in {
+            animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .loading-bar-container {
+            width: 80vw;
+            max-width: 280px;
+            height: 12px;
+            background: #E5E5EA;
+            border-radius: 9999px;
+            overflow: hidden;
+            display: none;
+            z-index: 10;
+        }
+
+        .loading-bar-progress {
+            width: 0%;
+            height: 100%;
+            background: #81D8D0;
+            border-radius: 9999px;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background-color: #81D8D0;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            color: #000000;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            transition: background 1.2s cubic-bezier(0.25, 1, 0.2, 1), background-color 1.2s cubic-bezier(0.25, 1, 0.2, 1);
+            touch-action: manipulation;
+        }
+
+        #status-text {
+            min-height: 1.5em;
+            z-index: 10;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.12);
+            transition: opacity 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        transform 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        background 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        border-color 1.2s cubic-bezier(0.25, 1, 0.2, 1), 
+                        box-shadow 1.2s cubic-bezier(0.25, 1, 0.2, 1),
+                        backdrop-filter 1.2s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        .parallax-item {
+            transition: transform 1.2s cubic-bezier(0.25, 1, 0.2, 1), opacity 1.0s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        .input-pill {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        .input-pill:focus {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-pill {
+            background: rgba(226, 232, 240, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-pill:hover {
+            background: #1b365d;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(27, 54, 93, 0.2);
+        }
+        .btn-pill:active {
+            transform: scale(0.97);
+        }
+
+        #formula-container {
+            position: fixed;
+            top: 0;left: 0;width: 100%;height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 1; 
+            transition: opacity 1.5s cubic-bezier(0.25, 1, 0.2, 1);
+        }
+
+        .formula {
+            position: absolute;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: 600;
+            color: #1e293b;
+            opacity: 0;
+            white-space: nowrap;
+            text-shadow: 0 0 15px rgba(255,255,255,0.85);
+            will-change: transform, opacity;
+        }
+
+        .ios-overlay-blur {
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ios-glass-card {
+            background: rgba(255, 255, 255, 0.72) !important;
+            backdrop-filter: blur(40px) saturate(190%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(190%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.01),
+                0 30px 70px rgba(27, 54, 93, 0.07),
+                inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+            transform: scale(0.85) translateY(30px);
+            opacity: 0;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        }
+
+        .ios-glass-card.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .ios-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            color: #1c1c1e;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-btn:hover {
+            background: #1c1c1e;
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(28, 28, 30, 0.15);
+            transform: translateY(-1px);
+        }
+        .ios-btn:active {
+            transform: scale(0.96) translateY(0);
+            background: rgba(28, 28, 30, 0.9);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen m-0">
+
+    <div id="formula-container"></div>
+
+    <div id="landing-screen" class="fade-in glass-card w-[90%] max-w-[450px] rounded-[2.5rem] p-10 sm:p-12 flex flex-col items-center text-center space-y-8 relative z-10">
+        
+        <div class="fade-in parallax-item" id="item-icon">
+            <img 
+                src="https://phyuaaphysics.github.io/phyustudio/appicon.png" 
+                alt="PH studio Icon" 
+                class="w-20 h-20 sm:w-24 sm:h-24 rounded-none shadow-lg transition-all duration-700 mx-auto border border-white/20"
+                onerror="this.src='https://via.placeholder.com/512x512?text=PH+studio'"
+            >
+        </div>
+        
+        <div class="space-y-1 w-full px-2 uppercase select-none" style="font-family: 'Cinzel', 'Playfair Display', serif;">
+            <h1 class="text-[#1b365d]">
+                <span class="block text-2xl sm:text-3xl font-semibold tracking-[0.15em] leading-none parallax-item" id="item-title-1">Self-Directed</span>
+                <span class="block text-xs sm:text-sm font-medium tracking-[0.25em] mt-3 opacity-80 leading-none parallax-item" id="item-title-2">Learning Platform</span>
+            </h1>
+        </div>
+
+        <div class="w-full flex flex-col items-center space-y-3 pt-2 parallax-item" id="item-form">
+            <input 
+                type="text" 
+                id="username" 
+                placeholder="USERNAME" 
+                onkeydown="if(event.key === 'Enter') handleLogin(event)"
+                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[10px] tracking-[0.25em] font-medium"
+                autocomplete="off"
+            >
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="PASSWORD" 
+                onkeydown="if(event.key === 'Enter') handleLogin(event)"
+                class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[#1b365d] text-center text-[10px] tracking-[0.25em] font-medium"
+            >
+            
+            <p id="error-msg" class="text-red-700 text-[9px] tracking-widest min-h-[14px] opacity-0 transition-opacity duration-300">
+                帳號或密碼錯誤
+            </p>
+        </div>
+
+        <div class="w-full flex flex-col items-center parallax-item" id="item-button">
+            <button 
+                id="launch-btn"
+                onmouseenter="playHoverSound()"
+                onclick="handleLogin(event)"
+                class="btn-pill w-full max-w-[270px] h-10 rounded-full text-[#1b365d] text-[10px] font-semibold tracking-[0.25em] uppercase transition-all duration-500"
+            >
+                Login & Browse
+            </button>
+
+            <div id="loading-inline-container" class="w-full max-w-[270px] -mt-10 opacity-0 transition-all duration-1000 hidden flex flex-col items-center translate-y-[-10px]">
+                
+                <div class="relative w-12 h-12 mb-4 animate-spin">
+                    <svg class="w-full h-full text-[#81D8D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="2" opacity="1.0" />
+                        <line x1="17" y1="7" x2="19.1" y2="4.9" opacity="0.87" />
+                        <line x1="19" y1="12" x2="22" y2="12" opacity="0.75" />
+                        <line x1="17" y1="17" x2="19.1" y2="19.1" opacity="0.62" />
+                        <line x1="12" y1="19" x2="12" y2="22" opacity="0.5" />
+                        <line x1="7" y1="17" x2="4.9" y2="19.1" opacity="0.37" />
+                        <line x1="5" y1="12" x2="2" y2="12" opacity="0.25" />
+                        <line x1="7" y1="7" x2="4.9" y2="4.9" opacity="0.12" />
+                    </svg>
+                </div>
+
+                <p id="status-text" class="text-gray-900 font-bold tracking-wide text-sm sm:text-base mb-3 transition-opacity duration-300">Loading...</p>
+                
+                <div class="loading-bar-container w-full" id="bar-container">
+                    <div class="loading-bar-progress" id="bar-progress"></div>
+                </div>
+
+                <p id="reassuring-text" class="text-gray-500 text-[10px] tracking-wide mt-3 h-8 text-center px-1 transition-opacity duration-300 opacity-0"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-transparent opacity-0 pointer-events-none">
+        <div class="ios-glass-card w-[85%] max-w-[370px] rounded-[2.2rem] p-9 text-center flex flex-col items-center space-y-6 relative">
+            
+            <div id="modal-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-black/5">
+            </div>
+            
+            <div class="space-y-2 uppercase select-none">
+                <h3 id="modal-title" class="text-[20px] font-bold tracking-[0.12em] text-[#1b365d]">WELCOME</h3>
+                <p id="modal-subtext" class="text-[10px] font-semibold tracking-[0.2em] text-[#1b365d]/50 mt-1">Platform Notice</p>
+            </div>
+
+            <p id="modal-message" class="text-sm font-medium tracking-[0.08em] text-[#2c2c2e] leading-relaxed px-2">
+                讀取中...
+            </p>
+
+            <div id="modal-actions" class="w-full flex flex-col items-center space-y-3">
+                <button 
+                    id="modal-primary-btn"
+                    onclick="confirmWelcomeRedirect()"
+                    class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase"
+                >
+                    Confirm & Enter
+                </button>
+                <button 
+                    id="modal-secondary-btn"
+                    onclick="reloginWelcome()"
+                    class="ios-btn w-full max-w-[210px] h-12 rounded-full text-xs font-bold tracking-[0.2em] uppercase hidden"
+                >
+                    Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let formulaInterval;
+        let currentBgUrl = "";
+
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
+        const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('https://phyuaaphysics.github.io/phyustudio/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed', err));
+            });
+        }
+
+        function loadBackgroundFromSheet() {
+            window.handleSheetData = function(data) {
+                try {
+                    if (data && data.table && data.table.rows) {
+                        for (let row of data.table.rows) {
+                            if (row.c && row.c.length >= 2) {
+                                const colA = row.c[0] ? String(row.c[0].v).trim() : "";
+                                const colB = row.c[1] ? String(row.c[1].v).trim() : "";
+                                if (colA === 'LOGIN_BG' && colB) {
+                                    currentBgUrl = colB;
+                                    document.body.style.backgroundImage = `url('${colB}')`;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("解析試算表背景 JSONP 失敗:", e);
+                } finally {
+                    const s = document.getElementById('sheet-bg-loader');
+                    if (s) s.remove();
+                    delete window.handleSheetData;
+                }
+            };
+
+            const script = document.createElement('script');
+            script.id = 'sheet-bg-loader';
+            script.src = "https://docs.google.com/spreadsheets/d/10YR8xKXvlTu1ccDYCMbxYOYjJGW-GxgGfvRpxEOtmYE/gviz/tq?tqx=responseHandler:handleSheetData&sheet=ELEMENTS";
+            script.onerror = function() {
+                console.error("載入試算表背景 JSONP 失敗，維持預設背景色");
+                const s = document.getElementById('sheet-bg-loader');
+                if (s) s.remove();
+                delete window.handleSheetData;
+            };
+            document.head.appendChild(script);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            formulaInterval = setInterval(() => createFormula(), 250);
+            loadBackgroundFromSheet();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const errParam = urlParams.get('error');
+            if (errParam) {
+                const errorMsg = document.getElementById('error-msg');
+                if (errorMsg) {
+                    errorMsg.innerText = decodeURIComponent(errParam);
+                    errorMsg.style.opacity = '1';
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const physicsFormulas = [
+            "v = u + at", "s = ut + ½at²", "v² = u² + 2as", "F = ma", "p = mv",
+            "E = mc²", "W = Fs cos θ", "P = IV", "V = IR", "Q = mc∆T",
+            "f = 1/T", "v = fλ", "n = c/v", "F = G m₁m₂/r²", "E = hf",
+            "L = mvr", "a = v²/r", "T = 2π√(l/g)", "pV = nRT", "λ = h/p",
+            "n₁sinθ₁ = n₂sinθ₂", "1/u + 1/v = 1/f", "∆p = F∆t", "E = ½mv²",
+            "τ = Fr sinθ", "φ = BA cosθ", "ε = -N(∆φ/∆t)"
+        ];
+
+        function createFormula() {
+            const container = document.getElementById('formula-container');
+            if (!container) return;
+            const formula = document.createElement('div');
+            formula.className = 'formula';
+            formula.innerText = physicsFormulas[Math.floor(Math.random() * physicsFormulas.length)];
+            const isMobile = window.innerWidth < 768;
+            const padding = isMobile ? 15 : 5;
+            const x = Math.random() * (100 - padding * 2) + padding;
+            const y = Math.random() * (100 - padding * 2) + padding;
+            const size = Math.random() * (isMobile ? 16 : 20) + (isMobile ? 16 : 22); 
+            const duration = Math.random() * 1.5 + 2;
+            formula.style.left = `${x}%`;
+            formula.style.top = `${y}%`;
+            formula.style.fontSize = `${size}px`;
+            formula.style.animation = `formulaFade ${duration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`;
+            container.appendChild(formula);
+            setTimeout(() => formula.remove(), duration * 1000);
+        }
+
+        function playHoverSound() {
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        // ★ 修正版：原本寫成 const osc = IP = audioCtx.createOscillator() 會偷偷建立全域變數 IP，現已修正
+        function playLoadingTick(frequency = 600) {
+            if (audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.03);
+        }
+
+        // ============================================================
+        // ★★★ 核心修補：登入流程加入請求去重 + 競態防護 + 延長超時 ★★★
+        // ============================================================
+        let loadingInterval = null;
+        let progressVal = 0;
+        let authResult = null;        // null = 驗證中, true = 成功, false = 失敗
+        let authErrorMessage = "";
+        let guardTimeoutId = null;
+        let reassuringInterval = null;
+        let inFlightController = null; // 當前飛行中的 AbortController
+
+        const reassuringMessages = [
+            "正在初始化 PH studio 安全沙盒模組...",
+            "正在與 Permissions 驗證主機進行安全校驗...",
+            "正在建立 SSL 雙向加密信道...",
+            "正在同步 Google 試算表學籍檔案...",
+            "正在解析熱力學、電磁學與波動模組...",
+            "正在載入高級 Canvas 物理軌跡渲染組件...",
+            "正在微調 iOS 系統級物理阻尼交互引擎...",
+            "GAS 冷啟動中，首次校驗可能需要數秒，請稍候...",
+            "安全憑證核發中，正在整理系統快取檔案..."
+        ];
+
+        function startReassuringMessages() {
+            const reassuringText = document.getElementById('reassuring-text');
+            if (!reassuringText) return;
+            let index = 0;
+            reassuringText.innerText = reassuringMessages[0];
+            reassuringText.style.opacity = "0.7";
+            
+            reassuringInterval = setInterval(() => {
+                reassuringText.style.opacity = "0";
+                setTimeout(() => {
+                    index = (index + 1) % reassuringMessages.length;
+                    reassuringText.innerText = reassuringMessages[index];
+                    reassuringText.style.opacity = "0.7";
+                }, 300);
+            }, 1500);
+        }
+
+        function stopReassuringMessages() {
+            if (reassuringInterval) {
+                clearInterval(reassuringInterval);
+                reassuringInterval = null;
+            }
+            const reassuringText = document.getElementById('reassuring-text');
+            if (reassuringText) reassuringText.style.opacity = "0";
+        }
+
+        function handleLogin(event) {
+            if (event) event.preventDefault();
+            
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            // ★ 防止重複點擊：上一個請求還在飛行中時直接忽略
+            if (inFlightController && authResult === null) {
+                playLoadingTick(300);
+                return;
+            }
+
+            const userVal = document.getElementById('username').value.trim();
+            const passVal = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            if (!userVal || !passVal) {
+                errorMsg.innerText = "請輸入帳號與密碼";
+                errorMsg.style.opacity = '1';
+                playLoadingTick(300);
+                return;
+            }
+
+            // 初始化驗證與動畫狀態
+            authResult = null;
+            authErrorMessage = "";
+
+            startPreLaunch();
+            runLoadingLoop();
+
+            // ★ 每個請求使用獨立 controller，並掛到 inFlightController 用於去重
+            const controller = new AbortController();
+            inFlightController = controller;
+
+            // ★ 超時延長到 15 秒，給 GAS 冷啟動留餘裕（原 8 秒太短）
+            guardTimeoutId = setTimeout(() => {
+                if (inFlightController === controller && authResult === null) {
+                    controller.abort();
+                    authErrorMessage = "認證中心伺服器連線超時（建議重試）";
+                    authResult = false;
+                }
+            }, 15000);
+
+            fetch(GAS_GUARD_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: JSON.stringify({
+                    username: userVal,
+                    password: passVal
+                }),
+                signal: controller.signal
+            })
+            .then(response => {
+                if (guardTimeoutId) {
+                    clearTimeout(guardTimeoutId);
+                    guardTimeoutId = null;
+                }
+                if (!response.ok) {
+                    throw new Error("HTTP status " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // ★ 防止舊請求遲到覆蓋新狀態
+                if (inFlightController !== controller) return;
+                
+                if (data.success) {
+                    if (data.token) localStorage.setItem('jwt_token', data.token);
+                    if (data.role) localStorage.setItem('user_role', data.role);
+                    localStorage.setItem('user_username', userVal);
+                    
+                    if (data.identity_tag) {
+                        localStorage.setItem('user_class', data.identity_tag.class || "");
+                        localStorage.setItem('user_class_no', data.identity_tag.class_no || "");
+                        localStorage.setItem('user_real_name', data.identity_tag.real_name || "");
+                    } else {
+                        localStorage.setItem('user_class', "");
+                        localStorage.setItem('user_class_no', "");
+                        localStorage.setItem('user_real_name', "");
+                    }
+                    
+                    authResult = true;
+                } else {
+                    authErrorMessage = data.message || "帳號或密碼錯誤";
+                    authResult = false; 
+                }
+            })
+            .catch(err => {
+                if (guardTimeoutId) {
+                    clearTimeout(guardTimeoutId);
+                    guardTimeoutId = null;
+                }
+                if (inFlightController !== controller) return;
+                
+                console.error("連線到 Guard API 失敗:", err);
+                if (err.name === 'AbortError') {
+                    if (!authErrorMessage) {
+                        authErrorMessage = "認證中心伺服器連線超時";
+                    }
+                } else {
+                    authErrorMessage = "認證中心伺服器連線異常";
+                }
+                authResult = false;
+            })
+            .finally(() => {
+                if (inFlightController === controller) {
+                    inFlightController = null;
+                }
+            });
+        }
+
+        function startPreLaunch() {
+            const landing = document.getElementById('landing-screen');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const statusText = document.getElementById('status-text');
+
+            document.body.style.backgroundImage = "none";
+            document.body.style.backgroundColor = "#FFFFFF";
+
+            formulaContainer.style.opacity = "1";
+
+            landing.style.animation = "none";
+            document.getElementById('item-icon').style.animation = "none";
+            document.getElementById('item-title-1').style.animation = "none";
+            document.getElementById('item-title-2').style.animation = "none";
+            document.getElementById('item-form').style.animation = "none";
+            document.getElementById('item-button').style.animation = "none";
+
+            landing.style.background = "rgba(255, 255, 255, 0)";
+            landing.style.borderColor = "transparent";
+            landing.style.boxShadow = "none";
+            landing.style.backdropFilter = "none";
+            landing.style.webkitBackdropFilter = "none";
+            landing.style.transform = "translateY(-20px)";
+
+            document.getElementById('item-icon').style.transform = "translateY(-40px)";
+            document.getElementById('item-icon').style.opacity = "0";
+
+            document.getElementById('item-title-1').style.transform = "translateY(-50px)";
+            document.getElementById('item-title-1').style.opacity = "0";
+
+            document.getElementById('item-title-2').style.transform = "translateY(-45px)";
+            document.getElementById('item-title-2').style.opacity = "0";
+
+            const itemForm = document.getElementById('item-form');
+            itemForm.style.transform = "translateY(-35px)";
+            itemForm.style.opacity = "0";
+            document.getElementById('username').disabled = true;
+            document.getElementById('password').disabled = true;
+
+            const launchBtn = document.getElementById('launch-btn');
+            launchBtn.style.transform = "translateY(-30px)";
+            launchBtn.style.opacity = "0";
+            launchBtn.style.pointerEvents = "none";
+            launchBtn.disabled = true;
+
+            document.getElementById('bar-container').style.display = 'block';
+            
+            startReassuringMessages();
+        }
+
+        function runLoadingLoop() {
+            const progress = document.getElementById('bar-progress');
+            const statusText = document.getElementById('status-text');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const landing = document.getElementById('landing-screen');
+
+            loadingInline.classList.remove('hidden');
+            loadingInline.style.opacity = "1";
+            loadingInline.style.transform = "translateY(-40px)";
+
+            progressVal = 0;
+            const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
+            let messageIndex = 0;
+
+            if (loadingInterval) clearInterval(loadingInterval);
+
+            loadingInterval = setInterval(() => {
+                if (authResult !== null) {
+                    progressVal += Math.random() * 8 + 6;
+                } else {
+                    if (progressVal < 45) {
+                        progressVal += Math.random() * 2.5 + 1.0;
+                    }
+                }
+
+                if (progressVal >= 100) {
+                    progressVal = 100;
+                    progress.style.width = '100%';
+                    
+                    clearInterval(loadingInterval);
+                    loadingInterval = null;
+                    
+                    stopReassuringMessages();
+
+                    loadingInline.style.opacity = "0";
+                    loadingInline.style.transform = "translateY(-60px)";
+                    landing.style.opacity = "0";
+                    
+                    setTimeout(() => { 
+                        showWelcomeModal();
+                    }, 600);
+                } else {
+                    progress.style.width = progressVal + '%';
+
+                    const targetIdx = Math.min(Math.floor((progressVal / 100) * statusMessages.length), statusMessages.length - 1);
+                    if (targetIdx !== messageIndex) {
+                        messageIndex = targetIdx;
+                        statusText.innerText = statusMessages[messageIndex];
+                        playLoadingTick(800 + (messageIndex * 50));
+                    }
+                }
+            }, 50);
+        }
+
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.ios-glass-card');
+            const modalIconContainer = document.getElementById('modal-icon-container');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtext = document.getElementById('modal-subtext');
+            const modalMessage = document.getElementById('modal-message');
+            const primaryBtn = document.getElementById('modal-primary-btn');
+            const secondaryBtn = document.getElementById('modal-secondary-btn');
+
+            if (authResult === true) {
+                const role = localStorage.getItem('user_role') || "User";
+                const realName = localStorage.getItem('user_real_name') || "";
+                const userClass = localStorage.getItem('user_class') || "";
+                const classNo = localStorage.getItem('user_class_no') || "";
+                
+                modalIconContainer.innerHTML = '✓';
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold shadow-sm border border-emerald-500/10 bg-emerald-50/20 text-emerald-600";
+                
+                modalTitle.innerText = "WELCOME";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-[#1b365d]";
+                modalSubtext.innerText = "ACCESS GRANTED";
+                
+                primaryBtn.innerText = "Confirm & Enter";
+                primaryBtn.classList.remove('hidden');
+                secondaryBtn.classList.add('hidden');
+
+                if (realName) {
+                    modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>` +
+                                             `<div class="text-left bg-black/[0.02] border border-black/5 rounded-2xl p-4 space-y-2 mt-2 mb-2 text-xs tracking-wide text-[#2c2c2e]">` +
+                                             `<div>• 姓名：<strong>${realName}</strong></div>` +
+                                             `<div>• 班級：<strong>${userClass ? userClass : "N/A"} (${classNo ? classNo : "N/A"} 號)</strong></div>` +
+                                             `</div>` +
+                                             `身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
+                } else {
+                    modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>身分：<span class="bg-emerald-100/50 text-emerald-800 px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">${role.toUpperCase()}</span>`;
+                }
+                playLoadingTick(1000);
+            } else {
+                localStorage.setItem('jwt_token', 'visitor-token-guest');
+                localStorage.setItem('user_role', 'guest');
+                localStorage.setItem('user_username', 'guest_visitor');
+                localStorage.setItem('user_real_name', '訪客');
+                localStorage.setItem('user_class', 'Visitor');
+                localStorage.setItem('user_class_no', 'N/A');
+
+                modalIconContainer.innerHTML = '👤';
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
+                
+                modalTitle.innerText = "WELCOME";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-amber-700";
+                modalSubtext.innerText = "VISITOR ENTRANCE";
+                
+                primaryBtn.innerText = "Enter as Visitor";
+                primaryBtn.classList.remove('hidden');
+                secondaryBtn.innerText = "Try Again";
+                secondaryBtn.classList.remove('hidden');
+
+                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>您可以選擇以 <strong>訪客</strong> 身份探訪系統，或是返回重新登入。`;
+                playLoadingTick(400);
+            }
+
+            modal.classList.remove('pointer-events-none');
+            modal.classList.remove('opacity-0');
+            modal.classList.add('opacity-100');
+            modal.classList.add('active');
+            
+            modalCard.classList.remove('opacity-0');
+            modalCard.classList.add('active');
+        }
+
+        function confirmWelcomeRedirect() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.ios-glass-card');
+            const formulaContainer = document.getElementById('formula-container');
+            
+            playLoadingTick(900);
+            
+            modalCard.style.transform = "scale(0.95)";
+            modalCard.style.opacity = "0";
+            modal.classList.remove('active');
+            modal.style.opacity = "0";
+            
+            if (formulaContainer) {
+                formulaContainer.style.transition = "opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1)";
+                formulaContainer.style.opacity = "0";
+            }
+            
+            setTimeout(() => {
+                try {
+                    window.location.href = TARGET_URL;
+                } catch (e) {
+                    console.error("導向失敗:", e);
+                    window.location.assign(TARGET_URL);
+                }
+            }, 550);
+        }
+
+        function reloginWelcome() {
+            const modal = document.getElementById('welcome-modal');
+            const modalCard = modal.querySelector('.ios-glass-card');
+            
+            playLoadingTick(900);
+            
+            modalCard.style.transform = "scale(0.95)";
+            modalCard.style.opacity = "0";
+            modal.classList.remove('active');
+            modal.style.opacity = "0";
+            
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none');
+                const errMsg = authErrorMessage || "帳號或密碼錯誤";
+                window.location.href = "https://phyuaaphysics.github.io/phyustudio/index.html?error=" + encodeURIComponent(errMsg);
+            }, 550);
+        }
+
+        function rollbackSystem(errorMessage) {
+            const landing = document.getElementById('landing-screen');
+            const formulaContainer = document.getElementById('formula-container');
+            const loadingInline = document.getElementById('loading-inline-container');
+            const errorMsg = document.getElementById('error-msg');
+            const launchBtn = document.getElementById('launch-btn');
+
+            document.body.style.backgroundColor = "#81D8D0";
+            if (currentBgUrl) {
+                document.body.style.backgroundImage = `url('${currentBgUrl}')`;
+            }
+
+            if (formulaContainer) {
+                formulaContainer.style.opacity = "1";
+            }
+
+            landing.style.background = "rgba(255, 255, 255, 0.45)";
+            landing.style.borderColor = "rgba(255, 255, 255, 0.4)";
+            landing.style.boxShadow = "0 30px 70px rgba(0, 0, 0, 0.12)";
+            landing.style.backdropFilter = "blur(25px)";
+            landing.style.webkitBackdropFilter = "blur(25px)";
+            landing.style.transform = "translateY(0px)";
+            landing.style.opacity = "1";
+
+            document.getElementById('item-icon').style.transform = "translateY(0px)";
+            document.getElementById('item-icon').style.opacity = "1";
+
+            document.getElementById('item-title-1').style.transform = "translateY(0px)";
+            document.getElementById('item-title-1').style.opacity = "1";
+
+            document.getElementById('item-title-2').style.transform = "translateY(0px)";
+            document.getElementById('item-title-2').style.opacity = "1";
+
+            const itemForm = document.getElementById('item-form');
+            itemForm.style.transform = "translateY(0px)";
+            itemForm.style.opacity = "1";
+            
+            document.getElementById('username').disabled = false;
+            document.getElementById('password').disabled = false;
+            document.getElementById('password').value = "";
+
+            launchBtn.style.transform = "translateY(0px)";
+            launchBtn.style.opacity = "1";
+            launchBtn.style.pointerEvents = "auto";
+            launchBtn.disabled = false;
+            launchBtn.innerText = "Login & Browse";
+
+            loadingInline.style.opacity = "0";
+            loadingInline.style.transform = "translateY(0px)";
+            setTimeout(() => {
+                loadingInline.classList.add('hidden');
+                document.getElementById('bar-progress').style.width = "0%";
+            }, 1000);
+
+            if (errorMessage) {
+                errorMsg.innerText = errorMessage;
+                errorMsg.style.opacity = "1";
+            }
+            playLoadingTick(300);
+        }
+    </script>
+</body>
+</html>
