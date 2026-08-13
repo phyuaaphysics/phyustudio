@@ -777,69 +777,6 @@
             catch (e) { return null; }
         }
 
-        // ===== Token 健康檢查快取（避免每次點擊都重打 loader） =====
-        const TOKEN_CHECK_TTL_MS = 5 * 60 * 1000;   // 5 分鐘內重用同一份檢查結果
-        const TOKEN_LOCAL_SAFETY_SEC = 5 * 60;     // JWT 自身還剩 ≥ 5 分鐘就不打 loader
-        const _tokenCheck = { ok: false, checkedAt: 0, source: 'none' };
-
-        /**
-         * 輕量 token 健康檢查（背景跑，不阻塞 UI）
-         * 規則：
-         *  1) 沒 token → 標記需要登入
-         *  2) JWT 自身 exp - now >= TOKEN_LOCAL_SAFETY_SEC → 直接視為有效，不打 loader
-         *  3) 5 分鐘內已 check 過 → 重用結果
-         *  4) 否則背景打一次 checkVersion；不論成功 / 失敗都更新快取
-         * 任何業務請求拿到 401 / requireLogin 時應呼叫 invalidateTokenCheck() 清掉快取。
-         */
-        async function precheckToken() {
-            const now = Date.now();
-            const tok = getStoredToken();
-
-            // 1) 沒 token
-            if (!tok) {
-                _tokenCheck.ok = false; _tokenCheck.checkedAt = now; _tokenCheck.source = 'no-token';
-                return { ok: false, reason: 'no-token' };
-            }
-            // 2) 本地 JWT 還有足夠壽命 → 不打 loader
-            const p = decodeJwtPayload(tok);
-            if (p && p.exp && (p.exp - Math.floor(now / 1000)) > TOKEN_LOCAL_SAFETY_SEC) {
-                _tokenCheck.ok = true; _tokenCheck.checkedAt = now; _tokenCheck.source = 'jwt-local';
-                return { ok: true, reason: 'jwt-local' };
-            }
-            // 3) in-memory 快取
-            if (_tokenCheck.ok && (now - _tokenCheck.checkedAt) < TOKEN_CHECK_TTL_MS) {
-                return { ok: true, reason: 'cache', source: _tokenCheck.source };
-            }
-            // 4) 真的打一次 loader（背景）
-            try {
-                const json = await callLoaderCheckVersion('HWMENU');
-                _tokenCheck.ok = !!(json && json.version);
-                _tokenCheck.checkedAt = Date.now();
-                _tokenCheck.source = 'loader';
-                return { ok: _tokenCheck.ok, reason: _tokenCheck.ok ? 'loader' : 'loader-fail' };
-            } catch (e) {
-                _tokenCheck.checkedAt = Date.now();
-                if (e && (e.requireLogin || /Token|未提供|過期|簽章/.test(e.message || ''))) {
-                    _tokenCheck.ok = false; _tokenCheck.source = 'requireLogin';
-                    return { ok: false, reason: 'requireLogin' };
-                }
-                // 其他錯誤（網路、暫時性）→ 樂觀放行（已有 token 過了本地檢查），但標記 checked
-                _tokenCheck.ok = true; _tokenCheck.source = 'loader-soft-fail';
-                return { ok: true, reason: 'loader-soft-fail' };
-            }
-        }
-
-        function invalidateTokenCheck() {
-            _tokenCheck.ok = false;
-            _tokenCheck.checkedAt = 0;
-            _tokenCheck.source = 'invalidated';
-        }
-
-        // 在背景（不打斷 UI）做一次 precheck；第一次進站時呼叫
-        function backgroundPrecheckToken() {
-            precheckToken().catch(() => {});
-        }
-
         // 透過 loader 呼叫 action（GET）。若 requireLogin 或 401 → 自動跳出登入 modal → 重試
         async function callLoader(action, params = {}) {
             const token = getStoredToken();
@@ -859,8 +796,6 @@
             catch (e) { throw { network: true, message: 'Loader 回應非 JSON' }; }
 
             if (json && json.result === 'error' && (json.requireLogin || /Token|未提供|過期|簽章/.test(json.msg || ''))) {
-                // 標記快取失效（避免其他併發請求還以為 token 有效）
-                invalidateTokenCheck();
                 // 嘗試重新登入
                 const newToken = await promptLoginAndGetToken();
                 if (!newToken) throw { requireLogin: true, message: '用戶取消登入' };
@@ -994,20 +929,68 @@
         }
 
         async function guardLogin(username, password) {
-            // Apps Script doPost：直接送 text/plain 字串（避免 CORS preflight）
-            const resp = await fetch(GUARD_URL, {
-                method: 'POST',
-                cache: 'no-store',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ username, password }),
-                redirect: 'follow'
-            });
-            let json;
-            try { json = await resp.json(); }
-            catch (e) { throw new Error('Guard 回應非 JSON'); }
-            if (!json || !json.success) {
-                throw new Error((json && json.message) || '帳號或密碼錯誤');
+            // Apps Script doPost 三條相容路徑（依序嘗試）：
+            //   1) text/plain + JSON 字串         （避免 preflight，但 GAS 偶爾會回 HTML）
+            //   2) application/x-www-form-urlencoded （最穩，guard 端用 e.parameter 取）
+            //   3) text/plain + form-urlencoded 字串  （保底）
+            // 任一條拿到 success:true 就回傳 token；都失敗就把伺服器原始回應拼到錯誤訊息。
+            //
+            // 注意：兩種 Content-Type 都不會觸發 CORS preflight，瀏覽器只會直接 POST。
+            //
+            // 另：guard.gs 必須有一個 doGet（即使是 stub），否則 GAS 對任何意外 GET
+            //     （例如瀏覽器書籤、preflight fallback）會回 "找不到指令碼函數：doGet"，
+            //     那段錯誤訊息不是 JSON，前端會誤判。
+            //     修法：在 GAS 編輯器新增 function doGet(e) { return ContentService...
+            //              .createTextOutput(JSON.stringify({result:'error',msg:'Use POST'}))... }
+
+            const tries = [
+                {
+                    name: 'text/plain-json',
+                    body: JSON.stringify({ username, password }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                },
+                {
+                    name: 'form-urlencoded',
+                    body: 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' }
+                }
+            ];
+
+            let lastErr = null;
+            for (const t of tries) {
+                try {
+                    const resp = await fetch(GUARD_URL, {
+                        method: 'POST',
+                        cache: 'no-store',
+                        headers: t.headers,
+                        body: t.body,
+                        redirect: 'follow'
+                    });
+                    const text = await resp.text();
+                    console.log(`[guard] ${t.name} status=${resp.status} body[:200]=`, text.slice(0, 200));
+                    if (!text) { lastErr = `[${t.name}] 空回應`; continue; }
+                    // 先試 JSON
+                    let json = null;
+                    try { json = JSON.parse(text); } catch (e) {}
+                    if (json && json.success) {
+                        return finalizeGuardLogin(json, username);
+                    }
+                    if (json && !json.success) {
+                        throw new Error(json.message || '帳號或密碼錯誤');
+                    }
+                    // 不是 JSON（很可能是 HTML 授權頁或登入頁）→ 換下一種試
+                    lastErr = `[${t.name}] 非 JSON（status=${resp.status}，前 80 字：${text.slice(0, 80).replace(/\s+/g, ' ')}）`;
+                } catch (e) {
+                    // 業務錯誤訊息（帳號不存在 / 密碼錯誤 / 此帳號已被停用）→ 直接上拋，不重試
+                    const msg = (e && e.message) || '';
+                    if (msg && !/JSON|回應|空|非 JSON/.test(msg)) throw e;
+                    lastErr = `[${t.name}] ` + (msg || 'exception');
+                }
             }
+            throw new Error('Guard 連線失敗：' + (lastErr || '未知錯誤'));
+        }
+
+        function finalizeGuardLogin(json, username) {
             setStoredToken(json.token);
             if (json.identity_tag) {
                 setStoredUser({
@@ -1020,10 +1003,6 @@
             } else {
                 setStoredUser({ username, role: json.role });
             }
-            // 新 token：標記快取 ok，TTL 重新計算（5 分鐘內不再打 checkVersion）
-            _tokenCheck.ok = true;
-            _tokenCheck.checkedAt = Date.now();
-            _tokenCheck.source = 'fresh-login';
             return json.token;
         }
 
@@ -2339,8 +2318,6 @@
 
         document.addEventListener('DOMContentLoaded', initData);
         document.addEventListener('DOMContentLoaded', updateMembershipChip);
-        // 進站時背景預檢 token 狀態（不打斷 UI）
-        document.addEventListener('DOMContentLoaded', backgroundPrecheckToken);
     </script>
 </body>
 </html>
