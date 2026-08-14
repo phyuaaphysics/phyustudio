@@ -817,7 +817,7 @@
         // 改用 loader.gs（GAS Web App）作為唯一讀取入口；gviz 公開讀取已關閉
         const LOADER_URL     = 'https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec';  // loader.gs（Sheet A 讀取）
         const GUARD_URL      = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';  // guard.gs（登入）
-        const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbwNKKvRsHaF9UOKNOorl8uTVhmQIhnSa9gyg6KQZxXCQOuKgB_2iw9qqqlJ7s0yu1G-/exec';  // attendance.gs Web App (v2.1: 跨班 role filter + membership)
+        const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbwoml8VH-X_Qw_kGgSxKC4CuU0Z403lbV7FhdYQ3e3fJh7bn2MhrjvDpMRPnbR5QUb2/exec';  // attendance.gs Web App (v2.2: + realNameOverride)
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         const SHEET_NAME = 'HWMENU';
         const DETAIL_SPREADSHEET_ID = '1HUjN9M9u7-vFt3dR9zbfNjgeFfyIWitxnEJiZ7mqesA';
@@ -1008,12 +1008,27 @@
             const token = getStoredToken();
             if (!token) throw new Error('尚未登入');
 
+            // v2.2：用 localStorage 裡的 real_name / class / class_no 作為 override
+            //   index 登入時已把正確姓名寫進 localStorage（即使 Permissions F 欄是 placeholder）
+            //   把這些值帶給 attendance.gs，覆寫 token payload 的值
+            const realNameOverride = (localStorage.getItem('user_real_name') || '').trim();
+            const classOverride    = (localStorage.getItem('user_class')      || '').trim();
+            const classNoOverride  = (localStorage.getItem('user_class_no')   || '').trim();
+
+            const postBody = JSON.stringify({
+                volName, hwId, range, status,
+                note: note || '',
+                realNameOverride:  realNameOverride,
+                classOverride:     classOverride,
+                classNoOverride:   classNoOverride
+            });
+
             // 走 attendance.gs（POST）
             const resp = await fetch(ATTENDANCE_URL + '?action=recordAttendance&token=' + encodeURIComponent(token), {
                 method: 'POST',
                 cache: 'no-store',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ volName, hwId, range, status, note: note || '' }),
+                body: postBody,
                 redirect: 'follow'
             });
             const text = await resp.text();
@@ -1027,7 +1042,7 @@
                     method: 'POST',
                     cache: 'no-store',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ volName, hwId, range, status, note: note || '' }),
+                    body: postBody,
                     redirect: 'follow'
                 });
                 const json2 = await resp2.json();
