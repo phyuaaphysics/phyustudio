@@ -975,11 +975,11 @@
             return rows.map(r => (r || []).map(escape).join(',')).join('\n');
         }
 
-        // ===== 簽到制 API（loader.gs 對應 action：recordAttendance / getAttendance / getRosterByClass / getMyAttendance） =====
-        const STUDENT_ROLES = ['S3', 'S4', 'S5', 'S6'];
+        // ===== 簽到制 API =====
+        const STUDENT_ROLES = new Set(['S3', 'S4', 'S5', 'S6']);
         function isStudentRole() {
             const r = String((getStoredUser() && getStoredUser().role) || localStorage.getItem('user_role') || '').toUpperCase();
-            return STUDENT_ROLES.indexOf(r) >= 0;
+            return STUDENT_ROLES.has(r);
         }
         function currentVideoKey(volName, hwId, range) {
             return `${volName || ''}::${hwId || ''}::${range || '0'}`;
@@ -1044,18 +1044,39 @@
             if (onlyClass) params.class = onlyClass;
             return await callAttendance('getAttendance', params);
         }
-        async function getRosterByClass(klass, role) {
-            const params = {};
-            if (klass) params.class = klass;
-            if (role)  params.role  = role;
-            // Debug：印出實際打到 attendance.gs 的 URL 與 params
-            const dbgUrl = new URL(ATTENDANCE_URL);
-            dbgUrl.searchParams.set('action', 'getRosterByClass');
-            const tk = getStoredToken();
-            if (tk) dbgUrl.searchParams.set('token', tk);
-            for (const k of Object.keys(params)) dbgUrl.searchParams.set(k, params[k]);
-            console.log('[roster-debug] params=', JSON.stringify(params), 'url=', dbgUrl.toString().replace(/token=[^&]+/, 'token=***'));
-            return await callAttendance('getRosterByClass', params);
+        // 從 gviz 直連 NAME tab 抓 roster（公開資料，繞過 attendance.gs）
+        // 欄位：A=Role, B=Class, C=class_no, D=real_name, E=membership
+        // role 過濾在前端做
+        const NAME_TAB_URL = () =>
+            `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=NAME&_=${Date.now()}`;
+        async function getRosterByClass(_klass, role) {
+            const r = await fetch(NAME_TAB_URL(), { cache: 'no-store' });
+            if (!r.ok) throw new Error('抓 NAME tab 失敗 (HTTP ' + r.status + ')');
+            const csv = await r.text();
+            const rows = parseCSV(csv);
+            const out = [];
+            const wantedRole = (role || '').toUpperCase();
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || !row[0]) continue;
+                const stuRole = String(row[0] || '').trim().toUpperCase();
+                if (!STUDENT_ROLES.has(stuRole)) continue;
+                if (wantedRole && wantedRole !== 'ALL' && stuRole !== wantedRole) continue;
+                out.push({
+                    role:       stuRole,
+                    class:      String(row[1] || '').trim(),
+                    class_no:   String(row[2] || '').trim(),
+                    real_name:  String(row[3] || '').trim(),
+                    membership: String(row[4] || '').trim()
+                });
+            }
+            // 排序：role → class → class_no
+            out.sort((a, b) => {
+                if (a.role !== b.role) return a.role.localeCompare(b.role);
+                if (a.class !== b.class) return a.class.localeCompare(b.class);
+                return (parseInt(a.class_no, 10) || 0) - (parseInt(b.class_no, 10) || 0);
+            });
+            return { result: 'success', action: 'getRoster', roster: out };
         }
         async function getMyAttendance(volName, hwId, range) {
             return await callAttendance('getMyAttendance', { volName, hwId, range });
@@ -1954,9 +1975,6 @@
                 ]);
                 __rosterState.records = (attJson && attJson.records) || [];
                 __rosterState.roster  = (rosterJson && rosterJson.roster) || [];
-                // Debug：印出 server 實際回傳的 roster 大小與前 3 筆
-                console.log('[roster-debug] server returned roster.length=' + __rosterState.roster.length,
-                    'first 3:', JSON.stringify(__rosterState.roster.slice(0, 3)));
                 renderRoster();
             } catch (e) {
                 body.innerHTML = `<div class="text-rose-600 text-sm font-bold">
@@ -1968,13 +1986,15 @@
         function renderRoster() {
             const body = document.getElementById('all-att-body');
             const { records, roster, role } = __rosterState;
+            // 用「real_name」當唯一 key（單欄比對）
+            // 假設：Permissions (登入用) 跟 NAME tab 的 D 欄（真名）已對齊
             const byKey = new Map();
             records.forEach(r => {
-                const k = `${r.class || ''}|${r.class_no || ''}|${r.real_name || ''}`;
-                byKey.set(k, r);
+                const k = String(r.real_name || '').trim();
+                if (k) byKey.set(k, r);
             });
             const rows = roster.map(stu => {
-                const k = `${stu.class || ''}|${stu.class_no || ''}|${stu.real_name || ''}`;
+                const k = String(stu.real_name || '').trim();
                 return { stu, rec: byKey.get(k) };
             });
             const activeCount   = records.filter(r => r.status === 'ACTIVE').length;
