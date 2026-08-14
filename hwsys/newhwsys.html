@@ -815,7 +815,7 @@
     <script>
         // ===== 全局配置 =====
         // 改用 loader.gs（GAS Web App）作為唯一讀取入口；gviz 公開讀取已關閉
-        const LOADER_URL     = 'https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec';  // loader.gs（Sheet A 讀取）
+        const LOADER_URL     = 'https://script.google.com/macros/s/AKfycbw0p2jz4IbqcWsGywG8gZe-ZjvkhOYvEHvFU6_IOvsa-U2i6hTNLgLle5qSX6qBt_cC/exec';  // loader.gs v3.0（純讀取）
         const GUARD_URL      = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';  // guard.gs（登入）
         const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbwoml8VH-X_Qw_kGgSxKC4CuU0Z403lbV7FhdYQ3e3fJh7bn2MhrjvDpMRPnbR5QUb2/exec';  // attendance.gs Web App (v2.2: + realNameOverride)
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
@@ -2046,7 +2046,7 @@
                 <div class="flex flex-wrap items-center gap-2 text-[10px] font-extrabold tracking-[0.2em] uppercase mb-3">
                     <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">✓ ACTIVE ${activeCount}</span>
                     <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700">✗ INACTIVE ${inactiveCount}</span>
-                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">— 未簽 ${unsetCount}</span>
+                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">✗ 未完成 ${unsetCount}</span>
                 </div>
             `;
 
@@ -2076,10 +2076,14 @@
                                     ? 'ultra-name'
                                     : 'text-slate-800 font-bold';
                                 let badge;
-                                if (!r) {
-                                    badge = `<span class="text-slate-300 text-base" title="未簽到">—</span>`;
+                                if (isUltra) {
+                                    // ULTRA 學生永遠 —（不論有沒有 record，視為免看完整段 / 免簽到）
+                                    badge = `<span class="text-slate-300 text-base" title="PH ULTRA 免簽到">—</span>`;
+                                } else if (!r) {
+                                    // 非 ULTRA 沒 record = 未完成 → ✗
+                                    badge = `<span class="text-rose-600 text-base" title="未完成">✗</span>`;
                                 } else if (r.status === 'ACTIVE') {
-                                    badge = `<span class="text-emerald-600 text-base" title="ACTIVE">✓</span>`;
+                                    badge = `<span class="text-emerald-600 text-base" title="已完成">✓</span>`;
                                 } else if (r.status === 'INACTIVE') {
                                     badge = `<span class="text-rose-600 text-base" title="INACTIVE">✗</span>`;
                                 } else {
