@@ -805,8 +805,9 @@
     <script>
         // ===== 全局配置 =====
         // 改用 loader.gs（GAS Web App）作為唯一讀取入口；gviz 公開讀取已關閉
-        const LOADER_URL = 'https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec';  // loader.gs Web App
-        const GUARD_URL  = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';  // guard.gs Web App
+        const LOADER_URL     = 'https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec';  // loader.gs（Sheet A 讀取）
+        const GUARD_URL      = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';  // guard.gs（登入）
+        const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbz2KC7K2Q40lKa0r7ITNNTfjt1xnjUkdhp4EokMrYzCWijGpywjqC7d5LTo0U1Z5dik/exec';  // attendance.gs Web App
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         const SHEET_NAME = 'HWMENU';
         const DETAIL_SPREADSHEET_ID = '1HUjN9M9u7-vFt3dR9zbfNjgeFfyIWitxnEJiZ7mqesA';
@@ -912,6 +913,46 @@
             return await callLoader('checkVersion', { topicId });
         }
 
+        // attendance: 走獨立 GAS（同 callLoader 介面，但用 ATTENDANCE_URL）
+        async function callAttendance(action, params = {}) {
+            const token = getStoredToken();
+            const url = new URL(ATTENDANCE_URL);
+            url.searchParams.set('action', action);
+            if (token) url.searchParams.set('token', token);
+            for (const k of Object.keys(params)) {
+                if (params[k] != null) url.searchParams.set(k, params[k]);
+            }
+            let resp, json;
+            try {
+                resp = await fetch(url.toString(), { method: 'GET', cache: 'no-store', redirect: 'follow' });
+            } catch (e) {
+                throw { network: true, message: 'Attendance 連線失敗：' + e.message };
+            }
+            try { json = await resp.json(); }
+            catch (e) { throw { network: true, message: 'Attendance 回應非 JSON' }; }
+
+            if (json && json.result === 'error' && (json.requireLogin || /Token|未提供|過期|簽章/.test(json.msg || ''))) {
+                const newToken = await promptLoginAndGetToken();
+                if (!newToken) throw { requireLogin: true, message: '用戶取消登入' };
+                const url2 = new URL(ATTENDANCE_URL);
+                url2.searchParams.set('action', action);
+                url2.searchParams.set('token', newToken);
+                for (const k of Object.keys(params)) {
+                    if (params[k] != null) url2.searchParams.set(k, params[k]);
+                }
+                const resp2 = await fetch(url2.toString(), { method: 'GET', cache: 'no-store', redirect: 'follow' });
+                const json2 = await resp2.json();
+                if (json2 && json2.result === 'error') {
+                    throw { requireLogin: true, message: json2.msg || '仍無法通過驗證' };
+                }
+                return json2;
+            }
+            if (json && json.result === 'error') {
+                throw { message: json.msg || 'Attendance 錯誤' };
+            }
+            return json;
+        }
+
         // 將 loader 2D array 轉成 CSV 字串（讓既有 parseCardCSV / parseDetailCSV 可以直接吃）
         function rowsToCSV(rows) {
             if (!Array.isArray(rows) || rows.length === 0) return '';
@@ -922,6 +963,83 @@
                 return s;
             };
             return rows.map(r => (r || []).map(escape).join(',')).join('\n');
+        }
+
+        // ===== 簽到制 API（loader.gs 對應 action：recordAttendance / getAttendance / getRosterByClass / getMyAttendance） =====
+        const STUDENT_ROLES = ['S3', 'S4', 'S5', 'S6'];
+        function isStudentRole() {
+            const r = String((getStoredUser() && getStoredUser().role) || localStorage.getItem('user_role') || '').toUpperCase();
+            return STUDENT_ROLES.indexOf(r) >= 0;
+        }
+        function currentVideoKey(volName, hwId, range) {
+            return `${volName || ''}::${hwId || ''}::${range || '0'}`;
+        }
+        function hasWatchedVideo(videoKey) {
+            return __ytWatchedKeys && __ytWatchedKeys.has(videoKey);
+        }
+
+        // 寫入簽到 / 簽退。回傳 boolean（true = 成功）
+        async function recordAttendance(opts) {
+            const { volName, hwId, range, status, note } = opts || {};
+            if (!volName || !hwId || !range) {
+                throw new Error('缺少 volName / hwId / range');
+            }
+            if (status !== 'ACTIVE' && status !== 'INACTIVE') {
+                throw new Error('status 只能 ACTIVE / INACTIVE');
+            }
+            if (!isStudentRole()) {
+                throw new Error('你的角色無簽到權限（需 S3 / S4 / S5 / S6）');
+            }
+            // 觀看 gating：必須看過該 video
+            const vk = currentVideoKey(volName, hwId, range);
+            if (!hasWatchedVideo(vk)) {
+                throw new Error('請先完整觀看此短片再簽到');
+            }
+            const token = getStoredToken();
+            if (!token) throw new Error('尚未登入');
+
+            // 走 attendance.gs（POST）
+            const resp = await fetch(ATTENDANCE_URL + '?action=recordAttendance&token=' + encodeURIComponent(token), {
+                method: 'POST',
+                cache: 'no-store',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ volName, hwId, range, status, note: note || '' }),
+                redirect: 'follow'
+            });
+            const text = await resp.text();
+            let json = null;
+            try { json = JSON.parse(text); } catch (e) {}
+            if (json && json.result === 'success') return true;
+            if (json && json.result === 'error' && (json.requireLogin || /Token|未提供|過期|簽章/.test(json.msg || ''))) {
+                const newToken = await promptLoginAndGetToken();
+                if (!newToken) throw new Error('已取消登入');
+                const resp2 = await fetch(ATTENDANCE_URL + '?action=recordAttendance&token=' + encodeURIComponent(newToken), {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ volName, hwId, range, status, note: note || '' }),
+                    redirect: 'follow'
+                });
+                const json2 = await resp2.json();
+                if (json2 && json2.result === 'success') return true;
+                throw new Error((json2 && json2.msg) || '寫入失敗');
+            }
+            throw new Error((json && json.msg) || ('HTTP ' + resp.status) || '寫入失敗');
+        }
+
+        // 拿某 video 的全班最新狀態（走 attendance.gs）
+        async function getAttendance(opts) {
+            const { volName, hwId, range, onlyClass } = opts || {};
+            const params = { volName, hwId, range };
+            if (onlyClass) params.class = onlyClass;
+            return await callAttendance('getAttendance', params);
+        }
+        async function getRosterByClass(klass) {
+            const params = klass ? { class: klass } : {};
+            return await callAttendance('getRosterByClass', params);
+        }
+        async function getMyAttendance(volName, hwId, range) {
+            return await callAttendance('getMyAttendance', { volName, hwId, range });
         }
 
         // ===== 登入 Modal（PH studio Launch 風格） =====
@@ -1119,6 +1237,8 @@
         var __ytAttendanceTimer = null;
         var __ytAttendanceUnlocked = false;
         var __ytLastVideoKey = '';
+        // 簽到制：已完整看完的 videoKey 集合（用於「觀看後才可簽到」gating）
+        var __ytWatchedKeys = new Set();
         let __detailItems = [];
         let __detailVolName = '';
         let __detailBgUrl = '';
@@ -1616,11 +1736,13 @@
                     class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-full text-xs font-extrabold shadow-lg active:scale-95 flex items-center gap-2 animate-pulse">
                     <i class="fas fa-check-circle"></i><span>${txt}</span></button>`;
                 __ytAttendanceUnlocked = true;
+                if (__ytLastVideoKey) __ytWatchedKeys.add(__ytLastVideoKey);
             } else if (kind === 'ready') {
                 existing.innerHTML = `<button id="yt-attendance-btn" onclick="onYTAttendanceConfirm()"
                     class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-extrabold shadow-md active:scale-95 flex items-center gap-2">
                     <i class="fas fa-check-circle"></i><span>完成簽到 (ULTRA 會員免倒數)</span></button>`;
                 __ytAttendanceUnlocked = true;
+                if (__ytLastVideoKey) __ytWatchedKeys.add(__ytLastVideoKey);
             } else if (kind === 'timeout') {
                 existing.innerHTML = `<button disabled
                     class="px-5 py-2.5 bg-rose-600 text-white rounded-full text-xs font-extrabold shadow-md cursor-not-allowed flex items-center gap-2">
@@ -1634,21 +1756,301 @@
             }
         }
 
+        // ===== 簽到 4 個按鈕（PH glass pill 風） =====
+        // 在 media-stage 頂端插入一條 4 顆膠囊：簽到 / 簽退 / 全班 / 重整
+        function renderAttendanceBar(volName, hwId, range) {
+            const stage = document.getElementById('media-stage');
+            if (!stage) return;
+            // 移除舊的（避免切換 range 時殘留）
+            const old = document.getElementById('attendance-bar');
+            if (old) old.remove();
+
+            const vk = currentVideoKey(volName, hwId, range);
+            const watched = hasWatchedVideo(vk);
+            const student = isStudentRole();
+            const token = getStoredToken();
+
+            const bar = document.createElement('div');
+            bar.id = 'attendance-bar';
+            bar.className = 'px-4 py-3 border-b border-slate-100 flex flex-wrap items-center gap-2 justify-center';
+            const btnBase = 'px-3.5 py-2 rounded-full text-[10px] font-extrabold tracking-[0.2em] uppercase transition-all active:scale-95 flex items-center gap-1.5 backdrop-blur-md';
+            const disabledCls = ' opacity-50 cursor-not-allowed pointer-events-none';
+
+            // 1) 簽到 ACTIVE
+            const signInDisabled = !student || !token || !watched;
+            const signInTitle = !student ? '需 S3/S4/S5/S6 學生身份'
+                : !token ? '請先登入'
+                : !watched ? '請先完整觀看此短片'
+                : '記錄 ACTIVE 簽到';
+            bar.innerHTML = `
+                <button id="btn-sign-in"
+                        class="${btnBase} bg-emerald-500 hover:bg-emerald-600 text-white shadow-md${signInDisabled ? disabledCls : ''}"
+                        title="${signInTitle}">
+                    <i class="fas fa-check"></i><span>簽到</span>
+                </button>
+                <button id="btn-sign-out"
+                        class="${btnBase} bg-rose-500 hover:bg-rose-600 text-white shadow-md${signInDisabled ? disabledCls : ''}"
+                        title="${signInTitle}">
+                    <i class="fas fa-times"></i><span>簽退</span>
+                </button>
+                <button id="btn-show-all"
+                        class="${btnBase} bg-white/85 hover:bg-white ring-1 ring-slate-200 text-slate-700 shadow-sm${!token ? disabledCls : ''}"
+                        title="${!token ? '請先登入' : '查看全班簽到記錄'}">
+                    <i class="fas fa-users"></i><span>全部人簽到</span>
+                </button>
+                <button id="btn-refresh-att"
+                        class="${btnBase} bg-white/85 hover:bg-white ring-1 ring-slate-200 text-slate-700 shadow-sm${!token ? disabledCls : ''}"
+                        title="重新整理我的簽到狀態">
+                    <i class="fas fa-rotate"></i><span>重整</span>
+                </button>
+                <span id="att-status-chip" class="text-[9px] font-bold tracking-widest uppercase text-slate-400 ml-1"></span>
+            `;
+            // 插在 media-stage 內最前面（在 video 之前）
+            stage.insertBefore(bar, stage.firstChild);
+
+            // 綁事件
+            const bind = (id, fn) => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', fn);
+            };
+            bind('btn-sign-in',  () => handleStudentSign('ACTIVE',  volName, hwId, range));
+            bind('btn-sign-out', () => handleStudentSign('INACTIVE', volName, hwId, range));
+            bind('btn-show-all', () => showAllAttendance(volName, hwId, range));
+            bind('btn-refresh-att', () => refreshMyAttendanceChip(volName, hwId, range));
+
+            // 抓自己最新狀態
+            refreshMyAttendanceChip(volName, hwId, range);
+        }
+
+        function setAttStatusChip(text, tone) {
+            const el = document.getElementById('att-status-chip');
+            if (!el) return;
+            const colors = {
+                active:   'text-emerald-600',
+                inactive: 'text-rose-600',
+                none:     'text-slate-400',
+                loading:  'text-sky-500',
+                error:    'text-rose-600'
+            };
+            el.className = `text-[9px] font-bold tracking-widest uppercase ml-1 ${colors[tone] || colors.none}`;
+            el.textContent = text;
+        }
+
+        async function refreshMyAttendanceChip(volName, hwId, range) {
+            if (!getStoredToken()) { setAttStatusChip('未登入', 'none'); return; }
+            setAttStatusChip('讀取中…', 'loading');
+            try {
+                const json = await getMyAttendance(volName, hwId, range);
+                const rec = json && json.record;
+                if (!rec) {
+                    setAttStatusChip('尚未簽到', 'none');
+                } else if (rec.status === 'ACTIVE') {
+                    setAttStatusChip('你目前：ACTIVE ✓', 'active');
+                } else if (rec.status === 'INACTIVE') {
+                    setAttStatusChip('你目前：INACTIVE ✗', 'inactive');
+                } else {
+                    setAttStatusChip('你目前：' + rec.status, 'none');
+                }
+            } catch (e) {
+                setAttStatusChip('讀取失敗', 'error');
+            }
+        }
+
+        async function handleStudentSign(status, volName, hwId, range) {
+            const vk = currentVideoKey(volName, hwId, range);
+            if (!getStoredToken()) {
+                const t = await promptLoginAndGetToken();
+                if (!t) return;
+            }
+            if (!isStudentRole()) {
+                showToast('你的角色無簽到權限（需 S3 / S4 / S5 / S6）', 'error');
+                return;
+            }
+            if (!hasWatchedVideo(vk)) {
+                showToast('請先完整觀看此短片再簽到', 'error');
+                return;
+            }
+            setAttStatusChip('寫入中…', 'loading');
+            try {
+                await recordAttendance({ volName, hwId, range, status });
+                showToast(status === 'ACTIVE' ? '簽到成功 ✓' : '已記錄簽退 ✗', 'success');
+                await refreshMyAttendanceChip(volName, hwId, range);
+            } catch (e) {
+                showToast('寫入失敗：' + ((e && e.message) || '未知錯誤'), 'error');
+                setAttStatusChip('寫入失敗', 'error');
+            }
+        }
+
+        // ===== 全班簽到 overlay =====
+        async function showAllAttendance(volName, hwId, range) {
+            if (!getStoredToken()) {
+                const t = await promptLoginAndGetToken();
+                if (!t) return;
+            }
+            ensureAllAttModal();
+            const m = document.getElementById('all-att-modal');
+            const body = document.getElementById('all-att-body');
+            const title = document.getElementById('all-att-title');
+            title.textContent = `${volName} · ${hwId} · ${range}`;
+            body.innerHTML = `<div class="flex items-center gap-2 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin"></i> 載入中…</div>`;
+            m.classList.remove('opacity-0', 'pointer-events-none');
+            m.classList.add('opacity-100');
+            requestAnimationFrame(() => document.getElementById('all-att-card')?.classList.add('active'));
+
+            try {
+                const me = getStoredUser() || {};
+                const myClass = me.class || '';
+                const [attJson, rosterJson] = await Promise.all([
+                    getAttendance({ volName, hwId, range }),
+                    getRosterByClass(myClass)
+                ]);
+                const records = (attJson && attJson.records) || [];
+                const roster  = (rosterJson && rosterJson.roster) || [];
+
+                // 用 roster 作主軸，補上 records 對應狀態
+                const byKey = new Map();
+                records.forEach(r => {
+                    const k = `${r.class || ''}|${r.class_no || ''}|${r.real_name || ''}`;
+                    byKey.set(k, r);
+                });
+
+                const rows = roster.map(stu => {
+                    const k = `${stu.class || ''}|${stu.class_no || ''}|${stu.real_name || ''}`;
+                    const rec = byKey.get(k);
+                    return { stu, rec };
+                });
+
+                // 統計
+                const activeCount   = records.filter(r => r.status === 'ACTIVE').length;
+                const inactiveCount = records.filter(r => r.status === 'INACTIVE').length;
+                const unsetCount    = roster.length - activeCount - inactiveCount;
+
+                body.innerHTML = `
+                    <div class="flex flex-wrap items-center gap-3 text-[10px] font-extrabold tracking-[0.2em] uppercase mb-3">
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">ACTIVE ${activeCount}</span>
+                        <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700">INACTIVE ${inactiveCount}</span>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">未簽 ${unsetCount}</span>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">全班 ${roster.length}</span>
+                    </div>
+                    <div class="rounded-2xl ring-1 ring-slate-200 overflow-hidden bg-white/90 max-h-[55vh] overflow-y-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest">
+                                <tr>
+                                    <th class="text-left px-3 py-2 font-extrabold">#</th>
+                                    <th class="text-left px-3 py-2 font-extrabold">班別</th>
+                                    <th class="text-left px-3 py-2 font-extrabold">座號</th>
+                                    <th class="text-left px-3 py-2 font-extrabold">姓名</th>
+                                    <th class="text-left px-3 py-2 font-extrabold">狀態</th>
+                                    <th class="text-left px-3 py-2 font-extrabold">時間</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows.map((row, i) => {
+                                    const s = row.stu, r = row.rec;
+                                    let badge;
+                                    if (!r) badge = `<span class="text-[10px] font-extrabold text-slate-400">—</span>`;
+                                    else if (r.status === 'ACTIVE')   badge = `<span class="text-[10px] font-extrabold text-emerald-600">✓ ACTIVE</span>`;
+                                    else if (r.status === 'INACTIVE') badge = `<span class="text-[10px] font-extrabold text-rose-600">✗ INACTIVE</span>`;
+                                    else badge = `<span class="text-[10px] font-extrabold text-slate-500">${r.status}</span>`;
+                                    const ts = r && r.timestamp ? new Date(r.timestamp).toLocaleString() : '';
+                                    return `
+                                        <tr class="${i % 2 ? 'bg-slate-50/50' : ''}">
+                                            <td class="px-3 py-2 text-slate-400 font-mono text-[11px]">${i + 1}</td>
+                                            <td class="px-3 py-2 text-slate-700">${escapeHtml(s.class || '')}</td>
+                                            <td class="px-3 py-2 text-slate-700">${escapeHtml(s.class_no || '')}</td>
+                                            <td class="px-3 py-2 text-slate-800 font-bold">${escapeHtml(s.real_name || '')}</td>
+                                            <td class="px-3 py-2">${badge}</td>
+                                            <td class="px-3 py-2 text-slate-400 text-[10px]">${escapeHtml(ts)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (e) {
+                body.innerHTML = `<div class="text-rose-600 text-sm font-bold">
+                    <i class="fas fa-exclamation-triangle mr-1"></i> 載入失敗：${escapeHtml((e && e.message) || '未知錯誤')}
+                </div>`;
+            }
+        }
+
+        function ensureAllAttModal() {
+            if (document.getElementById('all-att-modal')) return;
+            const div = document.createElement('div');
+            div.id = 'all-att-modal';
+            div.className = 'ph-login-overlay fixed inset-0 z-[350] flex items-center justify-center opacity-0 pointer-events-none';
+            div.innerHTML = `
+                <div id="all-att-card" class="ph-login-card w-[92%] max-w-[680px] rounded-[2.2rem] p-6 sm:p-8 flex flex-col text-left">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <div class="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em]">Attendance Roster</div>
+                            <h3 id="all-att-title" class="text-lg sm:text-xl font-extrabold text-slate-800 mt-1 tracking-tight">--</h3>
+                        </div>
+                        <button onclick="hideAllAttendance()" class="w-9 h-9 rounded-full bg-white/85 hover:bg-white ring-1 ring-white/40 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors" aria-label="關閉">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="all-att-body" class="text-sm"></div>
+                </div>`;
+            document.body.appendChild(div);
+        }
+        function hideAllAttendance() {
+            const m = document.getElementById('all-att-modal');
+            if (!m) return;
+            const card = document.getElementById('all-att-card');
+            if (card) card.classList.remove('active');
+            m.classList.add('opacity-0', 'pointer-events-none');
+            m.classList.remove('opacity-100');
+        }
+
+        // 輕量 toast 提示
+        function showToast(msg, tone) {
+            const t = document.createElement('div');
+            t.className = 'fixed top-5 left-1/2 -translate-x-1/2 z-[500] px-4 py-2.5 rounded-full text-xs font-extrabold tracking-wider shadow-lg backdrop-blur-md transition-all duration-300';
+            const tones = {
+                success: 'bg-emerald-500/95 text-white',
+                error:   'bg-rose-500/95 text-white',
+                info:    'bg-sky-500/95 text-white'
+            };
+            t.className += ' ' + (tones[tone] || tones.info);
+            t.textContent = msg;
+            document.body.appendChild(t);
+            requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)'; });
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translate(-50%, -8px)';
+                setTimeout(() => t.remove(), 320);
+            }, 2200);
+        }
+
         function onYTAttendanceConfirm() {
             if (!__ytAttendanceUnlocked) return;
             clearYTAttendanceTimer();
             __ytCurrentWatched = true;
-            const stage = document.getElementById('media-stage');
             const bar = document.getElementById('yt-attendance-bar');
             if (bar) {
                 bar.innerHTML = `<div class="flex items-center gap-2 text-emerald-600 text-xs font-extrabold">
-                    <i class="fas fa-check-circle text-base"></i><span>已記錄簽到 ✓ (之後接 gs)</span></div>`;
+                    <i class="fas fa-spinner fa-spin"></i><span>寫入中...</span></div>`;
             }
-            console.log('[yt-attendance] 簽到完成 (待串接 GAS)：', {
-                vol: __detailVolName,
-                videoKey: __ytLastVideoKey,
-                maxWatched: __ytMaxWatchedTime
-            });
+            // 拆出 vol/hw/range
+            const parts = (__ytLastVideoKey || '').split('::');
+            const volName = parts[0] || __detailVolName || '';
+            const hwId    = parts[1] || '';
+            const range   = parts[2] || '';
+            recordAttendance({ volName, hwId, range, status: 'ACTIVE' })
+                .then((ok) => {
+                    if (bar) {
+                        bar.innerHTML = `<div class="flex items-center gap-2 text-emerald-600 text-xs font-extrabold">
+                            <i class="fas fa-check-circle text-base"></i><span>${ok ? '已記錄簽到 ✓' : '寫入失敗（請重試）'}</span></div>`;
+                    }
+                })
+                .catch((e) => {
+                    if (bar) {
+                        bar.innerHTML = `<div class="flex items-center gap-2 text-rose-600 text-xs font-extrabold">
+                            <i class="fas fa-exclamation-triangle"></i><span>${(e && e.message) || '錯誤'}</span></div>`;
+                    }
+                });
         }
 
         function teardownYTPlayer() {
@@ -2100,6 +2502,8 @@
                 </div>`;
             window.__mediaGroup = group;
             __ytLastVideoKey = `${__detailVolName}::${group[0].id}::${group[0].range || '0'}`;
+            // 渲染簽到 4 顆膠囊按鈕
+            setTimeout(() => renderAttendanceBar(__detailVolName, group[0].id, group[0].range || '0'), 80);
         }
 
         function renderYTFrame(yt, autoplay = false) {
@@ -2171,6 +2575,8 @@
                 }
             });
             __ytLastVideoKey = `${__detailVolName}::${g.id}::${g.range || '0'}`;
+            // 切換 range 時重新渲染簽到按鈕
+            setTimeout(() => renderAttendanceBar(__detailVolName, g.id, g.range || '0'), 80);
         }
 
         function renderNotesView(group) {
