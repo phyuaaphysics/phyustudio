@@ -817,7 +817,7 @@
         // 改用 loader.gs（GAS Web App）作為唯一讀取入口；gviz 公開讀取已關閉
         const LOADER_URL     = 'https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec';  // loader.gs（Sheet A 讀取）
         const GUARD_URL      = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';  // guard.gs（登入）
-        const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbyFUpGvrhXUbyaIGZ9UsGiKPZk8CVPYcieWmB5zm4tKh57LcuGKev855L9b9_bTPZ4D/exec';  // attendance.gs Web App (v2: 含 role filter + membership)
+        const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbwNKKvRsHaF9UOKNOorl8uTVhmQIhnSa9gyg6KQZxXCQOuKgB_2iw9qqqlJ7s0yu1G-/exec';  // attendance.gs Web App (v2.1: 跨班 role filter + membership)
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         const SHEET_NAME = 'HWMENU';
         const DETAIL_SPREADSHEET_ID = '1HUjN9M9u7-vFt3dR9zbfNjgeFfyIWitxnEJiZ7mqesA';
@@ -1912,7 +1912,9 @@
             const m = document.getElementById('all-att-modal');
             const body = document.getElementById('all-att-body');
             const title = document.getElementById('all-att-title');
-            title.textContent = `${volName} · ${hwId} · ${range}`;
+            const me2 = getStoredUser() || {};
+            const classLabel = me2.class ? ` · ${me2.class} 班` : '';
+            title.textContent = `${volName} · ${hwId} · ${range}${classLabel}`;
 
             // 初始化 state
             const me = getStoredUser() || {};
@@ -1935,13 +1937,13 @@
             const body = document.getElementById('all-att-body');
             body.innerHTML = `<div class="flex items-center gap-2 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin"></i> 載入中…</div>`;
             try {
-                const { volName, hwId, range, role, myClass } = __rosterState;
-                // roster：若 role='ALL' 用全名單；否則帶 role 過濾
-                // class：學生自己的班（過濾到自己班）
-                const klass = myClass || '';
+                const { volName, hwId, range, role } = __rosterState;
+                // 規則：跨班，role filter 控管 S3~S6 範圍
+                //   - role='ALL' → 全部 S3~S6 學生（跨班）
+                //   - role='S3'  → 全部 S3 學生（跨班）
                 const [attJson, rosterJson] = await Promise.all([
                     getAttendance({ volName, hwId, range }),
-                    getRosterByClass(klass, role === 'ALL' ? null : role)
+                    getRosterByClass(null, role === 'ALL' ? null : role)
                 ]);
                 __rosterState.records = (attJson && attJson.records) || [];
                 __rosterState.roster  = (rosterJson && rosterJson.roster) || [];
@@ -1970,11 +1972,13 @@
             const unsetCount    = Math.max(roster.length - activeCount - inactiveCount, 0);
             const ultraCount    = roster.filter(s => /ULTRA/i.test(s.membership || '')).length;
 
-            // filter 膠囊
+            // filter 膠囊（跨班，按 role 過濾）
             const filterRoles = ['ALL', 'S3', 'S4', 'S5', 'S6'];
             const filterBar = `
                 <div class="flex flex-wrap items-center gap-2 mb-3">
-                    <span class="text-[9px] font-extrabold text-slate-500 tracking-widest uppercase mr-1">Filter</span>
+                    <span class="text-[9px] font-extrabold text-slate-500 tracking-widest uppercase mr-1">
+                        <i class="fas fa-filter mr-1"></i>全名單 ·
+                    </span>
                     ${filterRoles.map(r => {
                         const active = (r === role);
                         const label = r === 'ALL' ? '全部' : r;
