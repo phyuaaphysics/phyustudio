@@ -594,6 +594,16 @@
             animation: phSpin 0.8s linear infinite;
         }
         @keyframes phSpin { to { transform: rotate(360deg); } }
+
+        /* ULTRA 姓名：紫色漸層 + 細微發光 */
+        .ultra-name {
+            background: linear-gradient(90deg, #7e22ce 0%, #a855f7 50%, #7e22ce 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900 !important;
+            letter-spacing: 0.01em;
+        }
     </style>
 </head>
 <body class="pb-40 hide-scrollbar">
@@ -807,7 +817,7 @@
         // 改用 loader.gs（GAS Web App）作為唯一讀取入口；gviz 公開讀取已關閉
         const LOADER_URL     = 'https://script.google.com/macros/s/AKfycbye38CZMIrwhOPacotw_a-stMzTLuxLbz4qMQL6QC5IiHLmf8aVG1xUe48F3kaV9Yec/exec';  // loader.gs（Sheet A 讀取）
         const GUARD_URL      = 'https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec';  // guard.gs（登入）
-        const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbz2KC7K2Q40lKa0r7ITNNTfjt1xnjUkdhp4EokMrYzCWijGpywjqC7d5LTo0U1Z5dik/exec';  // attendance.gs Web App
+        const ATTENDANCE_URL = 'https://script.google.com/macros/s/AKfycbyFUpGvrhXUbyaIGZ9UsGiKPZk8CVPYcieWmB5zm4tKh57LcuGKev855L9b9_bTPZ4D/exec';  // attendance.gs Web App (v2: 含 role filter + membership)
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         const SHEET_NAME = 'HWMENU';
         const DETAIL_SPREADSHEET_ID = '1HUjN9M9u7-vFt3dR9zbfNjgeFfyIWitxnEJiZ7mqesA';
@@ -1034,8 +1044,10 @@
             if (onlyClass) params.class = onlyClass;
             return await callAttendance('getAttendance', params);
         }
-        async function getRosterByClass(klass) {
-            const params = klass ? { class: klass } : {};
+        async function getRosterByClass(klass, role) {
+            const params = {};
+            if (klass) params.class = klass;
+            if (role)  params.role  = role;
             return await callAttendance('getRosterByClass', params);
         }
         async function getMyAttendance(volName, hwId, range) {
@@ -1881,7 +1893,16 @@
             }
         }
 
-        // ===== 全班簽到 overlay =====
+        // ===== 全班簽到 overlay（含 role filter + ULTRA 紫色高亮） =====
+        // 模組狀態：filter + records 緩存（filter 切換時不重打 attendance）
+        const __rosterState = {
+            volName: '', hwId: '', range: '',
+            role: 'ALL',          // 'ALL' | 'S3' | 'S4' | 'S5' | 'S6'
+            records: [],          // attendance records
+            roster: [],           // 全部班 (server-side role filter 應已套用)
+            myClass: ''
+        };
+
         async function showAllAttendance(volName, hwId, range) {
             if (!getStoredToken()) {
                 const t = await promptLoginAndGetToken();
@@ -1892,87 +1913,162 @@
             const body = document.getElementById('all-att-body');
             const title = document.getElementById('all-att-title');
             title.textContent = `${volName} · ${hwId} · ${range}`;
+
+            // 初始化 state
+            const me = getStoredUser() || {};
+            __rosterState.volName = volName;
+            __rosterState.hwId    = hwId;
+            __rosterState.range   = range;
+            __rosterState.myClass = me.class || '';
+            // 預設 filter：自己班；沒 myClass 就 ALL
+            __rosterState.role = (typeof me.role === 'string' && /S[3-6]/i.test(me.role)) ? me.role.toUpperCase() : 'ALL';
+
             body.innerHTML = `<div class="flex items-center gap-2 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin"></i> 載入中…</div>`;
             m.classList.remove('opacity-0', 'pointer-events-none');
             m.classList.add('opacity-100');
             requestAnimationFrame(() => document.getElementById('all-att-card')?.classList.add('active'));
 
+            await loadAndRenderRoster();
+        }
+
+        async function loadAndRenderRoster() {
+            const body = document.getElementById('all-att-body');
+            body.innerHTML = `<div class="flex items-center gap-2 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin"></i> 載入中…</div>`;
             try {
-                const me = getStoredUser() || {};
-                const myClass = me.class || '';
+                const { volName, hwId, range, role, myClass } = __rosterState;
+                // roster：若 role='ALL' 用全名單；否則帶 role 過濾
+                // class：學生自己的班（過濾到自己班）
+                const klass = myClass || '';
                 const [attJson, rosterJson] = await Promise.all([
                     getAttendance({ volName, hwId, range }),
-                    getRosterByClass(myClass)
+                    getRosterByClass(klass, role === 'ALL' ? null : role)
                 ]);
-                const records = (attJson && attJson.records) || [];
-                const roster  = (rosterJson && rosterJson.roster) || [];
-
-                // 用 roster 作主軸，補上 records 對應狀態
-                const byKey = new Map();
-                records.forEach(r => {
-                    const k = `${r.class || ''}|${r.class_no || ''}|${r.real_name || ''}`;
-                    byKey.set(k, r);
-                });
-
-                const rows = roster.map(stu => {
-                    const k = `${stu.class || ''}|${stu.class_no || ''}|${stu.real_name || ''}`;
-                    const rec = byKey.get(k);
-                    return { stu, rec };
-                });
-
-                // 統計
-                const activeCount   = records.filter(r => r.status === 'ACTIVE').length;
-                const inactiveCount = records.filter(r => r.status === 'INACTIVE').length;
-                const unsetCount    = roster.length - activeCount - inactiveCount;
-
-                body.innerHTML = `
-                    <div class="flex flex-wrap items-center gap-3 text-[10px] font-extrabold tracking-[0.2em] uppercase mb-3">
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">ACTIVE ${activeCount}</span>
-                        <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700">INACTIVE ${inactiveCount}</span>
-                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">未簽 ${unsetCount}</span>
-                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">全班 ${roster.length}</span>
-                    </div>
-                    <div class="rounded-2xl ring-1 ring-slate-200 overflow-hidden bg-white/90 max-h-[55vh] overflow-y-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest">
-                                <tr>
-                                    <th class="text-left px-3 py-2 font-extrabold">#</th>
-                                    <th class="text-left px-3 py-2 font-extrabold">班別</th>
-                                    <th class="text-left px-3 py-2 font-extrabold">座號</th>
-                                    <th class="text-left px-3 py-2 font-extrabold">姓名</th>
-                                    <th class="text-left px-3 py-2 font-extrabold">狀態</th>
-                                    <th class="text-left px-3 py-2 font-extrabold">時間</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${rows.map((row, i) => {
-                                    const s = row.stu, r = row.rec;
-                                    let badge;
-                                    if (!r) badge = `<span class="text-[10px] font-extrabold text-slate-400">—</span>`;
-                                    else if (r.status === 'ACTIVE')   badge = `<span class="text-[10px] font-extrabold text-emerald-600">✓ ACTIVE</span>`;
-                                    else if (r.status === 'INACTIVE') badge = `<span class="text-[10px] font-extrabold text-rose-600">✗ INACTIVE</span>`;
-                                    else badge = `<span class="text-[10px] font-extrabold text-slate-500">${r.status}</span>`;
-                                    const ts = r && r.timestamp ? new Date(r.timestamp).toLocaleString() : '';
-                                    return `
-                                        <tr class="${i % 2 ? 'bg-slate-50/50' : ''}">
-                                            <td class="px-3 py-2 text-slate-400 font-mono text-[11px]">${i + 1}</td>
-                                            <td class="px-3 py-2 text-slate-700">${escapeHtml(s.class || '')}</td>
-                                            <td class="px-3 py-2 text-slate-700">${escapeHtml(s.class_no || '')}</td>
-                                            <td class="px-3 py-2 text-slate-800 font-bold">${escapeHtml(s.real_name || '')}</td>
-                                            <td class="px-3 py-2">${badge}</td>
-                                            <td class="px-3 py-2 text-slate-400 text-[10px]">${escapeHtml(ts)}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+                __rosterState.records = (attJson && attJson.records) || [];
+                __rosterState.roster  = (rosterJson && rosterJson.roster) || [];
+                renderRoster();
             } catch (e) {
                 body.innerHTML = `<div class="text-rose-600 text-sm font-bold">
                     <i class="fas fa-exclamation-triangle mr-1"></i> 載入失敗：${escapeHtml((e && e.message) || '未知錯誤')}
                 </div>`;
             }
+        }
+
+        function renderRoster() {
+            const body = document.getElementById('all-att-body');
+            const { records, roster, role } = __rosterState;
+            const byKey = new Map();
+            records.forEach(r => {
+                const k = `${r.class || ''}|${r.class_no || ''}|${r.real_name || ''}`;
+                byKey.set(k, r);
+            });
+            const rows = roster.map(stu => {
+                const k = `${stu.class || ''}|${stu.class_no || ''}|${stu.real_name || ''}`;
+                return { stu, rec: byKey.get(k) };
+            });
+            const activeCount   = records.filter(r => r.status === 'ACTIVE').length;
+            const inactiveCount = records.filter(r => r.status === 'INACTIVE').length;
+            const unsetCount    = Math.max(roster.length - activeCount - inactiveCount, 0);
+            const ultraCount    = roster.filter(s => /ULTRA/i.test(s.membership || '')).length;
+
+            // filter 膠囊
+            const filterRoles = ['ALL', 'S3', 'S4', 'S5', 'S6'];
+            const filterBar = `
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <span class="text-[9px] font-extrabold text-slate-500 tracking-widest uppercase mr-1">Filter</span>
+                    ${filterRoles.map(r => {
+                        const active = (r === role);
+                        const label = r === 'ALL' ? '全部' : r;
+                        return `<button data-role-filter="${r}"
+                            class="px-3 py-1.5 rounded-full text-[10px] font-extrabold tracking-[0.2em] uppercase transition-all
+                                   ${active
+                                       ? 'bg-[#1b365d] text-white shadow-md'
+                                       : 'bg-white/85 text-slate-600 ring-1 ring-slate-200 hover:bg-white'}">
+                            ${label}
+                        </button>`;
+                    }).join('')}
+                    <span class="ml-auto text-[9px] font-bold text-slate-400 tracking-widest uppercase">
+                        ULTRA <span class="text-[#7e22ce] font-extrabold">${ultraCount}</span> / 全部 ${roster.length}
+                    </span>
+                </div>
+            `;
+
+            // 統計 chips
+            const stats = `
+                <div class="flex flex-wrap items-center gap-2 text-[10px] font-extrabold tracking-[0.2em] uppercase mb-3">
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">✓ ACTIVE ${activeCount}</span>
+                    <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700">✗ INACTIVE ${inactiveCount}</span>
+                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">— 未簽 ${unsetCount}</span>
+                </div>
+            `;
+
+            // 表格
+            const table = `
+                <div class="rounded-2xl ring-1 ring-slate-200 overflow-hidden bg-white/90 max-h-[55vh] overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest sticky top-0 z-10">
+                            <tr>
+                                <th class="text-left px-3 py-2 font-extrabold">#</th>
+                                <th class="text-left px-3 py-2 font-extrabold">Role</th>
+                                <th class="text-left px-3 py-2 font-extrabold">班別</th>
+                                <th class="text-left px-3 py-2 font-extrabold">座號</th>
+                                <th class="text-left px-3 py-2 font-extrabold">姓名</th>
+                                <th class="text-left px-3 py-2 font-extrabold">會籍</th>
+                                <th class="text-center px-3 py-2 font-extrabold">狀態</th>
+                                <th class="text-left px-3 py-2 font-extrabold">時間</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows.length === 0 ? `
+                                <tr><td colspan="8" class="px-3 py-6 text-center text-slate-400 text-xs">此 filter 沒有學生</td></tr>
+                            ` : rows.map((row, i) => {
+                                const s = row.stu, r = row.rec;
+                                const isUltra = /ULTRA/i.test(s.membership || '');
+                                const tierClass = isUltra
+                                    ? 'ultra-name'
+                                    : 'text-slate-800 font-bold';
+                                let badge;
+                                if (!r) {
+                                    badge = `<span class="text-slate-300 text-base" title="未簽到">—</span>`;
+                                } else if (r.status === 'ACTIVE') {
+                                    badge = `<span class="text-emerald-600 text-base" title="ACTIVE">✓</span>`;
+                                } else if (r.status === 'INACTIVE') {
+                                    badge = `<span class="text-rose-600 text-base" title="INACTIVE">✗</span>`;
+                                } else {
+                                    badge = `<span class="text-slate-500 text-xs">${escapeHtml(r.status)}</span>`;
+                                }
+                                const ts = r && r.timestamp ? new Date(r.timestamp).toLocaleString() : '';
+                                const ultraPill = isUltra
+                                    ? `<span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full bg-[#7e22ce]/15 text-[#7e22ce] text-[8px] font-extrabold tracking-widest">PH ULTRA</span>`
+                                    : '';
+                                return `
+                                    <tr class="${i % 2 ? 'bg-slate-50/50' : ''}">
+                                        <td class="px-3 py-2 text-slate-400 font-mono text-[11px]">${i + 1}</td>
+                                        <td class="px-3 py-2 text-slate-500 text-[10px] font-extrabold">${escapeHtml(s.role || '')}</td>
+                                        <td class="px-3 py-2 text-slate-700">${escapeHtml(s.class || '')}</td>
+                                        <td class="px-3 py-2 text-slate-700">${escapeHtml(s.class_no || '')}</td>
+                                        <td class="px-3 py-2 ${tierClass}">${escapeHtml(s.real_name || '')}${ultraPill}</td>
+                                        <td class="px-3 py-2 text-slate-500 text-[10px]">${escapeHtml(s.membership || '—')}</td>
+                                        <td class="px-3 py-2 text-center">${badge}</td>
+                                        <td class="px-3 py-2 text-slate-400 text-[10px]">${escapeHtml(ts)}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            body.innerHTML = filterBar + stats + table;
+
+            // 綁定 filter 事件
+            body.querySelectorAll('[data-role-filter]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const r = btn.getAttribute('data-role-filter');
+                    if (r === __rosterState.role) return;
+                    __rosterState.role = r;
+                    loadAndRenderRoster();
+                });
+            });
         }
 
         function ensureAllAttModal() {
