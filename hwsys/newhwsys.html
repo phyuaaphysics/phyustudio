@@ -1048,6 +1048,13 @@
             const params = {};
             if (klass) params.class = klass;
             if (role)  params.role  = role;
+            // Debug：印出實際打到 attendance.gs 的 URL 與 params
+            const dbgUrl = new URL(ATTENDANCE_URL);
+            dbgUrl.searchParams.set('action', 'getRosterByClass');
+            const tk = getStoredToken();
+            if (tk) dbgUrl.searchParams.set('token', tk);
+            for (const k of Object.keys(params)) dbgUrl.searchParams.set(k, params[k]);
+            console.log('[roster-debug] params=', JSON.stringify(params), 'url=', dbgUrl.toString().replace(/token=[^&]+/, 'token=***'));
             return await callAttendance('getRosterByClass', params);
         }
         async function getMyAttendance(volName, hwId, range) {
@@ -1947,6 +1954,9 @@
                 ]);
                 __rosterState.records = (attJson && attJson.records) || [];
                 __rosterState.roster  = (rosterJson && rosterJson.roster) || [];
+                // Debug：印出 server 實際回傳的 roster 大小與前 3 筆
+                console.log('[roster-debug] server returned roster.length=' + __rosterState.roster.length,
+                    'first 3:', JSON.stringify(__rosterState.roster.slice(0, 3)));
                 renderRoster();
             } catch (e) {
                 body.innerHTML = `<div class="text-rose-600 text-sm font-bold">
