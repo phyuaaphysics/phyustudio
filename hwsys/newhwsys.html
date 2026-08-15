@@ -14,6 +14,26 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
+        /* 修正 iOS Safari 滾動問題：由 html 接管滾動，移除 body 的 touch-action 干擾 */
+        html {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            height: 100%;
+        }
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--glacier-bg);
+            color: #334155;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            overflow-y: visible;          /* 改為 visible，滾動由 html 接管 */
+            padding-top: 0;
+            touch-action: auto;           /* 移除 pan-y 干擾 */
+            -webkit-overflow-scrolling: touch;
+            overflow-x: hidden;
+        }
+
         .md-body { color: #334155; line-height: 1.75; font-size: 15px; }
 
         /* 自訂進度條 overlay（在 video 下方，黑色玻璃） */
@@ -238,10 +258,11 @@
             color: #334155;
             -webkit-tap-highlight-color: transparent;
             min-height: 100vh;
-            overflow-y: auto;
+            overflow-y: visible;
             padding-top: 0;
             -webkit-overflow-scrolling: touch;
-            touch-action: pan-y;
+            touch-action: auto;
+            overflow-x: hidden;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -321,7 +342,11 @@
         .filter-bar.collapsed .filter-toggle-trigger i {
             transform: rotate(180deg);
         }
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
+        /* 修正 iOS 底部內容被 dock 遮擋，增加 padding-bottom */
+        #page-content {
+            padding-top: calc(env(safe-area-inset-top, 0px) + 130px);
+            padding-bottom: 140px;
+        }
         .slider-wrapper { position: relative; width: 100%; }
         .slider-container { 
             display: flex;
