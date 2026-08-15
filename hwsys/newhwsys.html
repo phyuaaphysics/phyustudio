@@ -125,7 +125,12 @@
             0%   { opacity: 0; transform: translateY(8px) scale(0.99); }
             100% { opacity: 1; transform: translateY(0)  scale(1);    }
         }
+        /* bg-fade-active class 觸發淡入；移除 class 取消動畫（連點時 reset） */
         #card-detail-bg {
+            opacity: 0;
+            will-change: opacity, transform;
+        }
+        #card-detail-bg.bg-fade-active {
             animation: bgFade 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         @keyframes bgFade {
@@ -725,7 +730,7 @@
     </div>
 
     <div id="card-detail-modal" class="fixed inset-0 z-[280] flex-col pointer-events-none" style="display: none;" onclick="if(event.target===this) closeCardDetail()">
-        <div id="card-detail-bg" class="absolute inset-0 bg-slate-900 bg-cover bg-center bg-no-repeat" style="display:none; opacity:0;"></div>
+        <div id="card-detail-bg" class="absolute inset-0 bg-slate-900 bg-cover bg-center bg-no-repeat" style="display:none;"></div>
         <div class="relative z-10 flex items-center justify-between px-5 md:px-10 pt-[max(env(safe-area-inset-top),16px)] pb-3 shrink-0">
             <div class="flex items-center gap-3 min-w-0">
                 <button id="card-detail-back" onclick="cardDetailBack()" class="w-0 h-10 opacity-0 overflow-hidden rounded-xl bg-white/85 hover:bg-white ring-1 ring-white/40 flex items-center justify-center text-slate-500 hover:text-slate-800 shrink-0 backdrop-blur-md" aria-label="返回">
@@ -2564,8 +2569,12 @@
                     const img = new Image();
                     img.onload = function() {
                         if (__detailBgUrl === bgUrl) {  // 確認用戶沒切換到別的 vol
+                            // 先強制 reflow 再重啟 CSS animation（避免連點時動畫卡住）
+                            bgLayer.classList.remove('bg-fade-active');
+                            void bgLayer.offsetWidth;
                             bgLayer.style.backgroundImage = `url("${img.src}")`;
                             bgLayer.style.display = '';
+                            bgLayer.classList.add('bg-fade-active');
                         }
                     };
                     img.onerror = function() {
@@ -2580,10 +2589,6 @@
                     bgLayer.style.backgroundImage = '';
                     bgLayer.style.display = 'none';
                 }
-                // 動畫重置：先強制 reflow 再重啟
-                bgLayer.style.animation = 'none';
-                void bgLayer.offsetWidth;
-                bgLayer.style.animation = '';
             }
             setHeader('Volume', volName, false);
             bodyEl.innerHTML = '';
