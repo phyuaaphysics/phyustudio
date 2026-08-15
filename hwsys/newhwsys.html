@@ -2559,12 +2559,28 @@
             document.body.classList.remove('is-closing');
             if (bgLayer) {
                 if (bgUrl) {
-                    bgLayer.style.backgroundImage = `url("${bgUrl.replace(/"/g, '\\"')}")`;
-                    bgLayer.style.display = '';
+                    // 先用 Image() 預載，確認 decode 成功再設 backgroundImage
+                    // 避免特殊字元 / 中文 URL 導致 backgroundImage 解析失敗而看不見圖
+                    const img = new Image();
+                    img.onload = function() {
+                        if (__detailBgUrl === bgUrl) {  // 確認用戶沒切換到別的 vol
+                            bgLayer.style.backgroundImage = `url("${img.src}")`;
+                            bgLayer.style.display = '';
+                        }
+                    };
+                    img.onerror = function() {
+                        console.warn('[bg] decode failed:', bgUrl);
+                        if (__detailBgUrl === bgUrl) {
+                            bgLayer.style.backgroundImage = '';
+                            bgLayer.style.display = 'none';
+                        }
+                    };
+                    img.src = bgUrl;
                 } else {
                     bgLayer.style.backgroundImage = '';
                     bgLayer.style.display = 'none';
                 }
+                // 動畫重置：先強制 reflow 再重啟
                 bgLayer.style.animation = 'none';
                 void bgLayer.offsetWidth;
                 bgLayer.style.animation = '';
