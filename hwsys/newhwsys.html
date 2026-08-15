@@ -229,20 +229,24 @@
         body.dark-mode .card-name {
             color: #cbd5e1;
         }
+        
+        /* ===== 關鍵修改：方案 B 滾動容器 ===== */
         html {
             scroll-behavior: smooth;
             height: 100%;
-            overflow: hidden;  /* iOS PWA 標準：html 鎖住 viewport */
+            overflow: hidden;  /* 鎖住 html，不滾動 */
+            margin: 0;
+            padding: 0;
         }
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg);
             color: #334155;
             -webkit-tap-highlight-color: transparent;
-            height: 100%;  /* iOS PWA 標準：body 撐滿 html viewport，自己負責 internal scroll */
-            overflow-y: auto;
-            padding-top: 0;
-            -webkit-overflow-scrolling: touch;
+            height: 100%;
+            overflow: hidden;  /* 鎖住 body，不滾動 */
+            margin: 0;
+            padding: 0;
             touch-action: pan-y;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -323,7 +327,17 @@
         .filter-bar.collapsed .filter-toggle-trigger i {
             transform: rotate(180deg);
         }
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
+        
+        /* ===== 重要：#page-content 擔任唯一滾動容器 ===== */
+        #page-content {
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            padding-top: calc(env(safe-area-inset-top, 0px) + 130px);
+        }
+        
         .slider-wrapper { position: relative; width: 100%; }
         .slider-container { 
             display: flex;
@@ -704,6 +718,7 @@
         </div>
     </header>
 
+    <!-- ===== 滾動內容容器：#page-content 為唯一滾動層 ===== -->
     <div id="page-content">
         <div id="view-home">
             <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6 pt-2">
