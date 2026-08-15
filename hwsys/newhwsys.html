@@ -840,7 +840,16 @@
 
         // ===== Token / 登入 助手 =====
         function getStoredToken() {
-            try { return localStorage.getItem(JWT_STORAGE_KEY) || ''; } catch (e) { return ''; }
+            try {
+                const t = localStorage.getItem(JWT_STORAGE_KEY) || '';
+                // 自動過濾過期 token（避免拿舊 token 打 server 浪費一次 round-trip）
+                if (t && isTokenExpired(t)) {
+                    console.log('[token] 已過期，清掉並要求重登');
+                    localStorage.removeItem(JWT_STORAGE_KEY);
+                    return '';
+                }
+                return t;
+            } catch (e) { return ''; }
         }
         function setStoredToken(t) {
             try {
@@ -1999,6 +2008,8 @@
                 __rosterState.roster  = (rosterJson && rosterJson.roster) || [];
                 renderRoster();
             } catch (e) {
+                // Debug：把原始錯誤物件印出來
+                console.error('[roster-load] error:', e);
                 body.innerHTML = `<div class="text-rose-600 text-sm font-bold">
                     <i class="fas fa-exclamation-triangle mr-1"></i> 載入失敗：${escapeHtml((e && e.message) || '未知錯誤')}
                 </div>`;
