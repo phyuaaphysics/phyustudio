@@ -229,31 +229,30 @@
         body.dark-mode .card-name {
             color: #cbd5e1;
         }
-        
-        /* ===== 關鍵修改：方案 B 滾動容器 ===== */
         html {
             scroll-behavior: smooth;
             height: 100%;
-            overflow: hidden;  /* 鎖住 html，不滾動 */
-            margin: 0;
-            padding: 0;
+            overflow: hidden;  /* iOS PWA 標準：html 鎖住 viewport */
         }
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg);
             color: #334155;
             -webkit-tap-highlight-color: transparent;
-            height: 100%;
-            overflow: hidden;  /* 鎖住 body，不滾動 */
-            margin: 0;
-            padding: 0;
+            height: 100%;  /* iOS PWA 標準：body 撐滿 html viewport，自己負責 internal scroll */
+            overflow-y: auto;
+            padding-top: 0;
+            -webkit-overflow-scrolling: touch;
             touch-action: pan-y;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .logo-bar {
             position: fixed;
-            top: 0; 
+            top: 0;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
             left: 0; 
             width: 100%; 
             z-index: 120;
@@ -274,6 +273,9 @@
         .filter-bar {
             position: fixed;
             top: calc(env(safe-area-inset-top, 0px) + 68px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
             left: 0;
             width: 100%;
             z-index: 110;
@@ -327,17 +329,7 @@
         .filter-bar.collapsed .filter-toggle-trigger i {
             transform: rotate(180deg);
         }
-        
-        /* ===== 重要：#page-content 擔任唯一滾動容器 ===== */
-        #page-content {
-            height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            touch-action: pan-y;
-            padding-top: calc(env(safe-area-inset-top, 0px) + 130px);
-        }
-        
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); }
         .slider-wrapper { position: relative; width: 100%; }
         .slider-container { 
             display: flex;
@@ -415,6 +407,9 @@
         .dock-wrapper {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
             left: 50%;
             transform: translateX(-50%);
             z-index: 200;
@@ -473,6 +468,9 @@
         }
         .dock-trigger-bar {
             position: fixed;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
             left: 50%;
             transform: translateX(-50%);
@@ -718,7 +716,6 @@
         </div>
     </header>
 
-    <!-- ===== 滾動內容容器：#page-content 為唯一滾動層 ===== -->
     <div id="page-content">
         <div id="view-home">
             <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6 pt-2">
@@ -727,7 +724,7 @@
         </div>
     </div>
 
-    <div id="card-detail-modal" class="fixed inset-0 z-[280] flex flex-col pointer-events-none" onclick="if(event.target===this) closeCardDetail()">
+    <div id="card-detail-modal" class="fixed inset-0 z-[280] flex-col pointer-events-none" style="display: none;" onclick="if(event.target===this) closeCardDetail()">
         <div id="card-detail-bg" class="absolute inset-0 bg-slate-900 bg-cover bg-center bg-no-repeat" style="display:none; opacity:0;"></div>
         <div class="relative z-10 flex items-center justify-between px-5 md:px-10 pt-[max(env(safe-area-inset-top),16px)] pb-3 shrink-0">
             <div class="flex items-center gap-3 min-w-0">
@@ -753,8 +750,8 @@
         <div id="card-detail-body" class="ph-scroll-ios relative z-10 flex-1 overflow-y-auto px-4 md:px-10 pb-[max(env(safe-area-inset-bottom),20px)] pt-2"></div>
     </div>
 
-    <!-- 會員說明 overlay（iOS 級進場） -->
-    <div id="membership-overlay" class="fixed inset-0 z-[320] bg-black/60 backdrop-blur-md flex flex-col opacity-0 pointer-events-none transition-opacity duration-500 ease-in-out" onclick="if(event.target===this) closeMembershipInfo()">
+    <!-- 會員說明 overlay（iOS 級進場） — 預設 display:none 避免 backdrop-blur 永久消耗 layer -->
+    <div id="membership-overlay" class="fixed inset-0 z-[320] bg-black/60 backdrop-blur-md flex flex-col opacity-0 pointer-events-none transition-opacity duration-500 ease-in-out" style="display: none;" onclick="if(event.target===this) closeMembershipInfo()">
         <div class="flex items-center justify-between px-5 md:px-10 pt-[max(env(safe-area-inset-top),16px)] pb-3 shrink-0">
             <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center shrink-0">
@@ -772,7 +769,7 @@
         <iframe id="membership-iframe" src="https://phyuaaphysics.github.io/phyustudio/membership.html" class="w-full flex-1 border-none bg-white" allowfullscreen loading="lazy"></iframe>
     </div>
 
-    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out" style="display: none;">
         <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
             <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
                 <i class="fas fa-times text-xl"></i>
@@ -1136,7 +1133,8 @@
             if (document.getElementById('login-modal')) return;
             const div = document.createElement('div');
             div.id = 'login-modal';
-            div.className = 'ph-login-overlay fixed inset-0 z-[400] flex items-center justify-center opacity-0 pointer-events-none';
+            div.className = 'ph-login-overlay fixed inset-0 z-[400] items-center justify-center opacity-0 pointer-events-none';
+            div.style.display = 'none';     // iOS PWA scroll fix：預設隱藏不消耗 layer
             div.innerHTML = `
                 <div class="ph-login-card ph-scroll-ios w-[90%] max-w-[380px] rounded-[2.2rem] p-9 sm:p-10 flex flex-col items-center text-center space-y-7">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png"
@@ -1182,6 +1180,7 @@
             ensureLoginModal();
             const m = document.getElementById('login-modal');
             const card = m.querySelector('.ph-login-card');
+            m.style.display = 'flex';        // iOS PWA scroll fix
             m.classList.remove('opacity-0', 'pointer-events-none');
             m.classList.add('opacity-100');
             // 觸發進場動畫
@@ -1197,6 +1196,8 @@
             if (card) card.classList.remove('active');
             m.classList.add('opacity-0', 'pointer-events-none');
             m.classList.remove('opacity-100');
+            // iOS PWA scroll fix：淡出後 display:none
+            setTimeout(() => { m.style.display = 'none'; }, 300);
         }
         async function onLoginSubmit(ev) {
             ev.preventDefault();
@@ -1575,14 +1576,19 @@
         function openMembershipInfo() {
             const overlay = document.getElementById('membership-overlay');
             if (!overlay) return;
-            overlay.classList.remove('pointer-events-none', 'opacity-0');
-            overlay.classList.add('opacity-100');
+            overlay.style.display = 'flex';        // 解除 display:none 隱藏
+            requestAnimationFrame(() => {
+                overlay.classList.remove('pointer-events-none', 'opacity-0');
+                overlay.classList.add('opacity-100');
+            });
         }
         function closeMembershipInfo() {
             const overlay = document.getElementById('membership-overlay');
             if (!overlay) return;
             overlay.classList.add('opacity-0', 'pointer-events-none');
             overlay.classList.remove('opacity-100');
+            // 等淡出動畫完成後才 display:none，避免 iOS PWA scroll 卡住
+            setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
 
         // ---- YT Player ----
@@ -2002,6 +2008,7 @@
             __rosterState.role = (typeof me.role === 'string' && /S[3-6]/i.test(me.role)) ? me.role.toUpperCase() : 'ALL';
 
             body.innerHTML = `<div class="flex items-center gap-2 text-slate-500 text-sm"><i class="fas fa-spinner fa-spin"></i> 載入中…</div>`;
+            m.style.display = 'flex';        // iOS PWA scroll fix
             m.classList.remove('opacity-0', 'pointer-events-none');
             m.classList.add('opacity-100');
             requestAnimationFrame(() => document.getElementById('all-att-card')?.classList.add('active'));
@@ -2163,7 +2170,8 @@
             if (document.getElementById('all-att-modal')) return;
             const div = document.createElement('div');
             div.id = 'all-att-modal';
-            div.className = 'ph-login-overlay fixed inset-0 z-[350] flex items-center justify-center opacity-0 pointer-events-none';
+            div.className = 'ph-login-overlay fixed inset-0 z-[350] items-center justify-center opacity-0 pointer-events-none';
+            div.style.display = 'none';     // iOS PWA scroll fix
             div.innerHTML = `
                 <div id="all-att-card" class="ph-login-card ph-scroll-ios w-[92%] max-w-[680px] rounded-[2.2rem] p-6 sm:p-8 flex flex-col text-left">
                     <div class="flex items-start justify-between mb-4">
@@ -2186,6 +2194,8 @@
             if (card) card.classList.remove('active');
             m.classList.add('opacity-0', 'pointer-events-none');
             m.classList.remove('opacity-100');
+            // iOS PWA scroll fix：淡出後 display:none
+            setTimeout(() => { m.style.display = 'none'; }, 500);
         }
 
         // 輕量 toast 提示
@@ -2562,6 +2572,8 @@
             setHeader('Volume', volName, false);
             bodyEl.innerHTML = '';
             loadingEl.style.display = '';
+            // iOS PWA scroll fix：解除 display:none 隱藏
+            modal.style.display = 'flex';
             modal.classList.remove('modal-open', 'modal-closing');
             modal.classList.remove('pointer-events-none');
             void modal.offsetWidth;
@@ -2791,6 +2803,8 @@
                 modal.classList.add('pointer-events-none');
                 modal.classList.remove('modal-closing');
                 document.body.classList.remove('is-closing');
+                // iOS PWA scroll fix：modal 完全關閉後 display:none，釋放 backdrop-blur layer
+                modal.style.display = 'none';
             }, 340);
         }
 
@@ -2863,6 +2877,7 @@
             const errMsg = document.getElementById('qr-error-msg');
             errMsg.classList.add('hidden');
             errMsg.innerText = "";
+            modal.style.display = 'flex';        // iOS PWA scroll fix
             modal.classList.remove('pointer-events-none', 'opacity-0');
             modal.classList.add('opacity-100');
             try {
@@ -2887,6 +2902,8 @@
             const modal = document.getElementById('qr-scanner-modal');
             modal.classList.add('opacity-0', 'pointer-events-none');
             modal.classList.remove('opacity-100');
+            // iOS PWA scroll fix：等淡出後 display:none 釋放 backdrop-blur
+            setTimeout(() => { modal.style.display = 'none'; }, 500);
             if (qrStream) {
                 qrStream.getTracks().forEach(track => track.stop());
                 qrStream = null;
