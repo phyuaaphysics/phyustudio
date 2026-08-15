@@ -125,13 +125,12 @@
             0%   { opacity: 0; transform: translateY(8px) scale(0.99); }
             100% { opacity: 1; transform: translateY(0)  scale(1);    }
         }
-        /* bg-fade-active class 觸發淡入；移除 class 取消動畫（連點時 reset） */
+        /* 背景圖：預設隱藏；用 inline style 控制 opacity（避免 class 切換 race） */
         #card-detail-bg {
             opacity: 0;
             will-change: opacity, transform;
-        }
-        #card-detail-bg.bg-fade-active {
-            animation: bgFade 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+            transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
         }
         @keyframes bgFade {
             0%   { opacity: 0; transform: scale(1.04); }
@@ -2562,43 +2561,42 @@
             __detailVolName = volName;
             __detailBgUrl = bgUrl || '';
             document.body.classList.remove('is-closing');
+
+            // 步驟 1：先把背景圖預載完成（await Image decode）
+            //   避免「modal 進場後 100ms 才看到背景」造成的 race
             if (bgLayer) {
                 if (bgUrl) {
-                    // 先用 Image() 預載，確認 decode 成功再設 backgroundImage
-                    // 避免特殊字元 / 中文 URL 導致 backgroundImage 解析失敗而看不見圖
-                    const img = new Image();
-                    img.onload = function() {
-                        if (__detailBgUrl === bgUrl) {  // 確認用戶沒切換到別的 vol
-                            // 先強制 reflow 再重啟 CSS animation（避免連點時動畫卡住）
-                            bgLayer.classList.remove('bg-fade-active');
-                            void bgLayer.offsetWidth;
-                            bgLayer.style.backgroundImage = `url("${img.src}")`;
-                            bgLayer.style.display = '';
-                            bgLayer.classList.add('bg-fade-active');
-                        }
-                    };
-                    img.onerror = function() {
+                    const decoded = await preloadImageAsync(bgUrl, 3000);  // 最多等 3 秒
+                    if (__detailBgUrl !== bgUrl) return;   // 用戶已切換到別的 vol
+                    if (decoded) {
+                        // 直接設不透明（不用淡入動畫，確保完全可見）
+                        bgLayer.style.backgroundImage = `url("${decoded}")`;
+                        bgLayer.style.display = '';
+                        bgLayer.style.opacity = '1';
+                        bgLayer.style.transform = 'scale(1)';
+                    } else {
                         console.warn('[bg] decode failed:', bgUrl);
-                        if (__detailBgUrl === bgUrl) {
-                            bgLayer.style.backgroundImage = '';
-                            bgLayer.style.display = 'none';
-                        }
-                    };
-                    img.src = bgUrl;
+                        bgLayer.style.backgroundImage = '';
+                        bgLayer.style.display = 'none';
+                        bgLayer.style.opacity = '0';
+                    }
                 } else {
                     bgLayer.style.backgroundImage = '';
                     bgLayer.style.display = 'none';
                 }
             }
+
+            // 步驟 2：背景 ready 後才讓 modal 進場（display + class）
             setHeader('Volume', volName, false);
             bodyEl.innerHTML = '';
             loadingEl.style.display = '';
-            // iOS PWA scroll fix：解除 display:none 隱藏
             modal.style.display = 'flex';
             modal.classList.remove('modal-open', 'modal-closing');
             modal.classList.remove('pointer-events-none');
             void modal.offsetWidth;
             modal.classList.add('modal-open');
+
+            // 步驟 3：抓 vol 資料（loader）
             let items = getCachedDetail(volName);
             let fromCache = !!items;
             if (!items) {
@@ -2615,6 +2613,7 @@
             } else {
                 console.log(`[openCardDetail] ✓ 用快取：${volName} (${items.length} items)`);
             }
+            if (__detailVolName !== volName) return;  // 用戶又切換了
             loadingEl.style.display = 'none';
             if (!items || items.length === 0) {
                 bodyEl.innerHTML = renderEmptyDetail(volName, fromCache ? 'empty' : 'not-found', '');
@@ -2625,6 +2624,19 @@
             }
             __detailItems = items;
             renderHWList();
+        }
+
+        // 圖片預載 helper：回傳 Promise<string|null>，3 秒 timeout
+        function preloadImageAsync(url, timeoutMs) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                let done = false;
+                const finish = (val) => { if (done) return; done = true; resolve(val); };
+                const timer = setTimeout(() => finish(null), timeoutMs || 3000);
+                img.onload  = function() { clearTimeout(timer); finish(img.src); };
+                img.onerror = function() { clearTimeout(timer); finish(null); };
+                img.src = url;
+            });
         }
 
         function renderHWList(direction = 'forward') {
