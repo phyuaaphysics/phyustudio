@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PH Studio</title>
- 
+    <title>Lumina Studio</title>
+
+    <!-- 預連線：圖床 + Google Sheets + 字型 CDN 提前建 TCP / TLS 連線，圖片載入更快 -->
     <link rel="preconnect" href="https://i.ibb.co" crossorigin>
     <link rel="preconnect" href="https://docs.google.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -126,7 +127,10 @@
             will-change: transform;
         }
 
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 78px); padding-bottom: 100px; }
+        /* 桌面：page-content 從頂部開始（hero 用 margin-top 負值延伸到 icon bar 後方，無 gap） */
+        #page-content { padding-top: 0; padding-bottom: 100px; }
+        /* Hero 向上延伸到 icon bar 後方：負 margin 把 hero 拉上去 68px（logo bar 高度） */
+        .nf-hero { margin-top: -68px; }
 
         /* ============================================
            🎬 Netflix 風格：Hero Banner（21:9）
@@ -142,6 +146,7 @@
         @media (max-width: 768px) {
             .nf-hero {
                 height: 65vh;
+                margin-top: -64px;  /* mobile icon bar 高度 64px（6+48+10），hero 向上延伸 */
                 margin-bottom: 28px;
             }
         }
@@ -266,13 +271,16 @@
         @media (max-width: 900px)  { .nf-grid-view { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 600px)  { .nf-grid-view { grid-template-columns: repeat(2, 1fr); } }
 
-        /* Tab 內 portrait 卡片牆：圓角 + 密鋪不 scroll（用 auto-fit 自適應） */
+        /* Tab 內 portrait 卡片牆：圓角 + 密鋪（手機 3 欄、平板 4、桌面 5-6） */
         .nf-tab-wall {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 14px;
-            padding: 0 max(20px, 4vw) 60px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 0 max(16px, 4vw) 60px;
         }
+        @media (min-width: 600px) { .nf-tab-wall { grid-template-columns: repeat(4, 1fr); gap: 12px; } }
+        @media (min-width: 900px) { .nf-tab-wall { grid-template-columns: repeat(5, 1fr); gap: 14px; } }
+        @media (min-width: 1280px) { .nf-tab-wall { grid-template-columns: repeat(6, 1fr); gap: 14px; } }
         .nf-tab-wall .nf-card.portrait {
             width: 100%;
             aspect-ratio: 3/4;
@@ -305,7 +313,12 @@
         .nf-section-title .nf-explore {
             font-size: 12px; color: var(--glacier-primary); font-weight: 500;
             display: inline-flex; align-items: center; gap: 4px;
+            background: none; border: none; padding: 0; cursor: pointer;
+            transition: opacity 0.2s;
         }
+        .nf-section-title .nf-explore:hover { opacity: 0.7; }
+        .nf-section-title .nf-explore i { transition: transform 0.2s; }
+        .nf-section-title .nf-explore:hover i { transform: translateX(2px); }
         .nf-row {
             position: relative;
             display: flex; gap: 8px;
@@ -315,6 +328,12 @@
             scrollbar-width: none;
         }
         .nf-row::-webkit-scrollbar { display: none; }
+        /* 展開成密鋪 grid（toggleSectionExpand 觸發） */
+        .nf-row.nf-row-expanded {
+            display: block;
+            overflow: visible;
+        }
+        .nf-row-expanded .nf-row-arrow { display: none; }
         .nf-row-arrow {
             position: absolute;
             top: 50%;
@@ -589,6 +608,15 @@
             opacity: 0;
             animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* iOS-style 推入動畫（用於「查看全部」section 牆 / tab 牆） */
+        @keyframes iosSlideIn {
+            from { opacity: 0; transform: translateX(24px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .nf-fade-in {
+            animation: iosSlideIn 0.4s cubic-bezier(0.32, 0.72, 0, 1) both;
+        }
     </style>
 </head>
 <body class="hide-scrollbar">
@@ -596,14 +624,14 @@
     <!-- ============================================
          🎬 Netflix 風格：頂部 nav
          ============================================ -->
-    <header class="logo-bar" id="logo-nav-bar">
-        <div class="max-w-screen-2xl mx-auto flex items-center justify-between px-4 md:px-8">
+    <header class="logo-bar px-6" id="logo-nav-bar">
+        <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
             </div>
-            <div class="flex items-center gap-2 md:gap-4">
+            <div class="flex items-center gap-4 md:gap-6">
                 <div class="relative hidden sm:block">
                     <input type="text" id="search-input" placeholder="搜尋…" oninput="handleSearch(this.value)" class="nf-search-input border border-sky-400/30 rounded-full py-1.5 pl-9 pr-9 text-sm focus:outline-none focus:border-sky-500 transition-colors w-44 focus:w-60" style="color: var(--glacier-deep);">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--glacier-text); opacity: 0.6;"></i>
@@ -870,7 +898,7 @@
                 <section class="nf-section" id="${opts.id || ''}">
                     <h2 class="nf-section-title">
                         <span>${title}</span>
-                        <a class="nf-explore" href="#">查看全部 <i class="fas fa-chevron-right" style="font-size:9px;"></i></a>
+                        <button class="nf-explore" type="button" onclick="toggleSectionExpand('${sec}', this)">查看全部 <i class="fas fa-chevron-right" style="font-size:9px;"></i></button>
                     </h2>
                     <div class="nf-row-wrap" style="position:relative;">
                         <button class="nf-row-arrow left" aria-label="往左" onclick="scrollRow('${sid}', -1)"><i class="fas fa-chevron-left"></i></button>
@@ -909,7 +937,7 @@
         let isGridView = false;
         let searchQuery = '';
         let allCardsCache = null;
-        let currentTab = null;   // SPA 內部 tab 路由（null = 首頁）
+        let currentTab = null;       // SPA 內部 tab 路由（null = 首頁）
 
         const LS = {
             cards: 'lumina_cards_v1',
@@ -1074,13 +1102,55 @@
 
         // 監聽瀏覽器上一頁/下一頁
         window.addEventListener('popstate', (e) => {
-            if (location.hash) {
-                currentTab = location.hash.slice(1);
+            const hash = location.hash || '';
+            if (hash.length > 1) {
+                currentTab = hash.slice(1);
             } else {
                 currentTab = null;
             }
             if (allCardsCache) renderCards(document.getElementById('nf-render-root'), allCardsCache);
+            updateDockForTab();
         });
+
+        // 「查看全部」row-local toggle：原地把 row 變密鋪 grid
+        // 只改該 row 的內部結構，其他 section 不動
+        function toggleSectionExpand(sec, btn) {
+            const row = document.getElementById(sec + '-row');
+            if (!row) return;
+            const isExpanded = row.classList.contains('nf-row-expanded');
+            if (isExpanded) {
+                // 收起：恢復橫向捲動
+                row.classList.remove('nf-row-expanded');
+                row.classList.remove('nf-fade-in');
+                row.innerHTML = row.dataset.originalHtml || row.innerHTML;
+                if (btn) {
+                    btn.innerHTML = '查看全部 <i class="fas fa-chevron-right" style="font-size:9px;"></i>';
+                }
+            } else {
+                // 展開：先 cache 原 HTML，再換成密鋪 grid
+                row.dataset.originalHtml = row.innerHTML;
+                const allCards = (allCardsCache || []).filter(c => (c.section || '').toLowerCase() === sec.toLowerCase() && c.type !== 'quote');
+                const cardsHtml = allCards.map(c => {
+                    const bg = resolveBg(c.bg);
+                    const imgTag = bg.url
+                        ? `<img class="nf-card-img" src="${bg.url}" alt="">`
+                        : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
+                    return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
+                        ${imgTag}
+                        <div class="nf-card-default">
+                            <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
+                            <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+                row.classList.add('nf-row-expanded');
+                row.classList.add('nf-fade-in');
+                row.innerHTML = `<div class="nf-tab-wall">${cardsHtml}</div>`;
+                if (btn) {
+                    btn.innerHTML = '收起 <i class="fas fa-chevron-up" style="font-size:9px;"></i>';
+                }
+            }
+        }
 
         // Tab 內部卡片牆（portrait 圓角卡 + auto-fit 密鋪不 scroll）
         function renderTabWall(tabName, items) {
