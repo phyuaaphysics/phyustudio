@@ -127,9 +127,9 @@
             will-change: transform;
         }
 
-        /* 跟 template 一致：page-content 預留 logo bar + safe-area 空間 */
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); padding-bottom: 100px; }
-        /* Hero 從 page-content 內頂部開始，不 overlap icon bar */
+        /* page-content：body 已經用 env(safe-area-inset-top) 預留 iOS 狀態列，這裡只需預留 logo bar 高度 */
+        #page-content { padding-top: 72px; padding-bottom: 100px; }
+        /* Hero 從 page-content 內頂部開始（緊接 logo bar） */
         .nf-hero { margin-top: 0; }
 
         /* ============================================
@@ -593,8 +593,8 @@
             .nf-quote-card { width: 300px; padding: 20px 22px; min-height: 160px; }
             .nf-quote-text { font-size: 18px; }
             .nf-nav-link { font-size: 12px; padding: 4px 8px; }
-            /* Mobile：page-content 跟 template 一致 120px */
-            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
+            /* Mobile：page-content 預留 logo bar 高度（body 已預留 safe-area） */
+            #page-content { padding-top: 64px; }
 
             .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
             .logo-bar { padding-top: calc(env(safe-area-inset-top, 0px) + 6px); padding-bottom: 10px; }
