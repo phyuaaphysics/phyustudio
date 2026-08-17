@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Lumina Studio</title>
@@ -510,48 +510,71 @@
            🖥️ 桌面 Dock（保留）
            ============================================ */
         .dock-wrapper {
-            position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-            left: 50%; transform: translateX(-50%); z-index: 200;
-            transition: transform 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.4s;
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+            width: auto;
+            min-width: 340px;
         }
-        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(180px); opacity: 0; }
+
+        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0;
+        }
+
         .dock-nav {
             background-color: var(--glacier-nav-glass);
             backdrop-filter: blur(28px) saturate(210%);
             -webkit-backdrop-filter: blur(28px) saturate(210%);
             border: 1.5px solid rgba(255, 255, 255, 0.5);
-            padding: 10px 12px; border-radius: 42px;
+            padding: 12px 14px;
+            border-radius: 42px;
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
             display: flex; align-items: center; justify-content: center; gap: 14px;
         }
+
         .dock-toggle-btn {
-            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-            color: var(--glacier-text); cursor: pointer; font-size: 12px;
+            width: 32px;
+            height: 32px; display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
         }
-        .dock-content { display: flex; align-items: center; gap: 2px; }
+
+        .dock-content { display: flex; align-items: center; gap: 14px;
+        }
+
         .dock-item {
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
-            color: #94a3b8; padding: 4px 8px; border-radius: 12px;
-            min-width: 58px; transition: all 0.3s; font-weight: 600;
+            display: flex;
+            flex-direction: column; align-items: center; gap: 5px;
+            color: #94a3b8; transition: all 0.3s; min-width: 58px;
         }
-        .dock-item i { font-size: 1.15rem; }
-        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
-        .dock-item:hover { color: var(--glacier-primary); background: rgba(14, 165, 233, 0.1); }
-        .dock-item.active { color: var(--glacier-primary); }
+
+        .dock-item i { font-size: 1.6rem;
+        }
+        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7;
+        }
+        .dock-item:hover { color: var(--glacier-primary); }
+        .dock-item.active { color: var(--glacier-primary);
+        }
         .dock-item.active span { opacity: 1; }
         /* Tab 模式：dock 第 2 格變成 tab icon（橘色高亮） */
         .dock-item.dock-tab-active { color: #f59e0b; }
         .dock-item.dock-tab-active span { opacity: 1; font-weight: 700; }
         .dock-item.dock-tab-active i { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4)); }
         body.dark-mode .dock-item.dock-tab-active { color: #fbbf24; }
+
         .dock-trigger-bar {
-            position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-            left: 50%; transform: translateX(-50%);
-            width: 50px; height: 4px; background: var(--glacier-text);
-            border-radius: 10px; z-index: 199; cursor: pointer; display: none;
-            opacity: 0.5;
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px; height: 5px;
+            background: rgba(15, 23, 42, 0.2);
+            border-radius: 10px;
+            z-index: 199; cursor: pointer; display: none;
         }
-        .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
+        .dock-wrapper.collapsed + .dock-trigger-bar { display: block;
+        }
 
         /* ============================================
            📱 MOBILE 版 (≤768px)
@@ -578,10 +601,6 @@
             .logo-bar img { height: 32px !important; }
 
             .dock-wrapper { width: 92%; max-width: 400px; }
-            .dock-nav { justify-content: space-around; padding: 8px 10px; }
-            .dock-item { min-width: 50px; padding: 5px 8px; }
-            .dock-item i { font-size: 1.05rem; }
-            .dock-item span { font-size: 9px; }
         }
 
         @keyframes fadeUp {
@@ -670,16 +689,16 @@
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
                 <button onclick="handleHomeClick()" id="dock-home" class="dock-item active" title="返回首頁">
-                    <i id="dock-home-icon" class="fas fa-home"></i><span id="dock-home-label">錄影庫</span>
+                    <i id="dock-home-icon" class="fas fa-home"></i><span id="dock-home-label" class="uppercase">錄影庫</span>
                 </button>
                 <button id="dock-tab-slot" class="dock-item" onclick="handleTabSlotClick()" title="當前分頁">
-                    <i id="dock-tab-icon" class="fas fa-cube"></i><span id="dock-tab-label">模擬器</span>
+                    <i id="dock-tab-icon" class="fas fa-cube"></i><span id="dock-tab-label" class="uppercase">模擬器</span>
                 </button>
                 <button class="dock-item" onclick="handleNavigation('#')">
-                    <i class="fas fa-shapes"></i><span>功能區</span>
+                    <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
                 <button class="dock-item" onclick="handleNavigation('#')">
-                    <i class="fas fa-qrcode"></i><span>掃描器</span>
+                    <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
                 </button>
             </div>
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
