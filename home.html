@@ -127,9 +127,9 @@
             will-change: transform;
         }
 
-        /* page-content 從頂部開始（hero 從 body 頂部延伸，被 fixed icon bar 蓋住上半部，視覺 overlap） */
-        #page-content { padding-top: 0; padding-bottom: 100px; }
-        /* Hero 從 body 內容區頂部開始（z-index 1 < icon bar 120，所以上半部被蓋） */
+        /* 跟 template 一致：page-content 預留 logo bar + safe-area 空間 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); padding-bottom: 100px; }
+        /* Hero 從 page-content 內頂部開始，不 overlap icon bar */
         .nf-hero { margin-top: 0; }
 
         /* ============================================
@@ -593,8 +593,8 @@
             .nf-quote-card { width: 300px; padding: 20px 22px; min-height: 160px; }
             .nf-quote-text { font-size: 18px; }
             .nf-nav-link { font-size: 12px; padding: 4px 8px; }
-            /* Mobile：移除 body safe-area padding-top，讓 hero 從視窗頂部開始（被 icon bar 蓋住上半部） */
-            body { padding-top: 0; }
+            /* Mobile：page-content 跟 template 一致 120px */
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
 
             .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
             .logo-bar { padding-top: calc(env(safe-area-inset-top, 0px) + 6px); padding-bottom: 10px; }
