@@ -974,7 +974,10 @@
                 const ts  = parseInt(localStorage.getItem(LS.ts) || '0', 10);
                 const ver = localStorage.getItem(LS.ver) || '';
                 if (!raw) return null;
-                return { cards: JSON.parse(raw), ts, ver };
+                const cards = JSON.parse(raw);
+                // 健壯性：空陣列也視為無 cache（避免 buildBento 漏觸發 fallback）
+                if (!Array.isArray(cards) || cards.length === 0) return null;
+                return { cards, ts, ver };
             } catch (e) { return null; }
         }
 
@@ -997,19 +1000,21 @@
             const cache = readCache();
             if (cache && cache.cards.length) {
                 renderCards(container, cache.cards);
+            } else {
+                // 沒有 cache：先跑 fallback（背景 fetch 跑，成功時 render 蓋掉）
+                renderFallback(container);
             }
 
-            // 2. 並發 fetch meta + cards（不等彼此）+ 5 秒 timeout
+            // 2. 並發 fetch meta + cards（不等彼此）+ 3 秒 timeout
             // 避免 sandbox / 慢網絡讓頁面永久空白
-            const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 5000));
+            const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 3000));
             const result = await Promise.race([
                 Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]),
                 timeoutPromise.then(() => null)
             ]);
 
             if (!result) {
-                // 5 秒還沒回來（連線慢 / sandbox 沒網絡）→ fallback
-                if (!cache) renderFallback(container);
+                // 3 秒還沒回來（連線慢 / sandbox 沒網絡）— 已經跑過 fallback，不做事
                 return;
             }
 
@@ -1029,7 +1034,7 @@
                 writeCache(freshCards, remoteVer || '');
                 renderCards(container, freshCards);
             } else if (!cache) {
-                // Cache 空 + Sheet 抓不到 → 顯示 fallback + 錯誤訊息
+                // fetch 回來但空 / 失敗 + 沒 cache → fallback
                 renderFallback(container);
             }
         }
