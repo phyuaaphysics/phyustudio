@@ -127,10 +127,10 @@
             will-change: transform;
         }
 
-        /* 桌面：page-content 從頂部開始（hero 用 margin-top 負值延伸到 icon bar 後方，無 gap） */
+        /* page-content 從頂部開始（hero 從 body 頂部延伸，被 fixed icon bar 蓋住上半部，視覺 overlap） */
         #page-content { padding-top: 0; padding-bottom: 100px; }
-        /* Hero 向上延伸到 icon bar 後方：負 margin 把 hero 拉上去 68px（logo bar 高度） */
-        .nf-hero { margin-top: -68px; }
+        /* Hero 從 body 內容區頂部開始（z-index 1 < icon bar 120，所以上半部被蓋） */
+        .nf-hero { margin-top: 0; }
 
         /* ============================================
            🎬 Netflix 風格：Hero Banner（21:9）
@@ -146,7 +146,7 @@
         @media (max-width: 768px) {
             .nf-hero {
                 height: 65vh;
-                margin-top: -64px;  /* mobile icon bar 高度 64px（6+48+10），hero 向上延伸 */
+                margin-top: 0;  /* hero 從 body 頂部開始，被 icon bar 半透明蓋住上半部 */
                 margin-bottom: 28px;
             }
         }
@@ -593,6 +593,8 @@
             .nf-quote-card { width: 300px; padding: 20px 22px; min-height: 160px; }
             .nf-quote-text { font-size: 18px; }
             .nf-nav-link { font-size: 12px; padding: 4px 8px; }
+            /* Mobile：移除 body safe-area padding-top，讓 hero 從視窗頂部開始（被 icon bar 蓋住上半部） */
+            body { padding-top: 0; }
 
             .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
             .logo-bar { padding-top: calc(env(safe-area-inset-top, 0px) + 6px); padding-bottom: 10px; }
