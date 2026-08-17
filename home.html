@@ -990,18 +990,30 @@
             const container = document.getElementById('nf-render-root');
             if (!container) return;
 
+            // 立馬顯示 loading 提示
+            container.innerHTML = '<div style="padding:120px 20px;text-align:center;color:var(--glacier-text);opacity:0.6;font-size:14px;">載入中…</div>';
+
             // 1. 立刻 render cache（不等任何 fetch）
             const cache = readCache();
             if (cache && cache.cards.length) {
                 renderCards(container, cache.cards);
             }
 
-            // 2. 並發 fetch meta + cards（不等彼此）
-            const [verResult, freshResult] = await Promise.allSettled([
-                fetchMetaVersion(),
-                fetchFreshCards()
+            // 2. 並發 fetch meta + cards（不等彼此）+ 5 秒 timeout
+            // 避免 sandbox / 慢網絡讓頁面永久空白
+            const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 5000));
+            const result = await Promise.race([
+                Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]),
+                timeoutPromise.then(() => null)
             ]);
 
+            if (!result) {
+                // 5 秒還沒回來（連線慢 / sandbox 沒網絡）→ fallback
+                if (!cache) renderFallback(container);
+                return;
+            }
+
+            const [verResult, freshResult] = result;
             const remoteVer = verResult.status === 'fulfilled' ? verResult.value : null;
             const freshCards = freshResult.status === 'fulfilled' ? freshResult.value : null;
 
@@ -1017,8 +1029,35 @@
                 writeCache(freshCards, remoteVer || '');
                 renderCards(container, freshCards);
             } else if (!cache) {
-                container.innerHTML = '<div style="padding:80px 40px;text-align:center;color:#a3a3a3;">卡片載入失敗，請檢查網絡 / Sheet 權限</div>';
+                // Cache 空 + Sheet 抓不到 → 顯示 fallback + 錯誤訊息
+                renderFallback(container);
             }
+        }
+
+        // 硬編碼 fallback cards（sandbox 無法連 Google Sheets 時的保底）
+        function renderFallback(container) {
+            const fallbackCards = [
+                { id: 'fb1', type: 'head', cn: '課堂錄影', en: 'Lesson Archive', section: 'courses', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
+                { id: 'fb2', type: 'hero', cn: '線上補課', en: 'Online classroom', section: 'courses', size: 'lg', bg: 'https://picsum.photos/seed/young/1200/1200', link: '', active: true },
+                { id: 'fb3', type: 'hero', cn: '物理課程', en: 'Physics courses', section: 'courses', size: 'md', bg: 'https://i.ibb.co/tPnQJMn4/de.png', link: '', active: true },
+                { id: 'fb4', type: 'hero', cn: '電子筆記', en: 'E-books', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/mVD38njr/de.png', link: '', active: true },
+                { id: 'fb5', type: 'hero', cn: '基礎練習冊', en: 'Homework tutorials', section: 'courses', size: 'md', bg: 'https://i.ibb.co/QFXhXGT4/de.png', link: '', active: true },
+                { id: 'fb6', type: 'hero', cn: '歷屆試題', en: 'Pastpaper bank', section: 'courses', size: 'md', bg: 'https://i.ibb.co/JFWg0SKF/Gemini-Generated-Image.png', link: '', active: true },
+                { id: 'fb7', type: 'hero', cn: '公式庫', en: 'Formulas bank', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/qMxwmbQs/sd.png', link: '', active: true },
+                { id: 'fb8', type: 'hero', cn: '學習卡', en: 'Revision cards', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/xZyzRFd/ds.jpg', link: '', active: true },
+                { id: 'fb9', type: 'hero', cn: '模擬實驗', en: 'Simulations', section: 'courses', size: 'md', bg: 'https://i.ibb.co/LDFcP57y/asfd.png', link: '', active: true },
+                { id: 'fb10', type: 'hero', cn: '數學課程', en: 'Mathematics courses', section: 'courses', size: 'md', bg: 'https://i.ibb.co/53Sz49Y/Gemini-Generated-Image.png', link: '', active: true },
+                { id: 'fb11', type: 'hero', cn: '庫存系統', en: 'Old systems', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/twGDKGBg/Gemini-Generated-Image.png', link: 'insite://oldsys', active: true },
+                { id: 'fb12', type: 'quote', cn: '', en: '', section: 'quotes', size: '', bg: '', quote_text: 'The important thing is not to stop questioning. Curiosity has its own reason for existing.', quote_author: 'Albert Einstein', link: '', active: true },
+                { id: 'fb13', type: 'quote', cn: '', en: '', section: 'quotes', size: '', bg: '', quote_text: 'Somewhere, something incredible is waiting to be known.', quote_author: 'Carl Sagan', link: '', active: true },
+            ];
+            allCardsCache = fallbackCards;
+            renderCards(container, fallbackCards);
+            // 在底部加錯誤訊息
+            const warn = document.createElement('div');
+            warn.style.cssText = 'padding:30px 20px;text-align:center;color:#a3a3a3;font-size:13px;border-top:1px solid var(--glacier-card-border);margin-top:40px;';
+            warn.innerHTML = '⚠ 連線 Google Sheet 失敗，現正使用內建示範資料。<br>請檢查網絡或 <a href="#" onclick="localStorage.clear();location.reload();" style="color:var(--glacier-primary);text-decoration:underline;">清除快取重試</a>。';
+            container.appendChild(warn);
         }
 
         // ========== 🧭 SPA 內部 tab 路由（insite://） ==========
