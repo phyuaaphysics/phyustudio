@@ -71,6 +71,7 @@
             transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
         }
 
+        /* 跟 template 一致：html 鎖 viewport，body 內部捲 */
         html {
             scroll-behavior: smooth;
             height: 100%;
@@ -82,12 +83,12 @@
             font-family: 'Plus Jakarta Sans', 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg); color: var(--glacier-text);
             -webkit-tap-highlight-color: transparent;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-            height: 100%; overflow-y: auto;
-            overscroll-behavior-y: contain;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 0;
+            padding-bottom: 0;
+            padding-left: 0;
+            padding-right: 0;
             text-size-adjust: 100%;
             -webkit-text-size-adjust: 100%;
         }
@@ -127,8 +128,8 @@
             will-change: transform;
         }
 
-        /* page-content：body 已經用 env(safe-area-inset-top) 預留 iOS 狀態列，這裡只需預留 logo bar 高度 */
-        #page-content { padding-top: 72px; padding-bottom: 100px; }
+        /* page-content：跟 template 一致 - 預留 safe-area + logo bar 高度 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); padding-bottom: 180px; }
         /* Hero 從 page-content 內頂部開始（緊接 logo bar） */
         .nf-hero { margin-top: 0; }
 
@@ -593,8 +594,8 @@
             .nf-quote-card { width: 300px; padding: 20px 22px; min-height: 160px; }
             .nf-quote-text { font-size: 18px; }
             .nf-nav-link { font-size: 12px; padding: 4px 8px; }
-            /* Mobile：page-content 預留 logo bar 高度（body 已預留 safe-area） */
-            #page-content { padding-top: 64px; }
+            /* Mobile：跟 template 一致 - 預留 safe-area + logo bar 高度 + dock */
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); padding-bottom: 160px; }
 
             .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
             .logo-bar { padding-top: calc(env(safe-area-inset-top, 0px) + 6px); padding-bottom: 10px; }
@@ -671,6 +672,9 @@
                     </div>
                 </label>
                 <div class="nf-profile-group">
+                    <button class="nf-logout-btn" onclick="manualReload()" title="強制重整（清快取重新載入）" style="margin-right:4px;">
+                        <i class="fas fa-rotate"></i>
+                    </button>
                     <div class="nf-avatar" title="個人檔案（暫未啟用）">
                         <i class="fas fa-user-circle"></i>
                     </div>
@@ -941,12 +945,12 @@
         let allCardsCache = null;
         let currentTab = null;       // SPA 內部 tab 路由（null = 首頁）
 
+        // 跟 template 一致：cache key 用 ver + payload 兩個 key（無時間戳）
         const LS = {
             cards: 'lumina_cards_v1',
-            ts:    'lumina_cards_v1_ts',
             ver:   'lumina_cards_v1_ver',
         };
-        const TTL = 10 * 60 * 1000;
+        const TTL = 10 * 60 * 1000;  // meta 失敗時的 fallback TTL
 
         async function fetchMetaVersion() {
             try {
@@ -968,78 +972,162 @@
             return cards;
         }
 
+        // 跟 template 的 readCache 等價：空陣列視為無 cache
         function readCache() {
             try {
                 const raw = localStorage.getItem(LS.cards);
-                const ts  = parseInt(localStorage.getItem(LS.ts) || '0', 10);
-                const ver = localStorage.getItem(LS.ver) || '';
                 if (!raw) return null;
                 const cards = JSON.parse(raw);
-                // 健壯性：空陣列也視為無 cache（避免 buildBento 漏觸發 fallback）
                 if (!Array.isArray(cards) || cards.length === 0) return null;
-                return { cards, ts, ver };
+                const ver = localStorage.getItem(LS.ver) || '';
+                const ts  = parseInt(localStorage.getItem(LS.cards + '_ts') || '0', 10);
+                return { cards, ver, ts };
             } catch (e) { return null; }
         }
 
         function writeCache(cards, ver) {
             try {
                 localStorage.setItem(LS.cards, JSON.stringify(cards));
-                localStorage.setItem(LS.ts, String(Date.now()));
                 localStorage.setItem(LS.ver, ver || '');
+                localStorage.setItem(LS.cards + '_ts', String(Date.now()));
             } catch (e) {}
         }
 
+        // ========== 完全照 template 的 initData 模式 + fallback ==========
+        // 三段邏輯:
+        //   1. 第一瞬:cache 有就 render（hasRenderedCache = true）
+        //   2. 背景 fetch:並發拿 meta + cards，3 秒 timeout 避免卡死
+        //   3. 失敗:!hasRenderedCache 才顯示 fallback（跟 template 的 !hasRenderedCache 邏輯一致）
         async function buildBento() {
             const container = document.getElementById('nf-render-root');
             if (!container) return;
 
-            // 立馬顯示 loading 提示
-            container.innerHTML = '<div style="padding:120px 20px;text-align:center;color:var(--glacier-text);opacity:0.6;font-size:14px;">載入中…</div>';
+            // ====== 第 1 段：先 render cache（跟 template 一模一樣） ======
+            const cachedData = readCache();
+            let hasRenderedCache = false;
 
-            // 1. 立刻 render cache（不等任何 fetch）
-            const cache = readCache();
-            if (cache && cache.cards.length) {
-                renderCards(container, cache.cards);
-            } else {
-                // 沒有 cache：先跑 fallback（背景 fetch 跑，成功時 render 蓋掉）
-                renderFallback(container);
+            if (cachedData) {
+                try {
+                    if (cachedData.cards && cachedData.cards.length > 0) {
+                        console.log("第一瞬載入：已從 LocalStorage 恢復快取");
+                        safeRenderCards(container, cachedData.cards);
+                        allCardsCache = cachedData.cards;
+                        hasRenderedCache = true;
+                    }
+                } catch (e) {
+                    console.warn("快取損壞,清理重設:", e);
+                    try {
+                        localStorage.removeItem(LS.cards);
+                        localStorage.removeItem(LS.ver);
+                    } catch(_) {}
+                }
             }
 
-            // 2. 並發 fetch meta + cards（不等彼此）+ 3 秒 timeout
-            // 避免 sandbox / 慢網絡讓頁面永久空白
-            const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 3000));
-            const result = await Promise.race([
-                Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]),
-                timeoutPromise.then(() => null)
-            ]);
+            // 如果 cache 也沒有,先顯示 fallback 讓畫面不空白
+            if (!hasRenderedCache) {
+                safeRenderFallback(container);
+            }
 
-            if (!result) {
-                // 3 秒還沒回來（連線慢 / sandbox 沒網絡）— 已經跑過 fallback，不做事
+            // ====== 第 2 段：背景 fetch + 3 秒 timeout ======
+            // 用 3 秒 timeout 防止 sandbox / 慢網絡卡死
+            const timeout = new Promise(resolve => setTimeout(() => resolve('timeout'), 3000));
+            const fetchJob = (async () => {
+                try {
+                    const [verResult, cardsResult] = await Promise.allSettled([
+                        fetchMetaVersion(),
+                        fetchFreshCards()
+                    ]);
+                    if (verResult.status === 'fulfilled' && cardsResult.status === 'fulfilled') {
+                        return { ok: true, ver: verResult.value, cards: cardsResult.value };
+                    }
+                    return { ok: false, reason: cardsResult.reason || verResult.reason };
+                } catch (e) {
+                    return { ok: false, reason: e };
+                }
+            })();
+
+            const result = await Promise.race([fetchJob, timeout]);
+
+            // ====== 第 3 段：處理結果（跟 template catch 邏輯一致） ======
+            if (result === 'timeout') {
+                console.warn("Fetch 超時(3s) — 保持現有 cache 或 fallback");
                 return;
             }
 
-            const [verResult, freshResult] = result;
-            const remoteVer = verResult.status === 'fulfilled' ? verResult.value : null;
-            const freshCards = freshResult.status === 'fulfilled' ? freshResult.value : null;
-
-            // 3. 判斷是否需要更新
-            if (cache && remoteVer !== null) {
-                if (cache.ver === remoteVer) return;  // 版本一致，不用 render
-            } else if (cache && Date.now() - cache.ts < TTL) {
-                return;  // TTL 內，跳過
+            if (!result.ok) {
+                console.error("背景同步失敗:", result.reason);
+                if (!hasRenderedCache) {
+                    // fallback 已經顯示過了,只在頂部加個提示
+                    safeShowFetchError();
+                }
+                return;
             }
 
-            // 4. 用新資料重 render
-            if (freshCards && freshCards.length) {
-                writeCache(freshCards, remoteVer || '');
-                renderCards(container, freshCards);
-            } else if (!cache) {
-                // fetch 回來但空 / 失敗 + 沒 cache → fallback
-                renderFallback(container);
+            const { ver: remoteVer, cards: freshCards } = result;
+            if (!freshCards || !freshCards.length) return;
+
+            // 判斷要不要更新：版本不同 / 沒 cache → 重新 render
+            if (cachedData && remoteVer && cachedData.ver === remoteVer) {
+                console.log("版本一致,無須更新");
+                return;
+            }
+
+            console.log("寫入新資料並 re-render");
+            writeCache(freshCards, remoteVer || '');
+            allCardsCache = freshCards;
+            safeRenderCards(container, freshCards);
+        }
+
+        // ========== 安全 render wrapper：try/catch 保證永遠有東西顯示 ==========
+        function safeRenderCards(container, cards) {
+            try {
+                if (!container || !cards || !cards.length) {
+                    safeRenderFallback(container);
+                    return;
+                }
+                renderCards(container, cards);
+                // 再次確認 container 有內容
+                if (!container.innerHTML.trim()) {
+                    console.warn("renderCards 後 container 為空,改 fallback");
+                    safeRenderFallback(container);
+                }
+            } catch (e) {
+                console.error("renderCards 拋例外:", e);
+                safeRenderFallback(container);
             }
         }
 
+        function safeRenderFallback(container) {
+            try {
+                renderFallback(container);
+            } catch (e) {
+                console.error("renderFallback 也拋例外:", e);
+                if (container) {
+                    container.innerHTML = '<div style="padding:120px 20px;text-align:center;color:var(--glacier-text);"><h2>載入失敗</h2><p>請<a href="#" onclick="localStorage.clear();location.reload();" style="color:var(--glacier-primary);">清除快取重試</a>或檢查網絡連線。</p></div>';
+                }
+            }
+        }
+
+        function safeShowFetchError() {
+            try {
+                showFetchError();
+            } catch (e) {
+                console.error("showFetchError 拋例外:", e);
+            }
+        }
+
+        // 顯示 fetch 失敗提示（在 fallback 區塊頂部加紅字）
+        function showFetchError() {
+            const container = document.getElementById('nf-render-root');
+            if (!container) return;
+            const banner = document.createElement('div');
+            banner.style.cssText = 'padding:14px 20px;text-align:center;color:#a3a3a3;font-size:12px;background:rgba(229,9,20,0.08);border-bottom:1px solid rgba(229,9,20,0.15);';
+            banner.innerHTML = '⚠ 連線 Google Sheet 失敗,現正使用內建示範資料。<a href="#" onclick="localStorage.clear();location.reload();" style="color:var(--glacier-primary);text-decoration:underline;margin-left:6px;">清除快取重試</a>';
+            container.insertBefore(banner, container.firstChild);
+        }
+
         // 硬編碼 fallback cards（sandbox 無法連 Google Sheets 時的保底）
+        // 跟 template 一樣:failure 時就顯示這個,簡單粗暴
         function renderFallback(container) {
             const fallbackCards = [
                 { id: 'fb1', type: 'head', cn: '課堂錄影', en: 'Lesson Archive', section: 'courses', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
@@ -1058,11 +1146,7 @@
             ];
             allCardsCache = fallbackCards;
             renderCards(container, fallbackCards);
-            // 在底部加錯誤訊息
-            const warn = document.createElement('div');
-            warn.style.cssText = 'padding:30px 20px;text-align:center;color:#a3a3a3;font-size:13px;border-top:1px solid var(--glacier-card-border);margin-top:40px;';
-            warn.innerHTML = '⚠ 連線 Google Sheet 失敗，現正使用內建示範資料。<br>請檢查網絡或 <a href="#" onclick="localStorage.clear();location.reload();" style="color:var(--glacier-primary);text-decoration:underline;">清除快取重試</a>。';
-            container.appendChild(warn);
+            // buildBento 的 !hasRenderedCache 分支會另外加頂部錯誤條 — 這裡只負責渲染卡片
         }
 
         // ========== 🧭 SPA 內部 tab 路由（insite://） ==========
@@ -1385,6 +1469,24 @@
 
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
         function scrollToHome() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        // 手動強制重整：清 localStorage + cache buster reload，跟 template 的 manualSync 類似
+        function manualReload() {
+            try {
+                // 清所有 lumina_* 跟 theme key
+                const keys = Object.keys(localStorage);
+                keys.forEach(k => {
+                    if (k.startsWith('lumina_') || k === 'theme') localStorage.removeItem(k);
+                });
+                // 保險起見全清
+                localStorage.clear();
+                sessionStorage.clear();
+            } catch (e) {}
+            // 用 cache buster 強制 reload
+            const url = new URL(window.location.href);
+            url.searchParams.set('bust', Date.now());
+            window.location.href = url.toString();
+        }
+
         function openQRScanner() {
             // QR Scanner 入口：導去 GitHub Pages 對應頁面
             window.open('https://phyuaaphysics.github.io/phyustudio/qrscanner.html', '_blank', 'noopener,noreferrer');
