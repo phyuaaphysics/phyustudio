@@ -4,660 +4,468 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Lumina Studio</title>
-    
-    <!-- iOS PWA 狀態列修正 -->
+
+    <!-- 預連線：圖床 + Google Sheets + 字型 -->
+    <link rel="preconnect" href="https://i.ibb.co" crossorigin>
+    <link rel="preconnect" href="https://docs.google.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://i.ibb.co">
+    <link rel="dns-prefetch" href="https://docs.google.com">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 引入 jsQR 解析庫 -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&display=swap');
+
         :root {
-            --glacier-deep: #0f172a;
-            --glacier-primary: #0284c7; 
-            --glacier-ice: #38bdf8;
             --glacier-bg: #eef2f6;
-            --glacier-glass: rgba(224, 242, 254, 0.85); 
+            --glacier-glass: rgba(224, 242, 254, 0.85);
             --glacier-nav-glass: rgba(255, 255, 255, 0.75);
+            --glacier-text: #334155;
+            --glacier-deep: #0f172a;
+            --glacier-primary: #0284c7;
+            --glacier-card: #ffffff;
+            --glacier-card-border: rgba(14, 165, 233, 0.15);
+            --accent: #e50914;
         }
-
-        /* ダークモード時の変数定義 */
         body.dark-mode {
-            --glacier-deep: #f8fafc;
-            --glacier-primary: #38bdf8; 
-            --glacier-ice: #0284c7;
-            --glacier-bg: #090d16; 
-            --glacier-glass: rgba(15, 23, 42, 0.85); 
+            --glacier-bg: #090d16;
+            --glacier-glass: rgba(15, 23, 42, 0.85);
             --glacier-nav-glass: rgba(15, 23, 42, 0.75);
-            color: #cbd5e1;
+            --glacier-text: #cbd5e1;
+            --glacier-deep: #f8fafc;
+            --glacier-primary: #38bdf8;
+            --glacier-card: #18181b;
+            --glacier-card-border: rgba(255, 255, 255, 0.08);
         }
 
-        /* テーマ切り替え用のトグルスイッチアニメーション */
-        #dark-mode-toggle:checked + .theme-track {
-            background-color: #1e293b;
-            border-color: #0f172a;
-        }
-        #dark-mode-toggle:checked + .theme-track .theme-stars {
-            opacity: 1 !important;
-        }
-        #dark-mode-toggle:checked + .theme-track .theme-knob {
-            transform: translateX(0px) !important;
-        }
-        #dark-mode-toggle:checked + .theme-track .theme-sun {
-            transform: scale(0) !important;
-        }
-        #dark-mode-toggle:checked + .theme-track .theme-moon {
-            transform: scale(1) !important;
-        }
-        #dark-mode-toggle:checked + .theme-track .theme-cloud {
-            transform: translateX(48px) !important;
-            opacity: 0 !important;
-        }
+        /* 日夜切換動畫（跟 template 一致） */
+        #dark-mode-toggle:checked + .theme-track { background-color: #1e293b; border-color: #0f172a; }
+        #dark-mode-toggle:checked + .theme-track .theme-stars { opacity: 1 !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-knob { transform: translateX(0px) !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-sun { transform: scale(0) !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-moon { transform: scale(1) !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-cloud { transform: translateX(48px) !important; opacity: 0 !important; }
 
-        /* スムーズなテーマ移行用トランジション */
-        body, .logo-bar, .filter-bar, .hero-container-framed, #page-content, .dock-nav, .filter-capsule, .nav-btn, .sync-btn {
-            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
-        }
+        body, .logo-bar, .dock-nav { transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease; }
 
-        /* ダークモード用スタイル修正 */
-        body.dark-mode .hero-container-framed {
-            background-color: #1e293b;
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        body.dark-mode .hero-gradient-overlay {
-            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
-        }
-
-        body.dark-mode .filter-capsule {
-            background: rgba(30, 41, 59, 0.5);
-            border-color: rgba(56, 189, 248, 0.1);
-            color: #cbd5e1;
-        }
-
-        body.dark-mode .filter-capsule.active {
-            background: var(--glacier-primary);
-            color: #fff;
-            border-color: var(--glacier-primary);
-        }
-
-        body.dark-mode .nav-btn {
-            background: rgba(30, 41, 59, 0.95);
-            border-color: rgba(255, 255, 255, 0.05);
-        }
-
-        body.dark-mode .sync-btn {
-            background: rgba(15, 23, 42, 0.4);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        body.dark-mode .dock-nav {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        body.dark-mode .logo-bar .text-sky-800 {
-            color: #38bdf8 !important;
-        }
-
-        body.dark-mode .logo-bar .bg-white {
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-        }
-
-        html { 
-            scroll-behavior: smooth;
-            height: 100%;
-            overflow: hidden; 
-        }
-
+        /* 跟 template 一致：html 鎖 viewport，body 內部捲 */
+        html { scroll-behavior: smooth; height: 100%; overflow: hidden; }
         body {
-            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg);
-            color: #334155;
+            color: var(--glacier-text);
             -webkit-tap-highlight-color: transparent;
-            height: 100%;
-            overflow-y: auto;
-            padding-top: 0;
+            height: 100%; overflow-y: auto;
         }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .hide-scrollbar::-webkit-scrollbar { display: none;
-        }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none;
-        }
-
+        /* template logo-bar 結構（fixed top） */
         .logo-bar {
-            position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            z-index: 120;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 120;
             background-color: var(--glacier-glass);
-            backdrop-filter: blur(24px); 
-            -webkit-backdrop-filter: blur(24px);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid rgba(14, 165, 233, 0.1);
             padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
             padding-bottom: 12px;
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        body.dark-mode .logo-bar { border-bottom-color: rgba(255,255,255,0.06); }
 
-        #main-logo {
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            transform-origin: left center;
-            will-change: transform;
-        }
+        /* page-content 跟 template 一致 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); padding-bottom: 100px; }
+        @media (max-width: 768px) { #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); } }
 
-        .scrolled #main-logo { transform: scale(0.75);
+        /* Hero 從 page-content 內頂部開始（緊接 logo bar） */
+        .nf-hero { margin-top: 0; }
+        .nf-hero {
+            position: relative; z-index: 1;
+            width: 100%; height: 75vh; overflow: hidden;
+            margin-bottom: 40px; border-radius: 0;
         }
-
-        .filter-bar {
-            position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 68px);
-            left: 0;
-            width: 100%;
-            z-index: 110;
-            background-color: var(--glacier-glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 10px 0;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            border-bottom: 1px solid rgba(14, 165, 233, 0.05);
+        @media (max-width: 768px) { .nf-hero { height: 65vh; margin-bottom: 28px; } }
+        .nf-hero-bg {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover; object-position: top;
+            background-color: var(--glacier-card);
         }
-
-        .filter-bar.collapsed {
-            transform: translateY(-56px);
-            opacity: 0.9;
-        }
-
-        .filter-capsule {
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-            transition: all 0.3s;
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(14, 165, 233, 0.1);
-            color: var(--glacier-deep);
-        }
-
-        .filter-capsule.active {
-            background: var(--glacier-primary);
-            color: #fff;
-            border-color: var(--glacier-primary);
-        }
-
-        .filter-toggle-trigger {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 20px;
-            background: var(--glacier-glass);
-            backdrop-filter: blur(20px);
-            border-radius: 0 0 14px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 1px solid rgba(14, 165, 233, 0.05);
-            border-top: none;
-            color: var(--glacier-primary);
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
-
-        .filter-bar.collapsed .filter-toggle-trigger i {
-            transform: rotate(180deg);
-        }
-
-        /* 検索パネル関連スタイル */
-        #search-panel {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease;
-        }
-        #search-panel.open {
-            max-height: 80px;
-            padding-bottom: 12px;
-        }
-
-        /* メインコンテンツ配置 */
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px);
-        }
-
-        .slider-wrapper { position: relative; width: 100%;
-        }
-
-        .slider-container { 
-            display: flex;
-            overflow-x: auto; 
-            scroll-snap-type: x mandatory; 
-            gap: 6px; /* 原為 12px / 調整為 6px，使欄與欄的空間更緊密 */
-            padding-bottom: 20px;
-            scroll-behavior: smooth;
-        }
-
-        .nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 36px;
-            height: 36px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            z-index: 10;
-            opacity: 0;
-            transition: opacity 0.3s, transform 0.2s;
-            cursor: pointer;
-            border: 1px solid rgba(0,0,0,0.03);
-        }
-        
-        .slider-wrapper:hover .nav-btn { opacity: 1;
-        }
-        .nav-btn.prev { left: -12px;
-        }
-        .nav-btn.next { right: -12px;
-        }
-
-        .slider-item { scroll-snap-align: start; flex: 0 0 auto;
-        }
-
-        .poster-card { 
-            aspect-ratio: 2/3;
-            border-radius: 6px; overflow: hidden; background: #cbd5e1; 
-            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
-            will-change: transform;
-        }
-
-        .poster-card:active {
-            transform: scale(0.94);
-            filter: brightness(0.9);
-        }
-
-        /* 網格緊密無圓角、無間隙覆寫樣式 */
-        .grid-tight-pack .poster-card {
-            border-radius: 0px !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-
-        .hero-container-framed {
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
-            overflow: hidden; position: relative; background-color: #fff;
-            transition: all 0.4s ease;
-        }
-
-        .hero-gradient-overlay {
-            position: absolute;
-            inset: 0;
+        .nf-hero-bg::after {
+            content: ''; position: absolute; inset: 0;
             background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 40%, rgba(238,242,246,0.9) 95%);
             pointer-events: none;
         }
+        body.dark-mode .nf-hero-bg::after {
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
+        }
+        .nf-hero-content {
+            position: absolute; left: 0; bottom: max(48px, 8%);
+            padding: 0 max(40px, 5vw); z-index: 2; max-width: 700px;
+        }
+        .nf-hero-title {
+            font-family: 'Noto Serif TC', serif;
+            font-size: clamp(36px, 5vw, 64px); font-weight: 800;
+            color: #fff; line-height: 1.05; margin-bottom: 12px;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+        }
+        .nf-hero-en {
+            font-family: 'Playfair Display', serif; font-style: italic;
+            font-size: clamp(22px, 2vw, 30px);
+            color: #d4d4d4; margin-bottom: 18px;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+        }
+        .nf-hero-actions { display: flex; gap: 12px; margin-top: 18px; }
+        .nf-btn {
+            padding: 11px 26px; border-radius: 6px; font-size: 15px; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.2s; cursor: pointer; border: none;
+        }
+        .nf-btn-primary { background: #fff; color: #0a0a0a; }
+        .nf-btn-primary:hover { background: rgba(255,255,255,0.8); }
+        .nf-btn-secondary { background: rgba(109,109,110,0.7); color: #fff; }
+        .nf-btn-secondary:hover { background: rgba(109,109,110,0.5); }
 
-        .section-hidden { display: none !important;
+        /* Section row 容器 */
+        .nf-section { position: relative; padding: 0 max(20px, 4vw); margin-bottom: 36px; }
+        .nf-section-title {
+            font-size: clamp(18px, 1.6vw, 24px); font-weight: 700;
+            color: var(--glacier-deep); margin: 0 0 14px 0;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nf-section-title .nf-explore {
+            font-size: 12px; color: var(--glacier-primary); font-weight: 500;
+            display: inline-flex; align-items: center; gap: 4px;
+            background: none; border: none; padding: 0; cursor: pointer;
+        }
+        .nf-row {
+            position: relative; display: flex; gap: 8px;
+            overflow-x: auto; overflow-y: visible;
+            scroll-behavior: smooth; padding: 16px 0 24px;
+            scrollbar-width: none;
+        }
+        .nf-row::-webkit-scrollbar { display: none; }
+        .nf-row-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 44px; height: 70px;
+            background: var(--glacier-glass);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: none; color: var(--glacier-deep);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 10; opacity: 0; transition: opacity 0.25s;
+            font-size: 18px; padding: 0;
+        }
+        .nf-row-wrap:hover .nf-row-arrow { opacity: 1; }
+        .nf-row-arrow.left { left: 0; border-radius: 0 6px 6px 0; }
+        .nf-row-arrow.right { right: 0; border-radius: 6px 0 0 6px; }
+        .nf-row-arrow:hover { background: rgba(229,9,20,0.85); color: #fff; }
+
+        /* Card (Netflix 風) */
+        .nf-card {
+            position: relative; flex: 0 0 auto;
+            width: 280px; aspect-ratio: 16/9;
+            border-radius: 8px; overflow: hidden;
+            background: var(--glacier-card);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            cursor: pointer; transform-origin: center center;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .nf-card.large { width: 360px; }
+        .nf-card.small { width: 220px; }
+        .nf-card.portrait { width: 220px; aspect-ratio: 3/4; border-radius: 12px; }
+        .nf-card:active { transform: scale(0.97); transition: transform 0.12s ease-out; }
+        .nf-row .nf-card:hover { transform: translateY(-6px); z-index: 5; }
+        .nf-card-img {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover; object-position: center;
+            background-color: var(--glacier-card);
+            transition: transform 0.95s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+        }
+        .nf-row .nf-card:hover .nf-card-img { transform: scale(1.12); }
+        .nf-card::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 35%);
+        }
+        .nf-card-default {
+            position: absolute; left: 14px; right: 14px; bottom: 12px;
+            color: #fff; z-index: 2; pointer-events: none;
+        }
+        .nf-card-title {
+            font-size: 16px; font-weight: 700; color: #fff; line-height: 1.15;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+        .nf-card-sub {
+            font-size: 12px; color: #fff; opacity: 0.85; margin-top: 2px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
         }
 
+        /* Quote 卡片 */
+        .nf-quote-card {
+            padding: 22px; border-radius: 12px;
+            background: var(--glacier-card);
+            border: 1px solid var(--glacier-card-border);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            flex: 0 0 320px; min-height: 180px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .nf-quote-text {
+            font-family: 'Playfair Display', serif; font-style: italic;
+            font-size: 18px; line-height: 1.4; color: var(--glacier-deep);
+            margin-bottom: 12px;
+        }
+        body.dark-mode .nf-quote-text { color: var(--glacier-deep); }
+        .nf-quote-author {
+            font-size: 12px; color: var(--glacier-primary); font-weight: 600;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
+
+        /* Grid view 密鋪 */
+        .nf-grid-view { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 0 max(20px, 4vw); }
+        .nf-grid-view .nf-card.portrait { width: 100%; aspect-ratio: 1/1; border-radius: 0; box-shadow: none; }
+        .nf-grid-view .nf-card.portrait .nf-card-default {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; z-index: 2; pointer-events: none; color: #fff;
+        }
+        .nf-grid-view .nf-card.portrait .nf-card-text-bar {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; padding: 16px 18px;
+            background: rgba(20, 24, 32, 0.55); border-radius: 0;
+        }
+        .nf-grid-view .nf-card.portrait .nf-card-title { font-size: 26px; line-height: 1.1; font-weight: 700; color: #fff; }
+        .nf-grid-view .nf-card.portrait .nf-card-sub { font-size: 14px; line-height: 1.1; margin-top: 5px; color: #fff; }
+        @media (max-width: 1280px) { .nf-grid-view { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 900px)  { .nf-grid-view { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px)  { .nf-grid-view { grid-template-columns: repeat(2, 1fr); } }
+
+        /* Tab 內 portrait 卡片牆（手機 3 欄 / 平板 4 / 桌面 5-6） */
+        .nf-tab-wall {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 0 max(16px, 4vw) 60px;
+        }
+        @media (min-width: 600px) { .nf-tab-wall { grid-template-columns: repeat(4, 1fr); gap: 12px; } }
+        @media (min-width: 900px) { .nf-tab-wall { grid-template-columns: repeat(5, 1fr); gap: 14px; } }
+        @media (min-width: 1280px) { .nf-tab-wall { grid-template-columns: repeat(6, 1fr); gap: 14px; } }
+        .nf-tab-wall .nf-card.portrait { width: 100%; aspect-ratio: 3/4; border-radius: 12px; }
+        .nf-tab-wall .nf-card.portrait .nf-card-default {
+            position: absolute; left: 16px; bottom: 12px; right: 16px;
+            display: flex; flex-direction: column; align-items: flex-start;
+            text-align: left; color: #fff; pointer-events: none;
+        }
+        .nf-tab-wall .nf-card.portrait .nf-card-title { font-size: 17px; line-height: 1.15; font-weight: 700; margin-bottom: 3px; color: #fff; }
+        .nf-tab-wall .nf-card.portrait .nf-card-sub { font-size: 13px; line-height: 1.1; color: #fff; opacity: 0.9; }
+
+        /* Archive hero (template 的 sec-archive) */
+        .archive-hero {
+            position: relative; width: 100%;
+            height: 30vh; max-height: 320px;
+            max-width: 80rem; margin: 80px auto 0;
+            border-radius: 12px; overflow: hidden;
+            cursor: pointer; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
+        }
+        @media (min-width: 768px) { .archive-hero { height: 40vh; } }
+        .archive-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
+        .archive-hero:hover img { transform: scale(1.1); }
+        .archive-hero .archive-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%); opacity: 0.9; }
+        .archive-hero .archive-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+        .archive-hero h2 { font-weight: 900; color: #fff; font-size: clamp(24px, 4vw, 48px); letter-spacing: -0.02em; text-transform: uppercase; margin-bottom: 8px; text-shadow: 0 4px 16px rgba(0,0,0,0.5); font-style: italic; }
+        .archive-hero .archive-divider { height: 4px; width: 48px; background: #0ea5e9; margin-bottom: 16px; border-radius: 9999px; transition: all 0.5s; }
+        .archive-hero:hover .archive-divider { width: 96px; }
+        .archive-hero p { color: #bae6fd; font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; opacity: 0.8; margin-bottom: 32px; }
+        @media (min-width: 768px) { .archive-hero p { font-size: 12px; } }
+        .archive-hero button { background: #fff; color: #000; padding: 12px 40px; font-weight: 900; border-radius: 4px; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; transition: all 0.3s; border: none; cursor: pointer; }
+        .archive-hero:hover button { background: #0ea5e9; color: #fff; }
+        .archive-hero button:active { transform: scale(0.95); }
+
+        /* Search input */
+        .nf-search-input { background-color: rgba(255, 255, 255, 0.6); }
+        body.dark-mode .nf-search-input { background-color: rgba(30, 41, 59, 0.6); }
+        .nf-search-input::placeholder { color: var(--glacier-text); opacity: 0.5; }
+
+        /* Profile / logout icons */
+        .nf-avatar, .nf-logout-btn {
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            color: var(--glacier-text); opacity: 0.7;
+            cursor: pointer; transition: opacity 0.2s, background 0.2s;
+            border: none; background: none; font-size: 20px;
+        }
+        .nf-avatar:hover, .nf-logout-btn:hover { opacity: 1; background: rgba(14,165,233,0.1); }
+        .nf-profile-group { display: flex; align-items: center; gap: 4px; }
+
+        /* Loader (跟 template 的 .loader 一致) */
+        .loader {
+            display: flex; justify-content: center; align-items: center;
+            padding: 80px 20px;
+            font-size: 13px; color: var(--glacier-primary);
+            gap: 8px;
+        }
+        .loader::before {
+            content: ''; width: 16px; height: 16px;
+            border: 2px solid var(--glacier-primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Dock 跟 template 一致 */
         .dock-wrapper {
-            position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-            left: 50%;
+            position: fixed; bottom: 12px; left: 50%;
             transform: translateX(-50%);
             z-index: 200;
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
-            width: auto;
-            min-width: 340px;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0;
-        }
-
+        body.dark-mode .dock-nav { background: var(--glacier-glass) !important; border-color: rgba(255,255,255,0.5) !important; }
         .dock-nav {
-            background-color: var(--glacier-nav-glass);
-            backdrop-filter: blur(28px) saturate(210%);
-            -webkit-backdrop-filter: blur(28px) saturate(210%);
+            display: flex; align-items: center; gap: 4px;
+            background: var(--glacier-glass);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1.5px solid rgba(255, 255, 255, 0.5);
-            padding: 12px 14px;
             border-radius: 42px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
-            display: flex; align-items: center; justify-content: center; gap: 14px;
+            padding: 12px 14px;
+            min-width: 340px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
         }
-
         .dock-toggle-btn {
-            width: 32px;
-            height: 32px; display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
             color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
         }
-
-        .dock-content { display: flex; align-items: center; gap: 14px;
-        }
-
+        .dock-content { display: flex; gap: 4px; flex: 1; justify-content: space-around; }
         .dock-item {
-            display: flex;
-            flex-direction: column; align-items: center; gap: 5px;
-            color: #94a3b8; transition: all 0.3s; min-width: 58px;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            padding: 6px 12px; background: none; border: none;
+            color: #475569; font-size: 10px; cursor: pointer;
+            border-radius: 12px; transition: all 0.2s;
         }
+        .dock-item i { font-size: 1.6rem; }
+        .dock-item span { font-size: 10px; font-weight: 600; }
+        .dock-item.active { color: var(--accent); }
+        .dock-item:hover { color: var(--accent); }
+        .dock-wrapper.collapsed { transform: translate(-50%, 200px); }
 
-        .dock-item i { font-size: 1.6rem;
-        }
-        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7;
-        }
-        .dock-item.active { color: var(--glacier-primary);
-        }
-
-        .dock-trigger-bar {
-            position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px; height: 5px;
-            background: rgba(15, 23, 42, 0.2);
-            border-radius: 10px;
-            z-index: 199; cursor: pointer; display: none;
-        }
-        .dock-wrapper.collapsed + .dock-trigger-bar { display: block;
-        }
-
-        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px;
-        }
-
-        /* 同期ボタンのスタイリング */
-        .sync-btn {
-            position: absolute;
-            right: 24px;
-            bottom: 24px;
-            z-index: 50;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 100px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        .sync-btn:hover { background: rgba(255, 255, 255, 0.3);
-        transform: translateY(-2px); }
-        .sync-btn:active { transform: scale(0.95);
-        }
-        .sync-btn.loading i { animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);
-        } }
-
-        /* ロードアニメーション */
-        .loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-            font-size: 12px;
-            color: var(--glacier-primary);
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-        }
-
-        /* 漸進式瀑布流（Staggered Fade & Rise）卡片登場動畫 - 物理阻尼微彈效果 */
-        @keyframes fadeRise {
-            from {
-                opacity: 0;
-                transform: translateY(24px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .animate-fade-rise {
-            opacity: 0;
-            animation: fadeRise 1.1s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
-            animation-delay: calc(var(--row-m) * 0.08s);
-        }
-        @media (min-width: 768px) {
-            .animate-fade-rise {
-                animation-delay: calc(var(--row-d) * 0.08s);
-            }
-        }
-
-        /* QRスキャナーエフェクト */
-        @keyframes qr-scan-line {
-            0% { transform: translateY(-130px);
-            }
-            50% { transform: translateY(130px);
-            }
-            100% { transform: translateY(-130px);
-            }
-        }
-
+        /* Mobile - hide desktop dock, hide some controls */
         @media (max-width: 768px) {
-            .hero-container-framed { border-radius: 0;
-            }
-            .dock-wrapper { width: 92%; max-width: 400px;
-            }
-            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px);
-            }
-            .nav-btn { display: none !important;
-            }
-            .sync-btn { right: 16px; bottom: 16px;
-            padding: 8px 14px; }
+            .desktop-only { display: none; }
+            .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
         }
+
+        /* Tab back button */
+        .nf-tab-back-bar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px max(20px, 4vw); margin-bottom: 16px;
+        }
+        .nf-tab-back-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 9999px;
+            background: var(--glacier-glass);
+            border: 1px solid var(--glacier-card-border);
+            color: var(--glacier-deep); font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .nf-tab-back-btn:hover { background: var(--glacier-primary); color: #fff; }
+
+        /* Hide class */
+        .hidden-class { display: none !important; }
     </style>
 </head>
 <body class="pb-40 hide-scrollbar">
 
+    <!-- =========== 頂部 nav（跟 template logo-bar 一致） =========== -->
     <header id="header-root">
-        <div class="logo-bar px-6" id="logo-nav-bar"> 
+        <div class="logo-bar px-6" id="logo-nav-bar">
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
                 <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
-                
-                <!-- 控制按鈕與日夜切換開關 -->
                 <div class="flex items-center gap-4 md:gap-6">
-                    
-                    <!-- 日夜切換開關 -->
-                    <div class="flex items-center">
-                        <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
-                            <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
-  
-                            <!-- Pill Track -->
-                            <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
-                               
-                                <!-- 星空背景 (夜間模式專用) -->
-                                <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
-                      
-                                    <!-- Tiny Star 1 -->
-                                    <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                       
-                                    <!-- Tiny Star 2 -->
-                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                        
-                                    <!-- Tiny Star 3 -->
-                                    <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                         
-                                    <!-- Tiny Star 4 -->
-                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                                </div>
-
-                                <!-- 太陽/月亮滑塊 -->
-                                <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
-          
-                                    <!-- 太陽 (日間模式) -->
-                                    <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
-                     
-                                    <!-- 月亮 (夜間模式) -->
-                                    <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
-                             
-                                        <!-- 月面隕石坑 -->
-                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
-                                      
-                                        <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
-                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
-                                        <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
-                                    </div>
-                                </div>
-
-                                <!-- 雲朵 (日間模式背景裝飾) -->
-                                <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
-                                    <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
-                                    </svg>
-                                </div>
-
+                    <div class="relative hidden sm:block">
+                        <input type="text" id="search-input" placeholder="搜尋…" oninput="handleSearch(this.value)" class="nf-search-input border border-sky-400/30 rounded-full py-1.5 pl-9 pr-9 text-sm focus:outline-none focus:border-sky-500 transition-colors w-44 focus:w-60" style="color: var(--glacier-deep);">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--glacier-text); opacity: 0.6;"></i>
+                        <button id="search-clear" onclick="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-0 transition-opacity" style="color: var(--glacier-text);"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                    <button onclick="toggleSearchInput()" class="sm:hidden w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
+                        <i class="fas fa-search text-base"></i>
+                    </button>
+                    <button id="grid-view-toggle" onclick="toggleGridView()" title="格狀排版" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
+                        <i class="fas fa-border-all text-lg"></i>
+                    </button>
+                    <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
+                        <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
+                        <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
+                            <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
+                                <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                                <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                             </div>
-                        </label>
-                    </div>
-
-                    <!-- 格狀排版切換 Icon：已更換為 fa-border-all (放置於開關與搜尋放大鏡之間) -->
-                    <div class="flex items-center text-sky-800 opacity-60 hover:opacity-100 transition-opacity">
-                        <i id="grid-view-toggle" class="fas fa-border-all text-xl cursor-pointer" onclick="toggleGridView()"></i>
-                    </div>
-
-                    <div class="flex items-center gap-6 text-sky-800 opacity-60">
-                        <i class="fas fa-search text-xl cursor-pointer" onclick="toggleSearchInput()"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="filter-bar px-6" id="filter-bar">
-            <!-- 搜尋面板，包含輸入框與清除按鈕 -->
-            <div id="search-panel" class="max-w-screen-2xl mx-auto px-1">
-                <div class="relative w-full">
-                    <input type="text" id="tag-search-input" oninput="handleSearch(this.value)" placeholder="輸入關鍵字以標籤 (Tag) 篩選相關卡片..." class="w-full bg-white/60 dark:bg-slate-800/60 border border-sky-400/30 rounded-full py-2 px-10 text-sm focus:outline-none focus:border-sky-500 transition-colors dark:text-slate-200">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <button onclick="clearSearch()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors">
-                        <i class="fas fa-times-circle"></i>
+                            <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
+                                <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
+                                <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full scale-0 flex items-center justify-center overflow-hidden">
+                                    <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
+                                    <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
+                                    <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
+                                    <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
+                                </div>
+                            </div>
+                            <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
+                                <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    <button class="nf-avatar" onclick="manualReload()" title="強制重整（清快取）">
+                        <i class="fas fa-rotate"></i>
+                    </button>
+                    <button class="nf-avatar" onclick="handleLogout()" title="登出">
+                        <i class="fas fa-right-from-bracket"></i>
                     </button>
                 </div>
-            </div>
-
-            <div id="filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
-                <button class="filter-capsule active" onclick="setFilter('all')">載入中...</button>
-            </div>
-            <div class="filter-toggle-trigger" onclick="toggleFilter()">
-                <i class="fas fa-chevron-up text-[10px]" id="filter-chevron"></i>
             </div>
         </div>
     </header>
 
+    <!-- =========== 主內容區（跟 template page-content 結構一致） =========== -->
     <div id="page-content">
-        <!-- 錄影庫首頁 -->
-        <div id="view-home">
-            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
-                <div class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-top">
-                    <div class="hero-gradient-overlay"></div>
-                    
-                    <!-- 手動同步按鈕 -->
-                    <button id="sync-button" onclick="manualSync()" class="sync-btn">
-                        <i class="fas fa-sync-alt"></i>
-                        <span>與雲端同步</span>
-                    </button>
-
-                    <div class="absolute inset-0 flex flex-col items-center justify-end pb-16 px-6 text-center">
-                        <img src="https://phyuaaphysics.github.io/phyustudio/banner.png" class="w-full max-w-[260px] md:max-w-[450px] mb-12 relative z-10">
-                        <button onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')" 
-                                class="bg-slate-900 text-white px-16 py-4 font-black rounded-full text-[11px] tracking-[0.3em] uppercase shadow-2xl relative z-10 hover:scale-105 transition-transform active:scale-95">
-                            馬上開始
-                        </button>
-                    </div>
+        <!-- 動態渲染：hero (若有 type=head 卡) + section rows + archive -->
+        <div id="main-content-area">
+            <div class="loader">正在從數據庫獲取內容...</div>
+        </div>
+        <div id="archive-section" class="hidden-class" style="padding: 0 max(20px, 4vw);">
+            <div class="archive-hero" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" alt="Pastpaper Archive">
+                <div class="archive-overlay"></div>
+                <div class="archive-content">
+                    <h2>Pastpaper Archive</h2>
+                    <div class="archive-divider"></div>
+                    <p>Detailed Examination Resource Collections</p>
+                    <button>Enter Archive</button>
                 </div>
-            </section>
-
-            <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
-                <!-- 動態生成的內容將放在這裡 -->
-                <div class="loader">正在從數據庫獲取內容...</div>
-            </main>
-
-            <section id="sec-archive" class="mt-20 pb-16 px-6">
-                <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
-            
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                        <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
-                            Pastpaper Archive
-                        </h2>
-                        <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
-        
-                        <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
-                            Detailed Examination Resource Collections
-                        </p>
-                        <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
-                            Enter Archive
-                        </button>
-                    </div>
-                </div>
-            </section>
+            </div>
         </div>
     </div>
 
-    <!-- QR Scanner Modal Overlay -->
-    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
-        <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
-            <!-- Close Scanner -->
-            <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-            <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
-                <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
-            </h3>
- 
-            <!-- Video / Canvas viewport wrapper -->
-            <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
-                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
-                <canvas id="qr-canvas" class="hidden"></canvas>
-                <!-- Scanner Overlay Target Area -->
-                <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
-                    <!-- Scanner Laser Line -->
-                    <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
-                </div>
-            </div>
-            
-            <!-- File Upload Fallback Button -->
-            <div class="mt-4 w-full flex justify-center">
-                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
-                    <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
-                    <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQRFile(this)">
-                </label>
-            </div>
-            
-            <p class="text-slate-400 text-xs mt-4 text-center px-4 leading-relaxed font-light">
-                請將相機對準 QR Code 或直接上傳條碼相片。<br>相機啟動時請允許相機存取權限。
-            </p>
-            <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
-        </div>
-    </div>
-
-    <div id="dock-nav-wrapper" class="dock-wrapper">
+    <!-- =========== Dock（跟 template 一致 4 格） =========== -->
+    <div id="dock-nav-wrapper" class="dock-wrapper desktop-only">
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
-                <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
-                    <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
+                <button onclick="handleHomeClick()" id="dock-home" class="dock-item active">
+                    <i id="dock-home-icon" class="fas fa-home"></i><span id="dock-home-label" class="uppercase">錄影庫</span>
                 </button>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
-                    <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
+                <button id="dock-tab-slot" class="dock-item" onclick="handleTabSlotClick()">
+                    <i id="dock-tab-icon" class="fas fa-cube"></i><span id="dock-tab-label" class="uppercase">模擬器</span>
                 </button>
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
@@ -669,635 +477,583 @@
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
         </nav>
     </div>
-    <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
     <script>
-        // 安全 LocalStorage 沙盒防禦封裝物件
+        // =========== 1. 安全 LocalStorage 封裝（跟 template 的 storage 一致） ===========
         const storage = {
-            getItem(key) {
-                try {
-                    return localStorage.getItem(key);
-                } catch (e) {
-                    console.warn("Storage read blocked:", e);
-                    return null;
-                }
-            },
-            setItem(key, value) {
-                try {
-                    localStorage.setItem(key, value);
-                } catch (e) {
-                    console.warn("Storage write blocked:", e);
-                }
-            },
-            removeItem(key) {
-                try {
-                    localStorage.removeItem(key);
-                } catch (e) {
-                    console.warn("Storage remove blocked:", e);
-                }
-            }
+            getItem(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
+            setItem(key, val) { try { localStorage.setItem(key, val); } catch(e) {} },
+            removeItem(key) { try { localStorage.removeItem(key); } catch(e) {} },
+            clear() { try { localStorage.clear(); } catch(e) {} }
         };
 
-        // Google Sheet CSV URL (針對 FRONT 分頁)
+        // =========== 2. 配置（跟 template 一致） ===========
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
-        // FRONT 核心分頁預設 GID
-        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=966779417`;
+        const SHEET_TAB = 'FRONT_NEW';
+        const META_TAB = '_META';
+        const SHEET_CSV = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
+        const META_CSV  = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(META_TAB)}&range=A1:A1`;
 
+        // =========== 3. 狀態（跟 template 一致 + home card 擴展） ===========
         let rawData = [];
-        let lastScrollY = window.scrollY;
-        
-        // QRスキャナー関連の変数
-        let qrStream = null;
-        let qrAnimationId = null;
-        
-        // フィルターおよび検索ステータス
-        let currentFilter = 'all';
-        let searchQuery = '';
-        
-        // 全域網格排版 (Grid View) 狀態旗標
         let isGridView = false;
+        let searchQuery = '';
+        let allCardsCache = null;
+        let currentTab = null;
+        const LS = { cards: 'lumina_cards_v1', ver: 'lumina_cards_v1_ver' };
+        const SECTION_TITLES = { courses: '學習旅程', tools: '工具與資源', quotes: '引言精選' };
+        const SECTION_OPTS = { courses: { large: true }, tools: { portrait: true }, quotes: {} };
+        const TAB_DOCK_ICONS = {
+            oldsys:    { icon: 'fas fa-archive',    label: '庫存',     color: '#f59e0b' },
+            archive:   { icon: 'fas fa-archive',    label: '檔案',     color: '#f59e0b' },
+            hw:        { icon: 'fas fa-book',       label: '功課',     color: '#10b981' },
+            courses:   { icon: 'fas fa-graduation-cap', label: '課程',  color: '#8b5cf6' },
+            tools:     { icon: 'fas fa-wrench',     label: '工具',     color: '#0ea5e9' },
+            quotes:    { icon: 'fas fa-quote-left', label: '引言',     color: '#ec4899' },
+        };
 
-        // 日夜モード切り替え処理
-        function toggleTheme(isDark) {
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                storage.setItem('theme', 'dark');
+        // =========== 4. CSV 解析（從 home card 移植） ===========
+        function parseCSV(text) {
+            const rows = []; let row = ['']; let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i]; const next = text[i+1];
+                if (c === '"') {
+                    if (inQuotes && next === '"') { row[row.length-1] += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (c === ',' && !inQuotes) {
+                    row.push(''); inQuotes = false;
+                } else if (c === '\n' && !inQuotes) {
+                    rows.push(row); row = ['']; inQuotes = false;
+                } else if (c === '\r') {
+                    // skip
+                } else {
+                    row[row.length-1] += c;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') rows.push(row);
+            return rows;
+        }
+
+        // 12-column 解析 (home card 邏輯)
+        function sheetToCards(rows) {
+            if (!rows.length) return [];
+            const header = rows[0].map(h => h.trim().toLowerCase());
+            const idx = (k) => header.indexOf(k);
+            const I = {
+                order:    idx('order'),
+                id:       idx('id'),
+                type:     idx('type'),
+                cn:       idx('cn'),
+                en:       idx('en'),
+                section:  idx('section'),
+                size:     idx('size_hint'),
+                bg:       idx('bg'),
+                link:     idx('link'),
+                qtext:    idx('quote_text'),
+                qauthor:  idx('quote_author'),
+                active:   idx('active'),
+            };
+            return rows.slice(1)
+                .filter(r => r.some(v => v && v.trim()))
+                .map(r => ({
+                    order:   (I.order   >= 0 ? r[I.order]   : '').trim(),
+                    id:      (I.id      >= 0 ? r[I.id]      : '').trim(),
+                    type:    (I.type    >= 0 ? r[I.type]    : '').trim().toLowerCase(),
+                    cn:      (I.cn      >= 0 ? r[I.cn]      : '').trim(),
+                    en:      (I.en      >= 0 ? r[I.en]      : '').trim(),
+                    section: (I.section >= 0 ? r[I.section] : '').trim().toLowerCase(),
+                    size:    (I.size    >= 0 ? r[I.size]    : 'md').trim().toLowerCase(),
+                    bg:      (I.bg      >= 0 ? r[I.bg]      : '').trim(),
+                    link:    (I.link    >= 0 ? r[I.link]    : '').trim(),
+                    quote_text:   (I.qtext   >= 0 ? r[I.qtext]   : '').trim(),
+                    quote_author: (I.qauthor >= 0 ? r[I.qauthor] : '').trim(),
+                    active:  ((I.active  >= 0 ? r[I.active]  : 'TRUE').toString().toUpperCase() === 'TRUE'),
+                }))
+                .filter(c => {
+                    if (!c.active || !c.id) return false;
+                    if (c.id === 'ver' || c.id === '_meta') return false;
+                    if (/^\d+$/.test(c.type)) return false;
+                    return true;
+                });
+        }
+
+        // =========== 5. 背景處理 ===========
+        function resolveBg(bg) {
+            if (!bg) return { style: 'background-color:#1a1a1a;', url: null };
+            if (bg.startsWith('#')) return { style: `background-color:${bg};`, url: null };
+            if (bg === 'pattern') return { style: 'background:#1a1a1a;', url: null };
+            return { style: `background-image:url('${bg}');background-size:cover;background-position:center;`, url: bg };
+        }
+        function escapeAttr(s) { return (s || '').replace(/'/g, '%27').replace(/"/g, '%22'); }
+        function escapeHTML(s) { return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+        // =========== 6. 卡片 onclick 處理 ===========
+        function cardOnclick(c) {
+            if (!c || !c.id) return '';
+            const safeId = c.id.replace(/'/g, "\\'");
+            return `goLink('${safeId}')`;
+        }
+        function goLink(target) {
+            const c = typeof target === 'string' ? (allCardsCache || []).find(item => item.id === target) : target;
+            if (!c || !c.link) return;
+            const link = c.link.trim();
+            if (!link || link === '#') return;
+            if (link.startsWith('insite://')) {
+                const tab = link.slice(9).split('?')[0].split('/')[0].trim();
+                if (tab) navigateToTab(tab);
+                return;
+            }
+            if (/^https?:\/\/sites\.google\.com\//.test(link)) {
+                window.open(link, '_blank', 'noopener,noreferrer');
+                return;
+            }
+            window.location.href = link;
+        }
+
+        // =========== 7. 渲染元件 ===========
+        function renderHeroBanner(cards, opts = {}) {
+            const hero = cards[0];
+            if (!hero) return '';
+            const bg = resolveBg(hero.bg);
+            const imgTag = bg.url
+                ? `<img class="nf-hero-bg" src="${bg.url}" alt="">`
+                : `<div class="nf-hero-bg" style="${escapeAttr(bg.style)}"></div>`;
+            const title = hero.cn || hero.en || 'Lumina Studio';
+            const sub = hero.en || '';
+            const actionsHtml = opts.hideActions ? '' : `
+                <div class="nf-hero-actions">
+                    <button class="nf-btn nf-btn-primary" onclick="${cardOnclick(hero)}"><i class="fas fa-play"></i> 開始</button>
+                    <button class="nf-btn nf-btn-secondary" onclick="alert('詳細資料準備中')"><i class="fas fa-info-circle"></i> 詳細</button>
+                </div>`;
+            const sectionId = opts.hideActions ? '' : 'id="home"';
+            return `
+                <section class="nf-hero" ${sectionId}>
+                    ${imgTag}
+                    <div class="nf-hero-content">
+                        <div class="nf-hero-title">${escapeHTML(title)}</div>
+                        <div class="nf-hero-en">${escapeHTML(sub)}</div>${actionsHtml}
+                    </div>
+                </section>`;
+        }
+
+        function renderGridView(items) {
+            const cards = items.map(c => {
+                const bg = resolveBg(c.bg);
+                const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
+                return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
+                    ${imgTag}
+                    <div class="nf-card-default">
+                        <div class="nf-card-text-bar">
+                            <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
+                            <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            return `<section class="nf-section"><div class="nf-grid-view">${cards}</div></section>`;
+        }
+
+        function renderSection(title, items, opts = {}) {
+            if (!items.length) return '';
+            const sectionId = opts.id || '';
+            const cards = items.map(c => {
+                if (c.type === 'quote') {
+                    return `<div class="nf-quote-card">
+                        <div class="nf-quote-text">"${escapeHTML(c.quote_text || '')}"</div>
+                        <div class="nf-quote-author">— ${escapeHTML(c.quote_author || '')}</div>
+                    </div>`;
+                }
+                const sizeClass = opts.large ? 'large' : (opts.portrait ? 'portrait' : (c.size === 'lg' ? 'large' : c.size === 'sm' ? 'small' : c.size === 'portrait' ? 'portrait' : ''));
+                const bg = resolveBg(c.bg);
+                const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
+                return `<div class="nf-card ${sizeClass}" onclick="${cardOnclick(c)}">
+                    ${imgTag}
+                    <div class="nf-card-default">
+                        <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
+                        <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            return `<section class="nf-section">
+                <h3 class="nf-section-title" data-section="${escapeAttr(sectionId)}">
+                    <span>${escapeHTML(title)}</span>
+                </h3>
+                <div class="nf-row-wrap" style="position:relative;">
+                    <div class="nf-row" id="row-${escapeAttr(sectionId)}">${cards}</div>
+                    <button class="nf-row-arrow left" onclick="scrollRow('row-${escapeAttr(sectionId)}', -1)" type="button"><i class="fas fa-chevron-left"></i></button>
+                    <button class="nf-row-arrow right" onclick="scrollRow('row-${escapeAttr(sectionId)}', 1)" type="button"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </section>`;
+        }
+
+        function scrollRow(rowId, dir) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            row.scrollBy({ left: dir * 600, behavior: 'smooth' });
+        }
+
+        // =========== 8. renderCards (主渲染) ===========
+        function renderCards(container, cards) {
+            allCardsCache = cards;
+            // SPA 內部 tab 路由：currentTab 優先
+            if (currentTab) {
+                const tabItems = cards.filter(c => (c.type || '').toLowerCase() === currentTab.toLowerCase());
+                container.innerHTML = renderTabWall(currentTab, tabItems);
+                return;
+            }
+            // 主頁：sort + dedup + 分組
+            const sorted = [...cards].sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
+            const deduped = []; const seen = new Set();
+            sorted.forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); deduped.push(c); } });
+            // head
+            let headCard = deduped.find(c => c.type && c.type.toUpperCase() === 'HEAD');
+            if (headCard) {
+                const fb = sorted.find(c => c.id === headCard.id && c.type === 'hero');
+                if (fb) headCard = { ...headCard, cn: headCard.cn || fb.cn, en: headCard.en || fb.en, bg: headCard.bg || fb.bg, link: headCard.link || fb.link };
+            }
+            if (!headCard) headCard = deduped.find(c => c.type === 'hero' && (c.cn || c.en || c.bg)) || deduped.find(c => c.type === 'hero');
+            const headId = headCard ? headCard.id : null;
+            // filter search
+            let filtered = deduped;
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                filtered = deduped.filter(c => ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase().includes(q));
+            }
+            // 主頁只放 hero/quote
+            const bySection = {};
+            const mainPageCards = [];
+            filtered.forEach(c => {
+                if (c.id === headId) return;
+                const t = (c.type || '').toLowerCase();
+                if (t !== 'hero' && t !== 'quote') return;
+                mainPageCards.push(c);
+                const sec = (c.section || 'courses').toLowerCase();
+                if (!bySection[sec]) bySection[sec] = [];
+                bySection[sec].push(c);
+            });
+            const html = [];
+            if (headCard && !searchQuery && !isGridView) html.push(renderHeroBanner([headCard]));
+            if (isGridView) {
+                const allMain = mainPageCards.filter(c => (c.type || '').toLowerCase() !== 'quote');
+                if (allMain.length) html.push(renderGridView(allMain));
             } else {
-                document.body.classList.remove('dark-mode');
-                storage.setItem('theme', 'light');
+                for (const sec of Object.keys(SECTION_TITLES)) {
+                    if (bySection[sec] && bySection[sec].length) {
+                        html.push(renderSection(SECTION_TITLES[sec], bySection[sec], { id: sec, ...SECTION_OPTS[sec] }));
+                    }
+                }
+            }
+            if (searchQuery && !filtered.length) {
+                html.push(`<div class="loader">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
+            }
+            container.innerHTML = html.join('');
+            // 顯示 archive（如果 sheet 完全沒東西，archive 還是要顯示）
+            const archive = document.getElementById('archive-section');
+            if (archive) {
+                if (mainPageCards.length > 0) archive.classList.remove('hidden-class');
+                else archive.classList.add('hidden-class');
             }
         }
 
-        // 読み込み時に初期テーマを適用 (安全沙盒相容)
-        (function() {
-            let savedTheme = null;
+        function renderTabWall(tabName, items) {
+            if (!items.length) {
+                return `<div class="nf-tab-back-bar">
+                    <button class="nf-tab-back-btn" onclick="goBackToHome()"><i class="fas fa-arrow-left"></i> 返回首頁</button>
+                </div>
+                <div class="loader">此分題暫無內容</div>`;
+            }
+            const entry = (allCardsCache || []).find(c => (c.link || '').toLowerCase() === ('insite://' + tabName).toLowerCase());
+            const tabHero = entry || items[0];
+            const heroHtml = (tabHero.cn || tabHero.en) ? renderHeroBanner([tabHero], { hideActions: true }) : '';
+            const restCards = items.filter(c => c.id !== tabHero.id);
+            const cards = restCards.map(c => {
+                const bg = resolveBg(c.bg);
+                const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
+                return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
+                    ${imgTag}
+                    <div class="nf-card-default">
+                        <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
+                        <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            const wallHtml = restCards.length ? `<div class="nf-tab-wall">${cards}</div>` : '';
+            const backBar = `<div class="nf-tab-back-bar">
+                <button class="nf-tab-back-btn" onclick="goBackToHome()"><i class="fas fa-arrow-left"></i> 返回首頁</button>
+            </div>`;
+            return backBar + heroHtml + wallHtml;
+        }
+
+        // =========== 9. SPA 內部 tab 路由 ===========
+        function getTabDockMeta(tab) {
+            return TAB_DOCK_ICONS[(tab || '').toLowerCase()] || { icon: 'fas fa-folder-open', label: tab || '分頁', color: '#f59e0b' };
+        }
+        function updateDockForTab() {
+            const homeIcon = document.getElementById('dock-home-icon');
+            const homeLabel = document.getElementById('dock-home-label');
+            const tabIcon = document.getElementById('dock-tab-icon');
+            const tabLabel = document.getElementById('dock-tab-label');
+            const homeBtn = document.getElementById('dock-home');
+            const tabBtn = document.getElementById('dock-tab-slot');
+            if (currentTab) {
+                if (homeIcon) { homeIcon.className = 'fas fa-arrow-left'; }
+                if (homeLabel) { homeLabel.textContent = '返回'; }
+                if (homeBtn) { homeBtn.classList.add('active'); }
+                const meta = getTabDockMeta(currentTab);
+                if (tabIcon) { tabIcon.className = meta.icon; tabIcon.style.color = meta.color; }
+                if (tabLabel) { tabLabel.textContent = meta.label; }
+                if (tabBtn) { tabBtn.classList.remove('active'); }
+            } else {
+                if (homeIcon) { homeIcon.className = 'fas fa-home'; homeIcon.style.color = ''; }
+                if (homeLabel) { homeLabel.textContent = '錄影庫'; }
+                if (homeBtn) { homeBtn.classList.add('active'); }
+                if (tabIcon) { tabIcon.className = 'fas fa-cube'; tabIcon.style.color = ''; }
+                if (tabLabel) { tabLabel.textContent = '模擬器'; }
+                if (tabBtn) { tabBtn.classList.remove('active'); }
+            }
+        }
+        function handleHomeClick() {
+            if (currentTab) { goBackToHome(); }
+            else { scrollToHome(); }
+        }
+        function handleTabSlotClick() {
+            if (currentTab) { try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+            else { handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html'); }
+        }
+        function navigateToTab(tab) {
+            if (!allCardsCache) return;
+            currentTab = tab;
+            renderCards(document.getElementById('main-content-area'), allCardsCache);
+            try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }); } catch(e) { window.scrollTo({ top: 0, behavior: 'auto' }); }
+            updateDockForTab();
+            try { history.pushState({ tab }, '', '#' + tab); } catch(e) { location.hash = tab; }
+        }
+        function goBackToHome() {
+            currentTab = null;
+            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
+            try { history.pushState({}, '', location.pathname + location.search); } catch(e) { location.hash = ''; }
+            updateDockForTab();
+        }
+
+        // =========== 10. fetch + cache（完全照 template initData 模式） ===========
+        async function fetchMetaVersion() {
             try {
-                savedTheme = localStorage.getItem('theme');
-            } catch (e) {
-                console.warn("Theme storage access denied", e);
-            }
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
-            
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                document.addEventListener('DOMContentLoaded', () => {
-                    const toggleInput = document.getElementById('dark-mode-toggle');
-                    if (toggleInput) toggleInput.checked = true;
-                });
-            }
-        })();
+                const res = await fetch(META_CSV, { cache: 'no-store' });
+                if (!res.ok) return null;
+                const text = (await res.text()).trim();
+                const firstLine = text.split('\n')[0].replace(/"/g, '').trim();
+                return firstLine || null;
+            } catch (e) { return null; }
+        }
+        async function fetchFreshCards() {
+            const res = await fetch(SHEET_CSV, { cache: 'no-store' });
+            if (!res.ok) throw new Error(`Sheet HTTP ${res.status}`);
+            const text = await res.text();
+            const rows = parseCSV(text);
+            const cards = sheetToCards(rows);
+            if (!cards.length) throw new Error('Empty sheet result');
+            return cards;
+        }
+        function readCache() {
+            try {
+                const raw = storage.getItem(LS.cards);
+                if (!raw) return null;
+                const cards = JSON.parse(raw);
+                if (!Array.isArray(cards) || cards.length === 0) return null;
+                const ver = storage.getItem(LS.ver) || '';
+                return { cards, ver };
+            } catch (e) { return null; }
+        }
+        function writeCache(cards, ver) {
+            try { storage.setItem(LS.cards, JSON.stringify(cards)); storage.setItem(LS.ver, ver || ''); } catch (e) {}
+        }
 
-        // 優化後的載入流程：先用 localstorage 匯出第一瞬資料（Cache-First），然後才在背景檢查版本數目是否改變
+        // 13 張 fallback cards
+        function getFallbackCards() {
+            return [
+                { id: 'fb1', type: 'head', cn: '課堂錄影', en: 'Lesson Archive', section: 'courses', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
+                { id: 'fb2', type: 'hero', cn: '線上補課', en: 'Online classroom', section: 'courses', size: 'lg', bg: 'https://picsum.photos/seed/young/1200/1200', link: '', active: true },
+                { id: 'fb3', type: 'hero', cn: '物理課程', en: 'Physics courses', section: 'courses', size: 'md', bg: 'https://i.ibb.co/tPnQJMn4/de.png', link: '', active: true },
+                { id: 'fb4', type: 'hero', cn: '電子筆記', en: 'E-books', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/mVD38njr/de.png', link: '', active: true },
+                { id: 'fb5', type: 'hero', cn: '基礎練習冊', en: 'Homework tutorials', section: 'courses', size: 'md', bg: 'https://i.ibb.co/QFXhXGT4/de.png', link: '', active: true },
+                { id: 'fb6', type: 'hero', cn: '歷屆試題', en: 'Pastpaper bank', section: 'courses', size: 'md', bg: 'https://i.ibb.co/JFWg0SKF/Gemini-Generated-Image.png', link: '', active: true },
+                { id: 'fb7', type: 'hero', cn: '公式庫', en: 'Formulas bank', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/qMxwmbQs/sd.png', link: '', active: true },
+                { id: 'fb8', type: 'hero', cn: '學習卡', en: 'Revision cards', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/xZyzRFd/ds.jpg', link: '', active: true },
+                { id: 'fb9', type: 'hero', cn: '模擬實驗', en: 'Simulations', section: 'courses', size: 'md', bg: 'https://i.ibb.co/LDFcP57y/asfd.png', link: '', active: true },
+                { id: 'fb10', type: 'hero', cn: '數學課程', en: 'Mathematics courses', section: 'courses', size: 'md', bg: 'https://i.ibb.co/53Sz49Y/Gemini-Generated-Image.png', link: '', active: true },
+                { id: 'fb11', type: 'hero', cn: '庫存系統', en: 'Old systems', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/twGDKGBg/Gemini-Generated-Image.png', link: 'insite://oldsys', active: true },
+                { id: 'fb12', type: 'quote', cn: '', en: '', section: 'quotes', size: '', bg: '', quote_text: 'The important thing is not to stop questioning. Curiosity has its own reason for existing.', quote_author: 'Albert Einstein', link: '', active: true },
+                { id: 'fb13', type: 'quote', cn: '', en: '', section: 'quotes', size: '', bg: '', quote_text: 'Somewhere, something incredible is waiting to be known.', quote_author: 'Carl Sagan', link: '', active: true },
+            ];
+        }
+
+        // =========== 11. initData（完全照 template 模式 + fallback） ===========
         async function initData() {
-            // 1. 第一瞬：立即載入並渲染 LocalStorage 快取，讓用戶秒開
-            const cachedVer = storage.getItem('lumina_data_ver');
-            const cachedData = storage.getItem('lumina_data_payload');
-            let hasRenderedCache = false;
+            const mainArea = document.getElementById('main-content-area');
+            if (!mainArea) return;
 
+            // Step 1: 立即 render cache（跟 template 一模一樣）
+            const cachedVer = storage.getItem(LS.ver);
+            const cachedData = readCache();
+            let hasRenderedCache = false;
             if (cachedData) {
                 try {
-                    rawData = JSON.parse(cachedData);
-                    if (rawData && rawData.length > 0) {
-                        console.log("第一瞬載入：已從 LocalStorage 恢復快取數據，版本號:", cachedVer);
-                        renderFilters();
-                        renderContent();
+                    if (cachedData.cards && cachedData.cards.length > 0) {
+                        console.log("第一瞬載入:已從 LocalStorage 恢復快取,版本:", cachedVer);
+                        rawData = cachedData.cards;
+                        allCardsCache = cachedData.cards;
+                        renderCards(mainArea, cachedData.cards);
                         hasRenderedCache = true;
                     }
-                } catch (jsonErr) {
-                    console.warn("LocalStorage 快取受損，清理重設:", jsonErr);
-                    storage.removeItem('lumina_data_ver');
-                    storage.removeItem('lumina_data_payload');
+                } catch (e) {
+                    console.warn("LocalStorage 快取受損,清理重設:", e);
+                    storage.removeItem(LS.cards);
+                    storage.removeItem(LS.ver);
                 }
             }
 
-            // 2. 第二步：在背景發起網路請求，確認線上版本是否改變
-            try {
-                let csvText = '';
-                let response;
-                
-                // 第一嘗試階段：使用預設標準 GID 連結
+            // Step 1.5: 沒 cache → 先用 fallback 讓畫面不空白
+            if (!hasRenderedCache) {
+                console.log("無 cache,先顯示 fallback");
+                const fb = getFallbackCards();
+                allCardsCache = fb;
+                renderCards(mainArea, fb);
+            }
+
+            // Step 2: 背景 fetch（3 秒 timeout 避免 sandbox 卡死）
+            const timeout = new Promise(resolve => setTimeout(() => resolve('timeout'), 3000));
+            const fetchJob = (async () => {
                 try {
-                    response = await fetch(`${SHEET_CSV_URL}&cachebust=${Date.now()}&t=${Date.now()}`);
-                    csvText = await response.text();
-                    
-                    // 偵測是否返回 HTML 登入牆 or 404 (Google Sheets 常見拒絕連線網頁)
-                    if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
-                        throw new Error("返回格式非 CSV (可能是 GID 無效或需要權限設定)");
+                    const [verResult, cardsResult] = await Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]);
+                    if (verResult.status === 'fulfilled' && cardsResult.status === 'fulfilled') {
+                        return { ok: true, ver: verResult.value, cards: cardsResult.value };
                     }
-                } catch (firstErr) {
-                    console.warn("標準 GID 導出失敗，啟動備用分頁名稱解析器 (FRONT):", firstErr);
-                    
-                    // 第二後備階段：使用 Google Visualization API 依「分頁名稱」拉取，防禦 GID 被使用者重建變更
-                    const fallbackUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=FRONT&cachebust=${Date.now()}`;
-                    response = await fetch(fallbackUrl);
-                    csvText = await response.text();
-                    
-                    if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
-                        throw new Error("備用管道仍返回網頁 HTML (請確定試算表權限已設定為『知道連結的任何人均可檢視』)");
-                    }
+                    return { ok: false, reason: (cardsResult.reason || verResult.reason || 'unknown').toString() };
+                } catch (e) {
+                    return { ok: false, reason: e.toString() };
                 }
-                
-                const lines = parseCSVRows(csvText);
-                
-                if (lines.length > 0) {
-                    const firstRow = lines[0];
-                    // 檢查 A1 是否為 'ver'
-                    if (firstRow[0] && firstRow[0].toLowerCase() === 'ver') {
-                        const currentOnlineVer = firstRow[1] || ''; // B1 取得版本號
-                        
-                        // 判斷：線上版本號改變，或是先前未能成功渲染快取
-                        if (currentOnlineVer !== cachedVer || !hasRenderedCache) {
-                            console.log("偵測到線上版本改變或無快取，正在背景重新匯入最新數據...", "舊版本:", cachedVer, "新版本:", currentOnlineVer);
-                            rawData = processRawRows(lines);
-                            
-                            // 重新寫入快取
-                            storage.setItem('lumina_data_ver', currentOnlineVer);
-                            storage.setItem('lumina_data_payload', JSON.stringify(rawData));
-                            
-                            // 更新渲染畫面
-                            renderFilters();
-                            renderContent();
-                        } else {
-                            console.log("背景版本檢查完成：線上版本與快取一致 (", cachedVer, ")，無須更新。");
-                        }
-                    } else {
-                        // 若無 ver 規則，直接解析渲染
-                        rawData = processRawRows(lines);
-                        renderFilters();
-                        renderContent();
-                    }
-                }
-            } catch (error) {
-                console.error("背景同步失敗:", error);
-                // 若一開始沒能加載快取（新安裝用戶），且背景更新也失敗，則顯示錯誤提示
-                if (!hasRenderedCache) {
-                    document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請確認試算表分享權限並保持網路連線。</div>`;
-                }
+            })();
+            const result = await Promise.race([fetchJob, timeout]);
+
+            // Step 3: 處理結果（跟 template catch 邏輯一致）
+            if (result === 'timeout') {
+                console.warn("Fetch 超時(3s) — 保持現有 cache 或 fallback");
+                return;
             }
-        }
-
-        // 手動同期ボタン用
-        async function manualSync() {
-            const btn = document.getElementById('sync-button');
-            btn.classList.add('loading');
-            btn.querySelector('span').innerText = '同步中...';
-            
-            storage.removeItem('lumina_data_ver');
-            storage.removeItem('lumina_data_payload');
-            
-            await initData();
-            
-            setTimeout(() => {
-                btn.classList.remove('loading');
-                btn.querySelector('span').innerText = '與雲端同步';
-            }, 800);
-        }
-
-        // CSV 行分割パーサー
-        function parseCSVRows(text) {
-            const lines = [];
-            let row = [""];
-            let inQuotes = false;
-
-            for (let i = 0; i < text.length; i++) {
-                let c = text[i];
-                let next = text[i+1];
-                if (c === '"') {
-                    if (inQuotes && next === '"') { row[row.length - 1] += '"'; i++; }
-                    else { inQuotes = !inQuotes; }
-                } else if (c === ',' && !inQuotes) {
-                    row.push('');
-                } else if ((c === '\r' || c === '\n') && !inQuotes) {
-                    if (c === '\r' && next === '\n') { i++; }
-                    lines.push(row);
-                    row = [''];
-                } else {
-                    row[row.length - 1] += c;
-                }
+            if (!result.ok) {
+                console.error("背景同步失敗:", result.reason);
+                // 即使失敗,fallback 已經渲染過了,畫面不會空白
+                return;
             }
-            if (row.length > 1 || row[0] !== '') {
-                lines.push(row);
+            const { ver: remoteVer, cards: freshCards } = result;
+            if (!freshCards || !freshCards.length) return;
+            // 版本一致 + 有 cache → 跳過
+            if (cachedData && remoteVer && cachedData.ver === remoteVer) {
+                console.log("背景版本檢查完成:線上版本與快取一致,無須更新");
+                return;
             }
-            return lines;
+            console.log("偵測到新資料,寫入並 re-render");
+            writeCache(freshCards, remoteVer || '');
+            rawData = freshCards;
+            allCardsCache = freshCards;
+            renderCards(mainArea, freshCards);
         }
 
-        // 試算表データからアイテム配列へのマッピング (新レイアウト対応)
-        function processRawRows(lines) {
-            return lines
-                .filter((row, idx) => {
-                    if (idx === 0) return false;
-                    return row[1] && row[0] !== 'ver' && row[0] !== 'filter';
-                })
-                .map(row => {
-                    // 欄 A (row[0]): filter
-                    // 欄 B (row[1]): section
-                    // 欄 C (row[2]): order
-                    // 欄 D (row[3]): tag (原來的D欄位為tag)
-                    // 欄 E (row[4]): img (使用 欄E 作為卡片海報圖路徑)
-                    // 欄 F (row[5]): url (使用 欄F 作為跳轉連接)
-                    // 欄 G (row[6]): gridOrder (用於 Grid View 排序)
-                    return {
-                        filter: (row[0] || '').trim(),
-                        section: (row[1] || '').trim(),
-                        order: parseInt(row[2]) || 0,
-                        tag: (row[3] || '').trim(),
-                        img: (row[4] || '').trim(),
-                        url: (row[5] || '').trim(),
-                        gridOrder: parseInt(row[6]) || 0
-                    };
-                });
-        }
-
-        // フィルターボタンレンダリング
-        function renderFilters() {
-            const filters = ['all', ...new Set(rawData.map(d => d.filter).filter(f => f))];
-            const container = document.getElementById('filter-container');
-            container.innerHTML = filters.map(f => `
-                <button class="filter-capsule ${f === currentFilter ? 'active' : ''}" 
-                        data-filter="${f}" 
-                        onclick="setFilter('${f}')">
-                    ${f === 'all' ? '全部' : f}
-                </button>
-            `).join('');
-        }
-
-        // 關閉/開啟格狀網格排版 (Grid View) 狀態
+        // =========== 12. UI 控制 ===========
         function toggleGridView() {
             isGridView = !isGridView;
             const btn = document.getElementById('grid-view-toggle');
-            if (isGridView) {
-                btn.classList.add('text-sky-500');
-                btn.classList.remove('opacity-60');
-            } else {
-                btn.classList.remove('text-sky-500');
-                btn.classList.add('opacity-60');
+            if (btn) {
+                if (isGridView) { btn.style.opacity = '1'; btn.style.color = 'var(--glacier-primary)'; }
+                else { btn.style.opacity = '0.6'; btn.style.color = 'var(--glacier-text)'; }
             }
-            renderContent();
+            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
         }
-
-        // コンテンツレンダリング (不顯示卡片下方的任何文字/標籤，保持完美的卡片排版)
-        function renderContent() {
-            const mainArea = document.getElementById('main-content-area');
-            mainArea.innerHTML = '';
-            
-            const heroSection = document.getElementById('hero-section');
-            const archiveSection = document.getElementById('sec-archive');
-
-            // 1. 先獲取並過濾符合當前條件的卡片
-            let processedItems = [...rawData];
-
-            // 分類篩選
-            if (currentFilter !== 'all') {
-                processedItems = processedItems.filter(item => item.filter === currentFilter);
-            }
-
-            // 標籤篩選
-            if (searchQuery.trim() !== '') {
-                const query = searchQuery.toLowerCase().trim();
-                processedItems = processedItems.filter(item => {
-                    return item.tag && item.tag.toLowerCase().includes(query);
-                });
-            }
-
-            // 2. 根據是否開啟 Grid View 渲染不同的版面
-            if (isGridView) {
-                // Grid View時以欄G的順序排位 (gridOrder)
-                processedItems.sort((a, b) => a.gridOrder - b.gridOrder);
-
-                // 格狀網格排版模式：隱藏海報輪播 Hero 與底部的 Pastpaper Section
-                heroSection.classList.add('section-hidden');
-                archiveSection.classList.add('section-hidden');
-
-                if (processedItems.length === 0) {
-                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
-                    return;
-                }
-
-                // iPhone 手機版修正為每行 3 張 (grid-cols-3)，iPad以上桌面版每行 6 張 (md:grid-cols-6)
-                // 完全無圓角、無間隙（gap-0）且緊密排布（grid-tight-pack）
-                // 套用漸進式瀑布流登場動畫。在此透過 JS 動態算出卡片落在哪一列（Row），使同列卡片能完全同步登場，大幅節省時間
-                const gridHtml = `
-                    <section class="max-w-screen-2xl mx-auto py-4">
-                        <div class="grid grid-cols-3 md:grid-cols-6 gap-0 grid-tight-pack">
-                            ${processedItems.map((item, index) => {
-                                const rowMobile = Math.floor(index / 3); // 配合每行 3 個卡片同步
-                                const rowDesktop = Math.floor(index / 6);
-                                return `
-                                <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="handleNavigation('${item.url}')">
-                                    <div class="poster-card" title="Tags: ${item.tag || '無'}">
-                                        <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
-                                    </div>
-                                </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </section>
-                `;
-                mainArea.innerHTML = gridHtml;
-
-            } else {
-                // 原貌 Slider 分區排版模式
-                if (currentFilter === 'all') {
-                    heroSection.classList.remove('section-hidden');
-                    archiveSection.classList.remove('section-hidden');
-                } else {
-                    heroSection.classList.add('section-hidden');
-                    archiveSection.classList.add('section-hidden');
-                }
-
-                const sections = [...new Set(rawData.map(d => d.section))];
-                let hasVisibleCards = false;
-
-                sections.forEach(secName => {
-                    let itemsInSec = rawData
-                        .filter(d => d.section === secName)
-                        .sort((a, b) => a.order - b.order); // Slider 模式下以 欄C (order) 排位
-
-                    // 分類篩選
-                    if (currentFilter !== 'all') {
-                        itemsInSec = itemsInSec.filter(item => item.filter === currentFilter);
-                    }
-
-                    // 標籤篩選
-                    if (searchQuery.trim() !== '') {
-                        const query = searchQuery.toLowerCase().trim();
-                        itemsInSec = itemsInSec.filter(item => {
-                            return item.tag && item.tag.toLowerCase().includes(query);
-                        });
-                    }
-
-                    if (itemsInSec.length === 0) return;
-                    hasVisibleCards = true;
-
-                    const filterTag = itemsInSec[0].filter;
-                    const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
-                    const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
-
-                    const sectionHtml = `
-                        <section id="${sectionId}" data-group="${filterTag}" class="dynamic-section">
-                            <h2 class="section-title">${secName}</h2>
-                            <div class="slider-wrapper">
-                                <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
-                                    <i class="fas fa-chevron-left text-xs text-slate-400"></i>
-                                </button>
-                                <div class="slider-container hide-scrollbar" id="${sliderId}">
-                                    ${itemsInSec.map(item => `
-                                        <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
-                                            <div class="poster-card" title="Tags: ${item.tag || '無'}">
-                                                <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                                <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
-                                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
-                                </button>
-                            </div>
-                        </section>
-                    `;
-                    mainArea.insertAdjacentHTML('beforeend', sectionHtml);
-                });
-
-                if (!hasVisibleCards) {
-                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
-                }
-            }
+        function handleSearch(q) {
+            searchQuery = (q || '').trim();
+            const clearBtn = document.getElementById('search-clear');
+            if (clearBtn) clearBtn.style.opacity = searchQuery ? '1' : '0';
+            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
         }
-
-        // 検索窓トグル処理
         function toggleSearchInput() {
-            const panel = document.getElementById('search-panel');
-            panel.classList.toggle('open');
-            if (panel.classList.contains('open')) {
-                document.getElementById('tag-search-input').focus();
+            const wrap = document.querySelector('.logo-bar .relative.hidden.sm\\:block');
+            if (!wrap) return;
+            if (wrap.classList.contains('hidden')) {
+                wrap.classList.remove('hidden');
+                wrap.classList.add('block');
+                const input = document.getElementById('search-input');
+                if (input) setTimeout(() => input.focus(), 50);
             } else {
+                wrap.classList.add('hidden');
+                wrap.classList.remove('block');
                 clearSearch();
             }
         }
-
-        // 検索文字入力処理
-        function handleSearch(val) {
-            searchQuery = val;
-            renderContent();
-        }
-
-        // 検索クリア処理
         function clearSearch() {
-            const input = document.getElementById('tag-search-input');
-            if (input) input.value = '';
             searchQuery = '';
-            renderContent();
+            const input = document.getElementById('search-input');
+            if (input) input.value = '';
+            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
         }
-
-        // 導航欄與 Dock 選單切換
-        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed');
+        function toggleTheme(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+            try { storage.setItem('theme', isDark ? 'dark' : 'light'); } catch(e) {}
         }
-        
-        function toggleFilter() {
-            const bar = document.getElementById('filter-bar');
-            bar.classList.toggle('collapsed');
-        }
-
-        function scrollSlider(id, offset) {
-            const el = document.getElementById(id);
-            if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
-        }
-
-        // ホームスクロールとフィルターの完全初期化
-        function scrollToHome() {
-            setFilter('all');
-            clearSearch();
-            // 還原為預設 slider 排版
-            if (isGridView) {
-                toggleGridView();
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function handleNavigation(url) {
-            if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
-            window.location.href = url;
-        }
-
-        function setFilter(filterType) {
-            currentFilter = filterType;
-            const buttons = document.querySelectorAll('.filter-capsule');
-            buttons.forEach(btn => {
-                if(btn.dataset.filter === filterType) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-            
-            const heroSection = document.getElementById('hero-section');
-            const archiveSection = document.getElementById('sec-archive');
-            
-            // 只有在非 Grid View 的狀態下，才依照 filterType 隱藏/顯示 Hero
-            if (!isGridView) {
-                if (filterType === 'all') {
-                    heroSection.classList.remove('section-hidden');
-                    archiveSection.classList.remove('section-hidden');
-                } else {
-                    heroSection.classList.add('section-hidden');
-                    archiveSection.classList.add('section-hidden');
-                }
-            }
-            renderContent();
-        }
-
-        // QRコードスキャナーコントロール
-        async function openQRScanner() {
-            const modal = document.getElementById('qr-scanner-modal');
-            const video = document.getElementById('qr-video');
-            const errMsg = document.getElementById('qr-error-msg');
-            
-            errMsg.classList.add('hidden');
-            errMsg.innerText = "";
-            modal.classList.remove('pointer-events-none', 'opacity-0');
-            modal.classList.add('opacity-100');
-
+        (function() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                qrStream = stream;
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                
-                try {
-                    await video.play();
-                } catch(playErr) {
-                    console.warn("Video play interrupted, attempting fallback options", playErr);
+                const saved = storage.getItem('theme');
+                const dark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (dark) {
+                    document.body.classList.add('dark-mode');
+                    const t = document.getElementById('dark-mode-toggle');
+                    if (t) t.checked = true;
                 }
-                
-                qrAnimationId = requestAnimationFrame(tickQRScanner);
-            } catch (err) {
-                console.error("Camera access failed:", err);
-                errMsg.innerText = "相機不可用（可能被瀏覽器安全政策限制、未授權， or 未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按碼。";
-                errMsg.classList.remove('hidden');
-            }
+            } catch(e) {}
+        })();
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        function scrollToHome() {
+            try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'smooth' }); }
+            catch(e) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        }
+        function openQRScanner() { window.open('https://phyuaaphysics.github.io/phyustudio/qrscanner.html', '_blank', 'noopener,noreferrer'); }
+        function handleNavigation(url) { if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer'); }
+        function handleLogout() {
+            const ok = window.confirm('若選擇登出,系統的暫存檔將移除,確定?');
+            if (!ok) return;
+            try {
+                const keys = Object.keys(localStorage);
+                keys.forEach(k => { if (k.startsWith('lumina_') || k === 'theme') storage.removeItem(k); });
+                storage.clear();
+                try { sessionStorage.clear(); } catch(e) {}
+            } catch (e) {}
+            window.location.href = 'https://phyuaaphysics.github.io/phyustudio/';
+        }
+        function manualReload() {
+            if (!window.confirm('強制重整會清空本地快取並重新載入,確定?')) return;
+            try { storage.clear(); try { sessionStorage.clear(); } catch(e) {} } catch(e) {}
+            const url = new URL(window.location.href);
+            url.searchParams.set('bust', Date.now());
+            window.location.href = url.toString();
         }
 
-        function closeQRScanner() {
-            const modal = document.getElementById('qr-scanner-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.classList.remove('opacity-100');
-
-            if (qrStream) {
-                qrStream.getTracks().forEach(track => track.stop());
-                qrStream = null;
+        // =========== 13. 啟動 ===========
+        document.addEventListener('DOMContentLoaded', () => {
+            // 從 URL hash 恢復 tab
+            if (location.hash && location.hash.length > 1) {
+                currentTab = location.hash.slice(1);
             }
-            if (qrAnimationId) {
-                cancelAnimationFrame(qrAnimationId);
-                qrAnimationId = null;
+            initData();
+            setTimeout(() => updateDockForTab(), 0);
+        });
+        window.addEventListener('popstate', () => {
+            if (location.hash && location.hash.length > 1) {
+                currentTab = location.hash.slice(1);
+            } else {
+                currentTab = null;
             }
-            
-            document.getElementById('qr-file-input').value = "";
-        }
-
-        function tickQRScanner() {
-            const video = document.getElementById('qr-video');
-            const canvasElement = document.getElementById('qr-canvas');
-            if (!video || !canvasElement) return;
-            const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
-            if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
-                canvasElement.height = video.videoHeight;
-                canvasElement.width = video.videoWidth;
-                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-                
-                try {
-                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                        inversionAttempts: "attemptBoth",
-                    });
-                    if (code) {
-                        let resultText = code.data.trim();
-                        let finalUrl = '';
-
-                        if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
-                            finalUrl = resultText;
-                        } else {
-                            if (resultText.startsWith('/')) {
-                                resultText = resultText.substring(1);
-                            }
-                            finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
-                        }
-
-                        closeQRScanner();
-                        window.location.href = finalUrl;
-                        return;
-                    }
-                } catch (e) {
-                    console.error("Error drawing or extracting canvas pixels", e);
-                }
-            }
-            if (qrStream) {
-                qrAnimationId = requestAnimationFrame(tickQRScanner);
-            }
-        }
-
-        // アップロード画像によるQRコードデコード
-        function handleQRFile(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const errMsg = document.getElementById('qr-error-msg');
-            errMsg.classList.add('hidden');
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvasElement = document.getElementById('qr-canvas');
-                    const canvas = canvasElement.getContext('2d');
-                    canvasElement.width = img.width;
-                    canvasElement.height = img.height;
-                    canvas.drawImage(img, 0, 0);
-                    try {
-                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                            inversionAttempts: "attemptBoth",
-                        });
-                        if (code) {
-                            let resultText = code.data.trim();
-                            let finalUrl = '';
-                            if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
-                                finalUrl = resultText;
-                            } else {
-                                if (resultText.startsWith('/')) {
-                                    resultText = resultText.substring(1);
-                                }
-                                finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
-                            }
-                            closeQRScanner();
-                            window.location.href = finalUrl;
-                        } else {
-                            errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
-                            errMsg.classList.remove('hidden');
-                        }
-                    } catch (err) {
-                        console.error("Manual QR decode error:", err);
-                        errMsg.innerText = "相片讀取失敗，請重新嘗試。";
-                        errMsg.classList.remove('hidden');
-                    }
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        window.addEventListener('scroll', () => {
-            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-            if (currentScrollY > 30) document.body.classList.add('scrolled');
-            else document.body.classList.remove('scrolled');
-            
-            const filterBar = document.getElementById('filter-bar');
-            if (currentScrollY > lastScrollY && currentScrollY > 150) {
-                if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
-            } else if (currentScrollY < lastScrollY) {
-                if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
-            }
-            lastScrollY = currentScrollY;
-        }, { passive: true });
-
-        document.addEventListener('DOMContentLoaded', initData);
+            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
+            updateDockForTab();
+        });
     </script>
 </body>
 </html>
