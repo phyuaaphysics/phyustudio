@@ -1,21 +1,21 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Lumina Studio</title>
 
-    <!-- iOS PWA 設定 -->
+    <!-- 預連線：圖床 + Google Sheets + 字型 CDN 提前建 TCP / TLS 連線，圖片載入更快 -->
+    <link rel="preconnect" href="https://i.ibb.co" crossorigin>
+    <link rel="preconnect" href="https://docs.google.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://i.ibb.co">
+    <link rel="dns-prefetch" href="https://docs.google.com">
+
+    <!-- iOS PWA 狀態列修正（跟 template 一致，僅保留這兩個避免搶主頁 PWA scope） -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Lumina Studio">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#eef2f6" media="(prefers-color-scheme: light)">
-    <meta name="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
-    <link rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Lumina%20Studio%22%2C%22short_name%22%3A%22Lumina%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0a0a%22%2C%22theme_color%22%3A%22%23e50914%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fphyuaaphysics.github.io%2Fphyustudio%2Fappicon.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fphyuaaphysics.github.io%2Fphyustudio%2Fappicon.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -135,37 +135,33 @@
         .nf-hero {
             position: relative; z-index: 1;
             width: 100%;
-            height: 78vh; min-height: 480px; max-height: 720px;
+            height: 75vh;
             overflow: hidden;
             margin-bottom: 40px;
             border-radius: 0;
         }
         @media (max-width: 768px) {
             .nf-hero {
-                height: 60dvh; min-height: 360px; max-height: 480px;
+                height: 65vh;
                 margin-bottom: 28px;
             }
         }
         .nf-hero-bg {
             position: absolute; inset: 0;
             width: 100%; height: 100%;
-            background-size: cover; background-position: center;
+            object-fit: cover;
+            object-position: top;  /* 跟 template 一致：從頂部對齊，避免中央裁切造成扭曲 */
             background-color: var(--glacier-card);
-            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
-            opacity: 0;
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .nf-hero-bg.loaded { opacity: 1; }
         .nf-hero:hover .nf-hero-bg { transform: scale(1.04); }
         .nf-hero-bg::after {
             content: ''; position: absolute; inset: 0;
-            background:
-                linear-gradient(90deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.4) 40%, transparent 70%),
-                linear-gradient(0deg, transparent 0%, rgba(255,255,255,0.05) 30%, var(--glacier-bg) 100%);
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 40%, rgba(238,242,246,0.9) 95%);
+            pointer-events: none;
         }
         body.dark-mode .nf-hero-bg::after {
-            background:
-                linear-gradient(90deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.4) 40%, transparent 70%),
-                linear-gradient(0deg, transparent 0%, rgba(15,23,42,0.2) 30%, #090d16 100%);
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
         }
         .nf-hero-content {
             position: absolute; left: 0; bottom: max(48px, 8%);
@@ -361,27 +357,6 @@
             transform: scale(0.97);
             transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
         }
-        .nf-card-skeleton {
-            position: absolute; inset: 0;
-            background: linear-gradient(90deg,
-                var(--glacier-card) 0%,
-                rgba(255,255,255,0.15) 50%,
-                var(--glacier-card) 100%);
-            background-size: 200% 100%;
-            animation: shimmer 1.4s ease-in-out infinite;
-        }
-        body.dark-mode .nf-card-skeleton {
-            background: linear-gradient(90deg,
-                rgba(255,255,255,0.05) 0%,
-                rgba(255,255,255,0.12) 50%,
-                rgba(255,255,255,0.05) 100%);
-            background-size: 200% 100%;
-            animation: shimmer 1.4s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
         .nf-card.large { width: 360px; }
         .nf-card.small { width: 220px; }
         .nf-card.portrait { width: 220px; aspect-ratio: 3/4; border-radius: 12px; }
@@ -397,11 +372,8 @@
             background-color: var(--glacier-card);
             transition:
                 transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
-                filter 0.5s ease,
-                opacity 0.4s;
-            opacity: 0;
+                filter 0.5s ease;
         }
-        .nf-card-img.loaded { opacity: 1; }
         .nf-row .nf-card:hover .nf-card-img {
             transform: scale(1.12);
         }
@@ -605,9 +577,7 @@
             .nf-nav-link { font-size: 12px; padding: 4px 8px; }
 
             .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
-            body { background: var(--bg); }
             .logo-bar { padding-top: calc(env(safe-area-inset-top, 0px) + 6px); padding-bottom: 10px; }
-            .logo-bar img { height: 32px !important; }
 
             .dock-wrapper { width: 92%; max-width: 400px; }
         }
@@ -631,7 +601,7 @@
         <div class="max-w-screen-2xl mx-auto flex items-center justify-between px-4 md:px-8">
             <div class="flex items-center gap-3">
                 <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-9 w-auto">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
             </div>
             <div class="flex items-center gap-2 md:gap-4">
@@ -827,8 +797,8 @@
             if (!hero) return '';
             const bg = resolveBg(hero.bg);
             const imgTag = bg.url
-                ? `<img class="nf-hero-bg" src="${bg.url}" alt="" loading="eager" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.style.backgroundColor='#1a1a1a'">`
-                : `<div class="nf-hero-bg loaded" style="${escapeAttr(bg.style)}"></div>`;
+                ? `<img class="nf-hero-bg" src="${bg.url}" alt="">`
+                : `<div class="nf-hero-bg" style="${escapeAttr(bg.style)}"></div>`;
             const title = hero.cn || hero.en || 'Lumina Studio';
             const sub = hero.en || '';
             // hideActions：tab 模式不顯示開始/詳細按鈕
@@ -858,8 +828,8 @@
             const cards = items.map(c => {
                 const bg = resolveBg(c.bg);
                 const imgTag = bg.url
-                    ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async" onload="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none')" onerror="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none');this.style.backgroundColor='#1a1a1a'"><div class="nf-card-skeleton"></div>`
-                    : `<div class="nf-card-img loaded" style="${escapeAttr(bg.style)}"></div>`;
+                    ? `<img class="nf-card-img" src="${bg.url}" alt="">`
+                    : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
                 return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
                     ${imgTag}
                     <div class="nf-card-default">
@@ -886,7 +856,7 @@
                 const sizeFromCard = { lg: 'large', md: '', sm: 'small', portrait: 'portrait' }[c.size] || '';
                 const sizeClass = sizeFromCard || (opts.large ? 'large' : (opts.small ? 'small' : (opts.portrait ? 'portrait' : '')));
                 const imgTag = bg.url
-                    ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async" onload="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none')" onerror="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none');this.style.backgroundColor='#1a1a1a'"><div class="nf-card-skeleton"></div>`
+                    ? `<img class="nf-card-img" src="${bg.url}" alt="">`
                     : `<div class="nf-card-img loaded" style="${escapeAttr(bg.style)}"></div>`;
                 return `<div class="nf-card ${sizeClass}" onclick="${cardOnclick(c)}">
                     ${imgTag}
@@ -991,35 +961,34 @@
             const container = document.getElementById('nf-render-root');
             if (!container) return;
 
+            // 1. 立刻 render cache（不等任何 fetch）
             const cache = readCache();
             if (cache && cache.cards.length) {
                 renderCards(container, cache.cards);
             }
 
-            const remoteVer = await fetchMetaVersion();
+            // 2. 並發 fetch meta + cards（不等彼此）
+            const [verResult, freshResult] = await Promise.allSettled([
+                fetchMetaVersion(),
+                fetchFreshCards()
+            ]);
 
-            let cards = null;
+            const remoteVer = verResult.status === 'fulfilled' ? verResult.value : null;
+            const freshCards = freshResult.status === 'fulfilled' ? freshResult.value : null;
+
+            // 3. 判斷是否需要更新
             if (cache && remoteVer !== null) {
-                if (cache.ver === remoteVer) {
-                    return;
-                }
+                if (cache.ver === remoteVer) return;  // 版本一致，不用 render
             } else if (cache && Date.now() - cache.ts < TTL) {
-                return;
+                return;  // TTL 內，跳過
             }
 
-            try {
-                cards = await fetchFreshCards();
-                if (!cards.length) {
-                    if (!cache) throw new Error('Empty sheet');
-                    return;
-                }
-                writeCache(cards, remoteVer || '');
-                renderCards(container, cards);
-            } catch (err) {
-                console.error('Sheet fetch failed:', err);
-                if (!cache) {
-                    container.innerHTML = '<div style="padding:80px 40px;text-align:center;color:#a3a3a3;">卡片載入失敗，請檢查網絡 / Sheet 權限</div>';
-                }
+            // 4. 用新資料重 render
+            if (freshCards && freshCards.length) {
+                writeCache(freshCards, remoteVer || '');
+                renderCards(container, freshCards);
+            } else if (!cache) {
+                container.innerHTML = '<div style="padding:80px 40px;text-align:center;color:#a3a3a3;">卡片載入失敗，請檢查網絡 / Sheet 權限</div>';
             }
         }
 
@@ -1133,11 +1102,11 @@
                 : '';
             // 其餘卡片用 portrait 圓角 grid 密鋪
             const restCards = items.filter(c => c.id !== tabHero.id);
-            const cards = restCards.map(c => {
+            const cards = restCards.map((c, idx) => {
                 const bg = resolveBg(c.bg);
                 const imgTag = bg.url
-                    ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async" onload="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none')" onerror="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none');this.style.backgroundColor='#1a1a1a'"><div class="nf-card-skeleton"></div>`
-                    : `<div class="nf-card-img loaded" style="${escapeAttr(bg.style)}"></div>`;
+                    ? `<img class="nf-card-img" src="${bg.url}" alt="">`
+                    : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
                 return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
                     ${imgTag}
                     <div class="nf-card-default">
