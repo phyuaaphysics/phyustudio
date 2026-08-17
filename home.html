@@ -673,10 +673,10 @@
                 <button id="dock-tab-slot" class="dock-item" onclick="handleTabSlotClick()" title="當前分頁">
                     <i id="dock-tab-icon" class="fas fa-cube"></i><span id="dock-tab-label" class="uppercase">模擬器</span>
                 </button>
-                <button class="dock-item" onclick="handleNavigation('#')">
+                <button class="dock-item" onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
                 </button>
-                <button class="dock-item" onclick="handleNavigation('#')">
+                <button class="dock-item" onclick="openQRScanner()">
                     <i class="fas fa-qrcode"></i><span class="uppercase">掃描器</span>
                 </button>
             </div>
@@ -1046,11 +1046,11 @@
         }
 
         function handleTabSlotClick() {
-            // dock 第 2 格：tab 模式時是當前分頁 → 點擊重新 scroll 到頂；首頁模式 → 原本導航行為
+            // dock 第 2 格：tab 模式時是當前分頁 → 點擊重新 scroll 到頂；首頁模式 → 模擬器連結（跟 template 一致）
             if (currentTab) {
                 try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) {}
             } else {
-                handleNavigation('#');
+                handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html');
             }
         }
 
@@ -1270,6 +1270,10 @@
 
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
         function scrollToHome() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function openQRScanner() {
+            // QR Scanner 入口：導去 GitHub Pages 對應頁面
+            window.open('https://phyuaaphysics.github.io/phyustudio/qrscanner.html', '_blank', 'noopener,noreferrer');
+        }
         function goToProfile() {
             // 個人檔案功能：暫時導去 GitHub Pages
             window.open('https://phyuaaphysics.github.io/phyustudio/', '_blank', 'noopener,noreferrer');
