@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Lumina Studio</title>
+
+    <!-- iOS PWA 設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Lumina Studio">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#eef2f6" media="(prefers-color-scheme: light)">
+    <meta name="apple-touch-icon" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
+    <link rel="icon" type="image/png" href="https://phyuaaphysics.github.io/phyustudio/appicon.png">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Lumina%20Studio%22%2C%22short_name%22%3A%22Lumina%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0a0a%22%2C%22theme_color%22%3A%22%23e50914%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fphyuaaphysics.github.io%2Fphyustudio%2Fappicon.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fphyuaaphysics.github.io%2Fphyustudio%2Fappicon.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&display=swap');
+
+        :root {
+            /* Glacier 雙模式色票（從 template 移植）*/
+            --glacier-deep: #0f172a;
+            --glacier-primary: #0284c7;
+            --glacier-ice: #38bdf8;
+            --glacier-bg: #eef2f6;
+            --glacier-glass: rgba(224, 242, 254, 0.85);
+            --glacier-nav-glass: rgba(255, 255, 255, 0.75);
+            --glacier-text: #334155;
+            --glacier-card: #ffffff;
+            --glacier-card-border: rgba(14, 165, 233, 0.15);
+            /* Netflix 紅 accent（兩模式共用）*/
+            --accent: #e50914;
+            --accent-2: #b20710;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(15,23,42,0.08);
+            --shadow-lg: 0 14px 40px -8px rgba(15,23,42,0.15);
+        }
+
+        body.dark-mode {
+            --glacier-deep: #f8fafc;
+            --glacier-primary: #38bdf8;
+            --glacier-ice: #0284c7;
+            --glacier-bg: #090d16;
+            --glacier-glass: rgba(15, 23, 42, 0.85);
+            --glacier-nav-glass: rgba(15, 23, 42, 0.75);
+            --glacier-text: #cbd5e1;
+            --glacier-card: #18181b;
+            --glacier-card-border: rgba(255, 255, 255, 0.08);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+            --shadow-lg: 0 14px 40px -8px rgba(0,0,0,0.7);
+        }
+
+        /* 日夜切換 toggle 動畫（從 template 移植）*/
+        #dark-mode-toggle:checked + .theme-track {
+            background-color: #1e293b;
+            border-color: #0f172a;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-stars { opacity: 1 !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-knob { transform: translateX(0px) !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-sun { transform: scale(0) !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-moon { transform: scale(1) !important; }
+        #dark-mode-toggle:checked + .theme-track .theme-cloud { transform: translateX(48px) !important; opacity: 0 !important; }
+
+        body, .logo-bar, .dock-nav, .nf-card, .nf-hero, .nf-row, .nf-section, .nf-quote-card, .nf-section-title {
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--glacier-bg); color: var(--glacier-text);
+            -webkit-tap-highlight-color: transparent;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            height: 100%; overflow-y: auto;
+            overscroll-behavior-y: contain;
+            text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Search input：跟 dark-mode 整合（用 class，非 Tailwind dark variant） */
+        .nf-search-input {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+        body.dark-mode .nf-search-input {
+            background-color: rgba(30, 41, 59, 0.6);
+        }
+        .nf-search-input::placeholder { color: var(--glacier-text); opacity: 0.5; }
+
+        /* ============================================
+           🎬 Netflix + Glacier：頂部 nav 條
+           ============================================ */
+        .logo-bar {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 120;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.1);
+            padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
+            padding-bottom: 14px;
+        }
+        body.dark-mode .logo-bar { border-bottom-color: rgba(255,255,255,0.06); }
+        #main-logo { transition: transform 0.6s cubic-bezier(0.16,1,0.3,1); transform-origin: left center; }
+
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 76px); padding-bottom: 100px; }
+
+        /* ============================================
+           🎬 Netflix 風格：Hero Banner（21:9）
+           ============================================ */
+        .nf-hero {
+            position: relative; z-index: 1;
+            width: 100%;
+            height: 78vh; min-height: 480px; max-height: 720px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            border-radius: 0;
+        }
+        @media (max-width: 768px) {
+            .nf-hero {
+                height: 60dvh; min-height: 360px; max-height: 480px;
+                margin-bottom: 28px;
+            }
+        }
+        .nf-hero-bg {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            background-color: var(--glacier-card);
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
+            opacity: 0;
+        }
+        .nf-hero-bg.loaded { opacity: 1; }
+        .nf-hero:hover .nf-hero-bg { transform: scale(1.04); }
+        .nf-hero-bg::after {
+            content: ''; position: absolute; inset: 0;
+            background:
+                linear-gradient(90deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.4) 40%, transparent 70%),
+                linear-gradient(0deg, transparent 0%, rgba(255,255,255,0.05) 30%, var(--glacier-bg) 100%);
+        }
+        body.dark-mode .nf-hero-bg::after {
+            background:
+                linear-gradient(90deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.4) 40%, transparent 70%),
+                linear-gradient(0deg, transparent 0%, rgba(15,23,42,0.2) 30%, #090d16 100%);
+        }
+        .nf-hero-content {
+            position: absolute; left: 0; bottom: max(48px, 8%);
+            padding: 0 max(40px, 5vw);
+            z-index: 2;
+            max-width: 700px;
+            text-align: left;
+        }
+        .nf-hero-title {
+            font-family: 'Noto Serif TC', serif;
+            font-size: clamp(36px, 5vw, 64px);
+            font-weight: 800;
+            color: #fff; line-height: 1.05;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+        }
+        .nf-hero-en {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: clamp(22px, 2vw, 30px);
+            color: #d4d4d4; margin-bottom: 18px;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+        }
+        .nf-hero-actions { display: flex; gap: 12px; margin-top: 18px; }
+        .nf-btn {
+            padding: 11px 26px; border-radius: 6px; font-size: 15px; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.2s; cursor: pointer; border: none;
+        }
+        .nf-btn-primary { background: #fff; color: #0a0a0a; }
+        .nf-btn-primary:hover { background: rgba(255,255,255,0.8); }
+        .nf-btn-secondary { background: rgba(109,109,110,0.7); color: #fff; }
+        .nf-btn-secondary:hover { background: rgba(109,109,110,0.5); }
+
+        /* ============================================
+           🎬 Netflix 風格：Grid View 密鋪模式
+           ============================================ */
+        .nf-grid-view {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0;
+            padding: 0 max(20px, 4vw);
+        }
+        .nf-grid-view .nf-card.portrait {
+            width: 100%; aspect-ratio: 1/1;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .nf-grid-view .nf-card.portrait .nf-card-default {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+            z-index: 2;
+            pointer-events: none;
+            color: #fff;
+        }
+        .nf-grid-view .nf-card.portrait .nf-card-text-bar {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(20, 24, 32, 0.55);
+            border-radius: 0;
+            transition: background-color 0.35s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .nf-grid-view .nf-card.portrait:hover .nf-card-text-bar {
+            transform: translateY(-2px);
+            background: rgba(20, 24, 32, 0.7);
+        }
+        .nf-grid-view .nf-card.portrait .nf-card-title,
+        .nf-grid-view .nf-card.portrait .nf-card-sub {
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .nf-grid-view .nf-card.portrait:hover .nf-card-title {
+            transform: scale(1.22);
+        }
+        .nf-grid-view .nf-card.portrait:hover .nf-card-sub {
+            transform: scale(1.14);
+        }
+        .nf-row .nf-card-default .nf-card-title,
+        .nf-row .nf-card-default .nf-card-sub {
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            transform-origin: left bottom;
+        }
+        .nf-row .nf-card:hover .nf-card-default .nf-card-title {
+            transform: scale(1.2);
+        }
+        .nf-row .nf-card:hover .nf-card-default .nf-card-sub {
+            transform: scale(1.12);
+        }
+        body.dark-mode .nf-grid-view .nf-card.portrait .nf-card-text-bar {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .nf-grid-view .nf-card.portrait .nf-card-title {
+            font-size: 26px; line-height: 1.1; font-weight: 700;
+            color: #fff;
+        }
+        .nf-grid-view .nf-card.portrait .nf-card-sub {
+            font-size: 14px; line-height: 1.1; margin-top: 5px;
+            color: #fff; letter-spacing: 0.02em;
+        }
+        @media (max-width: 1280px) { .nf-grid-view { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 900px)  { .nf-grid-view { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px)  { .nf-grid-view { grid-template-columns: repeat(2, 1fr); } }
+
+        /* Tab 內 portrait 卡片牆：圓角 + 密鋪不 scroll（用 auto-fit 自適應） */
+        .nf-tab-wall {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+            padding: 0 max(20px, 4vw) 60px;
+        }
+        .nf-tab-wall .nf-card.portrait {
+            width: 100%;
+            aspect-ratio: 3/4;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+        .nf-tab-wall .nf-card.portrait .nf-card-default {
+            position: absolute; left: 16px; bottom: 12px; right: 16px;
+            display: flex; flex-direction: column; align-items: flex-start;
+            text-align: left;
+            color: #fff;
+            pointer-events: none;
+        }
+        .nf-tab-wall .nf-card.portrait .nf-card-title { font-size: 17px; line-height: 1.15; font-weight: 700; margin-bottom: 3px; color: #fff; }
+        .nf-tab-wall .nf-card.portrait .nf-card-sub { font-size: 13px; line-height: 1.1; color: #fff; opacity: 0.9; }
+
+        /* ============================================
+           🎬 Netflix 風格：Section + Row
+           ============================================ */
+        .nf-section {
+            position: relative;
+            padding: 0 max(20px, 4vw);
+            margin-bottom: 36px;
+        }
+        .nf-section-title {
+            font-size: clamp(18px, 1.6vw, 24px); font-weight: 700;
+            color: var(--glacier-deep); margin: 0 0 14px 0;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nf-section-title .nf-explore {
+            font-size: 12px; color: var(--glacier-primary); font-weight: 500;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .nf-row {
+            position: relative;
+            display: flex; gap: 8px;
+            overflow-x: auto; overflow-y: visible;
+            scroll-behavior: smooth;
+            padding: 16px 0 24px;
+            scrollbar-width: none;
+        }
+        .nf-row::-webkit-scrollbar { display: none; }
+        .nf-row-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px; height: 70px;
+            background: var(--glacier-glass);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: none; color: var(--glacier-deep);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 10;
+            opacity: 0; transition: opacity 0.25s, background 0.2s;
+            font-size: 18px;
+            padding: 0;
+        }
+        .nf-row-wrap:hover .nf-row-arrow { opacity: 1; }
+        .nf-row-arrow.left { left: 0; border-radius: 0 6px 6px 0; }
+        .nf-row-arrow.right { right: 0; border-radius: 6px 0 0 6px; }
+        .nf-row-arrow:hover { background: rgba(229,9,20,0.85); color: #fff; }
+        .nf-row-arrow:disabled { opacity: 0; cursor: default; pointer-events: none; }
+
+        /* ============================================
+           🎬 Netflix 風格：Card
+           ============================================ */
+        .nf-card {
+            position: relative;
+            flex: 0 0 auto;
+            width: 280px; aspect-ratio: 16/9;
+            border-radius: 8px; overflow: hidden;
+            background: var(--glacier-card);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transform-origin: center center;
+            transition:
+                transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .nf-card:active {
+            transform: scale(0.97);
+            transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+        }
+        .nf-card-skeleton {
+            position: absolute; inset: 0;
+            background: linear-gradient(90deg,
+                var(--glacier-card) 0%,
+                rgba(255,255,255,0.15) 50%,
+                var(--glacier-card) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+        body.dark-mode .nf-card-skeleton {
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0.05) 0%,
+                rgba(255,255,255,0.12) 50%,
+                rgba(255,255,255,0.05) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .nf-card.large { width: 360px; }
+        .nf-card.small { width: 220px; }
+        .nf-card.portrait { width: 220px; aspect-ratio: 3/4; border-radius: 12px; }
+        .nf-row .nf-card:hover {
+            transform: translateY(-6px);
+            z-index: 5;
+        }
+        .nf-card-img {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: center;
+            background-color: var(--glacier-card);
+            transition:
+                transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.5s ease,
+                opacity 0.4s;
+            opacity: 0;
+        }
+        .nf-card-img.loaded { opacity: 1; }
+        .nf-row .nf-card:hover .nf-card-img {
+            transform: scale(1.12);
+        }
+        .nf-grid-view .nf-card:hover .nf-card-img {
+            transform: scale(1.08);
+        }
+        .nf-card::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 100%);
+        }
+        .nf-row .nf-card:hover .nf-card-img { filter: brightness(0.5); }
+        .nf-card-overlay {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 14px 16px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .nf-card:hover .nf-card-overlay { opacity: 1; }
+        .nf-card-title {
+            font-family: 'Noto Serif TC', 'Songti TC', serif;
+            font-size: 36px; font-weight: 700; line-height: 1;
+            letter-spacing: 0.06em;
+            color: #fff; text-align: left;
+        }
+        .nf-card-sub {
+            font-family: 'Playfair Display', serif;
+            font-style: italic; font-weight: 500;
+            font-size: 18px; line-height: 1;
+            color: rgba(255,255,255,0.95); text-align: left;
+            margin-top: 6px;
+        }
+        .nf-card-default {
+            position: absolute; left: 18px; bottom: 14px; right: 18px;
+            z-index: 2;
+            display: flex; flex-direction: column; align-items: flex-start;
+            pointer-events: none;
+        }
+        .nf-card-default .nf-card-title {
+            font-size: 20px; line-height: 1; margin-bottom: 4px;
+        }
+        .nf-card-default .nf-card-sub {
+            font-size: 16px; margin-top: 0;
+        }
+        .nf-card.large .nf-card-default .nf-card-title { font-size: 26px; }
+        .nf-card.large .nf-card-default .nf-card-sub { font-size: 18px; }
+
+        /* ============================================
+           🎬 Netflix 風格：Profile 圓形頭像（頂部右上）
+           ============================================ */
+        .nf-avatar {
+            width: 32px; height: 32px; border-radius: 6px;
+            background: linear-gradient(135deg, var(--glacier-primary) 0%, var(--glacier-ice) 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 800; font-size: 13px;
+            cursor: pointer; transition: transform 0.2s;
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+        }
+        .nf-avatar:hover { transform: scale(1.1); }
+        .nf-avatar i { font-size: 18px; }
+        /* Profile group: avatar + logout button */
+        .nf-profile-group {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .nf-logout-btn {
+            width: 32px; height: 32px; border-radius: 6px;
+            background: transparent;
+            border: 1px solid var(--glacier-card-border);
+            color: var(--glacier-text);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .nf-logout-btn:hover {
+            background: rgba(229, 9, 20, 0.12);
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: scale(1.08);
+        }
+        .nf-logout-btn i { font-size: 14px; }
+
+        /* ============================================
+           🎬 Netflix 風格：Quote 卡（特殊 row）
+           ============================================ */
+        .nf-quote-card {
+            flex: 0 0 auto;
+            width: 420px;
+            background: var(--glacier-card);
+            border: 1px solid var(--glacier-card-border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px; padding: 24px 28px;
+            display: flex; flex-direction: column; gap: 12px; justify-content: center;
+            min-height: 200px;
+            position: relative; overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .nf-quote-card::before {
+            content: '"'; position: absolute;
+            top: -20px; right: 8px;
+            font-family: 'Playfair Display', serif;
+            font-size: 180px; line-height: 1; color: var(--glacier-deep); opacity: 0.06;
+            font-weight: 700;
+        }
+        .nf-quote-text {
+            font-family: 'Playfair Display', serif;
+            font-style: italic; font-size: 17px; line-height: 1.5; color: var(--glacier-deep);
+        }
+        .nf-quote-author {
+            font-size: 12px; font-weight: 800; letter-spacing: 0.2em;
+            text-transform: uppercase; color: var(--glacier-text);
+            opacity: 0.7;
+        }
+        .nf-quote-author::before { content: '— '; color: var(--accent); }
+
+        /* ============================================
+           🖥️ 桌面 Dock（保留）
+           ============================================ */
+        .dock-wrapper {
+            position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            left: 50%; transform: translateX(-50%); z-index: 200;
+            transition: transform 0.6s cubic-bezier(0.16,1,0.3,1), opacity 0.4s;
+        }
+        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(180px); opacity: 0; }
+        .dock-nav {
+            background-color: var(--glacier-nav-glass);
+            backdrop-filter: blur(28px) saturate(210%);
+            -webkit-backdrop-filter: blur(28px) saturate(210%);
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            padding: 10px 12px; border-radius: 42px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+            display: flex; align-items: center; justify-content: center; gap: 14px;
+        }
+        .dock-toggle-btn {
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            color: var(--glacier-text); cursor: pointer; font-size: 12px;
+        }
+        .dock-content { display: flex; align-items: center; gap: 2px; }
+        .dock-item {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            color: #94a3b8; padding: 4px 8px; border-radius: 12px;
+            min-width: 58px; transition: all 0.3s; font-weight: 600;
+        }
+        .dock-item i { font-size: 1.15rem; }
+        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
+        .dock-item:hover { color: var(--glacier-primary); background: rgba(14, 165, 233, 0.1); }
+        .dock-item.active { color: var(--glacier-primary); }
+        .dock-item.active span { opacity: 1; }
+        /* Tab 模式：dock 第 2 格變成 tab icon（橘色高亮） */
+        .dock-item.dock-tab-active { color: #f59e0b; }
+        .dock-item.dock-tab-active span { opacity: 1; font-weight: 700; }
+        .dock-item.dock-tab-active i { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4)); }
+        body.dark-mode .dock-item.dock-tab-active { color: #fbbf24; }
+        .dock-trigger-bar {
+            position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+            left: 50%; transform: translateX(-50%);
+            width: 50px; height: 4px; background: var(--glacier-text);
+            border-radius: 10px; z-index: 199; cursor: pointer; display: none;
+            opacity: 0.5;
+        }
+        .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
+
+        /* ============================================
+           📱 MOBILE 版 (≤768px)
+           ============================================ */
+        @media (max-width: 768px) {
+            .nf-hero-content { bottom: max(28px, 6%); padding: 0 20px; }
+            .nf-hero-title { font-size: 32px; }
+            .nf-hero-en { font-size: 24px; }
+            .nf-hero-actions { gap: 8px; }
+            .nf-btn { padding: 9px 18px; font-size: 13px; }
+            .nf-section { padding: 0 16px; margin-bottom: 26px; }
+            .nf-section-title { font-size: 16px; margin-bottom: 10px; }
+            .nf-row-arrow { width: 32px; height: 56px; font-size: 14px; }
+            .nf-card { width: 200px; }
+            .nf-card.large { width: 260px; }
+            .nf-card.portrait { width: 180px; }
+            .nf-quote-card { width: 300px; padding: 20px 22px; min-height: 160px; }
+            .nf-quote-text { font-size: 18px; }
+            .nf-nav-link { font-size: 12px; padding: 4px 8px; }
+
+            .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
+            body { background: var(--bg); }
+            .logo-bar { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); padding-bottom: 10px; }
+            .logo-bar img { height: 32px !important; }
+
+            .dock-wrapper { width: 92%; max-width: 400px; }
+            .dock-nav { justify-content: space-around; padding: 8px 10px; }
+            .dock-item { min-width: 50px; padding: 5px 8px; }
+            .dock-item i { font-size: 1.05rem; }
+            .dock-item span { font-size: 9px; }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            opacity: 0;
+            animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="hide-scrollbar">
+
+    <!-- ============================================
+         🎬 Netflix 風格：頂部 nav
+         ============================================ -->
+    <header class="logo-bar" id="logo-nav-bar">
+        <div class="max-w-screen-2xl mx-auto flex items-center justify-between px-4 md:px-8">
+            <div class="flex items-center gap-3">
+                <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-9 w-auto">
+                </div>
+            </div>
+            <div class="flex items-center gap-2 md:gap-4">
+                <div class="relative hidden sm:block">
+                    <input type="text" id="search-input" placeholder="搜尋…" oninput="handleSearch(this.value)" class="nf-search-input border border-sky-400/30 rounded-full py-1.5 pl-9 pr-9 text-sm focus:outline-none focus:border-sky-500 transition-colors w-44 focus:w-60" style="color: var(--glacier-deep);">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--glacier-text); opacity: 0.6;"></i>
+                    <button id="search-clear" onclick="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-0 transition-opacity" style="color: var(--glacier-text);"><i class="fas fa-times-circle"></i></button>
+                </div>
+                <button onclick="toggleSearchInput()" class="sm:hidden w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
+                    <i class="fas fa-search text-base"></i>
+                </button>
+                <button id="grid-view-toggle" onclick="toggleGridView()" title="格狀排版" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
+                    <i class="fas fa-border-all text-lg"></i>
+                </button>
+                <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
+                    <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
+                    <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
+                        <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
+                            <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                            <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                            <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                            <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                        </div>
+                        <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
+                            <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
+                            <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
+                                <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
+                                <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
+                                <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
+                                <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
+                            </div>
+                        </div>
+                        <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
+                            <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
+                            </svg>
+                        </div>
+                    </div>
+                </label>
+                <div class="nf-profile-group">
+                    <div class="nf-avatar" title="個人檔案（暫未啟用）">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <button class="nf-logout-btn" onclick="handleLogout()" title="登出">
+                        <i class="fas fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================
+         🎬 Netflix 風格：主內容
+         ============================================ -->
+    <div id="page-content">
+        <div id="nf-render-root"></div>
+    </div>
+
+    <!-- ============================================
+         🖥️ 桌面版 Dock
+         ============================================ -->
+    <div id="dock-nav-wrapper" class="dock-wrapper desktop-only">
+        <nav class="dock-nav">
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+            <div class="dock-content">
+                <button onclick="handleHomeClick()" id="dock-home" class="dock-item active" title="返回首頁">
+                    <i id="dock-home-icon" class="fas fa-home"></i><span id="dock-home-label">錄影庫</span>
+                </button>
+                <button id="dock-tab-slot" class="dock-item" onclick="handleTabSlotClick()" title="當前分頁">
+                    <i id="dock-tab-icon" class="fas fa-cube"></i><span id="dock-tab-label">模擬器</span>
+                </button>
+                <button class="dock-item" onclick="handleNavigation('#')">
+                    <i class="fas fa-shapes"></i><span>功能區</span>
+                </button>
+                <button class="dock-item" onclick="handleNavigation('#')">
+                    <i class="fas fa-qrcode"></i><span>掃描器</span>
+                </button>
+            </div>
+            <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
+        </nav>
+    </div>
+    <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar desktop-only"></div>
+
+    <script>
+        // ========== 🟢 Google Sheets 動態拉取 ==========
+        const SHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
+        const SHEET_TAB = 'FRONT_NEW';
+        const META_TAB  = '_META';
+        const SHEET_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
+        const META_CSV  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(META_TAB)}&range=A1:A1`;
+
+        function parseCSV(text) {
+            const rows = []; let row = []; let cur = ''; let inQ = false;
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i];
+                if (inQ) {
+                    if (c === '"' && text[i+1] === '"') { cur += '"'; i++; }
+                    else if (c === '"') inQ = false;
+                    else cur += c;
+                } else {
+                    if (c === '"') inQ = true;
+                    else if (c === ',') { row.push(cur); cur = ''; }
+                    else if (c === '\n' || c === '\r') {
+                        if (cur !== '' || row.length) { row.push(cur); rows.push(row); row = []; cur = ''; }
+                        if (c === '\r' && text[i+1] === '\n') i++;
+                    } else cur += c;
+                }
+            }
+            if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+            return rows;
+        }
+
+        function sheetToCards(rows) {
+            if (!rows.length) return [];
+            const header = rows[0].map(h => h.trim().toLowerCase());
+            const idx = (k) => header.indexOf(k);
+            const I = {
+                order:    idx('order'),
+                id:       idx('id'),
+                type:     idx('type'),
+                cn:       idx('cn'),
+                en:       idx('en'),
+                section:  idx('section'),
+                size:     idx('size_hint'),
+                bg:       idx('bg'),
+                link:     idx('link'),
+                qtext:    idx('quote_text'),
+                qauthor:  idx('quote_author'),
+                active:   idx('active'),
+            };
+            return rows.slice(1)
+                .filter(r => r.some(v => v && v.trim()))
+                .map(r => ({
+                    order:   (I.order   >= 0 ? r[I.order]   : '').trim(),
+                    id:      (I.id      >= 0 ? r[I.id]      : '').trim(),
+                    type:    (I.type    >= 0 ? r[I.type]    : '').trim().toLowerCase(),
+                    cn:      (I.cn      >= 0 ? r[I.cn]      : '').trim(),
+                    en:      (I.en      >= 0 ? r[I.en]      : '').trim(),
+                    section: (I.section >= 0 ? r[I.section] : '').trim().toLowerCase(),
+                    size:    (I.size    >= 0 ? r[I.size]    : 'md').trim().toLowerCase(),
+                    bg:      (I.bg      >= 0 ? r[I.bg]      : '').trim(),
+                    link:    (I.link    >= 0 ? r[I.link]    : '').trim(),
+                    quote_text:   (I.qtext   >= 0 ? r[I.qtext]   : '').trim(),
+                    quote_author: (I.qauthor >= 0 ? r[I.qauthor] : '').trim(),
+                    active:  ((I.active  >= 0 ? r[I.active]  : 'TRUE').toString().toUpperCase() === 'TRUE'),
+                }))
+                .filter(c => {
+                    if (!c.active || !c.id) return false;
+                    if (c.id === 'ver' || c.id === '_meta') return false;
+                    if (/^\d+$/.test(c.type)) return false;
+                    return true;
+                });
+        }
+
+        function resolveBg(bg) {
+            if (!bg) return { style: 'background-color:#1a1a1a;', url: null };
+            if (bg.startsWith('#')) return { style: `background-color:${bg};`, url: null };
+            if (bg === 'pattern') return { style: 'background:#1a1a1a;', url: null, isPattern: true };
+            if (bg === 'hk_night') return { style: 'background:#1a1a1a;', url: null };
+            return { style: `background-image:url('${bg}');background-size:cover;background-position:center;`, url: bg };
+        }
+
+        function goLink(target) {
+            const c = typeof target === 'string'
+                ? (allCardsCache || []).find(item => item.id === target)
+                : target;
+            if (!c || !c.link || c.link === '#') return;
+            const link = c.link.trim();
+            if (!link) return;  // 純空白也要擋
+            // 內部 SPA 路由：insite://tabname
+            if (link.startsWith('insite://')) {
+                const tab = link.slice('insite://'.length).split('?')[0].split('/')[0].trim();
+                if (tab) navigateToTab(tab);
+                return;
+            }
+            // Google Sites 連結：開新分頁（避免搶走 SPA 狀態、保留本頁 session）
+            if (/^https?:\/\/(www\.)?sites\.google\.com\//i.test(link)) {
+                window.open(link, '_blank', 'noopener,noreferrer');
+                return;
+            }
+            // 其他外部連結：直接跳轉（同分頁）
+            window.location.href = link;
+        }
+        // 避免將 JSON 物件雙引號直接放入 HTML onclick 屬性中導致 HTML 截斷與 Unexpected end of input 錯誤
+        function cardOnclick(c) {
+            if (!c || !c.id) return '';
+            const safeId = (c.id || '').replace(/'/g, "\\'");
+            return `goLink('${safeId}')`;
+        }
+
+        function renderHeroBanner(cards, opts = {}) {
+            const hero = cards[0];
+            if (!hero) return '';
+            const bg = resolveBg(hero.bg);
+            const imgTag = bg.url
+                ? `<img class="nf-hero-bg" src="${bg.url}" alt="" loading="eager" decoding="async" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.style.backgroundColor='#1a1a1a'">`
+                : `<div class="nf-hero-bg loaded" style="${escapeAttr(bg.style)}"></div>`;
+            const title = hero.cn || hero.en || 'Lumina Studio';
+            const sub = hero.en || '';
+            // hideActions：tab 模式不顯示開始/詳細按鈕
+            const actionsHtml = opts.hideActions ? '' : `
+                        <div class="nf-hero-actions">
+                            <button class="nf-btn nf-btn-primary" onclick="${cardOnclick(hero)}">
+                                <i class="fas fa-play"></i> 開始
+                            </button>
+                            <button class="nf-btn nf-btn-secondary" onclick="alert('詳細資料準備中')">
+                                <i class="fas fa-info-circle"></i> 詳細
+                            </button>
+                        </div>`;
+            // id 只在主頁用（tab 內不用避免重複 id）
+            const sectionId = opts.hideActions ? '' : 'id="home"';
+            return `
+                <section class="nf-hero" ${sectionId}>
+                    ${imgTag}
+                    <div class="nf-hero-content">
+                        <div class="nf-hero-title">${escapeHTML(title)}</div>
+                        <div class="nf-hero-en">${escapeHTML(sub)}</div>${actionsHtml}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderGridView(items) {
+            const cards = items.map(c => {
+                const bg = resolveBg(c.bg);
+                const imgTag = bg.url
+                    ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async" onload="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none')" onerror="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none');this.style.backgroundColor='#1a1a1a'"><div class="nf-card-skeleton"></div>`
+                    : `<div class="nf-card-img loaded" style="${escapeAttr(bg.style)}"></div>`;
+                return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
+                    ${imgTag}
+                    <div class="nf-card-default">
+                        <div class="nf-card-text-bar">
+                            <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
+                            <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            return `<section class="nf-section"><div class="nf-grid-view">${cards}</div></section>`;
+        }
+
+        function renderSection(title, items, opts = {}) {
+            if (!items.length) return '';
+            const cards = items.map(c => {
+                if (c.type === 'quote') {
+                    return `<div class="nf-quote-card" onclick="${cardOnclick(c)}">
+                        <div class="nf-quote-text">${escapeHTML(c.quote_text)}</div>
+                        <div class="nf-quote-author">${escapeHTML(c.quote_author)}</div>
+                    </div>`;
+                }
+                const bg = resolveBg(c.bg);
+                const sizeFromCard = { lg: 'large', md: '', sm: 'small', portrait: 'portrait' }[c.size] || '';
+                const sizeClass = sizeFromCard || (opts.large ? 'large' : (opts.small ? 'small' : (opts.portrait ? 'portrait' : '')));
+                const imgTag = bg.url
+                    ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async" onload="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none')" onerror="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none');this.style.backgroundColor='#1a1a1a'"><div class="nf-card-skeleton"></div>`
+                    : `<div class="nf-card-img loaded" style="${escapeAttr(bg.style)}"></div>`;
+                return `<div class="nf-card ${sizeClass}" onclick="${cardOnclick(c)}">
+                    ${imgTag}
+                    <div class="nf-card-default">
+                        <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
+                        <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            const sid = (opts.id || 'sec') + '-row';
+            return `
+                <section class="nf-section" id="${opts.id || ''}">
+                    <h2 class="nf-section-title">
+                        <span>${title}</span>
+                        <a class="nf-explore" href="#">查看全部 <i class="fas fa-chevron-right" style="font-size:9px;"></i></a>
+                    </h2>
+                    <div class="nf-row-wrap" style="position:relative;">
+                        <button class="nf-row-arrow left" aria-label="往左" onclick="scrollRow('${sid}', -1)"><i class="fas fa-chevron-left"></i></button>
+                        <button class="nf-row-arrow right" aria-label="往右" onclick="scrollRow('${sid}', 1)"><i class="fas fa-chevron-right"></i></button>
+                        <div class="nf-row" id="${sid}">${cards}</div>
+                    </div>
+                </section>
+            `;
+        }
+
+        function scrollRow(sid, dir) {
+            const row = document.getElementById(sid);
+            if (!row) return;
+            const first = row.querySelector('.nf-card, .nf-quote-card');
+            const step = first ? first.getBoundingClientRect().width + 8 : 300;
+            const maxScroll = row.scrollWidth - row.clientWidth;
+            const newLeft = dir > 0
+                ? Math.min(row.scrollLeft + step * 2, maxScroll)
+                : Math.max(row.scrollLeft - step * 2, 0);
+            row.scrollTo({ left: newLeft, behavior: 'smooth' });
+        }
+
+        function escapeHTML(s) { return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+        const SECTION_TITLES = {
+            courses: '學習旅程',
+            tools:   '工具與資源',
+            quotes:  '引言精選',
+        };
+        const SECTION_OPTS = {
+            courses: { large: true },
+            tools:   { portrait: true },
+            quotes:  {},
+        };
+
+        let isGridView = false;
+        let searchQuery = '';
+        let allCardsCache = null;
+        let currentTab = null;   // SPA 內部 tab 路由（null = 首頁）
+
+        const LS = {
+            cards: 'lumina_cards_v1',
+            ts:    'lumina_cards_v1_ts',
+            ver:   'lumina_cards_v1_ver',
+        };
+        const TTL = 10 * 60 * 1000;
+
+        async function fetchMetaVersion() {
+            try {
+                const res = await fetch(META_CSV, { cache: 'no-store' });
+                if (!res.ok) return null;
+                const text = (await res.text()).trim();
+                const firstLine = text.split('\n')[0].replace(/"/g, '').trim();
+                return firstLine || null;
+            } catch (e) { return null; }
+        }
+
+        async function fetchFreshCards() {
+            const res = await fetch(SHEET_CSV, { cache: 'no-store' });
+            if (!res.ok) throw new Error(`Sheet HTTP ${res.status}`);
+            const text = await res.text();
+            const rows = parseCSV(text);
+            const cards = sheetToCards(rows);
+            if (!cards.length) throw new Error('Empty sheet result');
+            return cards;
+        }
+
+        function readCache() {
+            try {
+                const raw = localStorage.getItem(LS.cards);
+                const ts  = parseInt(localStorage.getItem(LS.ts) || '0', 10);
+                const ver = localStorage.getItem(LS.ver) || '';
+                if (!raw) return null;
+                return { cards: JSON.parse(raw), ts, ver };
+            } catch (e) { return null; }
+        }
+
+        function writeCache(cards, ver) {
+            try {
+                localStorage.setItem(LS.cards, JSON.stringify(cards));
+                localStorage.setItem(LS.ts, String(Date.now()));
+                localStorage.setItem(LS.ver, ver || '');
+            } catch (e) {}
+        }
+
+        async function buildBento() {
+            const container = document.getElementById('nf-render-root');
+            if (!container) return;
+
+            const cache = readCache();
+            if (cache && cache.cards.length) {
+                renderCards(container, cache.cards);
+            }
+
+            const remoteVer = await fetchMetaVersion();
+
+            let cards = null;
+            if (cache && remoteVer !== null) {
+                if (cache.ver === remoteVer) {
+                    return;
+                }
+            } else if (cache && Date.now() - cache.ts < TTL) {
+                return;
+            }
+
+            try {
+                cards = await fetchFreshCards();
+                if (!cards.length) {
+                    if (!cache) throw new Error('Empty sheet');
+                    return;
+                }
+                writeCache(cards, remoteVer || '');
+                renderCards(container, cards);
+            } catch (err) {
+                console.error('Sheet fetch failed:', err);
+                if (!cache) {
+                    container.innerHTML = '<div style="padding:80px 40px;text-align:center;color:#a3a3a3;">卡片載入失敗，請檢查網絡 / Sheet 權限</div>';
+                }
+            }
+        }
+
+        // ========== 🧭 SPA 內部 tab 路由（insite://） ==========
+        // tab → dock icon 對應（找不到就用 archive 通用）
+        const TAB_DOCK_ICONS = {
+            oldsys:    { icon: 'fas fa-archive',    label: '庫存',     color: '#f59e0b' },
+            archive:   { icon: 'fas fa-archive',    label: '檔案',     color: '#f59e0b' },
+            hw:        { icon: 'fas fa-book',       label: '功課',     color: '#10b981' },
+            courses:   { icon: 'fas fa-graduation-cap', label: '課程',  color: '#8b5cf6' },
+            tools:     { icon: 'fas fa-wrench',     label: '工具',     color: '#0ea5e9' },
+            quotes:    { icon: 'fas fa-quote-left', label: '引言',     color: '#ec4899' },
+        };
+        function getTabDockMeta(tab) {
+            return TAB_DOCK_ICONS[(tab || '').toLowerCase()] || { icon: 'fas fa-folder-open', label: tab || '分頁', color: '#f59e0b' };
+        }
+
+        function updateDockForTab() {
+            const homeBtn  = document.getElementById('dock-home');
+            const homeIcon = document.getElementById('dock-home-icon');
+            const homeLbl  = document.getElementById('dock-home-label');
+            const tabBtn   = document.getElementById('dock-tab-slot');
+            const tabIcon  = document.getElementById('dock-tab-icon');
+            const tabLbl   = document.getElementById('dock-tab-label');
+            if (!homeBtn || !tabBtn) return;
+            if (currentTab) {
+                // Tab 模式：home 變成「返回」樣式（箭頭 + label）
+                homeIcon.className = 'fas fa-arrow-left';
+                homeLbl.textContent = '返回';
+                homeBtn.classList.add('active');
+                // 第 2 格：tab icon + 橘色高亮
+                const meta = getTabDockMeta(currentTab);
+                tabIcon.className = meta.icon;
+                tabLbl.textContent = meta.label;
+                tabBtn.classList.add('dock-tab-active');
+                tabBtn.style.color = meta.color;
+            } else {
+                // 首頁：還原
+                homeIcon.className = 'fas fa-home';
+                homeLbl.textContent = '錄影庫';
+                homeBtn.classList.remove('active');
+                tabIcon.className = 'fas fa-cube';
+                tabLbl.textContent = '模擬器';
+                tabBtn.classList.remove('dock-tab-active');
+                tabBtn.style.color = '';
+            }
+        }
+
+        function handleHomeClick() {
+            if (currentTab) {
+                goBackToHome();
+            } else {
+                scrollToHome();
+            }
+        }
+
+        function handleTabSlotClick() {
+            // dock 第 2 格：tab 模式時是當前分頁 → 點擊重新 scroll 到頂；首頁模式 → 原本導航行為
+            if (currentTab) {
+                try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) {}
+            } else {
+                handleNavigation('#');
+            }
+        }
+
+        function navigateToTab(tab) {
+            if (!allCardsCache) return;
+            currentTab = tab;
+            try { history.pushState({ tab }, '', '#' + tab); } catch(e) {}
+            renderCards(document.getElementById('nf-render-root'), allCardsCache);
+            // 進 tab 後 smooth scroll 到頂
+            try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }); } catch(e) {}
+            // dock 留在原位（不收起），更新 icon
+            updateDockForTab();
+        }
+
+        function goBackToHome() {
+            currentTab = null;
+            try { history.pushState({}, '', location.pathname + location.search); } catch(e) {}
+            if (allCardsCache) renderCards(document.getElementById('nf-render-root'), allCardsCache);
+            // dock 還原
+            updateDockForTab();
+        }
+
+        // 監聽瀏覽器上一頁/下一頁
+        window.addEventListener('popstate', (e) => {
+            if (location.hash) {
+                currentTab = location.hash.slice(1);
+            } else {
+                currentTab = null;
+            }
+            if (allCardsCache) renderCards(document.getElementById('nf-render-root'), allCardsCache);
+        });
+
+        // Tab 內部卡片牆（portrait 圓角卡 + auto-fit 密鋪不 scroll）
+        function renderTabWall(tabName, items) {
+            if (!items.length) {
+                return `
+                    <div style="padding:120px 20px;text-align:center;color:var(--glacier-text);opacity:0.6;">
+                        此分題暫無內容
+                    </div>
+                `;
+            }
+            // 大 hero 沿用主頁入口卡（link = insite://<tabname>）的資料
+            const entry = (allCardsCache || []).find(c =>
+                (c.link || '').toLowerCase() === ('insite://' + tabName).toLowerCase()
+            );
+            const tabHero = entry || items[0];
+            const heroHtml = (tabHero.cn || tabHero.en)
+                ? renderHeroBanner([tabHero], { hideActions: true })
+                : '';
+            // 其餘卡片用 portrait 圓角 grid 密鋪
+            const restCards = items.filter(c => c.id !== tabHero.id);
+            const cards = restCards.map(c => {
+                const bg = resolveBg(c.bg);
+                const imgTag = bg.url
+                    ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async" onload="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none')" onerror="this.classList.add('loaded');this.nextElementSibling&&(this.nextElementSibling.style.display='none');this.style.backgroundColor='#1a1a1a'"><div class="nf-card-skeleton"></div>`
+                    : `<div class="nf-card-img loaded" style="${escapeAttr(bg.style)}"></div>`;
+                return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
+                    ${imgTag}
+                    <div class="nf-card-default">
+                        <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
+                        <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            const wallHtml = restCards.length
+                ? `<div class="nf-tab-wall">${cards}</div>`
+                : '';
+            return heroHtml + wallHtml;
+        }
+
+        function escapeAttr(s) { return (s || '').replace(/'/g, '%27').replace(/"/g, '%22'); }
+
+        function renderCards(container, cards) {
+            allCardsCache = cards;
+            // SPA 內部 tab 路由：currentTab 優先於其他狀態
+            if (currentTab) {
+                // 用 type 篩選 tab 內卡片（不包含 head/hero/quote 主頁類）
+                const tabItems = cards.filter(c => {
+                    const t = (c.type || '').toLowerCase();
+                    return t === currentTab.toLowerCase();
+                });
+                container.innerHTML = renderTabWall(currentTab, tabItems);
+                const clearBtn = document.getElementById('search-clear');
+                if (clearBtn) clearBtn.style.opacity = '0';
+                return;
+            }
+            cards.sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
+            const deduped = [];
+            const seen = new Set();
+            cards.forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); deduped.push(c); } });
+
+            // ===== 關鍵修改：支援 head / HEAD（大小寫不敏感）=====
+            let headCard = deduped.find(c => c.type && c.type.toUpperCase() === 'HEAD');
+            if (headCard) {
+                const fallback = cards.find(c => c.id === headCard.id && c.type === 'hero');
+                if (fallback) {
+                    headCard = {
+                        ...headCard,
+                        cn: headCard.cn || fallback.cn,
+                        en: headCard.en || fallback.en,
+                        bg: headCard.bg || fallback.bg,
+                        link: headCard.link || fallback.link,
+                    };
+                }
+            }
+            // 若無 head，則使用 hero 作為備用
+            if (!headCard) {
+                headCard = deduped.find(c => c.type === 'hero' && (c.cn || c.en || c.bg)) || deduped.find(c => c.type === 'hero');
+            }
+
+            let filtered = deduped;
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                filtered = deduped.filter(c => {
+                    const hay = ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase();
+                    return hay.includes(q);
+                });
+            }
+
+            const headId = headCard ? headCard.id : null;
+            // ===== 主頁只放 type = hero / quote 的卡，再依 section 欄分 row =====
+            // 其他 type（如 oldsys）不進主頁，歸 SPA tab
+            const bySection = {};
+            const mainPageCards = [];
+            filtered.forEach(c => {
+                if (c.id === headId) return;
+                const t = (c.type || '').toLowerCase();
+                if (t !== 'hero' && t !== 'quote') return;  // 非主頁類型（oldsys 等）略過
+                mainPageCards.push(c);
+                const sec = (c.section || 'courses').toLowerCase();
+                if (!bySection[sec]) bySection[sec] = [];
+                bySection[sec].push(c);
+            });
+
+            const html = [];
+            if (headCard && !searchQuery && !isGridView) html.push(renderHeroBanner([headCard]));
+
+            if (isGridView) {
+                // Grid view：主頁所有 hero/quote 卡片（不含 quote 不顯示但保留）
+                const allMain = mainPageCards.filter(c => (c.type || '').toLowerCase() !== 'quote');
+                if (allMain.length) html.push(renderGridView(allMain));
+            } else {
+                // Row 模式：依 SECTION_TITLES 順序渲染每個 section row
+                for (const sec of Object.keys(SECTION_TITLES)) {
+                    if (bySection[sec] && bySection[sec].length) {
+                        html.push(renderSection(SECTION_TITLES[sec], bySection[sec], { id: sec, ...SECTION_OPTS[sec] }));
+                    }
+                }
+            }
+
+            if (searchQuery && !filtered.length) {
+                html.push(`<div style="padding:60px 20px;text-align:center;color:var(--glacier-mute,#94a3b8);">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
+            }
+
+            container.innerHTML = html.join('');
+            const clearBtn = document.getElementById('search-clear');
+            if (clearBtn) clearBtn.style.opacity = searchQuery ? '1' : '0';
+        }
+
+        function toggleGridView() {
+            isGridView = !isGridView;
+            const btn = document.getElementById('grid-view-toggle');
+            if (btn) {
+                if (isGridView) {
+                    btn.style.opacity = '1';
+                    btn.style.color = 'var(--glacier-primary)';
+                } else {
+                    btn.style.opacity = '0.6';
+                    btn.style.color = 'var(--glacier-text)';
+                }
+            }
+            if (allCardsCache) renderCards(document.getElementById('nf-render-root'), allCardsCache);
+        }
+
+        function handleSearch(v) {
+            searchQuery = (v || '').trim();
+            if (allCardsCache) renderCards(document.getElementById('nf-render-root'), allCardsCache);
+        }
+
+        function toggleSearchInput() {
+            const wrap = document.querySelector('.logo-bar .relative.hidden.sm\\:block');
+            if (!wrap) return;
+            if (wrap.classList.contains('hidden')) {
+                wrap.classList.remove('hidden');
+                wrap.classList.add('block');
+                const input = document.getElementById('search-input');
+                if (input) setTimeout(() => input.focus(), 50);
+            } else {
+                wrap.classList.add('hidden');
+                wrap.classList.remove('block');
+                clearSearch();
+            }
+        }
+
+        function clearSearch() {
+            searchQuery = '';
+            const input = document.getElementById('search-input');
+            if (input) input.value = '';
+            if (allCardsCache) renderCards(document.getElementById('nf-render-root'), allCardsCache);
+        }
+
+        function toggleTheme(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+            try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch(e) {}
+        }
+        (function() {
+            try {
+                const saved = localStorage.getItem('theme');
+                const dark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (dark) {
+                    document.body.classList.add('dark-mode');
+                    const t = document.getElementById('dark-mode-toggle');
+                    if (t) t.checked = true;
+                }
+            } catch(e) {}
+        })();
+
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
+        function scrollToHome() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function goToProfile() {
+            // 個人檔案功能：暫時導去 GitHub Pages
+            window.open('https://phyuaaphysics.github.io/phyustudio/', '_blank', 'noopener,noreferrer');
+        }
+        function handleLogout() {
+            const ok = window.confirm('若選擇登出，系統的暫存檔將移除，確定？');
+            if (!ok) return;
+            // 清空所有 localStorage（lumina_* + theme + 其他）
+            try {
+                const keys = Object.keys(localStorage);
+                keys.forEach(k => {
+                    if (k.startsWith('lumina_') || k === 'theme') localStorage.removeItem(k);
+                });
+                // 保險起見：把整個 localStorage 清掉
+                localStorage.clear();
+                sessionStorage.clear();
+            } catch (e) {}
+            // 導回 GitHub Pages 首頁
+            window.location.href = 'https://phyuaaphysics.github.io/phyustudio/';
+        }
+        function handleNavigation(url) { if (url && url !== '#') window.location.href = url; }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 從 URL hash 恢復 tab 狀態（讓 #oldsys 可直接分享 / 書籤）
+            if (location.hash && location.hash.length > 1) {
+                currentTab = location.hash.slice(1);
+            }
+            buildBento();
+            // dock 跟著 tab 狀態更新（buildBento 內 renderCards 走 tab 分支後會處理，
+            // 但這裡保險起見再呼叫一次，處理 hash 還原但 buildBento 失敗的邊角情況）
+            setTimeout(() => updateDockForTab(), 0);
+        });
+
+        // 本頁不註冊 service worker（避免干擾其他 PWA / 同源 scope 衝突）
+    </script>
+</body>
+</html>
