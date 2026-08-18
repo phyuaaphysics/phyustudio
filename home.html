@@ -177,7 +177,11 @@
             background: var(--glacier-card);
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
             cursor: pointer; transform-origin: center center;
-            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            /* card 0.5s 浮起 + 陰影加深,跟 title 同步但稍快 */
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nf-card:hover {
+            box-shadow: 0 18px 40px -8px rgba(0,0,0,0.25);
         }
         .nf-card.large { width: 360px; }
         .nf-card.small { width: 220px; }
@@ -189,7 +193,8 @@
             width: 100%; height: 100%;
             object-fit: cover; object-position: center;
             background-color: var(--glacier-card);
-            transition: transform 0.95s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+            /* 圖片用最慢的速度 (1.05s) — 主導整體節奏 */
+            transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
         }
         .nf-row .nf-card:hover .nf-card-img { transform: scale(1.12); }
         .nf-card::after {
@@ -200,22 +205,43 @@
             position: absolute; left: 14px; right: 14px; bottom: 12px;
             color: #fff; z-index: 2; pointer-events: none;
         }
-        /* 卡片標題（套用舊版 Space Grotesk + letter-spacing）*/
+        /* 卡片標題 - 跟 hero banner 統一：Noto Serif TC 中文 + Playfair italic 英文 */
         .nf-card-title {
-            font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
-            font-size: 19px; font-weight: 700; color: #fff;
-            line-height: 1.1; letter-spacing: -0.025em; margin-bottom: 6px;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            font-family: 'Noto Serif TC', 'Songti TC', serif;
+            font-size: 22px; font-weight: 700; color: #fff;
+            line-height: 1.1; letter-spacing: 0.04em; margin-bottom: 4px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            /* 中速 0.45s — 圖之後第一個到位 */
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: left bottom;
+            will-change: transform;
         }
+        .nf-card:hover .nf-card-title {
+            transform: translateY(-2px) scale(1.04);
+            letter-spacing: 0.06em;
+        }
+
         .nf-card-sub {
-            font-size: 12px; color: rgba(255,255,255,0.75);
-            font-weight: 500; letter-spacing: 0.01em;
+            font-family: 'Playfair Display', serif;
+            font-style: italic; font-weight: 500;
+            font-size: 14px; color: rgba(255,255,255,0.85);
+            letter-spacing: 0.01em;
             text-shadow: 0 1px 4px rgba(0,0,0,0.5);
             display: flex; align-items: center; gap: 6px;
+            line-height: 1.1;
+            /* sub 最快 0.35s + delay 0.1s — 第三個到位,有層次 */
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, letter-spacing 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition-delay: 0.1s;
+            transform-origin: left bottom;
         }
-        .nf-card-sub i { font-size: 10px; }
+        .nf-card:hover .nf-card-sub {
+            transform: translateY(-2px) scale(1.06);
+            opacity: 1;
+            letter-spacing: 0.03em;
+        }
+        .nf-card-sub i { font-size: 10px; font-style: normal; }
 
-        /* 卡片右上標籤徽章（套用舊版） */
+        /* 卡片右上標籤徽章 - 跟 sub 同步,慢一點 */
         .nf-card-tag {
             position: absolute; top: 12px; right: 12px; z-index: 2;
             display: inline-flex; align-items: center; gap: 5px;
@@ -226,27 +252,39 @@
             padding: 4px 8px; border-radius: 999px;
             letter-spacing: 0.08em; text-transform: uppercase;
             pointer-events: none;
+            /* tag 0.4s + delay 0.05s — 跟 title 同步但稍慢 */
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease, border-color 0.4s ease;
+            transition-delay: 0.05s;
+        }
+        .nf-card:hover .nf-card-tag {
+            transform: translateY(-2px) scale(1.05);
+            background: rgba(255,255,255,0.22);
+            border-color: rgba(255,255,255,0.35);
         }
 
-        /* 卡片右下 hover 圓形按鈕（套用舊版 overlay-action） */
+        /* 卡片右下 hover 圓形按鈕 - 跟 title 同步浮出 */
         .nf-card-action {
             position: absolute; bottom: 14px; right: 14px;
             width: 34px; height: 34px; border-radius: 50%;
             background: rgba(255,255,255,0.95);
             display: flex; align-items: center; justify-content: center;
             color: #0a0a0a; font-size: 12px; font-weight: 700;
-            z-index: 3; opacity: 0; transform: translate(4px, 4px);
-            transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+            z-index: 3; opacity: 0; transform: translate(6px, 6px) scale(0.85);
+            /* action 0.45s + delay 0.15s — 最後一個浮出 */
+            transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+            transition-delay: 0.15s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             cursor: pointer;
         }
-        .nf-card:hover .nf-card-action { opacity: 1; transform: translate(0, 0); }
-        .nf-card-action:hover { background: #fff; transform: scale(1.1) rotate(-45deg); }
+        .nf-card:hover .nf-card-action { opacity: 1; transform: translate(0, 0) scale(1); }
+        .nf-card-action:hover { background: #fff; transform: scale(1.1) rotate(-45deg); transition-delay: 0s; }
 
-        /* Large card 標題更大 */
-        .nf-card.large .nf-card-title { font-size: 22px; letter-spacing: -0.03em; }
-        /* Small card 標題更小 */
-        .nf-card.small .nf-card-title { font-size: 14px; line-height: 1.15; }
+        /* Large card 標題更大 - 跟 hero banner 比例 */
+        .nf-card.large .nf-card-title { font-size: 28px; letter-spacing: 0.05em; }
+        .nf-card.large .nf-card-sub { font-size: 16px; }
+        /* Small card 標題更小 - 維持小卡可讀性 */
+        .nf-card.small .nf-card-title { font-size: 16px; line-height: 1.15; }
+        .nf-card.small .nf-card-sub { font-size: 12px; }
 
         /* Quote 卡片（套用舊版 Playfair italic + uppercase author） */
         .nf-quote-card {
@@ -296,8 +334,8 @@
             width: 100%; padding: 16px 18px;
             background: rgba(20, 24, 32, 0.55); border-radius: 0;
         }
-        .nf-grid-view .nf-card.portrait .nf-card-title { font-size: 26px; line-height: 1.1; font-weight: 700; color: #fff; }
-        .nf-grid-view .nf-card.portrait .nf-card-sub { font-size: 14px; line-height: 1.1; margin-top: 5px; color: #fff; }
+        .nf-grid-view .nf-card.portrait .nf-card-title { font-size: 28px; line-height: 1.1; font-weight: 700; color: #fff; letter-spacing: 0.05em; }
+        .nf-grid-view .nf-card.portrait .nf-card-sub { font-size: 15px; line-height: 1.1; margin-top: 6px; color: #fff; font-style: italic; }
         @media (max-width: 1280px) { .nf-grid-view { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 900px)  { .nf-grid-view { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 600px)  { .nf-grid-view { grid-template-columns: repeat(2, 1fr); } }
@@ -318,8 +356,8 @@
             display: flex; flex-direction: column; align-items: flex-start;
             text-align: left; color: #fff; pointer-events: none;
         }
-        .nf-tab-wall .nf-card.portrait .nf-card-title { font-size: 17px; line-height: 1.15; font-weight: 700; margin-bottom: 3px; color: #fff; }
-        .nf-tab-wall .nf-card.portrait .nf-card-sub { font-size: 13px; line-height: 1.1; color: #fff; opacity: 0.9; }
+        .nf-tab-wall .nf-card.portrait .nf-card-title { font-size: 18px; line-height: 1.15; font-weight: 700; margin-bottom: 3px; color: #fff; letter-spacing: 0.04em; }
+        .nf-tab-wall .nf-card.portrait .nf-card-sub { font-size: 13px; line-height: 1.1; color: #fff; opacity: 0.9; font-style: italic; }
 
         /* Archive hero (template 的 sec-archive) */
         .archive-hero {
@@ -430,10 +468,14 @@
         }
         .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
 
-        /* Mobile - hide desktop dock, hide some controls */
+        /* Mobile - dock 跟 template 一致:變窄但仍可見（兩側 toggle 保留） */
         @media (max-width: 768px) {
-            .desktop-only { display: none; }
-            .top-bar, .feed, .mobile-feed, .bottom-tab, .mobile-only, .filter-bar { display: none !important; }
+            .dock-wrapper { width: 92%; max-width: 400px; }
+            .dock-nav { padding: 10px 10px; gap: 10px; }
+            .dock-toggle-btn { width: 26px; height: 26px; font-size: 12px; }
+            .dock-item { min-width: 48px; }
+            .dock-item i { font-size: 1.35rem; }
+            .dock-item span { font-size: 8px; }
         }
 
         /* Tab back button */
@@ -532,8 +574,8 @@
         </div>
     </div>
 
-    <!-- =========== Dock（跟 template 一致 4 格） =========== -->
-    <div id="dock-nav-wrapper" class="dock-wrapper desktop-only">
+    <!-- =========== Dock（跟 template 一致 4 格,手機也顯示） =========== -->
+    <div id="dock-nav-wrapper" class="dock-wrapper">
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
@@ -736,7 +778,7 @@
             const bg = resolveBg(c.bg);
             const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
             const tagHtml = c.section ? `<div class="nf-card-tag">${escapeHTML(c.section)}</div>` : '';
-            const subHtml = c.en ? `<div class="nf-card-sub"><i class="fas fa-bookmark"></i> ${escapeHTML(c.en)}</div>` : '';
+            const subHtml = c.en ? `<div class="nf-card-sub">${escapeHTML(c.en)}</div>` : '';
             return `<div class="nf-card ${sizeClass}" onclick="${cardOnclick(c)}">
                 ${tagHtml}
                 ${imgTag}
