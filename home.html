@@ -648,8 +648,9 @@
         let allCardsCache = null;
         let currentTab = null;
         const LS = { cards: 'lumina_cards_v1', ver: 'lumina_cards_v1_ver' };
-        const SECTION_TITLES = { courses: '學習旅程', tools: '工具與資源', quotes: '引言精選' };
-        const SECTION_OPTS = { courses: { large: true }, tools: { portrait: true }, quotes: {} };
+        // 動態欄目：標題直接用 F欄 (section) 值,大小寫由卡片決定
+        // quote 欄目預設用空 options(讓卡片本身是 quote type 處理樣式)
+        const SECTION_DEFAULTS = { quotes: {} };
         const TAB_DOCK_ICONS = {
             oldsys:    { icon: 'fas fa-archive',    label: '庫存',     color: '#f59e0b' },
             archive:   { icon: 'fas fa-archive',    label: '檔案',     color: '#f59e0b' },
@@ -891,9 +892,26 @@
                 const allMain = mainPageCards.filter(c => (c.type || '').toLowerCase() !== 'quote');
                 if (allMain.length) html.push(renderGridView(allMain));
             } else {
-                for (const sec of Object.keys(SECTION_TITLES)) {
+                // 動態欄目：依 F欄 (section) 自動建立,任意增加/減少都行
+                // 順序：用卡片在 sheet 出現的先後,確保穩定
+                const sectionOrder = [];
+                const seen = new Set();
+                filtered.forEach(c => {
+                    const sec = (c.section || '').toLowerCase();
+                    if (sec && c.id !== headId && !seen.has(sec)) {
+                        seen.add(sec);
+                        sectionOrder.push(sec);
+                    }
+                });
+                for (const sec of sectionOrder) {
                     if (bySection[sec] && bySection[sec].length) {
-                        html.push(renderSection(SECTION_TITLES[sec], bySection[sec], { id: sec, ...SECTION_OPTS[sec] }));
+                        // 標題直接用 F欄值（sheet 填什麼就顯示什麼,完全直連）
+                        // F欄若填 'courses' → 顯示 'courses'
+                        // F欄若填 '學習旅程' → 顯示 '學習旅程'
+                        // F欄若填 '新欄目' → 自動出現 '新欄目' 欄
+                        const title = sec;
+                        const opts = SECTION_DEFAULTS[sec] || {};
+                        html.push(renderSection(title, bySection[sec], { id: sec, ...opts }));
                     }
                 }
             }
