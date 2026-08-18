@@ -186,7 +186,7 @@
             aspect-ratio: 2/3;
             border-radius: 4px; overflow: hidden; background: #cbd5e1; 
             position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
-            border: none; /* 已按前次要求移除白框 */
+            border: none;
             will-change: transform;
         }
 
@@ -212,10 +212,9 @@
 
         .section-hidden { display: none !important; }
 
-        /* 修改：移除 env(safe-area-inset-bottom) 使底部不留白 */
         .dock-wrapper {
             position: fixed;
-            bottom: 20px; /* 固定距離底部 20px，不再隨 iOS 安全區自動增加間距 */
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 200;
@@ -255,7 +254,6 @@
         .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; }
         .dock-item.active { color: var(--glacier-primary); }
 
-        /* 修改：手把區域也移除安全區自動填充 */
         .dock-trigger-bar {
             position: fixed;
             bottom: 10px;
@@ -270,7 +268,6 @@
 
         .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px; }
 
-        /* Sync Button */
         .sync-btn {
             position: absolute;
             right: 24px;
@@ -299,7 +296,6 @@
 
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* Custom Theme Toggle Switch */
         .theme-toggle-wrapper {
             display: flex;
             align-items: center;
@@ -362,7 +358,7 @@
 
         @media (max-width: 768px) {
             .hero-container-framed { border-radius: 0; }
-            .dock-wrapper { width: 92%; max-width: 400px; bottom: 15px; } /* 手機端稍微貼近底部 */
+            .dock-wrapper { width: 92%; max-width: 400px; bottom: 15px; }
             #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); }
             .nav-btn { display: none !important; }
             .sync-btn { right: 16px; bottom: 16px; padding: 8px 14px; }
@@ -566,7 +562,8 @@
                             </button>
                             <div class="slider-container hide-scrollbar" id="${sliderId}">
                                 ${itemsInSec.map(item => `
-                                    <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
+                                    <!-- ✅ 修改點：手機卡片寬度從 w-32 改為 w-40，平板維持 w-56 -->
+                                    <div class="slider-item w-40 md:w-56" onclick="handleNavigation('${item.url}')">
                                         <div class="poster-card">
                                             <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
                                         </div>
