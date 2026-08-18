@@ -473,6 +473,39 @@
             .dock-wrapper { width: 92%; max-width: 400px; }
         }
 
+        /* ========== Mobile row: 強制 portrait + 縮小,3 張可見 ========== */
+        @media (max-width: 768px) {
+            /* 強制所有 nf-card 在 mobile row 是 portrait,固定 100px 寬 (確保 SE 也能 3 張) */
+            .nf-row .nf-card,
+            .nf-row .nf-card.large,
+            .nf-row .nf-card.small,
+            .nf-row .nf-card.portrait {
+                width: 100px;
+                aspect-ratio: 3/4;
+                border-radius: 10px;
+            }
+            /* 縮小 row gap + padding 讓更多空間給卡片 */
+            .nf-row { gap: 6px; padding: 12px 0 18px; }
+            .nf-section { padding: 0 12px; margin-bottom: 28px; }
+            .nf-section-title { font-size: 16px; margin-bottom: 8px; }
+            /* card 內 title/sub 在 mobile 也要縮小 */
+            .nf-row .nf-card .nf-card-title { font-size: 13px; letter-spacing: 0.02em; }
+            .nf-row .nf-card .nf-card-sub { font-size: 11px; }
+            .nf-row .nf-card .nf-card-tag { font-size: 8px; padding: 3px 6px; top: 6px; right: 6px; }
+            .nf-row .nf-card .nf-card-action { width: 24px; height: 24px; font-size: 10px; bottom: 8px; right: 8px; }
+            .nf-row .nf-card .nf-card-default { left: 10px; right: 10px; bottom: 8px; }
+        }
+        /* 極小螢幕 (iPhone SE 320px) 再縮 */
+        @media (max-width: 360px) {
+            .nf-row .nf-card,
+            .nf-row .nf-card.large,
+            .nf-row .nf-card.small,
+            .nf-row .nf-card.portrait {
+                width: 90px;
+            }
+            .nf-section { padding: 0 8px; }
+        }
+
         /* Tab back button */
         .nf-tab-back-bar {
             display: flex; align-items: center; gap: 8px;
@@ -711,14 +744,14 @@
             const c = typeof target === 'string' ? (allCardsCache || []).find(item => item.id === target) : target;
             if (!c || !c.link) return;
             const link = c.link.trim();
-            if (!link || link === '#') return;
+            if (!link || link === '#' || link === 'no link' || link === 'undefined') return;
             if (link.startsWith('insite://')) {
                 const tab = link.slice(9).split('?')[0].split('/')[0].trim();
                 if (tab) navigateToTab(tab);
                 return;
             }
-            // 所有外部連結一律開新分頁（保留 SPA 狀態）
-            window.open(link, '_blank', 'noopener,noreferrer');
+            // 跟 template 一致：外連一律直連（window.location.href）
+            window.location.href = link;
         }
 
         // =========== 7. 渲染元件 ===========
@@ -1126,8 +1159,11 @@
             try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'smooth' }); }
             catch(e) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
         }
-        function openQRScanner() { window.open('https://phyuaaphysics.github.io/phyustudio/qrscanner.html', '_blank', 'noopener,noreferrer'); }
-        function handleNavigation(url) { if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer'); }
+        function openQRScanner() { window.location.href = 'https://phyuaaphysics.github.io/phyustudio/qrscanner.html'; }
+        function handleNavigation(url) {
+            if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
+            window.location.href = url;
+        }
         function handleLogout() {
             const ok = window.confirm('若選擇登出,系統的暫存檔將移除,確定?');
             if (!ok) return;
