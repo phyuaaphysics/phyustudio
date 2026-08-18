@@ -77,9 +77,9 @@
         }
         body.dark-mode .logo-bar { border-bottom-color: rgba(255,255,255,0.06); }
 
-        /* page-content 跟 template 一致 */
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); padding-bottom: 100px; }
-        @media (max-width: 768px) { #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); } }
+        /* page-content：減少 icon bar 跟 hero 之間的 gap（緊貼一點） */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 88px); padding-bottom: 100px; }
+        @media (max-width: 768px) { #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 82px); } }
 
         /* Hero 從 page-content 內頂部開始（緊接 logo bar） */
         .nf-hero { margin-top: 0; }
@@ -468,14 +468,9 @@
         }
         .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
 
-        /* Mobile - dock 跟 template 一致:變窄但仍可見（兩側 toggle 保留） */
+        /* Mobile - dock 完全照 template:只改寬度,其他跟 desktop 一致 */
         @media (max-width: 768px) {
             .dock-wrapper { width: 92%; max-width: 400px; }
-            .dock-nav { padding: 10px 10px; gap: 10px; }
-            .dock-toggle-btn { width: 26px; height: 26px; font-size: 12px; }
-            .dock-item { min-width: 48px; }
-            .dock-item i { font-size: 1.35rem; }
-            .dock-item span { font-size: 8px; }
         }
 
         /* Tab back button */
@@ -722,11 +717,8 @@
                 if (tab) navigateToTab(tab);
                 return;
             }
-            if (/^https?:\/\/sites\.google\.com\//.test(link)) {
-                window.open(link, '_blank', 'noopener,noreferrer');
-                return;
-            }
-            window.location.href = link;
+            // 所有外部連結一律開新分頁（保留 SPA 狀態）
+            window.open(link, '_blank', 'noopener,noreferrer');
         }
 
         // =========== 7. 渲染元件 ===========
