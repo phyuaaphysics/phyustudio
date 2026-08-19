@@ -2703,6 +2703,9 @@
             bodyEl.classList.remove('detail-pane', 'pane-back');
             void bodyEl.offsetWidth;
             bodyEl.classList.add('detail-pane');
+            // 顯示 header 返回按鈕（讓用戶可返回上一級 HW 列表，不再只能 X 關閉整個 modal）
+            setHeader('Now Playing', `${group[0].range || group[0].id}`, true);
+            document.getElementById('card-detail-icon').innerHTML = `<i class="fas fa-play text-emerald-600 text-sm"></i>`;
             bodyEl.innerHTML = `
                 <div class="flex gap-2 overflow-x-auto hide-scrollbar mb-4 pb-1">
                     ${group.map((g, i) => {
@@ -2737,6 +2740,11 @@
             return `
                 <div class="aspect-video bg-black relative" id="${id}-wrap">
                     <div id="${id}" class="w-full h-full"></div>
+                    <!-- 左上角返回按鈕（黑色玻璃，覆蓋在 YouTube 上面，點擊返回上一級 HW 列表） -->
+                    <button onclick="cardDetailBack()" title="返回上一級" aria-label="返回上一級"
+                            class="yt-back-btn absolute top-3 left-3 w-9 h-9 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md ring-1 ring-white/25 flex items-center justify-center text-white z-20 transition-all active:scale-90 shadow-lg">
+                        <i class="fas fa-arrow-left text-sm"></i>
+                    </button>
                     <!-- 右下角全螢幕按鈕（覆蓋在 YouTube 原生 controls 上） -->
                     <button onclick="toggleFullscreen()" title="全螢幕"
                             class="yt-fs-btn absolute bottom-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center z-10">
@@ -2763,7 +2771,12 @@
 
         function renderExternalLink(g, ts) {
             return `
-                <div class="aspect-video flex flex-col items-center justify-center bg-slate-100 text-slate-500 p-6 text-center">
+                <div class="aspect-video relative flex flex-col items-center justify-center bg-slate-100 text-slate-500 p-6 text-center">
+                    <!-- 左上角返回按鈕（非 YouTube 類型，灰底，點擊返回上一級 HW 列表） -->
+                    <button onclick="cardDetailBack()" title="返回上一級" aria-label="返回上一級"
+                            class="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/85 hover:bg-white ring-1 ring-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 z-20 transition-all active:scale-90 shadow-sm backdrop-blur-md">
+                        <i class="fas fa-arrow-left text-sm"></i>
+                    </button>
                     <i class="fas fa-link text-3xl mb-3 text-slate-400"></i>
                     <div class="text-sm font-bold mb-2">${escapeHtml(ts.label)}</div>
                     <a href="${escapeAttr(g.url)}" target="_blank" rel="noopener"
@@ -2796,6 +2809,8 @@
                 }
             });
             __ytLastVideoKey = `${__detailVolName}::${g.id}::${g.range || '0'}`;
+            // 切換 range 時更新 header 標題（保持返回按鈕顯示）
+            setHeader('Now Playing', `${g.range || g.id}`, true);
             // 切換 range 時重新渲染簽到按鈕
             setTimeout(() => renderAttendanceBar(__detailVolName, g.id, g.range || '0'), 80);
         }
