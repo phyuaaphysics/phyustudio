@@ -157,6 +157,9 @@
             /* iOS 慣性滾動 + 防止左右滑觸發 page refresh */
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
+            /* 觸控:允許水平 pan,垂直跟外層 body 一起滾 */
+            touch-action: pan-x pan-y;
+            -webkit-touch-callout: none;
             /* contain: layout style paint 隔離每個 row 的重繪範圍，
                防止一行重繪時連帶影響其他行的 scroll input routing
                不使用 strict（會阻止 sticky/fixed 等跨邊界佈局） */
@@ -199,6 +202,9 @@
             background: var(--glacier-card);
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
             cursor: pointer; transform-origin: center center;
+            /* iOS 觸控:manipulation 避免 300ms 點擊延遲 + 允許橫向 pan 傳遞給 row */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             /* card hover 浮起 — 0.3s 一致 (縮短以減少 scroll 期間 GPU 負擔) */
             transition: transform 0.3s ease;
             /* CSS containment:告訴瀏覽器卡內變化不影響外部 layout */
@@ -1219,19 +1225,49 @@
             // 重新綁定 lazy image observer (現在是 no-op,保留為擴展點)
         }
 
-        // 為所有 .nf-row 掛載 passive scroll 監聽，
+        // 為所有 .nf-row 掛載 scroll + touch 監聽，
         // 滾動中暫停動畫以減少 animation frame 搶佔滾動线程。
+        // iOS 觸控 row 時，主動偵測水平 vs 垂直意圖，給瀏覽器明確 hint。
         function attachScrollListeners() {
             const rows = document.querySelectorAll('.nf-row');
             let debounceTimer = null;
             rows.forEach(row => {
+                // 滾動中：暫停 hover 動畫
                 row.addEventListener('scroll', function () {
                     this.classList.add('is-scrolling');
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
                         this.classList.remove('is-scrolling');
                     }, 200);
-                }, { passive: true }); // ← 關鍵：passive=true 告訴瀏覽器「不用等我」,可直接繼續 scroll input routing
+                }, { passive: true });
+
+                // iOS 觸控:偵測 pan 方向,明確告訴瀏覽器 row 是橫向滑動容器
+                let touchStartX = 0, touchStartY = 0, touchStartT = 0, locked = false;
+                row.addEventListener('touchstart', function (e) {
+                    const t = e.touches[0];
+                    touchStartX = t.clientX;
+                    touchStartY = t.clientY;
+                    touchStartT = Date.now();
+                    locked = false;
+                }, { passive: true });
+
+                row.addEventListener('touchmove', function (e) {
+                    if (locked) return;
+                    const t = e.touches[0];
+                    const dx = Math.abs(t.clientX - touchStartX);
+                    const dy = Math.abs(t.clientY - touchStartY);
+                    // 水平 > 垂直時，告訴瀏覽器「這是橫向 pan」，
+                    // 阻止 iOS Safari 把它當垂直 scroll 處理（需要先點箭頭才能觸發）
+                    if (dx > 8 && dx > dy * 1.5) {
+                        locked = true;
+                        this.classList.add('is-scrolling');
+                    }
+                }, { passive: true });
+
+                row.addEventListener('touchend', function () {
+                    locked = false;
+                    this.classList.remove('is-scrolling');
+                }, { passive: true });
             });
         }
 
