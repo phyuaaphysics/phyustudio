@@ -68,10 +68,6 @@
             border-color: rgba(255, 255, 255, 0.1);
         }
 
-        body.dark-mode .hero-gradient-overlay {
-            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
-        }
-
         body.dark-mode .filter-capsule {
             background: rgba(30, 41, 59, 0.5);
             border-color: rgba(56, 189, 248, 0.1);
@@ -274,7 +270,7 @@
             aspect-ratio: 2/3;
             border-radius: 6px; overflow: hidden; background: #cbd5e1; 
             position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+            border: 0; box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
             will-change: transform;
         }
 
@@ -290,6 +286,20 @@
             box-shadow: none !important;
         }
 
+        /* Landscape 橫向卡片（sizeHint=lg） */
+        .poster-card-landscape {
+            aspect-ratio: 16/9 !important;
+        }
+        .poster-card-landscape .landscape-title {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 1rem 1.25rem;
+            background: linear-gradient(to top, rgba(9,13,22,0.85) 0%, rgba(9,13,22,0.4) 60%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
         .hero-container-framed {
             border: 1px solid rgba(255, 255, 255, 0.8);
             border-radius: 24px;
@@ -301,7 +311,7 @@
         .hero-gradient-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 40%, rgba(238,242,246,0.9) 95%);
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
             pointer-events: none;
         }
 
@@ -415,6 +425,7 @@
             letter-spacing: 0.2em;
             text-transform: uppercase;
         }
+
 
         /* Windows 風格 Modal */
         .win-modal {
@@ -601,8 +612,8 @@
     <div id="page-content">
         <!-- 錄影庫首頁 -->
         <div id="view-home">
-            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
-                <div id="hero-container" class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
+            <section id="hero-section" class="mb-12">
+                <div id="hero-container" class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]" style="border-radius: 0; border: none; box-shadow: none;">
                     <img id="hero-bg-img" src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-center">
                     <div class="hero-gradient-overlay"></div>
 
@@ -625,12 +636,12 @@
                         <div class="flex items-center gap-3">
                             <button id="hero-start-btn" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')"
                                     class="flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 font-bold text-sm rounded-lg shadow-2xl hover:scale-105 transition-transform active:scale-95"
-                                    style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em;">
+                                    style="letter-spacing: 0.08em;">
                                 <i class="fas fa-play text-xs"></i> 開始
                             </button>
                             <button id="hero-detail-btn" onclick="openHeroDetail()"
                                     class="flex items-center gap-2 bg-white/15 backdrop-blur-md text-white border border-white/30 px-5 py-2.5 font-bold text-sm rounded-lg hover:bg-white/25 transition-all active:scale-95"
-                                    style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em;">
+                                    style="letter-spacing: 0.08em;">
                                 <i class="fas fa-info-circle text-xs"></i> 詳細
                             </button>
                         </div>
@@ -703,53 +714,84 @@
         </div>
     </div>
 
+
     <!-- Windows 風格 Hero 詳細說明 Modal -->
     <div id="hero-detail-modal" class="fixed inset-0 z-[310] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" onclick="if(event.target===this) closeHeroDetail()">
         <div class="win-modal rounded-lg w-[460px] max-w-[92vw] overflow-hidden">
-            <!-- Windows 標題列 -->
             <div class="win-titlebar flex items-center justify-between px-4 py-2">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-circle-info text-sky-500 text-sm"></i>
-                    <span class="text-[13px] font-semibold" style="font-family: 'Noto Serif TC', serif;">課堂錄影系統</span>
+                    <span class="text-[13px] font-semibold">課堂錄影系統</span>
                 </div>
                 <button onclick="closeHeroDetail()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-red-500 hover:text-white transition-colors text-gray-600 text-base leading-none">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-
-            <!-- Modal 內容 -->
             <div class="p-6">
                 <div class="flex items-start gap-4 mb-5">
                     <div class="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-video text-sky-500 text-xl"></i>
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-lg font-bold mb-1" style="font-family: 'Noto Serif TC', serif;">系統簡介</h3>
+                        <h3 class="text-lg font-bold mb-1">系統簡介</h3>
                         <p class="text-xs text-gray-500 italic" style="font-family: 'Playfair Display', serif;">About Lesson Archive</p>
                     </div>
                 </div>
-
                 <div class="border-t border-gray-200 pt-4 mb-5">
-                    <p class="text-[15px] leading-relaxed text-gray-700" style="font-family: 'Noto Serif TC', serif;">
+                    <p class="text-[15px] leading-relaxed text-gray-700">
                         課堂錄影系統可重溫課堂，慢慢回放理解課堂內容！
                     </p>
                 </div>
-
                 <div class="bg-sky-50 border border-sky-100 rounded p-3 mb-5">
                     <div class="flex items-center gap-2 text-xs text-sky-700">
                         <i class="fas fa-lightbulb text-sky-500"></i>
-                        <span style="font-family: 'Noto Serif TC', serif;">提示：點擊「開始」按鈕即可進入系統</span>
+                        <span>提示：點擊「開始」按鈕即可進入系統</span>
                     </div>
                 </div>
-
-                <!-- 底部按鈕列 -->
                 <div class="flex justify-end gap-2 pt-2">
-                    <button onclick="closeHeroDetail()" class="win-btn px-5 py-1.5 text-[13px] rounded" style="font-family: 'Noto Serif TC', serif;">
-                        關閉
-                    </button>
-                    <button id="hero-modal-start-btn" onclick="closeHeroDetail(); setTimeout(() => { const sb = document.getElementById('hero-start-btn'); if(sb) sb.click(); }, 200);" class="win-btn px-5 py-1.5 text-[13px] rounded font-semibold" style="font-family: 'Noto Serif TC', serif; min-width: 90px;">
-                        開始使用
-                    </button>
+                    <button onclick="closeHeroDetail()" class="win-btn px-5 py-1.5 text-[13px] rounded">關閉</button>
+                    <button id="hero-modal-start-btn" onclick="closeHeroDetail(); setTimeout(() => { const sb = document.getElementById('hero-start-btn'); if(sb) sb.click(); }, 200);" class="win-btn px-5 py-1.5 text-[13px] rounded font-semibold" style="min-width: 90px;">開始使用</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Windows 風格 模組更新中 Modal -->
+    <div id="updating-modal" class="fixed inset-0 z-[310] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" onclick="if(event.target===this) closeUpdatingModal()">
+        <div class="win-modal rounded-lg w-[460px] max-w-[92vw] overflow-hidden">
+            <div class="win-titlebar flex items-center justify-between px-4 py-2">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-exclamation text-amber-500 text-sm"></i>
+                    <span class="text-[13px] font-semibold">系統通知</span>
+                </div>
+                <button onclick="closeUpdatingModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-red-500 hover:text-white transition-colors text-gray-600 text-base leading-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-5">
+                    <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-gears text-amber-500 text-xl animate-spin" style="animation-duration: 3s;"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold mb-1">模組更新中</h3>
+                        <p class="text-xs text-gray-500 italic" style="font-family: 'Playfair Display', serif;">Module Under Maintenance</p>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 pt-4 mb-5">
+                    <p class="text-[15px] leading-relaxed text-gray-700">
+                        相關模組正更新，請耐心等候！
+                    </p>
+                </div>
+                <div class="bg-amber-50 border border-amber-100 rounded p-3 mb-5">
+                    <div class="flex items-center gap-2 text-xs text-amber-700">
+                        <i class="fas fa-clock text-amber-500"></i>
+                        <span>提示：模組完成後將自動恢復服務</span>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeUpdatingModal()" class="win-btn px-5 py-1.5 text-[13px] rounded font-semibold" style="min-width: 90px;">知道了</button>
                 </div>
             </div>
         </div>
@@ -1034,29 +1076,40 @@
             renderContent();
         }
 
-        // 動態渲染 Hero 區塊 (根據 type=head 的資料：H=圖片，I=連結；D=中文標題；E=英文標題)
+        // 動態渲染 Hero 區塊 (根據 type=head 的資料)
         function renderHero() {
             const headRow = rawData.find(d => d.type === 'head');
-            if (!headRow) return;
-            const bgImg = document.getElementById('hero-bg-img');
-            const startBtn = document.getElementById('hero-start-btn');
-            const titleCn = document.getElementById('hero-title-cn');
-            const titleEn = document.getElementById('hero-title-en');
-            if (bgImg && headRow.img) bgImg.src = headRow.img;
-            if (startBtn && headRow.url) startBtn.onclick = () => handleNavigation(headRow.url);
-            if (titleCn && headRow.cn) titleCn.textContent = headRow.cn;
-            if (titleEn && headRow.en) titleEn.textContent = headRow.en;
-        }
+            if (headRow) {
+                const bgImg = document.getElementById('hero-bg-img');
+                const bannerImg = document.getElementById('hero-banner-img');
+                const ctaBtn = document.getElementById('hero-cta-btn');
+                if (bgImg && headRow.img) bgImg.src = headRow.img;
+                if (bannerImg && headRow.cn) {
+                    // 若有 cn 名稱則隱藏固定 banner，改用文字標題
+                    bannerImg.style.display = 'none';
+                }
+                if (ctaBtn && headRow.url) {
+                    ctaBtn.onclick = () => handleNavigation(headRow.url);
+                }
+            }
 
-        // 開啟 Hero 詳細說明 (Windows 風格 Modal)
-        function openHeroDetail() {
-            const modal = document.getElementById('hero-detail-modal');
-            if (modal) modal.classList.remove('pointer-events-none', 'opacity-0');
-        }
-
-        function closeHeroDetail() {
-            const modal = document.getElementById('hero-detail-modal');
-            if (modal) modal.classList.add('pointer-events-none', 'opacity-0');
+            // 渲染名言區 (type=quote)
+            const quotes = rawData.filter(d => d.type === 'quote');
+            if (quotes.length > 0) {
+                const existingQuote = document.getElementById('hero-quotes');
+                if (existingQuote) existingQuote.remove();
+                const heroContainer = document.getElementById('hero-container');
+                const quoteDiv = document.createElement('div');
+                quoteDiv.id = 'hero-quotes';
+                quoteDiv.className = 'absolute bottom-4 left-0 right-0 flex flex-wrap justify-center gap-4 px-6 z-20';
+                quotes.forEach(q => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 max-w-xs text-center border border-white/20';
+                    card.innerHTML = `<p class="text-white/90 text-xs italic">"${q.quoteText}"</p><p class="text-white/60 text-[10px] mt-1">— ${q.quoteAuthor}</p>`;
+                    quoteDiv.appendChild(card);
+                });
+                heroContainer.appendChild(quoteDiv);
+            }
         }
 
         // コンテンツレンダリング (使用 FRONT_NEW type 邏輯)
@@ -1101,14 +1154,20 @@
                                 const rowMobile = Math.floor(index / 3);
                                 const rowDesktop = Math.floor(index / 6);
                                 return `
-                                <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="handleNavigation('${item.url}')">
-                                    <div class="poster-card" title="${item.cn || ''}">
+                                <div class="cursor-pointer animate-fade-rise ${item.sizeHint === 'lg' ? 'col-span-2 md:col-span-2' : ''}" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="${item.url && item.url !== 'null' && item.url !== 'no link' && item.url !== 'undefined' ? `handleNavigation('${item.url}')` : 'openUpdatingModal()'}">
+                                    <div class="poster-card ${item.sizeHint === 'lg' ? 'poster-card-landscape' : ''}" title="${item.cn || ''}">
                                         <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
-                                        ${item.section ? `<span class="absolute top-2 right-2 px-2 py-0.5 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold rounded-full" style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.05em;">${item.section}</span>` : ''}
+                                        ${item.sizeHint === 'lg' ? `
+                                        <div class="landscape-title">
+                                            <p class="text-white font-black leading-tight drop-shadow-lg" style="font-family: 'Noto Serif TC', serif; font-size: clamp(18px, 3.2vw, 28px); letter-spacing: 0.04em;">${item.cn || ''}</p>
+                                            <p class="text-white/85 italic leading-tight drop-shadow mt-0.5" style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(13px, 2vw, 16px);">${item.en || ''}</p>
+                                        </div>
+                                        ` : `
                                         <div class="absolute bottom-0 left-0 right-0 p-2 md:p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                                             <p class="text-white font-black leading-tight drop-shadow-lg" style="font-family: 'Noto Serif TC', serif; font-size: clamp(17px, 5.2vw, 29px); letter-spacing: 0.04em;">${item.cn || ''}</p>
                                             <p class="text-white/85 italic leading-tight drop-shadow mt-0.5" style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(13px, 3.3vw, 18px);">${item.en || ''}</p>
                                         </div>
+                                        `}
                                     </div>
                                 </div>
                                 `;
@@ -1149,14 +1208,20 @@
                                 </button>
                                 <div class="slider-container hide-scrollbar" id="${sliderId}">
                                     ${itemsInSec.map(item => `
-                                        <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
-                                            <div class="poster-card" title="${item.cn || ''}">
+                                        <div class="slider-item ${item.sizeHint === 'lg' ? 'w-64 md:w-96' : 'w-32 md:w-56'}" onclick="${item.url && item.url !== 'null' && item.url !== 'no link' && item.url !== 'undefined' ? `handleNavigation('${item.url}')` : 'openUpdatingModal()'}">
+                                            <div class="poster-card ${item.sizeHint === 'lg' ? 'poster-card-landscape' : ''}" title="${item.cn || ''}">
                                                 <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
-                                                ${item.section ? `<span class="absolute top-2 right-2 px-2 py-0.5 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold rounded-full" style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.05em;">${item.section}</span>` : ''}
+                                                ${item.sizeHint === 'lg' ? `
+                                                <div class="landscape-title">
+                                                    <p class="text-white font-black leading-tight drop-shadow-lg" style="font-family: 'Noto Serif TC', serif; font-size: clamp(18px, 3.2vw, 28px); letter-spacing: 0.04em;">${item.cn || ''}</p>
+                                                    <p class="text-white/85 italic leading-tight drop-shadow mt-0.5" style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(13px, 2vw, 16px);">${item.en || ''}</p>
+                                                </div>
+                                                ` : `
                                                 <div class="absolute bottom-0 left-0 right-0 p-2 md:p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                                                     <p class="text-white font-black leading-tight drop-shadow-lg" style="font-family: 'Noto Serif TC', serif; font-size: clamp(17px, 5.2vw, 29px); letter-spacing: 0.04em;">${item.cn || ''}</p>
                                                     <p class="text-white/85 italic leading-tight drop-shadow mt-0.5" style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(13px, 3.3vw, 18px);">${item.en || ''}</p>
                                                 </div>
+                                                `}
                                             </div>
                                         </div>
                                     `).join('')}
