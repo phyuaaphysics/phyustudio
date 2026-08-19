@@ -290,6 +290,12 @@
         .poster-card-landscape {
             aspect-ratio: 16/9 !important;
         }
+        /* Grid 模式時強制所有卡片為方形（1:1），覆寫 landscape */
+        .grid-tight-pack .poster-card,
+        .grid-tight-pack .poster-card-landscape {
+            aspect-ratio: 1/1 !important;
+            border-radius: 0 !important;
+        }
         .poster-card-landscape .landscape-title {
             position: absolute;
             left: 0; right: 0; bottom: 0;
@@ -427,43 +433,79 @@
         }
 
 
-        /* Windows 風格 Modal */
+        /* iOS 玻璃磨砂風格 Modal */
         .win-modal {
-            background: rgba(243, 243, 243, 0.98);
-            border: 1px solid rgba(0, 0, 0, 0.15);
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            box-shadow:
+                0 30px 90px rgba(0, 0, 0, 0.25),
+                0 0 0 0.5px rgba(0, 0, 0, 0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.4);
         }
         .win-titlebar {
-            background: linear-gradient(180deg, #f0f0f0 0%, #e1e1e1 100%);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
         body.dark-mode .win-modal {
-            background: rgba(30, 30, 30, 0.98);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #e5e7eb;
+            background: rgba(28, 28, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow:
+                0 30px 90px rgba(0, 0, 0, 0.5),
+                0 0 0 0.5px rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
         }
         body.dark-mode .win-titlebar {
-            background: linear-gradient(180deg, #2d2d2d 0%, #252525 100%);
+            background: rgba(255, 255, 255, 0.06);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .win-btn {
-            background: linear-gradient(180deg, #fafafa 0%, #e8e8e8 100%);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            background: rgba(0, 122, 255, 0.12);
+            color: #007aff;
+            border: 1px solid rgba(0, 122, 255, 0.2);
+            border-radius: 999px;
+            font-weight: 600;
             transition: all 0.15s;
         }
         .win-btn:hover {
-            background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
-            border-color: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 122, 255, 0.2);
+            border-color: rgba(0, 122, 255, 0.35);
         }
-        .win-btn:active { transform: translateY(1px); }
+        .win-btn:active { transform: scale(0.97); opacity: 0.85; }
         body.dark-mode .win-btn {
-            background: linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 100%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #e5e7eb;
+            background: rgba(10, 132, 255, 0.22);
+            color: #0a84ff;
+            border: 1px solid rgba(10, 132, 255, 0.3);
         }
         body.dark-mode .win-btn:hover {
-            background: linear-gradient(180deg, #454545 0%, #353535 100%);
+            background: rgba(10, 132, 255, 0.3);
         }
+        /* iOS 內容文字顏色 */
+        .win-modal .text-gray-700 { color: #1c1c1e; }
+        body.dark-mode .win-modal .text-gray-700 { color: #f2f2f7; }
+        .win-modal .text-gray-600 { color: #3a3a3c; }
+        body.dark-mode .win-modal .text-gray-600 { color: #ebebf5; }
+        .win-modal .text-gray-500 { color: #6e6e73; }
+        body.dark-mode .win-modal .text-gray-500 { color: #98989d; }
+        .win-modal .border-gray-200 { border-color: rgba(0, 0, 0, 0.08); }
+        body.dark-mode .win-modal .border-gray-200 { border-color: rgba(255, 255, 255, 0.1); }
+        /* 提示框背景色 */
+        .win-modal .bg-sky-50 { background: rgba(0, 122, 255, 0.1); }
+        .win-modal .border-sky-100 { border-color: rgba(0, 122, 255, 0.2); }
+        .win-modal .text-sky-700 { color: #007aff; }
+        body.dark-mode .win-modal .bg-sky-50 { background: rgba(10, 132, 255, 0.15); }
+        body.dark-mode .win-modal .text-sky-700 { color: #0a84ff; }
+        .win-modal .bg-amber-50 { background: rgba(255, 159, 10, 0.12); }
+        .win-modal .border-amber-100 { border-color: rgba(255, 159, 10, 0.25); }
+        .win-modal .text-amber-700 { color: #b45309; }
+        body.dark-mode .win-modal .bg-amber-50 { background: rgba(255, 159, 10, 0.18); }
+        body.dark-mode .win-modal .text-amber-700 { color: #fbbf24; }
+        /* iOS 關閉按鈕 */
+        .win-modal button i.fa-times { color: #6e6e73; }
+        body.dark-mode .win-modal button i.fa-times { color: #98989d; }
+        .win-modal button:hover i.fa-times { color: #fff; }
 
         /* 漸進式瀑布流（Staggered Fade & Rise）卡片登場動畫 - 物理阻尼微彈效果 */
         @keyframes fadeRise {
@@ -716,11 +758,11 @@
 
 
     <!-- Windows 風格 Hero 詳細說明 Modal -->
-    <div id="hero-detail-modal" class="fixed inset-0 z-[310] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" onclick="if(event.target===this) closeHeroDetail()">
+    <div id="hero-detail-modal" class="fixed inset-0 z-[310] bg-black/30 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" onclick="if(event.target===this) closeHeroDetail()">
         <div class="win-modal rounded-lg w-[460px] max-w-[92vw] overflow-hidden">
             <div class="win-titlebar flex items-center justify-between px-4 py-2">
                 <div class="flex items-center gap-2">
-                    <i class="fas fa-circle-info text-sky-500 text-sm"></i>
+                    <i class="fas fa-circle-info text-sm" style="color: #007aff;"></i>
                     <span class="text-[13px] font-semibold">課堂錄影系統</span>
                 </div>
                 <button onclick="closeHeroDetail()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-red-500 hover:text-white transition-colors text-gray-600 text-base leading-none">
@@ -729,8 +771,8 @@
             </div>
             <div class="p-6">
                 <div class="flex items-start gap-4 mb-5">
-                    <div class="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-video text-sky-500 text-xl"></i>
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background: rgba(0, 122, 255, 0.15); backdrop-filter: blur(10px);">
+                        <i class="fas fa-video text-xl" style="color: #007aff;"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-lg font-bold mb-1">系統簡介</h3>
@@ -744,13 +786,13 @@
                 </div>
                 <div class="bg-sky-50 border border-sky-100 rounded p-3 mb-5">
                     <div class="flex items-center gap-2 text-xs text-sky-700">
-                        <i class="fas fa-lightbulb text-sky-500"></i>
+                        <i class="fas fa-lightbulb" style="color: #007aff;"></i>
                         <span>提示：點擊「開始」按鈕即可進入系統</span>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button onclick="closeHeroDetail()" class="win-btn px-5 py-1.5 text-[13px] rounded">關閉</button>
-                    <button id="hero-modal-start-btn" onclick="closeHeroDetail(); setTimeout(() => { const sb = document.getElementById('hero-start-btn'); if(sb) sb.click(); }, 200);" class="win-btn px-5 py-1.5 text-[13px] rounded font-semibold" style="min-width: 90px;">開始使用</button>
+                    <button id="hero-modal-start-btn" onclick="closeHeroDetail(); setTimeout(() => { const sb = document.getElementById('hero-start-btn'); if(sb) sb.click(); }, 200);" class="px-5 py-2 text-[13px] rounded-full font-semibold text-white transition-all active:scale-95" style="min-width: 90px; background: linear-gradient(180deg, #0a84ff 0%, #007aff 100%); box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);">開始使用</button>
                 </div>
             </div>
         </div>
@@ -758,11 +800,11 @@
 
 
     <!-- Windows 風格 模組更新中 Modal -->
-    <div id="updating-modal" class="fixed inset-0 z-[310] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" onclick="if(event.target===this) closeUpdatingModal()">
+    <div id="updating-modal" class="fixed inset-0 z-[310] bg-black/30 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" onclick="if(event.target===this) closeUpdatingModal()">
         <div class="win-modal rounded-lg w-[460px] max-w-[92vw] overflow-hidden">
             <div class="win-titlebar flex items-center justify-between px-4 py-2">
                 <div class="flex items-center gap-2">
-                    <i class="fas fa-circle-exclamation text-amber-500 text-sm"></i>
+                    <i class="fas fa-circle-exclamation text-sm" style="color: #ff9f0a;"></i>
                     <span class="text-[13px] font-semibold">系統通知</span>
                 </div>
                 <button onclick="closeUpdatingModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-red-500 hover:text-white transition-colors text-gray-600 text-base leading-none">
@@ -771,8 +813,8 @@
             </div>
             <div class="p-6">
                 <div class="flex items-start gap-4 mb-5">
-                    <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-gears text-amber-500 text-xl animate-spin" style="animation-duration: 3s;"></i>
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style="background: rgba(255, 159, 10, 0.18); backdrop-filter: blur(10px);">
+                        <i class="fas fa-gears text-xl animate-spin" style="color: #ff9f0a; animation-duration: 3s;"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-lg font-bold mb-1">模組更新中</h3>
@@ -786,12 +828,12 @@
                 </div>
                 <div class="bg-amber-50 border border-amber-100 rounded p-3 mb-5">
                     <div class="flex items-center gap-2 text-xs text-amber-700">
-                        <i class="fas fa-clock text-amber-500"></i>
+                        <i class="fas fa-clock" style="color: #ff9f0a;"></i>
                         <span>提示：模組完成後將自動恢復服務</span>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button onclick="closeUpdatingModal()" class="win-btn px-5 py-1.5 text-[13px] rounded font-semibold" style="min-width: 90px;">知道了</button>
+                    <button onclick="closeUpdatingModal()" class="px-5 py-2 text-[13px] rounded-full font-semibold text-white transition-all active:scale-95" style="min-width: 90px; background: linear-gradient(180deg, #0a84ff 0%, #007aff 100%); box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);">知道了</button>
                 </div>
             </div>
         </div>
@@ -1076,39 +1118,51 @@
             renderContent();
         }
 
-        // 動態渲染 Hero 區塊 (根據 type=head 的資料)
+        // 動態渲染 Hero 區塊 (根據 type=head 的資料：H=圖片，I=連結；D=中文標題；E=英文標題)
         function renderHero() {
             const headRow = rawData.find(d => d.type === 'head');
-            if (headRow) {
-                const bgImg = document.getElementById('hero-bg-img');
-                const bannerImg = document.getElementById('hero-banner-img');
-                const ctaBtn = document.getElementById('hero-cta-btn');
-                if (bgImg && headRow.img) bgImg.src = headRow.img;
-                if (bannerImg && headRow.cn) {
-                    // 若有 cn 名稱則隱藏固定 banner，改用文字標題
-                    bannerImg.style.display = 'none';
-                }
-                if (ctaBtn && headRow.url) {
-                    ctaBtn.onclick = () => handleNavigation(headRow.url);
-                }
-            }
+            if (!headRow) return;
+            const bgImg = document.getElementById('hero-bg-img');
+            const startBtn = document.getElementById('hero-start-btn');
+            const titleCn = document.getElementById('hero-title-cn');
+            const titleEn = document.getElementById('hero-title-en');
+            if (bgImg && headRow.img) bgImg.src = headRow.img;
+            if (startBtn && headRow.url) startBtn.onclick = () => handleNavigation(headRow.url);
+            if (titleCn && headRow.cn) titleCn.textContent = headRow.cn;
+            if (titleEn && headRow.en) titleEn.textContent = headRow.en;
+        }
 
-            // 渲染名言區 (type=quote)
-            const quotes = rawData.filter(d => d.type === 'quote');
-            if (quotes.length > 0) {
-                const existingQuote = document.getElementById('hero-quotes');
-                if (existingQuote) existingQuote.remove();
-                const heroContainer = document.getElementById('hero-container');
-                const quoteDiv = document.createElement('div');
-                quoteDiv.id = 'hero-quotes';
-                quoteDiv.className = 'absolute bottom-4 left-0 right-0 flex flex-wrap justify-center gap-4 px-6 z-20';
-                quotes.forEach(q => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 max-w-xs text-center border border-white/20';
-                    card.innerHTML = `<p class="text-white/90 text-xs italic">"${q.quoteText}"</p><p class="text-white/60 text-[10px] mt-1">— ${q.quoteAuthor}</p>`;
-                    quoteDiv.appendChild(card);
-                });
-                heroContainer.appendChild(quoteDiv);
+        // Hero 詳細說明 Modal 控制
+        function openHeroDetail() {
+            const modal = document.getElementById('hero-detail-modal');
+            if (modal) {
+                modal.classList.remove('pointer-events-none', 'opacity-0');
+                modal.classList.add('opacity-100');
+            }
+        }
+
+        function closeHeroDetail() {
+            const modal = document.getElementById('hero-detail-modal');
+            if (modal) {
+                modal.classList.add('pointer-events-none', 'opacity-0');
+                modal.classList.remove('opacity-100');
+            }
+        }
+
+        // 模組更新中 Modal 控制
+        function openUpdatingModal() {
+            const modal = document.getElementById('updating-modal');
+            if (modal) {
+                modal.classList.remove('pointer-events-none', 'opacity-0');
+                modal.classList.add('opacity-100');
+            }
+        }
+
+        function closeUpdatingModal() {
+            const modal = document.getElementById('updating-modal');
+            if (modal) {
+                modal.classList.add('pointer-events-none', 'opacity-0');
+                modal.classList.remove('opacity-100');
             }
         }
 
