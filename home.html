@@ -53,16 +53,21 @@
 
         body, .logo-bar, .dock-nav { transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease; }
 
-        /* 跟 template 一致：html 鎖 viewport，body 內部捲 */
-        html { scroll-behavior: smooth; height: 100%; overflow: hidden; }
+        /* 跟 template 完全一致:html 鎖 viewport，body 內部捲 */
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg);
             color: var(--glacier-text);
             -webkit-tap-highlight-color: transparent;
-            height: 100%; overflow-y: auto;
-            /* iOS 慣性滾動（跟 template 一致,不加 overscroll-behavior 讓 native 行為主導） */
-            -webkit-overflow-scrolling: touch;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 0;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -79,9 +84,9 @@
         }
         body.dark-mode .logo-bar { border-bottom-color: rgba(255,255,255,0.06); }
 
-        /* page-content：減少 icon bar 跟 hero 之間的 gap（緊貼一點） */
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 88px); padding-bottom: 100px; }
-        @media (max-width: 768px) { #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 82px); } }
+        /* page-content:跟 template 一致 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); padding-bottom: 100px; }
+        @media (max-width: 768px) { #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); } }
 
         /* Hero 從 page-content 內頂部開始（緊接 logo bar） */
         .nf-hero { margin-top: 0; }
@@ -152,18 +157,9 @@
         .nf-row {
             position: relative; display: flex; gap: 8px;
             overflow-x: auto; overflow-y: visible;
-            scroll-behavior: smooth; padding: 16px 0 24px;
+            scroll-behavior: smooth; padding: 12px 0;
             scrollbar-width: none;
-            /* iOS 慣性滾動 + 防止左右滑觸發 page refresh */
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-x: contain;
-            /* 觸控:允許水平 pan,垂直跟外層 body 一起滾 */
-            touch-action: pan-x pan-y;
-            -webkit-touch-callout: none;
-            /* contain: layout style paint 隔離每個 row 的重繪範圍，
-               防止一行重繪時連帶影響其他行的 scroll input routing
-               不使用 strict（會阻止 sticky/fixed 等跨邊界佈局） */
-            contain: layout style paint;
+            /* 跟 template 完全一致:不加 iOS 慣性條款,不加 overscroll-behavior,讓瀏覽器原生 scroll */
         }
         .nf-row::-webkit-scrollbar { display: none; }
         .nf-row-arrow {
@@ -194,32 +190,21 @@
             border-radius: 8px; overflow: hidden;
             background: var(--glacier-card);
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-            cursor: pointer; transform-origin: center center;
-            /* iOS 觸控:manipulation 避免 300ms 點擊延遲 + 允許橫向 pan 傳遞給 row */
-            touch-action: manipulation;
+            cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            /* card hover 浮起 — 0.3s 一致 (縮短以減少 scroll 期間 GPU 負擔) */
-            transition: transform 0.3s ease;
-            /* CSS containment:告訴瀏覽器卡內變化不影響外部 layout */
-            contain: layout style;
-        }
-        .nf-card:hover {
-            box-shadow: 0 18px 40px -8px rgba(0,0,0,0.25);
+            /* 跟 template 完全一致:card 完全沒 transition,讓瀏覽器原生 scroll 不被 GPU 打斷 */
         }
         .nf-card.large { width: 360px; }
         .nf-card.small { width: 220px; }
         .nf-card.portrait { width: 220px; aspect-ratio: 3/4; border-radius: 12px; }
-        .nf-card:active { transform: scale(0.97); transition: transform 0.12s ease-out; }
-        .nf-row .nf-card:hover { transform: translateY(-6px); z-index: 5; }
+        .nf-card:active { opacity: 0.85; }
         .nf-card-img {
             position: absolute; inset: 0;
             width: 100%; height: 100%;
             object-fit: cover; object-position: center;
             background-color: var(--glacier-card);
-            /* 圖片 hover 慢放大 (0.8s) — 縮短以減少 scroll 期間的 paint 壓力 */
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            /* 跟 template 一致:圖片完全無 transition,scroll 不被 hover 動畫中斷 */
         }
-        .nf-row .nf-card:hover .nf-card-img { transform: scale(1.08); }
         .nf-card::after {
             content: ''; position: absolute; inset: 0; pointer-events: none;
             background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 35%);
@@ -234,12 +219,6 @@
             font-size: 22px; font-weight: 700; color: #fff;
             line-height: 1.1; letter-spacing: 0.04em; margin-bottom: 4px;
             text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-            /* 簡化 stagger:全部 0.3s 無 delay,降低 layer 數 */
-            transition: transform 0.3s ease;
-            transform-origin: left bottom;
-        }
-        .nf-card:hover .nf-card-title {
-            transform: translateY(-2px) scale(1.04);
         }
 
         .nf-card-sub {
@@ -250,11 +229,6 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.5);
             display: flex; align-items: center; gap: 6px;
             line-height: 1.1;
-            transition: transform 0.3s ease;
-            transform-origin: left bottom;
-        }
-        .nf-card:hover .nf-card-sub {
-            transform: translateY(-2px) scale(1.06);
         }
         .nf-card-sub i { font-size: 10px; font-style: normal; }
 
@@ -263,20 +237,15 @@
             position: absolute; top: 12px; right: 12px; z-index: 2;
             display: inline-flex; align-items: center; gap: 5px;
             font-size: 9px; font-weight: 700; color: #fff;
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.18);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.25);
             padding: 4px 8px; border-radius: 999px;
             letter-spacing: 0.08em; text-transform: uppercase;
             pointer-events: none;
-            transition: background-color 0.2s ease;
-        }
-        .nf-card:hover .nf-card-tag {
-            background: rgba(255,255,255,0.22);
-            border-color: rgba(255,255,255,0.35);
         }
 
-        /* 卡片右下 hover 圓形按鈕 */
+        /* 卡片右下 hover 圓形按鈕 (跟 template 風格:純樣式,無 transform,scroll 不會卡) */
         .nf-card-action {
             position: absolute; bottom: 14px; right: 14px;
             width: 34px; height: 34px; border-radius: 50%;
@@ -284,12 +253,12 @@
             display: flex; align-items: center; justify-content: center;
             color: #0a0a0a; font-size: 12px; font-weight: 700;
             z-index: 3; opacity: 0;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.15s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             cursor: pointer;
         }
         .nf-card:hover .nf-card-action { opacity: 1; }
-        .nf-card-action:hover { background: #fff; transform: scale(1.1) rotate(-45deg); }
+        .nf-card-action:hover { background: #fff; }
 
         /* Large card 標題更大 - 跟 hero banner 比例 */
         .nf-card.large .nf-card-title { font-size: 28px; letter-spacing: 0.05em; }
@@ -497,7 +466,7 @@
                 border-radius: 10px;
             }
             /* 縮小 row gap + padding 讓更多空間給卡片 */
-            .nf-row { gap: 6px; padding: 12px 0 18px; }
+            .nf-row { gap: 6px; padding: 10px 0; }
             .nf-section { padding: 0 12px; margin-bottom: 28px; }
             .nf-section-title { font-size: 16px; margin-bottom: 8px; }
             /* card 內 title/sub 在 mobile 配合稍大卡 */
@@ -818,7 +787,7 @@
         </div>
         <div id="archive-section" class="hidden-class" style="padding: 0 max(20px, 4vw);">
             <div class="archive-hero" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
-                <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" alt="Pastpaper Archive" loading="lazy" decoding="async">
+                <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" alt="Pastpaper Archive">
                 <div class="archive-overlay"></div>
                 <div class="archive-content">
                     <h2>Pastpaper Archive</h2>
@@ -1126,7 +1095,12 @@
             row.scrollBy({ left: dir * step, behavior: 'smooth' });
         }
 
-        // =========== 8. renderCards (主渲染) ===========
+        // =========== 8. renderCards (主渲染) — 完全照 template 風格 ===========
+        // Template 的 renderContent 邏輯極簡:
+        //   1. rawData 已是 sheet 順序(不用 sort)
+        //   2. 一次 forEach sections, 每個 section 從 rawData 直接 filter
+        //   3. 用 insertAdjacentHTML('beforeend', ...) 一次插一個 section
+        //   4. order 欄作為「同 section 內」的細部排序
         function renderCards(container, cards) {
             allCardsCache = cards;
             // SPA 內部 tab 路由：currentTab 優先
@@ -1135,93 +1109,96 @@
                 container.innerHTML = renderTabWall(currentTab, tabItems);
                 return;
             }
-            // 主頁：sort + dedup + 分組
-            const sorted = [...cards].sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
-            const deduped = []; const seen = new Set();
-            sorted.forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); deduped.push(c); } });
-            // head
-            let headCard = deduped.find(c => c.type && c.type.toUpperCase() === 'HEAD');
+
+            // 1. 找 head 跟 hero 用作 hero banner
+            let headCard = cards.find(c => c.type && c.type.toUpperCase() === 'HEAD');
             if (headCard) {
-                const fb = sorted.find(c => c.id === headCard.id && c.type === 'hero');
+                const fb = cards.find(c => c.id === headCard.id && c.type === 'hero');
                 if (fb) headCard = { ...headCard, cn: headCard.cn || fb.cn, en: headCard.en || fb.en, bg: headCard.bg || fb.bg, link: headCard.link || fb.link };
             }
-            if (!headCard) headCard = deduped.find(c => c.type === 'hero' && (c.cn || c.en || c.bg)) || deduped.find(c => c.type === 'hero');
-            const headId = headCard ? headCard.id : null;
-            // filter search
-            let filtered = deduped;
-            if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                filtered = deduped.filter(c => ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase().includes(q));
-            }
-            // 主頁:除了 head 之外都顯示(支援自定義 type 如 course/ebook/formula 等)
-            // 只有 type === 'quote' 走 quote 卡片樣式
-            const bySection = {};
-            const mainPageCards = [];
-            filtered.forEach(c => {
-                if (c.id === headId) return;
-                const t = (c.type || '').toLowerCase();
-                if (t === 'head') return;  // 排除 head (已用於 hero banner)
-                mainPageCards.push(c);
-                const sec = (c.section || 'courses').toLowerCase();
-                if (!bySection[sec]) bySection[sec] = [];
-                bySection[sec].push(c);
+            if (!headCard) headCard = cards.find(c => c.type === 'hero' && (c.cn || c.en || c.bg)) || cards.find(c => c.type === 'hero');
+
+            // 2. 篩選主頁卡片(排除 head,套用搜尋,套用 grid 排除 quote)
+            let processedItems = cards.filter(c => {
+                if (c.type && c.type.toUpperCase() === 'HEAD') return false;
+                if (c === headCard) return false;
+                if (isGridView && c.type === 'quote') return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    const hay = ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
             });
-            const html = [];
-            if (headCard && !searchQuery && !isGridView) html.push(renderHeroBanner([headCard]));
-            // 動態欄目（在外面宣告,debug log 也能用）
-            let sectionOrder = [];
+
+            // 3. 收集所有 HTML 片段到一個陣列,最後 innerHTML 一次設定 (避免 insertAdjacentHTML 多次 reflow → scroll 卡頓主因)
+            const htmlParts = [];
+
+            // 4. hero banner (只在非 grid + 非搜尋)
+            if (headCard && !searchQuery && !isGridView) {
+                htmlParts.push(renderHeroBanner([headCard]));
+            }
+
             if (isGridView) {
-                const allMain = mainPageCards.filter(c => (c.type || '').toLowerCase() !== 'quote');
-                if (allMain.length) html.push(renderGridView(allMain));
+                // Grid View
+                if (processedItems.length) {
+                    htmlParts.push(renderGridView(processedItems));
+                }
             } else {
-                // 動態欄目：依 F欄 (section) 自動建立,任意增加/減少都行
-                // 順序：用卡片在 sheet 出現的先後,確保穩定
-                const seen = new Set();
-                filtered.forEach(c => {
+                // Row View: 動態取得所有 section (sheet 出現順序,Set 去重)
+                const sections = [];
+                const seenSec = new Set();
+                processedItems.forEach(c => {
                     const sec = (c.section || '').toLowerCase();
-                    if (sec && c.id !== headId && !seen.has(sec)) {
-                        seen.add(sec);
-                        sectionOrder.push(sec);
+                    if (sec && !seenSec.has(sec)) {
+                        seenSec.add(sec);
+                        sections.push(sec);
                     }
                 });
-                for (const sec of sectionOrder) {
-                    if (bySection[sec] && bySection[sec].length) {
-                        // 標題直接用 F欄值（sheet 填什麼就顯示什麼,完全直連）
-                        // F欄若填 'courses' → 顯示 'courses'
-                        // F欄若填 '學習旅程' → 顯示 '學習旅程'
-                        // F欄若填 '新欄目' → 自動出現 '新欄目' 欄
-                        const title = sec;
-                        const opts = SECTION_DEFAULTS[sec] || {};
-                        html.push(renderSection(title, bySection[sec], { id: sec, ...opts }));
-                    }
-                }
+                sections.forEach(sec => {
+                    const items = processedItems
+                        .filter(c => (c.section || '').toLowerCase() === sec)
+                        .sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
+                    if (!items.length) return;
+                    const opts = SECTION_DEFAULTS[sec] || {};
+                    htmlParts.push(renderSection(sec, items, { id: sec, ...opts }));
+                });
             }
-            // Debug:記錄渲染狀態
-            console.log('[renderCards]', {
-                totalCards: cards.length,
-                headId: headId,
-                mainPageCards: mainPageCards.length,
-                sections: Object.keys(bySection).map(s => ({ s, count: bySection[s].length })),
-                sectionOrder: sectionOrder,
-                htmlLength: html.join('').length
-            });
-            if (searchQuery && !filtered.length) {
-                html.push(`<div class="loader">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
+
+            // 5. 搜尋無結果
+            if (searchQuery && !processedItems.length && !headCard) {
+                htmlParts.push(`<div class="loader">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
             }
-            // 跟 template 一致：直接寫入 innerHTML,讓瀏覽器原生處理
-            // (不要 RAF defer, 否則 scroll input 會被 push 到下一個 frame, 數秒後才生效)
-            container.innerHTML = html.join('');
-            // 顯示 archive（如果 sheet 完全沒東西,archive 還是要顯示）
+
+            // 6. 一次 innerHTML 設定 (跟 template 完全一致,只有一次 reflow)
+            container.innerHTML = htmlParts.join('');
+
+            // 7. archive 顯示
             const archive = document.getElementById('archive-section');
             if (archive) {
-                if (mainPageCards.length > 0) archive.classList.remove('hidden-class');
+                if (processedItems.length > 0 || headCard) archive.classList.remove('hidden-class');
                 else archive.classList.add('hidden-class');
             }
+
+            // 8. debug log
+            try {
+                const sectionOrder = [];
+                const seen2 = new Set();
+                processedItems.forEach(c => {
+                    const s = (c.section || '').toLowerCase();
+                    if (s && !seen2.has(s)) { seen2.add(s); sectionOrder.push(s); }
+                });
+                console.log('[renderCards]', {
+                    totalCards: cards.length,
+                    headId: headCard ? headCard.id : null,
+                    mainPageCards: processedItems.length,
+                    sectionOrder
+                });
+            } catch(_) {}
         }
 
         // 跟 template 一致：完全依賴瀏覽器原生 scroll,不加任何 listener
         // (scroll listener 即使 passive 仍佔 JS thread, 對 2-3 秒 scroll 延遲有影響)
-        // iOS 水平/垂直 pan 衝突已用 .nf-row { touch-action: pan-x pan-y } + .nf-card { touch-action: manipulation } 解決
 
         function renderTabWall(tabName, items) {
             if (!items.length) {
@@ -1274,15 +1251,11 @@
             if (currentTab) { scrollPageToTop('smooth'); }
             else { handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html'); }
         }
-        // 滾到頂部（統一 helper,body 才是真正的滾動容器）
+        // 滾到頂部(跟 template 完全一致:用 window.scrollTo,html overflow:hidden 鎖 viewport,body 內部捲,
+        // window.scrollY / window.scrollTo 仍指向 body 滾動位置)
         function scrollPageToTop(behavior) {
-            behavior = behavior || 'instant' in window ? 'instant' : 'auto';
-            try {
-                // 優先滾 body（html overflow:hidden 鎖 viewport,body 才是滾動元素）
-                document.body.scrollTo({ top: 0, behavior: behavior });
-            } catch (e) {
-                try { document.documentElement.scrollTo({ top: 0, behavior: behavior }); } catch(_) {}
-                try { window.scrollTo({ top: 0, behavior: behavior }); } catch(_) {}
+            try { window.scrollTo({ top: 0, behavior: behavior || 'auto' }); } catch (_) {
+                try { document.body.scrollTop = 0; } catch(_) {}
             }
         }
 
@@ -1336,59 +1309,47 @@
             try { storage.setItem(LS.cards, JSON.stringify(cards)); storage.setItem(LS.ver, ver || ''); } catch (e) {}
         }
 
-        // 13 張 fallback cards
+        // 13 張 fallback cards (跟用戶 sheet 一致的中文 section 名)
         function getFallbackCards() {
             return [
-                { id: 'fb1', type: 'head', cn: '課堂錄影', en: 'Lesson Archive', section: 'courses', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
-                { id: 'fb2', type: 'hero', cn: '線上補課', en: 'Online classroom', section: 'courses', size: 'lg', bg: 'https://picsum.photos/seed/young/1200/1200', link: '', active: true },
-                { id: 'fb3', type: 'hero', cn: '物理課程', en: 'Physics courses', section: 'courses', size: 'md', bg: 'https://i.ibb.co/tPnQJMn4/de.png', link: '', active: true },
-                { id: 'fb4', type: 'hero', cn: '電子筆記', en: 'E-books', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/mVD38njr/de.png', link: '', active: true },
-                { id: 'fb5', type: 'hero', cn: '基礎練習冊', en: 'Homework tutorials', section: 'courses', size: 'md', bg: 'https://i.ibb.co/QFXhXGT4/de.png', link: '', active: true },
-                { id: 'fb6', type: 'hero', cn: '歷屆試題', en: 'Pastpaper bank', section: 'courses', size: 'md', bg: 'https://i.ibb.co/JFWg0SKF/Gemini-Generated-Image.png', link: '', active: true },
-                { id: 'fb7', type: 'hero', cn: '公式庫', en: 'Formulas bank', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/qMxwmbQs/sd.png', link: '', active: true },
-                { id: 'fb8', type: 'hero', cn: '學習卡', en: 'Revision cards', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/xZyzRFd/ds.jpg', link: '', active: true },
-                { id: 'fb9', type: 'hero', cn: '模擬實驗', en: 'Simulations', section: 'courses', size: 'md', bg: 'https://i.ibb.co/LDFcP57y/asfd.png', link: '', active: true },
-                { id: 'fb10', type: 'hero', cn: '數學課程', en: 'Mathematics courses', section: 'courses', size: 'md', bg: 'https://i.ibb.co/53Sz49Y/Gemini-Generated-Image.png', link: '', active: true },
-                { id: 'fb11', type: 'hero', cn: '庫存系統', en: 'Old systems', section: 'tools', size: 'portrait', bg: 'https://i.ibb.co/twGDKGBg/Gemini-Generated-Image.png', link: 'insite://oldsys', active: true },
-                { id: 'fb12', type: 'quote', cn: '', en: '', section: 'quotes', size: '', bg: '', quote_text: 'The important thing is not to stop questioning. Curiosity has its own reason for existing.', quote_author: 'Albert Einstein', link: '', active: true },
-                { id: 'fb13', type: 'quote', cn: '', en: '', section: 'quotes', size: '', bg: '', quote_text: 'Somewhere, something incredible is waiting to be known.', quote_author: 'Carl Sagan', link: '', active: true },
+                { id: 'fb1', type: 'head', cn: '課堂錄影', en: 'Lesson Archive', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
+                { id: 'fb2', type: 'hero', cn: '課堂錄影', en: 'Lesson Archive', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
+                { id: 'fb3', type: 'hero', cn: '線上補課', en: 'Online classroom', section: '常用功能', size: 'lg', bg: 'https://picsum.photos/seed/young/1200/1200', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
+                { id: 'fb4', type: 'hero', cn: '基礎練習冊', en: 'Homework tutorials', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/QFXhXGT4/de.png', link: 'https://phyuaaphysics.github.io/phyustudio/hw', active: true },
+                { id: 'fb5', type: 'hero', cn: '模擬實驗', en: 'Simulations', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/LDFcP57y/asfd.png', link: 'https://phyuaaphysics.github.io/phyustudio/simulation.html', active: true },
+                { id: 'fb6', type: 'hero', cn: '物理課程', en: 'Physics courses', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/tPnQJMn4/de.png', link: 'insite://coursesys', active: true },
+                { id: 'fb7', type: 'hero', cn: '歷屆試題', en: 'Pastpaper bank', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/JFWg0SKF/Gemini-Generated-Image.png', link: '', active: true },
+                { id: 'fb8', type: 'hero', cn: '數學課程', en: 'Mathematics courses', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/53Sz49Y/Gemini-Generated-Image.png', link: '', active: true },
+                { id: 'fb9', type: 'hero', cn: '電子筆記', en: 'E-books', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/mVD38njr/de.png', link: '', active: true },
+                { id: 'fb10', type: 'hero', cn: '公式庫', en: 'Formulas bank', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/qMxwmbQs/sd.png', link: '', active: true },
+                { id: 'fb11', type: 'hero', cn: '庫存系統', en: 'Old systems', section: '其他', size: 'portrait', bg: 'https://i.ibb.co/twGDKGBg/Gemini-Generated-Image.png', link: 'insite://oldsys', active: true },
+                { id: 'fb12', type: 'quote', cn: '', en: '', section: '名言', size: '', bg: '', quote_text: 'The important thing is not to stop questioning. Curiosity has its own reason for existing.', quote_author: 'Albert Einstein', link: '', active: true },
+                { id: 'fb13', type: 'quote', cn: '', en: '', section: '名言', size: '', bg: '', quote_text: 'Somewhere, something incredible is waiting to be known.', quote_author: 'Carl Sagan', link: '', active: true },
             ];
         }
 
-        // =========== 11. initData（完全照 template 模式 + fallback） ===========
+        // =========== 11. initData（完全照 template 模式 + fallback,只 render 一次） ===========
         async function initData() {
             const mainArea = document.getElementById('main-content-area');
             if (!mainArea) return;
 
-            // Step 1: 立即 render cache（跟 template 一模一樣）
+            // Step 1: 立即 render cache 或 fallback(只 render 一次,避免雙重 reflow 卡 scroll)
             const cachedVer = storage.getItem(LS.ver);
             const cachedData = readCache();
-            let hasRenderedCache = false;
-            if (cachedData) {
-                try {
-                    if (cachedData.cards && cachedData.cards.length > 0) {
-                        console.log("第一瞬載入:已從 LocalStorage 恢復快取,版本:", cachedVer);
-                        rawData = cachedData.cards;
-                        allCardsCache = cachedData.cards;
-                        renderCards(mainArea, cachedData.cards);
-                        hasRenderedCache = true;
-                    }
-                } catch (e) {
-                    console.warn("LocalStorage 快取受損,清理重設:", e);
-                    storage.removeItem(LS.cards);
-                    storage.removeItem(LS.ver);
-                }
-            }
-
-            // Step 1.5: 沒 cache → 先用 fallback 讓畫面不空白
-            if (!hasRenderedCache) {
+            if (cachedData && cachedData.cards && cachedData.cards.length > 0) {
+                console.log("第一瞬載入:已從 LocalStorage 恢復快取,版本:", cachedVer);
+                rawData = cachedData.cards;
+                allCardsCache = cachedData.cards;
+                renderCards(mainArea, cachedData.cards);
+            } else {
                 console.log("無 cache,先顯示 fallback");
                 const fb = getFallbackCards();
                 allCardsCache = fb;
                 renderCards(mainArea, fb);
             }
 
-            // Step 2: 背景 fetch（3 秒 timeout 避免 sandbox 卡死）
+            // Step 2: 背景 fetch(3s timeout 避免卡死 sandbox)
+            // 跟 template 一致:更新 cache + rawData,不重 render (避免 scroll 期間二次 reflow 阻塞)
             const timeout = new Promise(resolve => setTimeout(() => resolve('timeout'), 3000));
             const fetchJob = (async () => {
                 try {
@@ -1403,28 +1364,21 @@
             })();
             const result = await Promise.race([fetchJob, timeout]);
 
-            // Step 3: 處理結果（跟 template catch 邏輯一致）
             if (result === 'timeout') {
                 console.warn("Fetch 超時(3s) — 保持現有 cache 或 fallback");
                 return;
             }
             if (!result.ok) {
                 console.error("背景同步失敗:", result.reason);
-                // 即使失敗,fallback 已經渲染過了,畫面不會空白
                 return;
             }
             const { ver: remoteVer, cards: freshCards } = result;
             if (!freshCards || !freshCards.length) return;
-            // 版本一致 + 有 cache → 跳過
-            if (cachedData && remoteVer && cachedData.ver === remoteVer) {
-                console.log("背景版本檢查完成:線上版本與快取一致,無須更新");
-                return;
-            }
-            console.log("偵測到新資料,寫入並 re-render");
+            // 重要:只 update cache + rawData,不重 render(避免 scroll 延遲)
+            console.log("背景同步完成,新資料已 cache,當前畫面不重 render");
             writeCache(freshCards, remoteVer || '');
             rawData = freshCards;
             allCardsCache = freshCards;
-            renderCards(mainArea, freshCards);
         }
 
         // =========== 12. UI 控制 ===========
