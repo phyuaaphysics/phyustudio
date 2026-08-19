@@ -434,7 +434,6 @@
         let progressVal = 0;
         let authResult = null;
         let authErrorMessage = "";
-        let guardTimeoutId = null;
         let reassuringInterval = null;
 
         const reassuringMessages = [
@@ -473,6 +472,7 @@
             if (reassuringText) reassuringText.style.opacity = "0";
         }
 
+        // ===== 核心修改：移除 AbortController，改用純 fetch =====
         function handleLogin(event) {
             if (event) event.preventDefault();
             
@@ -489,36 +489,31 @@
                 return;
             }
 
+            // 重置所有狀態
+            if (loadingInterval) clearInterval(loadingInterval);
             authResult = null;
             authErrorMessage = "";
 
             startPreLaunch();
             runLoadingLoop();
 
-            const controller = new AbortController();
-            // ===== 核心修改：將超時時間從 8000 毫秒延長至 20000 毫秒 (20 秒) =====
-            guardTimeoutId = setTimeout(() => {
-                controller.abort();
-                if (authResult === null) {
-                    authErrorMessage = "認證中心伺服器連線超時";
-                    authResult = false;
-                }
-            }, 20000); // 原本為 8000
+            const startTime = Date.now();
 
             fetch(GAS_GUARD_URL, {
                 method: "POST",
                 mode: "cors",
+                credentials: "omit",   // 避免跨域干擾
                 headers: {
                     "Content-Type": "text/plain"
                 },
                 body: JSON.stringify({
                     username: userVal,
                     password: passVal
-                }),
-                signal: controller.signal
+                })
             })
             .then(response => {
-                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                const elapsed = (Date.now() - startTime) / 1000;
+                console.log(`✅ GAS 回應時間：${elapsed.toFixed(2)} 秒`);
                 if (!response.ok) {
                     throw new Error("HTTP status " + response.status);
                 }
@@ -545,13 +540,8 @@
                 }
             })
             .catch(err => {
-                if (guardTimeoutId) clearTimeout(guardTimeoutId);
-                console.error("連線到 Guard API 失敗:", err);
-                if (err.name === 'AbortError') {
-                    authErrorMessage = "認證中心伺服器連線超時";
-                } else {
-                    authErrorMessage = "認證中心伺服器連線異常";
-                }
+                console.error("❌ 連線到 Guard API 失敗:", err);
+                authErrorMessage = "認證中心伺服器連線異常";
                 authResult = false;
             });
         }
@@ -606,12 +596,11 @@
             startReassuringMessages();
         }
 
+        // ===== 修改進度條卡頓上限：從 45 提升至 70 =====
         function runLoadingLoop() {
             const progress = document.getElementById('bar-progress');
             const statusText = document.getElementById('status-text');
-            const formulaContainer = document.getElementById('formula-container');
             const loadingInline = document.getElementById('loading-inline-container');
-            const landing = document.getElementById('landing-screen');
 
             loadingInline.classList.remove('hidden');
             loadingInline.style.opacity = "1";
@@ -625,9 +614,11 @@
 
             loadingInterval = setInterval(() => {
                 if (authResult !== null) {
+                    // 驗證結果已回傳，加速填滿
                     progressVal += Math.random() * 8 + 6;
                 } else {
-                    if (progressVal < 45) {
+                    // 等待驗證中：平滑前進，但上限提高至 70%
+                    if (progressVal < 70) {
                         progressVal += Math.random() * 2.5 + 1.0;
                     }
                 }
@@ -640,7 +631,7 @@
 
                     loadingInline.style.opacity = "0";
                     loadingInline.style.transform = "translateY(-60px)";
-                    landing.style.opacity = "0";
+                    document.getElementById('landing-screen').style.opacity = "0";
                     
                     setTimeout(() => { 
                         showWelcomeModal();
