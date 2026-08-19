@@ -182,7 +182,7 @@
         }
         .ios-btn:active {
             transform: scale(0.96) translateY(0);
-            background: rgba(28, 28, 30, 0.9);
+            background: rgba(28, 28, 28, 0.9);
             color: #ffffff;
         }
     </style>
@@ -314,7 +314,7 @@
         let formulaInterval;
         let currentBgUrl = "";
 
-        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbyjlZdGGJj5b_jOa1GhB5lqTxyfdZLXeGQPhb4o6ypnMzC4u2p_wg2-q4XPrjx7UUtZ/exec";
         const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
 
         if ('serviceWorker' in navigator) {
@@ -617,9 +617,13 @@
                     // 驗證結果已回傳，加速填滿
                     progressVal += Math.random() * 8 + 6;
                 } else {
-                    // 等待驗證中：平滑前進，但上限提高至 70%
-                    if (progressVal < 70) {
-                        progressVal += Math.random() * 2.5 + 1.0;
+                    // 等待驗證中：ease-out 漸進幅度，避免在 70% 撞牆卡頓
+                    // 上限提至 92%，靠近上限時遞增幅度自動衰減
+                    if (progressVal < 92) {
+                        const remaining = 92 - progressVal;
+                        const rawStep = Math.random() * 2.5 + 1.0;     // 1.0 ~ 3.5
+                        const easedStep = Math.min(rawStep, remaining * 0.4);
+                        progressVal += easedStep;
                     }
                 }
 
