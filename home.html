@@ -296,6 +296,14 @@
             aspect-ratio: 1/1 !important;
             border-radius: 0 !important;
         }
+
+        /* 分頁模式：portrait + 圓角 + 間距 */
+        .section-grid .poster-card.section-card {
+            aspect-ratio: 2/3 !important;
+            border-radius: 6px !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05) !important;
+        }
         .poster-card-landscape .landscape-title {
             position: absolute;
             left: 0; right: 0; bottom: 0;
@@ -843,10 +851,10 @@
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
-                <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
-                    <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
+                <button onclick="goHome()" id="dock-home" class="dock-item active">
+                    <i class="fas fa-home"></i><span class="uppercase">主頁</span>
                 </button>
-                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
+                <button id="dock-section" onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
                     <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
                 </button>
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
@@ -1168,6 +1176,12 @@
 
         // コンテンツレンダリング (使用 FRONT_NEW type 邏輯)
         function renderContent() {
+            // 分頁模式：渲染分頁內容
+            if (currentSection) {
+                renderSectionPage();
+                return;
+            }
+
             const mainArea = document.getElementById('main-content-area');
             mainArea.innerHTML = '';
 
@@ -1208,7 +1222,7 @@
                                 const rowMobile = Math.floor(index / 3);
                                 const rowDesktop = Math.floor(index / 6);
                                 return `
-                                <div class="cursor-pointer animate-fade-rise ${item.sizeHint === 'lg' ? 'col-span-2 md:col-span-2' : ''}" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="${item.url && item.url !== 'null' && item.url !== 'no link' && item.url !== 'undefined' ? `handleNavigation('${item.url}')` : 'openUpdatingModal()'}">
+                                <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="${item.url && item.url !== 'null' && item.url !== 'no link' && item.url !== 'undefined' ? `handleNavigation('${item.url}')` : 'openUpdatingModal()'}">
                                     <div class="poster-card ${item.sizeHint === 'lg' ? 'poster-card-landscape' : ''}" title="${item.cn || ''}">
                                         <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
                                         ${item.sizeHint === 'lg' ? `
@@ -1295,6 +1309,82 @@
             }
         }
 
+        // ============================================
+        // 分頁渲染：顯示 currentSection 名稱的類型卡片
+        // ============================================
+        function renderSectionPage() {
+            const mainArea = document.getElementById('main-content-area');
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
+
+            // 隱藏主頁 hero 和 archive，分頁有自己的 hero head
+            heroSection.classList.add('section-hidden');
+            archiveSection.classList.add('section-hidden');
+
+            // 收集此分頁的所有卡片（type === currentSection）
+            const sectionItems = rawData.filter(d => d.type === currentSection);
+
+            // 分頁 Hero Head（用原帶 insys:// 的卡片資料生成）
+            const meta = currentSectionMeta;
+            const heroBg = meta && meta.img ? meta.img : 'https://via.placeholder.com/1600x600?text=Section';
+            const heroCn = meta && meta.cn ? meta.cn : currentSection;
+            const heroEn = meta && meta.en ? meta.en : '';
+
+            const heroHtml = `
+                <section class="mb-10 -mx-6 md:-mx-12 relative overflow-hidden" style="height: 50vh; min-height: 360px;">
+                    <img src="${heroBg}" class="absolute inset-0 w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/1600x600?text=Section'">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);"></div>
+                    <div class="absolute bottom-8 left-6 md:bottom-12 md:left-12 z-10 max-w-[80%]">
+                        <h1 class="text-white font-black leading-none drop-shadow-2xl mb-2"
+                            style="font-family: 'Noto Serif TC', serif; font-size: clamp(32px, 5vw, 60px); letter-spacing: 0.05em;">
+                            ${heroCn}
+                        </h1>
+                        ${heroEn ? `<p class="text-white/80 italic drop-shadow-xl"
+                           style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(18px, 2vw, 28px);">
+                           ${heroEn}
+                        </p>` : ''}
+                    </div>
+                </section>
+            `;
+
+            // 分頁卡片 Grid（全部 portrait + 圓角，不顯示分頁標題列）
+            let cardsHtml = '';
+            if (sectionItems.length === 0) {
+                cardsHtml = `<div class="loader">此分頁暫無資料。</div>`;
+            } else {
+                const cols = sectionItems.map((item, index) => {
+                    const rowMobile = Math.floor(index / 3);
+                    const rowDesktop = Math.floor(index / 6);
+                    // 分頁中：全部 portrait，標準標題大小，圓角
+                    const titleSize = 'clamp(15px, 4.5vw, 24px)';
+                    const enSize = 'clamp(11px, 2.8vw, 15px)';
+                    return `
+                    <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};"
+                         onclick="${item.url && item.url !== 'null' && item.url !== 'no link' && item.url !== 'undefined' ? `handleNavigation('${item.url}')` : 'openUpdatingModal()'}">
+                        <div class="poster-card section-card" title="${item.cn || ''}">
+                            <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                            <div class="absolute bottom-0 left-0 right-0 p-2 md:p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                                <p class="text-white font-black leading-tight drop-shadow-lg" style="font-family: 'Noto Serif TC', serif; font-size: ${titleSize}; letter-spacing: 0.04em;">${item.cn || ''}</p>
+                                <p class="text-white/85 italic leading-tight drop-shadow mt-0.5" style="font-family: 'Playfair Display', Georgia, serif; font-size: ${enSize};">${item.en || ''}</p>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+
+                // 分頁用更鬆的 grid（4/8）讓卡片間距舒適，圓角樣式由 .section-card 覆寫
+                cardsHtml = `
+                    <section class="max-w-screen-2xl mx-auto px-4">
+                        <div class="grid grid-cols-3 md:grid-cols-6 gap-3 section-grid">
+                            ${cols}
+                        </div>
+                    </section>
+                `;
+            }
+
+            mainArea.innerHTML = heroHtml + cardsHtml;
+        }
+
         // 検索窓トグル処理
         function toggleSearchInput() {
             const panel = document.getElementById('search-panel');
@@ -1345,9 +1435,73 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // 統一處理「返回主頁」：分頁時用 backToHome，主頁時用 scrollToHome
+        function goHome() {
+            if (currentSection) {
+                backToHome();
+            } else {
+                scrollToHome();
+            }
+        }
+
+        // 更新 Dock 顯示（分頁模式時第二格變為分頁名稱 + 齒輪）
+        function updateDock() {
+            const homeBtn = document.getElementById('dock-home');
+            const sectionBtn = document.getElementById('dock-section');
+            if (!homeBtn || !sectionBtn) return;
+
+            // 移除所有 active
+            document.querySelectorAll('.dock-item').forEach(b => b.classList.remove('active'));
+
+            if (currentSection && currentSectionMeta) {
+                // 分頁模式：主頁按鈕不 active，第二格顯示分頁名 + 齒輪
+                const sectionName = currentSectionMeta.cn || currentSection;
+                sectionBtn.innerHTML = `<i class="fas fa-gear"></i><span class="uppercase">${sectionName}</span>`;
+                sectionBtn.onclick = null; // 分頁中點擊此按鈕無動作（已在分頁中）
+                sectionBtn.classList.add('active');
+            } else {
+                // 主頁模式：主頁按鈕 active，第二格恢復為模擬器
+                homeBtn.classList.add('active');
+                sectionBtn.innerHTML = `<i class="fas fa-cube"></i><span class="uppercase">模擬器</span>`;
+                sectionBtn.onclick = () => handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html');
+            }
+        }
+
+        // 分頁狀態：null = 主頁，否則為當前分頁名稱（如 'oldsys'）
+        let currentSection = null;
+        let currentSectionMeta = null;
+
         function handleNavigation(url) {
             if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
+            // insys:// 路由：insys://<sectionName> 開啟分頁
+            if (url.startsWith('insys://')) {
+                const sectionName = url.replace('insys://', '').trim();
+                openSectionPage(sectionName);
+                return;
+            }
             window.location.href = url;
+        }
+
+        // 開啟分頁
+        function openSectionPage(sectionName) {
+            // 找到帶 insys://<sectionName> URL 的原始卡片，作為分頁 hero head
+            currentSectionMeta = rawData.find(d => d.url === `insys://${sectionName}`) || null;
+            currentSection = sectionName;
+            updateDock();
+            // 滾動到頂
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderContent();
+        }
+
+        // 返回主頁
+        function backToHome() {
+            currentSection = null;
+            currentSectionMeta = null;
+            updateDock();
+            // 還原非 Grid View（如果有切換過）
+            if (isGridView) toggleGridView();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderContent();
         }
 
         function setFilter(filterType) {
