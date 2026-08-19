@@ -141,6 +141,13 @@
         }
         #card-detail-back { transition: transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 360ms ease, width 360ms ease, margin 360ms ease; }
         #card-detail-back.entering { animation: backIn 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        /* 影片播放時 X 左方的返回鈕：顯示/隱藏有淡入動畫 */
+        #card-video-back { animation: videoBackIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        #card-video-back.hidden { animation: none; }
+        @keyframes videoBackIn {
+            0%   { opacity: 0; transform: translateX(6px) scale(0.85); }
+            100% { opacity: 1; transform: translateX(0)   scale(1);    }
+        }
         @keyframes backIn {
             0%   { opacity: 0; transform: translateX(-12px) scale(0.6) rotate(-90deg); }
             100% { opacity: 1; transform: translateX(0)      scale(1)   rotate(0);     }
@@ -735,9 +742,16 @@
                     <div id="card-detail-title" class="text-lg md:text-xl font-extrabold text-slate-800 truncate">--</div>
                 </div>
             </div>
-            <button onclick="closeCardDetail()" class="w-10 h-10 rounded-full bg-white/85 hover:bg-white ring-1 ring-white/40 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shrink-0 backdrop-blur-md" aria-label="關閉">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- 返回上一級：影片播放時才顯示（renderMediaView / switchMediaTab 控制） -->
+                <button id="card-video-back" onclick="cardDetailBack()" title="返回上一級" aria-label="返回上一級"
+                        class="hidden w-10 h-10 rounded-full bg-white/85 hover:bg-white ring-1 ring-white/40 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all shrink-0 backdrop-blur-md active:scale-90">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </button>
+                <button onclick="closeCardDetail()" class="w-10 h-10 rounded-full bg-white/85 hover:bg-white ring-1 ring-white/40 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shrink-0 backdrop-blur-md" aria-label="關閉">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
         <div id="card-detail-loading" class="relative z-10 flex-1 flex flex-col items-center justify-center text-slate-700 text-xs tracking-widest uppercase" style="display:none;">
             <i class="fas fa-circle-notch fa-spin text-3xl mb-4 text-emerald-500"></i>
@@ -2694,6 +2708,9 @@
         function cardDetailBack() {
             setHeader('Volume', __detailVolName, false);
             document.getElementById('card-detail-icon').innerHTML = `<i class="fas fa-folder-open text-emerald-600 text-sm"></i>`;
+            // 返回 HW 列表時，把 header 上的「影片返回鈕」收回
+            const backRight = document.getElementById('card-video-back');
+            if (backRight) backRight.classList.add('hidden');
             renderHWList('back');
         }
 
@@ -2703,8 +2720,10 @@
             bodyEl.classList.remove('detail-pane', 'pane-back');
             void bodyEl.offsetWidth;
             bodyEl.classList.add('detail-pane');
-            // 顯示 header 返回按鈕（讓用戶可返回上一級 HW 列表，不再只能 X 關閉整個 modal）
-            setHeader('Now Playing', `${group[0].range || group[0].id}`, true);
+            // 進入影片播放：更新 header 標題，並顯示 X 左方的「返回上一級」按鈕
+            setHeader('Now Playing', `${group[0].range || group[0].id}`, false);
+            const backRight = document.getElementById('card-video-back');
+            if (backRight) backRight.classList.remove('hidden');
             document.getElementById('card-detail-icon').innerHTML = `<i class="fas fa-play text-emerald-600 text-sm"></i>`;
             bodyEl.innerHTML = `
                 <div class="flex gap-2 overflow-x-auto hide-scrollbar mb-4 pb-1">
@@ -2740,11 +2759,6 @@
             return `
                 <div class="aspect-video bg-black relative" id="${id}-wrap">
                     <div id="${id}" class="w-full h-full"></div>
-                    <!-- 左上角返回按鈕（黑色玻璃，覆蓋在 YouTube 上面，點擊返回上一級 HW 列表） -->
-                    <button onclick="cardDetailBack()" title="返回上一級" aria-label="返回上一級"
-                            class="yt-back-btn absolute top-3 left-3 w-9 h-9 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md ring-1 ring-white/25 flex items-center justify-center text-white z-20 transition-all active:scale-90 shadow-lg">
-                        <i class="fas fa-arrow-left text-sm"></i>
-                    </button>
                     <!-- 右下角全螢幕按鈕（覆蓋在 YouTube 原生 controls 上） -->
                     <button onclick="toggleFullscreen()" title="全螢幕"
                             class="yt-fs-btn absolute bottom-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center z-10">
@@ -2772,11 +2786,6 @@
         function renderExternalLink(g, ts) {
             return `
                 <div class="aspect-video relative flex flex-col items-center justify-center bg-slate-100 text-slate-500 p-6 text-center">
-                    <!-- 左上角返回按鈕（非 YouTube 類型，灰底，點擊返回上一級 HW 列表） -->
-                    <button onclick="cardDetailBack()" title="返回上一級" aria-label="返回上一級"
-                            class="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/85 hover:bg-white ring-1 ring-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 z-20 transition-all active:scale-90 shadow-sm backdrop-blur-md">
-                        <i class="fas fa-arrow-left text-sm"></i>
-                    </button>
                     <i class="fas fa-link text-3xl mb-3 text-slate-400"></i>
                     <div class="text-sm font-bold mb-2">${escapeHtml(ts.label)}</div>
                     <a href="${escapeAttr(g.url)}" target="_blank" rel="noopener"
@@ -2809,8 +2818,10 @@
                 }
             });
             __ytLastVideoKey = `${__detailVolName}::${g.id}::${g.range || '0'}`;
-            // 切換 range 時更新 header 標題（保持返回按鈕顯示）
-            setHeader('Now Playing', `${g.range || g.id}`, true);
+            // 切換 range 時更新 header 標題（保持 X 左方返回按鈕顯示）
+            setHeader('Now Playing', `${g.range || g.id}`, false);
+            const backRight = document.getElementById('card-video-back');
+            if (backRight) backRight.classList.remove('hidden');
             // 切換 range 時重新渲染簽到按鈕
             setTimeout(() => renderAttendanceBar(__detailVolName, g.id, g.range || '0'), 80);
         }
@@ -2839,6 +2850,9 @@
             document.body.classList.add('is-closing');
             modal.classList.remove('modal-open');
             modal.classList.add('modal-closing');
+            // 收回 X 左方的「返回上一級」按鈕，避免下次打開 modal 時殘留
+            const backRight = document.getElementById('card-video-back');
+            if (backRight) backRight.classList.add('hidden');
             setTimeout(() => {
                 modal.classList.add('pointer-events-none');
                 modal.classList.remove('modal-closing');
