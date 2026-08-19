@@ -54,7 +54,20 @@
             height: 100%;
             background: #81D8D0;
             border-radius: 9999px;
-            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            /* 純 CSS 動畫:0% → 92% 線性 2.5s,無限循環式被 GAS 完成事件打斷 */
+            animation: barFill 2.5s linear forwards;
+        }
+        @keyframes barFill {
+            from { width: 0%; }
+            to   { width: 92%; }
+        }
+        /* GAS 回來後加 .complete 類,0.3s 衝到 100% */
+        .loading-bar-progress.complete {
+            animation: barComplete 0.3s linear forwards;
+        }
+        @keyframes barComplete {
+            from { width: 92%; }
+            to   { width: 100%; }
         }
 
         body {
@@ -430,8 +443,8 @@
             osc.start(); osc.stop(audioCtx.currentTime + 0.03);
         }
 
-        let loadingInterval = null;
-        let progressVal = 0;
+        let loadingInterval = null; // 保留(可能其他模組用)
+        let progressVal = 0;        // 保留(可能其他模組用)
         let authResult = null;
         let authErrorMessage = "";
         let reassuringInterval = null;
@@ -472,10 +485,12 @@
             if (reassuringText) reassuringText.style.opacity = "0";
         }
 
-        // ===== 核心修改：移除 AbortController，改用純 fetch =====
+        // ===== 簡化版：用 AbortController 取消舊請求，進度條純 CSS 動畫 =====
+        let currentFetchController = null; // ★ 追蹤當前 fetch,用於 abort 舊請求
+
         function handleLogin(event) {
             if (event) event.preventDefault();
-            
+
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             const userVal = document.getElementById('username').value.trim();
@@ -489,8 +504,14 @@
                 return;
             }
 
+            // ★ 關鍵:取消上一次未完成的請求,避免競態
+            if (currentFetchController) {
+                currentFetchController.abort();
+            }
+            const controller = new AbortController();
+            currentFetchController = controller;
+
             // 重置所有狀態
-            if (loadingInterval) clearInterval(loadingInterval);
             authResult = null;
             authErrorMessage = "";
 
@@ -509,17 +530,35 @@
                 body: JSON.stringify({
                     username: userVal,
                     password: passVal
-                })
+                }),
+                signal: controller.signal  // ★ 綁定 signal
             })
             .then(response => {
                 const elapsed = (Date.now() - startTime) / 1000;
-                console.log(`✅ GAS 回應時間：${elapsed.toFixed(2)} 秒`);
+                console.group(`[GAS] ✅ 收到響應 — 耗時 ${elapsed.toFixed(2)}s`);
+                console.log(`Status: ${response.status}, ok: ${response.ok}`);
+                console.log(`Headers:`, [...response.headers.entries()]);
+                console.groupEnd();
                 if (!response.ok) {
                     throw new Error("HTTP status " + response.status);
                 }
-                return response.json();
+                return response.text();   // 先讀 raw text，方便診斷
+            })
+            .then(text => {
+                // ★ 確認這仍是當前請求,舊請求的響應直接丟棄
+                if (controller !== currentFetchController) return;
+                console.log(`[GAS] Raw body (前 200 字):`, text.substring(0, 200));
+                try {
+                    return JSON.parse(text);
+                } catch (parseErr) {
+                    console.error(`[GAS] ❌ JSON 解析失敗 — text:`, text);
+                    throw new Error("JSON parse failed: " + parseErr.message);
+                }
             })
             .then(data => {
+                if (!data) return; // 被 abort 後丟棄
+                if (controller !== currentFetchController) return; // ★ 再次確認
+                console.log(`[GAS] Parsed data:`, data);
                 if (data.success) {
                     if (data.token) localStorage.setItem('jwt_token', data.token);
                     if (data.role) localStorage.setItem('user_role', data.role);
@@ -536,13 +575,34 @@
                     authResult = true;
                 } else {
                     authErrorMessage = data.message || "帳號或密碼錯誤";
-                    authResult = false; 
+                    authResult = false;
                 }
+                completeLoadingAnimation(); // ★ GAS 響應後觸發進度條衝 100%
             })
             .catch(err => {
-                console.error("❌ 連線到 Guard API 失敗:", err);
-                authErrorMessage = "認證中心伺服器連線異常";
+                // ★ 若是 abort,完全靜默(這是預期的競態取消)
+                if (err.name === 'AbortError') {
+                    console.log(`[GAS] 請求被中止(被新登入覆蓋,屬正常)`);
+                    return;
+                }
+                // 確認這仍是當前請求,否則丟棄
+                if (controller !== currentFetchController) return;
+
+                // 詳細分類錯誤類型
+                let detail = "未知錯誤";
+                if (err.name === 'TypeError' && /Failed to fetch|NetworkError/i.test(err.message)) {
+                    detail = "CORS / 網路錯誤 (GAS 可能未授權,或瀏覽器擋了)";
+                } else if (err.message.startsWith('HTTP status')) {
+                    detail = err.message;
+                } else if (err.message.startsWith('JSON parse failed')) {
+                    detail = "GAS 返回的不是有效 JSON";
+                }
+                console.error(`[GAS] ❌ 失敗 — name: ${err.name}, message: ${err.message}`);
+                console.error(`[GAS] 診斷結果: ${detail}`);
+                console.error(`[GAS] Stack:`, err.stack);
+                authErrorMessage = "認證中心伺服器連線異常 (" + detail + ")";
                 authResult = false;
+                completeLoadingAnimation(); // ★ 即使失敗也要觸發,讓用戶看到 modal
             });
         }
 
@@ -596,7 +656,7 @@
             startReassuringMessages();
         }
 
-        // ===== 修改進度條卡頓上限：從 45 提升至 70 =====
+        // ===== 簡化版：無 setInterval,進度條純 CSS 動畫 =====
         function runLoadingLoop() {
             const progress = document.getElementById('bar-progress');
             const statusText = document.getElementById('status-text');
@@ -606,51 +666,35 @@
             loadingInline.style.opacity = "1";
             loadingInline.style.transform = "translateY(-40px)";
 
-            progressVal = 0;
-            const statusMessages = ["Syncing modules", "Loading assets", "Configuring workspace", "Environment check", "Optimizing core", "Finalizing"];
-            let messageIndex = 0;
+            // ★ 重置進度條 CSS 動畫(移除 .complete 觸發重新動畫)
+            progress.classList.remove('complete');
+            // 強制 reflow,讓瀏覽器重新觸發 animation
+            void progress.offsetWidth;
 
-            if (loadingInterval) clearInterval(loadingInterval);
+            // 啟動安撫訊息(原本就有)
+            startReassuringMessages();
+        }
 
-            loadingInterval = setInterval(() => {
-                if (authResult !== null) {
-                    // 驗證結果已回傳，加速填滿
-                    progressVal += Math.random() * 8 + 6;
-                } else {
-                    // 等待驗證中：ease-out 漸進幅度，避免在 70% 撞牆卡頓
-                    // 上限提至 92%，靠近上限時遞增幅度自動衰減
-                    if (progressVal < 92) {
-                        const remaining = 92 - progressVal;
-                        const rawStep = Math.random() * 2.5 + 1.0;     // 1.0 ~ 3.5
-                        const easedStep = Math.min(rawStep, remaining * 0.4);
-                        progressVal += easedStep;
-                    }
-                }
+        // ★ GAS 響應後呼叫:0.3s 衝到 100%,然後顯示歡迎 modal
+        function completeLoadingAnimation() {
+            const progress = document.getElementById('bar-progress');
+            const loadingInline = document.getElementById('loading-inline-container');
 
-                if (progressVal >= 100) {
-                    progressVal = 100;
-                    progress.style.width = '100%';
-                    clearInterval(loadingInterval);
-                    stopReassuringMessages();
+            // 觸發 .complete 動畫(0% → 100% 在 0.3s)
+            progress.classList.add('complete');
 
-                    loadingInline.style.opacity = "0";
-                    loadingInline.style.transform = "translateY(-60px)";
-                    document.getElementById('landing-screen').style.opacity = "0";
-                    
-                    setTimeout(() => { 
-                        showWelcomeModal();
-                    }, 600);
-                } else {
-                    progress.style.width = progressVal + '%';
+            stopReassuringMessages();
 
-                    const targetIdx = Math.min(Math.floor((progressVal / 100) * statusMessages.length), statusMessages.length - 1);
-                    if (targetIdx !== messageIndex) {
-                        messageIndex = targetIdx;
-                        statusText.innerText = statusMessages[messageIndex];
-                        playLoadingTick(800 + (messageIndex * 50));
-                    }
-                }
-            }, 50);
+            // 0.3s (動畫時間) 後收起 loading,600ms 後顯示 modal
+            setTimeout(() => {
+                loadingInline.style.opacity = "0";
+                loadingInline.style.transform = "translateY(-60px)";
+                document.getElementById('landing-screen').style.opacity = "0";
+
+                setTimeout(() => {
+                    showWelcomeModal();
+                }, 600);
+            }, 300);
         }
 
         function showWelcomeModal() {
