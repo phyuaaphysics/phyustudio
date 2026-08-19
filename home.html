@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Lumina Studio</title>
 
-    <!-- 預連線：圖床 + Google Sheets + 字型 -->
     <link rel="preconnect" href="https://i.ibb.co" crossorigin>
     <link rel="preconnect" href="https://docs.google.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -43,7 +42,7 @@
             --glacier-card-border: rgba(255, 255, 255, 0.08);
         }
 
-        /* 日夜切換動畫（跟 template 一致） */
+        /* 日夜切换动画 */
         #dark-mode-toggle:checked + .theme-track { background-color: #1e293b; border-color: #0f172a; }
         #dark-mode-toggle:checked + .theme-track .theme-stars { opacity: 1 !important; }
         #dark-mode-toggle:checked + .theme-track .theme-knob { transform: translateX(0px) !important; }
@@ -53,21 +52,23 @@
 
         body, .logo-bar, .dock-nav { transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease; }
 
-        /* 跟 template 一致：html 鎖 viewport，body 內部捲 */
-        html { scroll-behavior: smooth; height: 100%; overflow: hidden; }
+        /* 简化滚动：html自然滚动，body不限制高度，由内容撑开 */
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Plus Jakarta Sans', 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg);
             color: var(--glacier-text);
             -webkit-tap-highlight-color: transparent;
-            height: 100%; overflow-y: auto;
-            /* 移动端滚动优化 */
             -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* template logo-bar 結構（fixed top） */
+        /* logo-bar 固定 */
         .logo-bar {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 120;
             background-color: var(--glacier-glass);
@@ -79,12 +80,16 @@
         }
         body.dark-mode .logo-bar { border-bottom-color: rgba(255,255,255,0.06); }
 
-        /* page-content：減少 icon bar 跟 hero 之間的 gap（緊貼一點） */
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 88px); padding-bottom: 100px; }
-        @media (max-width: 768px) { #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 82px); } }
+        /* page-content 顶部留出logo高度 */
+        #page-content {
+            padding-top: calc(env(safe-area-inset-top, 0px) + 88px);
+            padding-bottom: 100px;
+        }
+        @media (max-width: 768px) {
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 82px); }
+        }
 
-        /* Hero 從 page-content 內頂部開始（緊接 logo bar） */
-        .nf-hero { margin-top: 0; }
+        /* Hero */
         .nf-hero {
             position: relative; z-index: 1;
             width: 100%; height: 75vh; overflow: hidden;
@@ -110,7 +115,6 @@
             padding: 0 max(40px, 5vw); z-index: 2; max-width: 700px;
             text-align: left;
         }
-        /* 套用舊版 hero-classical：大中文 + Playfair italic 英文 */
         .nf-hero-cn {
             font-family: 'Noto Serif TC', 'Songti TC', serif;
             font-size: clamp(40px, 5vw, 64px);
@@ -171,7 +175,7 @@
         .nf-row-arrow.right { right: 0; border-radius: 6px 0 0 6px; }
         .nf-row-arrow:hover { background: rgba(229,9,20,0.85); color: #fff; }
 
-        /* Card (Netflix 風) */
+        /* Card */
         .nf-card {
             position: relative; flex: 0 0 auto;
             width: 280px; aspect-ratio: 16/9;
@@ -180,6 +184,7 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
             cursor: pointer; transform-origin: center center;
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform; /* 仅保留卡片自身的加速 */
         }
         .nf-card:hover {
             box-shadow: 0 18px 40px -8px rgba(0,0,0,0.25);
@@ -205,7 +210,6 @@
             position: absolute; left: 14px; right: 14px; bottom: 12px;
             color: #fff; z-index: 2; pointer-events: none;
         }
-        /* 卡片標題 - 跟 hero banner 統一：Noto Serif TC 中文 + Playfair italic 英文 */
         .nf-card-title {
             font-family: 'Noto Serif TC', 'Songti TC', serif;
             font-size: 22px; font-weight: 700; color: #fff;
@@ -213,13 +217,11 @@
             text-shadow: 0 2px 12px rgba(0,0,0,0.5);
             transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.45s cubic-bezier(0.16, 1, 0.3, 1);
             transform-origin: left bottom;
-            will-change: transform;
         }
         .nf-card:hover .nf-card-title {
             transform: translateY(-2px) scale(1.04);
             letter-spacing: 0.06em;
         }
-
         .nf-card-sub {
             font-family: 'Playfair Display', serif;
             font-style: italic; font-weight: 500;
@@ -239,7 +241,6 @@
         }
         .nf-card-sub i { font-size: 10px; font-style: normal; }
 
-        /* 卡片右上標籤徽章 - 跟 sub 同步,慢一點 */
         .nf-card-tag {
             position: absolute; top: 12px; right: 12px; z-index: 2;
             display: inline-flex; align-items: center; gap: 5px;
@@ -259,7 +260,6 @@
             border-color: rgba(255,255,255,0.35);
         }
 
-        /* 卡片右下 hover 圓形按鈕 - 跟 title 同步浮出 */
         .nf-card-action {
             position: absolute; bottom: 14px; right: 14px;
             width: 34px; height: 34px; border-radius: 50%;
@@ -275,14 +275,12 @@
         .nf-card:hover .nf-card-action { opacity: 1; transform: translate(0, 0) scale(1); }
         .nf-card-action:hover { background: #fff; transform: scale(1.1) rotate(-45deg); transition-delay: 0s; }
 
-        /* Large card 標題更大 - 跟 hero banner 比例 */
         .nf-card.large .nf-card-title { font-size: 28px; letter-spacing: 0.05em; }
         .nf-card.large .nf-card-sub { font-size: 16px; }
-        /* Small card 標題更小 - 維持小卡可讀性 */
         .nf-card.small .nf-card-title { font-size: 16px; line-height: 1.15; }
         .nf-card.small .nf-card-sub { font-size: 12px; }
 
-        /* Quote 卡片（套用舊版 Playfair italic + uppercase author） */
+        /* Quote 卡片 */
         .nf-quote-card {
             padding: 22px; border-radius: 12px;
             background: var(--glacier-card);
@@ -292,7 +290,6 @@
             display: flex; flex-direction: column; justify-content: center;
             position: relative; overflow: hidden;
         }
-        /* 巨大引號裝飾（套用舊版） */
         .nf-quote-card::before {
             content: '\201C'; position: absolute;
             top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -336,7 +333,7 @@
         @media (max-width: 900px)  { .nf-grid-view { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 600px)  { .nf-grid-view { grid-template-columns: repeat(2, 1fr); } }
 
-        /* Tab 內 portrait 卡片牆（手機 3 欄 / 平板 4 / 桌面 5-6） */
+        /* Tab 內 portrait 卡片牆 */
         .nf-tab-wall {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -355,7 +352,7 @@
         .nf-tab-wall .nf-card.portrait .nf-card-title { font-size: 18px; line-height: 1.15; font-weight: 700; margin-bottom: 3px; color: #fff; letter-spacing: 0.04em; }
         .nf-tab-wall .nf-card.portrait .nf-card-sub { font-size: 13px; line-height: 1.1; color: #fff; opacity: 0.9; font-style: italic; }
 
-        /* Archive hero (template 的 sec-archive) */
+        /* Archive hero */
         .archive-hero {
             position: relative; width: 100%;
             height: 30vh; max-height: 320px;
@@ -382,7 +379,6 @@
         body.dark-mode .nf-search-input { background-color: rgba(30, 41, 59, 0.6); }
         .nf-search-input::placeholder { color: var(--glacier-text); opacity: 0.5; }
 
-        /* Profile / logout icons */
         .nf-avatar, .nf-logout-btn {
             width: 36px; height: 36px;
             display: flex; align-items: center; justify-content: center;
@@ -394,7 +390,6 @@
         .nf-avatar:hover, .nf-logout-btn:hover { opacity: 1; background: rgba(14,165,233,0.1); }
         .nf-profile-group { display: flex; align-items: center; gap: 4px; }
 
-        /* Loader (跟 template 的 .loader 一致) */
         .loader {
             display: flex; justify-content: center; align-items: center;
             padding: 80px 20px;
@@ -410,7 +405,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Dock 跟 template 1:1 一致 */
+        /* Dock */
         .dock-wrapper {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
@@ -451,7 +446,6 @@
         .dock-item.active span { opacity: 1; }
         .dock-item:hover { color: var(--glacier-primary); }
 
-        /* dock 收起時底部的小 handle bar（跟 template 一致） */
         .dock-trigger-bar {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
@@ -464,14 +458,12 @@
         }
         .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
 
-        /* Mobile - dock 完全照 template:只改寬度,其他跟 desktop 一致 */
         @media (max-width: 768px) {
             .dock-wrapper { width: 92%; max-width: 400px; }
         }
 
-        /* ========== Mobile row: 強制 portrait + 縮小,2.5 張可見 ========== */
+        /* Mobile row */
         @media (max-width: 768px) {
-            /* 強制所有 nf-card 在 mobile row 是 portrait,140px 寬 (2.5 張可見,半張露臉) */
             .nf-row .nf-card,
             .nf-row .nf-card.large,
             .nf-row .nf-card.small,
@@ -480,18 +472,15 @@
                 aspect-ratio: 3/4;
                 border-radius: 10px;
             }
-            /* 縮小 row gap + padding 讓更多空間給卡片 */
             .nf-row { gap: 6px; padding: 12px 0 18px; }
             .nf-section { padding: 0 12px; margin-bottom: 28px; }
             .nf-section-title { font-size: 16px; margin-bottom: 8px; }
-            /* card 內 title/sub 在 mobile 配合稍大卡 */
             .nf-row .nf-card .nf-card-title { font-size: 15px; letter-spacing: 0.03em; }
             .nf-row .nf-card .nf-card-sub { font-size: 12px; }
             .nf-row .nf-card .nf-card-tag { font-size: 9px; padding: 3px 7px; top: 8px; right: 8px; }
             .nf-row .nf-card .nf-card-action { width: 28px; height: 28px; font-size: 11px; bottom: 10px; right: 10px; }
             .nf-row .nf-card .nf-card-default { left: 12px; right: 12px; bottom: 10px; }
         }
-        /* 極小螢幕 (≤360px) 改 125px 保持 2.5 張比例 */
         @media (max-width: 360px) {
             .nf-row .nf-card,
             .nf-row .nf-card.large,
@@ -502,7 +491,6 @@
             .nf-section { padding: 0 8px; }
         }
 
-        /* Tab back button */
         .nf-tab-back-bar {
             display: flex; align-items: center; gap: 8px;
             padding: 12px max(20px, 4vw); margin-bottom: 16px;
@@ -517,7 +505,7 @@
         }
         .nf-tab-back-btn:hover { background: var(--glacier-primary); color: #fff; }
 
-        /* ========== 自製系統風格確認對話框 (iOS damping animation + 模糊背景) ========== */
+        /* Dialog */
         .nf-dialog-overlay {
             position: fixed; inset: 0; z-index: 9999;
             display: flex; align-items: center; justify-content: center;
@@ -619,7 +607,7 @@
             background: var(--glacier-card-border);
         }
 
-        /* ========== More menu (三橫 icon 展開的 fade menu) ========== */
+        /* More menu */
         .nf-more-menu {
             position: absolute;
             top: calc(100% + 8px);
@@ -664,7 +652,7 @@
             background: var(--glacier-card-border);
         }
 
-        /* ========== 搜尋 panel（從 menu 點搜尋後展開,固定在 logo bar 下方） ========== */
+        /* Search panel */
         .nf-search-panel {
             position: fixed;
             top: calc(env(safe-area-inset-top, 0px) + 68px + 6px);
@@ -727,13 +715,12 @@
         }
         .nf-search-panel-close:hover { background: rgba(14, 165, 233, 0.1); opacity: 1; }
 
-        /* Hide class */
         .hidden-class { display: none !important; }
     </style>
 </head>
-<body class="pb-40 hide-scrollbar">
+<body class="hide-scrollbar">
 
-    <!-- =========== 頂部 nav（跟 template logo-bar 一致） =========== -->
+    <!-- =========== 頂部 nav =========== -->
     <header id="header-root">
         <div class="logo-bar px-6" id="logo-nav-bar">
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
@@ -769,7 +756,6 @@
                             </div>
                         </div>
                     </label>
-                    <!-- 三橫 icon + More menu (搜尋/重新整理/登出) -->
                     <div class="relative" id="nf-more-wrap">
                         <button id="nf-more-btn" onclick="toggleMoreMenu(event)" title="更多" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
                             <i class="fas fa-bars text-lg"></i>
@@ -793,9 +779,8 @@
         </div>
     </header>
 
-    <!-- =========== 主內容區（跟 template page-content 結構一致） =========== -->
+    <!-- =========== 主內容區 =========== -->
     <div id="page-content">
-        <!-- 動態渲染：hero (若有 type=head 卡) + section rows + archive -->
         <div id="main-content-area">
             <div class="loader">正在從數據庫獲取內容...</div>
         </div>
@@ -813,7 +798,7 @@
         </div>
     </div>
 
-    <!-- =========== Dock（跟 template 一致 4 格,手機也顯示） =========== -->
+    <!-- =========== Dock =========== -->
     <div id="dock-nav-wrapper" class="dock-wrapper">
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
@@ -836,7 +821,7 @@
     </div>
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
-    <!-- ========== 搜尋 panel（從三橫 menu 點搜尋後展開） ========== -->
+    <!-- ========== 搜尋 panel ========== -->
     <div id="nf-search-panel" class="nf-search-panel" role="search" aria-hidden="true">
         <div class="nf-search-panel-input-wrap">
             <i class="fas fa-search nf-search-panel-icon"></i>
@@ -850,7 +835,7 @@
         </div>
     </div>
 
-    <!-- ========== 自製系統風格確認對話框 ========== -->
+    <!-- ========== Dialog ========== -->
     <div id="nf-dialog-overlay" class="nf-dialog-overlay" onclick="nfDialogCancel(event)" role="dialog" aria-modal="true" aria-labelledby="nf-dialog-title">
         <div class="nf-dialog-card" onclick="event.stopPropagation()">
             <div id="nf-dialog-icon" class="nf-dialog-icon nf-icon-warn">
@@ -867,7 +852,7 @@
     </div>
 
     <script>
-        // =========== 1. 安全 LocalStorage 封裝（跟 template 的 storage 一致） ===========
+        // =========== 1. 安全 LocalStorage ===========
         const storage = {
             getItem(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
             setItem(key, val) { try { localStorage.setItem(key, val); } catch(e) {} },
@@ -875,22 +860,20 @@
             clear() { try { localStorage.clear(); } catch(e) {} }
         };
 
-        // =========== 2. 配置（跟 template 一致） ===========
+        // =========== 2. 配置 ===========
         const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
         const SHEET_TAB = 'FRONT_NEW';
         const META_TAB = '_META';
         const SHEET_CSV = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
         const META_CSV  = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(META_TAB)}&range=A1:A1`;
 
-        // =========== 3. 狀態（跟 template 一致 + home card 擴展） ===========
+        // =========== 3. 狀態 ===========
         let rawData = [];
         let isGridView = false;
         let searchQuery = '';
         let allCardsCache = null;
         let currentTab = null;
         const LS = { cards: 'lumina_cards_v1', ver: 'lumina_cards_v1_ver' };
-        // 動態欄目：標題直接用 F欄 (section) 值,大小寫由卡片決定
-        // quote 欄目預設用空 options(讓卡片本身是 quote type 處理樣式)
         const SECTION_DEFAULTS = { quotes: {} };
         const TAB_DOCK_ICONS = {
             oldsys:    { icon: 'fas fa-archive',    label: '庫存',     color: '#f59e0b' },
@@ -901,7 +884,7 @@
             quotes:    { icon: 'fas fa-quote-left', label: '引言',     color: '#ec4899' },
         };
 
-        // =========== 4. CSV 解析（從 home card 移植） ===========
+        // =========== 4. CSV 解析 ===========
         function parseCSV(text) {
             const rows = []; let row = ['']; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
@@ -923,7 +906,6 @@
             return rows;
         }
 
-        // 12-column 解析 (home card 邏輯)
         function sheetToCards(rows) {
             if (!rows.length) return [];
             const header = rows[0].map(h => h.trim().toLowerCase());
@@ -976,7 +958,7 @@
         function escapeAttr(s) { return (s || '').replace(/'/g, '%27').replace(/"/g, '%22'); }
         function escapeHTML(s) { return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
-        // =========== 6. 卡片 onclick 處理 ===========
+        // =========== 6. 卡片 onclick ===========
         function cardOnclick(c) {
             if (!c || !c.id) return '';
             const safeId = c.id.replace(/'/g, "\\'");
@@ -986,7 +968,6 @@
             const c = typeof target === 'string' ? (allCardsCache || []).find(item => item.id === target) : target;
             if (!c) return;
             const link = (c.link || '').trim();
-            // link 為空 / 標記為「無」時,顯示「開發中」提示(取代原本的靜默)
             if (!link || link === '#' || link === 'no link' || link === 'undefined' || link === 'null') {
                 nfShowStatus({
                     title: '該功能在開發中!',
@@ -1002,21 +983,19 @@
                 if (tab) navigateToTab(tab);
                 return;
             }
-            // 跟 template 一致：外連一律直連（window.location.href）
             window.location.href = link;
         }
 
-        // =========== 7. 渲染元件 ===========
+        // =========== 7. 渲染函數 ===========
         function renderHeroBanner(cards, opts = {}) {
             const hero = cards[0];
             if (!hero) return '';
             const bg = resolveBg(hero.bg);
             const imgTag = bg.url
-                ? `<img class="nf-hero-bg" src="${bg.url}" alt="">`
+                ? `<img class="nf-hero-bg" src="${bg.url}" alt="" loading="lazy" decoding="async">`
                 : `<div class="nf-hero-bg" style="${escapeAttr(bg.style)}"></div>`;
             const title = hero.cn || hero.en || 'Lumina Studio';
             const sub = hero.en || '';
-            // 套用舊版 hero-classical 風格：大中文 Noto Serif + Playfair italic 英文
             const actionsHtml = opts.hideActions ? '' : `
                 <div class="nf-hero-actions">
                     <button class="nf-btn nf-btn-primary" onclick="${cardOnclick(hero)}"><i class="fas fa-play"></i> 開始</button>
@@ -1036,7 +1015,7 @@
         function renderGridView(items) {
             const cards = items.map(c => {
                 const bg = resolveBg(c.bg);
-                const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
+                const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
                 return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
                     ${imgTag}
                     <div class="nf-card-default">
@@ -1050,10 +1029,9 @@
             return `<section class="nf-section"><div class="nf-grid-view">${cards}</div></section>`;
         }
 
-        // 渲染單張媒體卡（套用舊版 overlay 結構：tag + title + sub + action）
         function renderMediaCard(c, sizeClass) {
             const bg = resolveBg(c.bg);
-            const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
+            const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
             const tagHtml = c.section ? `<div class="nf-card-tag">${escapeHTML(c.section)}</div>` : '';
             const subHtml = c.en ? `<div class="nf-card-sub">${escapeHTML(c.en)}</div>` : '';
             return `<div class="nf-card ${sizeClass}" onclick="${cardOnclick(c)}">
@@ -1098,24 +1076,21 @@
             row.scrollBy({ left: dir * 600, behavior: 'smooth' });
         }
 
-        // =========== 8. renderCards (主渲染) - 优化版：渐进式渲染 ===========
+        // =========== 8. renderCards (关键优化：使用 requestIdleCallback 或 setTimeout) ===========
         function renderCards(container, cards) {
             allCardsCache = cards;
 
-            // 1. SPA 内部 tab 路由处理 (保持不变)
             if (currentTab) {
                 const tabItems = cards.filter(c => (c.type || '').toLowerCase() === currentTab.toLowerCase());
                 container.innerHTML = renderTabWall(currentTab, tabItems);
                 return;
             }
 
-            // 2. 主页面逻辑：排序、去重、分组 (保持不变)
             const sorted = [...cards].sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
             const deduped = [];
             const seen = new Set();
             sorted.forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); deduped.push(c); } });
 
-            // 提取 Head 卡片 (保持不变)
             let headCard = deduped.find(c => c.type && c.type.toUpperCase() === 'HEAD');
             if (headCard) {
                 const fb = sorted.find(c => c.id === headCard.id && c.type === 'hero');
@@ -1124,14 +1099,12 @@
             if (!headCard) headCard = deduped.find(c => c.type === 'hero' && (c.cn || c.en || c.bg)) || deduped.find(c => c.type === 'hero');
             const headId = headCard ? headCard.id : null;
 
-            // 搜索过滤 (保持不变)
             let filtered = deduped;
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
                 filtered = deduped.filter(c => ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase().includes(q));
             }
 
-            // 准备数据：将卡片按 section 分组 (保持不变)
             const bySection = {};
             const mainPageCards = [];
             filtered.forEach(c => {
@@ -1144,16 +1117,13 @@
                 bySection[sec].push(c);
             });
 
-            // --- 3. 【关键优化点】构建渲染任务列表，而非直接渲染 ---
-            const renderTasks = []; // 存储待渲染的HTML片段
-
-            // 3.1 生成 Hero 区域的 HTML
+            // 构建渲染任务
+            const renderTasks = [];
             let heroHtml = '';
             if (headCard && !searchQuery && !isGridView) {
                 heroHtml = renderHeroBanner([headCard]);
             }
 
-            // 3.2 生成 Grid 视图 或 Section 视图的 HTML
             let isGridViewMode = isGridView;
             let gridHtml = '';
             let sectionOrder = [];
@@ -1164,7 +1134,6 @@
                     gridHtml = renderGridView(allMain);
                 }
             } else {
-                // 确定栏目顺序
                 const seenSections = new Set();
                 filtered.forEach(c => {
                     const sec = (c.section || '').toLowerCase();
@@ -1173,69 +1142,61 @@
                         sectionOrder.push(sec);
                     }
                 });
-                // 为每个栏目生成HTML，并存入任务列表
                 for (const sec of sectionOrder) {
                     if (bySection[sec] && bySection[sec].length) {
                         const title = sec;
                         const opts = SECTION_DEFAULTS[sec] || {};
-                        // 注意：这里只生成HTML字符串，不插入DOM
                         const sectionHtml = renderSection(title, bySection[sec], { id: sec, ...opts });
                         renderTasks.push(sectionHtml);
                     }
                 }
             }
 
-            // 3.3 清空容器，准备开始渐进式渲染
             container.innerHTML = '';
 
-            // --- 4. 执行渐进式渲染 ---
-            // 4.1 首先立即渲染 Hero (如果存在)
+            // 立即插入 Hero
             if (heroHtml) {
                 container.insertAdjacentHTML('beforeend', heroHtml);
             }
-            // 4.2 如果是 Grid 视图，直接渲染 (Grid 通常卡片较多，但作为整体渲染比逐个section快)
+
             if (isGridViewMode && gridHtml) {
                 container.insertAdjacentHTML('beforeend', gridHtml);
-                // 更新 archive 显示状态
                 updateArchiveVisibility(mainPageCards.length > 0);
                 return;
             }
 
-            // 4.3 【渐进式】分批渲染各个 Section
+            // 使用 requestIdleCallback 或 setTimeout 分批插入，让出主线程
             let taskIndex = 0;
-            const BATCH_SIZE = 2; // 每次渲染2个栏目，可根据性能调整
+            const BATCH_SIZE = 1; // 每次只渲染 1 个栏目，减少压力
+
+            function scheduleNextBatch() {
+                // 使用 requestIdleCallback 允许浏览器在空闲时执行
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(() => {
+                        renderNextBatch();
+                    }, { timeout: 200 });
+                } else {
+                    setTimeout(renderNextBatch, 0);
+                }
+            }
 
             function renderNextBatch() {
                 const batchEnd = Math.min(taskIndex + BATCH_SIZE, renderTasks.length);
                 const batchHtml = renderTasks.slice(taskIndex, batchEnd).join('');
-
                 if (batchHtml) {
-                    // 使用 insertAdjacentHTML 追加，不会影响已有DOM
                     container.insertAdjacentHTML('beforeend', batchHtml);
                 }
-
                 taskIndex = batchEnd;
 
-                // 如果还有任务，继续下一批
                 if (taskIndex < renderTasks.length) {
-                    // 使用 requestAnimationFrame 或 setTimeout 让出主线程
-                    // requestAnimationFrame 在下次重绘前执行，更平滑
-                    requestAnimationFrame(() => {
-                        // 如果浏览器空闲，也可以使用 requestIdleCallback，但 rAF 兼容性更好
-                        renderNextBatch();
-                    });
+                    scheduleNextBatch();
                 } else {
-                    // 所有任务完成，更新 archive 等后续UI
                     updateArchiveVisibility(mainPageCards.length > 0);
                 }
             }
 
-            // 开始执行第一批渲染 (延迟一帧，让浏览器先处理之前的渲染)
-            requestAnimationFrame(() => {
-                renderNextBatch();
-            });
+            scheduleNextBatch();
 
-            // 辅助函数：更新 archive 显示
             function updateArchiveVisibility(show) {
                 const archive = document.getElementById('archive-section');
                 if (archive) {
@@ -1247,7 +1208,6 @@
 
         function renderTabWall(tabName, items) {
             if (!items.length) {
-                // 移除左上角返回按鈕（用 dock home 取代）,直接顯示空狀態
                 return `<div class="loader" style="margin-top:60px;">此分題暫無內容</div>`;
             }
             const entry = (allCardsCache || []).find(c => (c.link || '').toLowerCase() === ('insite://' + tabName).toLowerCase());
@@ -1256,11 +1216,10 @@
             const restCards = items.filter(c => c.id !== tabHero.id);
             const cards = restCards.map(c => renderMediaCard(c, 'portrait')).join('');
             const wallHtml = restCards.length ? `<div class="nf-tab-wall">${cards}</div>` : '';
-            // 移除左上角返回按鈕（用 dock home 取代）
             return heroHtml + wallHtml;
         }
 
-        // =========== 9. SPA 內部 tab 路由 ===========
+        // =========== 9. SPA 路由 ===========
         function getTabDockMeta(tab) {
             return TAB_DOCK_ICONS[(tab || '').toLowerCase()] || { icon: 'fas fa-folder-open', label: tab || '分頁', color: '#f59e0b' };
         }
@@ -1296,23 +1255,16 @@
             if (currentTab) { scrollPageToTop('smooth'); }
             else { handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html'); }
         }
-        // 滾到頂部（統一 helper,body 才是真正的滾動容器）
         function scrollPageToTop(behavior) {
-            behavior = behavior || 'instant' in window ? 'instant' : 'auto';
+            behavior = behavior || 'instant';
             try {
-                // 優先滾 body（html overflow:hidden 鎖 viewport,body 才是滾動元素）
-                document.body.scrollTo({ top: 0, behavior: behavior });
-            } catch (e) {
-                try { document.documentElement.scrollTo({ top: 0, behavior: behavior }); } catch(_) {}
-                try { window.scrollTo({ top: 0, behavior: behavior }); } catch(_) {}
-            }
+                window.scrollTo({ top: 0, behavior: behavior });
+            } catch(e) {}
         }
-
         function navigateToTab(tab) {
             if (!allCardsCache) return;
             currentTab = tab;
             renderCards(document.getElementById('main-content-area'), allCardsCache);
-            // 切換 tab 後從頂部開始渲染（用 instant 避免動畫延遲感）
             scrollPageToTop('instant');
             updateDockForTab();
             try { history.pushState({ tab }, '', '#' + tab); } catch(e) { location.hash = tab; }
@@ -1325,7 +1277,7 @@
             updateDockForTab();
         }
 
-        // =========== 10. fetch + cache（完全照 template initData 模式） ===========
+        // =========== 10. fetch + cache ===========
         async function fetchMetaVersion() {
             try {
                 const res = await fetch(META_CSV, { cache: 'no-store' });
@@ -1358,7 +1310,6 @@
             try { storage.setItem(LS.cards, JSON.stringify(cards)); storage.setItem(LS.ver, ver || ''); } catch (e) {}
         }
 
-        // 13 張 fallback cards
         function getFallbackCards() {
             return [
                 { id: 'fb1', type: 'head', cn: '課堂錄影', en: 'Lesson Archive', section: 'courses', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
@@ -1377,12 +1328,11 @@
             ];
         }
 
-        // =========== 11. initData（完全照 template 模式 + fallback） ===========
+        // =========== 11. initData ===========
         async function initData() {
             const mainArea = document.getElementById('main-content-area');
             if (!mainArea) return;
 
-            // Step 1: 立即 render cache（跟 template 一模一樣）
             const cachedVer = storage.getItem(LS.ver);
             const cachedData = readCache();
             let hasRenderedCache = false;
@@ -1402,7 +1352,6 @@
                 }
             }
 
-            // Step 1.5: 沒 cache → 先用 fallback 讓畫面不空白
             if (!hasRenderedCache) {
                 console.log("無 cache,先顯示 fallback");
                 const fb = getFallbackCards();
@@ -1410,7 +1359,6 @@
                 renderCards(mainArea, fb);
             }
 
-            // Step 2: 背景 fetch（3 秒 timeout 避免 sandbox 卡死）
             const timeout = new Promise(resolve => setTimeout(() => resolve('timeout'), 3000));
             const fetchJob = (async () => {
                 try {
@@ -1425,19 +1373,16 @@
             })();
             const result = await Promise.race([fetchJob, timeout]);
 
-            // Step 3: 處理結果（跟 template catch 邏輯一致）
             if (result === 'timeout') {
                 console.warn("Fetch 超時(3s) — 保持現有 cache 或 fallback");
                 return;
             }
             if (!result.ok) {
                 console.error("背景同步失敗:", result.reason);
-                // 即使失敗,fallback 已經渲染過了,畫面不會空白
                 return;
             }
             const { ver: remoteVer, cards: freshCards } = result;
             if (!freshCards || !freshCards.length) return;
-            // 版本一致 + 有 cache → 跳過
             if (cachedData && remoteVer && cachedData.ver === remoteVer) {
                 console.log("背景版本檢查完成:線上版本與快取一致,無須更新");
                 return;
@@ -1495,11 +1440,9 @@
             if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
             window.location.href = url;
         }
-        // ========== 自製系統風格確認對話框 (Promise-based) ==========
-        // 模仿 iOS 系統 damping 動畫 + 模糊背景
-        let _nfDialogResolve = null;
 
-        // 顯示純狀態 dialog (無 Promise,單按鈕或不按鈕) — 用於 sync 進度
+        // ========== Dialog ==========
+        let _nfDialogResolve = null;
         function nfShowStatus(opts) {
             const overlay = document.getElementById('nf-dialog-overlay');
             const title = document.getElementById('nf-dialog-title');
@@ -1507,11 +1450,9 @@
             const icon = document.getElementById('nf-dialog-icon');
             const cancelBtn = document.getElementById('nf-dialog-cancel');
             const confirmBtn = document.getElementById('nf-dialog-confirm');
-            const buttonsWrap = document.getElementById('nf-dialog-buttons');
 
             title.textContent = opts.title || '';
             message.innerHTML = opts.message || '';
-            // 動態 spinner icon 或結果 icon
             icon.className = 'nf-dialog-icon';
             const iconType = opts.icon || 'info';
             icon.classList.add('nf-icon-' + iconType);
@@ -1524,20 +1465,15 @@
             };
             icon.innerHTML = `<i class="fas ${iconMap[iconType] || 'fa-info'}"></i>`;
             icon.style.display = 'flex';
-
-            // 取消按鈕 (同步中沒取消,完成後有)
             cancelBtn.style.display = opts.hideCancel ? 'none' : '';
             confirmBtn.textContent = opts.confirmText || '確認';
             confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger === true);
-            // 背景點擊 = 取消
             overlay.onclick = opts.dismissOnBackdrop === false ? (e) => e.stopPropagation() : null;
-
-            _nfDialogResolve = null;  // 狀態型不用 Promise
+            _nfDialogResolve = null;
             overlay.style.display = 'flex';
             void overlay.offsetWidth;
             overlay.classList.add('nf-dialog-show');
         }
-        // 更新現有 status dialog (不重新觸發動畫)
         function nfUpdateStatus(opts) {
             const title = document.getElementById('nf-dialog-title');
             const message = document.getElementById('nf-dialog-message');
@@ -1573,7 +1509,6 @@
                 cancelBtn.textContent = opts.cancelText || '取消';
                 confirmBtn.textContent = opts.confirmText || '確認';
 
-                // icon 類型: warn / info / success / none
                 icon.className = 'nf-dialog-icon';
                 const iconType = opts.icon || 'warn';
                 if (iconType === 'none') { icon.style.display = 'none'; }
@@ -1583,9 +1518,7 @@
                     const iconMap = { warn: 'fa-exclamation', info: 'fa-info', success: 'fa-check' };
                     icon.innerHTML = `<i class="fas ${iconMap[iconType] || 'fa-exclamation'}"></i>`;
                 }
-                // 危險按鈕 (紅色) vs 普通 (藍色)
                 confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger !== false);
-                // 雙按鈕 (預設) 或單按鈕堆疊
                 buttonsWrap.classList.toggle('nf-dialog-stacked', opts.stacked === true);
                 cancelBtn.style.display = opts.hideCancel ? 'none' : '';
                 if (opts.hideCancel) {
@@ -1593,10 +1526,8 @@
                 } else {
                     confirmBtn.style.borderRadius = '';
                 }
-
                 _nfDialogResolve = resolve;
                 overlay.style.display = 'flex';
-                // 強制 reflow 確保 transition 觸發
                 void overlay.offsetWidth;
                 overlay.classList.add('nf-dialog-show');
             });
@@ -1606,7 +1537,6 @@
             nfDialogHide();
         }
         function nfDialogCancel(event) {
-            // 點擊遮罩關閉（只在點 overlay 本身時觸發,不會冒泡到 card）
             if (event && event.target && event.target.closest && event.target.closest('.nf-dialog-card')) return;
             if (_nfDialogResolve) _nfDialogResolve(false);
             nfDialogHide();
@@ -1614,12 +1544,10 @@
         function nfDialogHide() {
             const overlay = document.getElementById('nf-dialog-overlay');
             overlay.classList.remove('nf-dialog-show');
-            // 等 transition 結束後才 display:none
             setTimeout(() => {
                 if (!overlay.classList.contains('nf-dialog-show')) overlay.style.display = 'none';
             }, 450);
         }
-        // ESC 鍵取消
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && document.getElementById('nf-dialog-overlay').classList.contains('nf-dialog-show')) {
                 nfDialogCancel();
@@ -1645,7 +1573,8 @@
                 window.location.href = 'https://phyuaaphysics.github.io/phyustudio/';
             });
         }
-        // ========== 三橫 icon 展開的 More menu ==========
+
+        // ========== More menu ==========
         function toggleMoreMenu(e) {
             e.stopPropagation();
             const menu = document.getElementById('nf-more-menu');
@@ -1663,39 +1592,30 @@
                 menu.setAttribute('aria-hidden', 'true');
             }
         }
-        // 點 menu 外面自動關閉
         document.addEventListener('click', (e) => {
             const wrap = document.getElementById('nf-more-wrap');
             if (wrap && !wrap.contains(e.target)) closeMoreMenu();
         });
-        // ESC 也關 menu
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeMoreMenu();
         });
-        // 開啟搜尋 panel（從 menu 點搜尋後觸發）
+
         function openSearchPanel() {
             const panel = document.getElementById('nf-search-panel');
             if (!panel) return;
             panel.classList.add('nf-search-panel-show');
             panel.setAttribute('aria-hidden', 'false');
-            // 自動 focus
             setTimeout(() => {
                 const input = document.getElementById('search-input');
                 if (input) input.focus();
-            }, 220);  // 等進場動畫結束
+            }, 220);
         }
-        // 關閉搜尋 panel
         function closeSearchPanel() {
             const panel = document.getElementById('nf-search-panel');
             if (!panel) return;
             panel.classList.remove('nf-search-panel-show');
             panel.setAttribute('aria-hidden', 'true');
         }
-        // 切換搜尋 panel（保留向後相容,內部呼叫 openSearchPanel）
-        function focusSearchInput() {
-            openSearchPanel();
-        }
-        // 搜尋 panel 開啟時,ESC 關閉
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Escape') return;
             const panel = document.getElementById('nf-search-panel');
@@ -1703,19 +1623,15 @@
                 closeSearchPanel();
             }
         });
-        // 點搜尋 panel 外面自動關閉
         document.addEventListener('click', (e) => {
             const panel = document.getElementById('nf-search-panel');
             if (!panel || !panel.classList.contains('nf-search-panel-show')) return;
             if (panel.contains(e.target)) return;
-            // 點三橫按鈕也算「外面」(因為 menu 開了會自己管 close)
             if (e.target.closest && e.target.closest('#nf-more-btn')) return;
             closeSearchPanel();
         });
 
-        // 手動重新整理 — 不清 localStorage,只觸發重新爬 sheet,顯示同步狀態 dialog
         async function manualReload() {
-            // 顯示同步中 dialog (loading 圖示,無取消,無危險)
             nfShowStatus({
                 title: '與資料源同步中…',
                 message: '正在從 Google Sheet 拉取最新資料…',
@@ -1726,14 +1642,11 @@
             });
 
             try {
-                // 並發拉 meta + cards
                 const [verResult, cardsResult] = await Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]);
                 if (verResult.status === 'fulfilled' && cardsResult.status === 'fulfilled') {
                     const remoteVer = verResult.value;
                     const freshCards = cardsResult.value;
                     const cachedData = readCache();
-
-                    // 版本一致 + 有 cache → 已同步,無更新
                     if (cachedData && remoteVer && cachedData.ver === remoteVer) {
                         nfUpdateStatus({
                             title: '已是最新版本',
@@ -1744,7 +1657,6 @@
                         });
                         return;
                     }
-                    // 有新資料 → 寫入並重渲染
                     writeCache(freshCards, remoteVer || '');
                     rawData = freshCards;
                     allCardsCache = freshCards;
@@ -1759,7 +1671,6 @@
                     });
                     return;
                 }
-                // 其中一個失敗
                 const reason = (cardsResult.reason || verResult.reason || 'unknown').toString();
                 nfUpdateStatus({
                     title: '同步失敗',
@@ -1782,7 +1693,6 @@
 
         // =========== 13. 啟動 ===========
         document.addEventListener('DOMContentLoaded', () => {
-            // 從 URL hash 恢復 tab
             if (location.hash && location.hash.length > 1) {
                 currentTab = location.hash.slice(1);
             }
