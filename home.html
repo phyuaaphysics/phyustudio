@@ -61,6 +61,8 @@
             color: var(--glacier-text);
             -webkit-tap-highlight-color: transparent;
             height: 100%; overflow-y: auto;
+            /* 移动端滚动优化 */
+            -webkit-overflow-scrolling: touch;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -177,7 +179,6 @@
             background: var(--glacier-card);
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
             cursor: pointer; transform-origin: center center;
-            /* card 0.5s 浮起 + 陰影加深,跟 title 同步但稍快 */
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .nf-card:hover {
@@ -193,7 +194,6 @@
             width: 100%; height: 100%;
             object-fit: cover; object-position: center;
             background-color: var(--glacier-card);
-            /* 圖片用最慢的速度 (1.05s) — 主導整體節奏 */
             transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
         }
         .nf-row .nf-card:hover .nf-card-img { transform: scale(1.12); }
@@ -211,7 +211,6 @@
             font-size: 22px; font-weight: 700; color: #fff;
             line-height: 1.1; letter-spacing: 0.04em; margin-bottom: 4px;
             text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-            /* 中速 0.45s — 圖之後第一個到位 */
             transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.45s cubic-bezier(0.16, 1, 0.3, 1);
             transform-origin: left bottom;
             will-change: transform;
@@ -229,7 +228,6 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.5);
             display: flex; align-items: center; gap: 6px;
             line-height: 1.1;
-            /* sub 最快 0.35s + delay 0.1s — 第三個到位,有層次 */
             transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, letter-spacing 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             transition-delay: 0.1s;
             transform-origin: left bottom;
@@ -252,7 +250,6 @@
             padding: 4px 8px; border-radius: 999px;
             letter-spacing: 0.08em; text-transform: uppercase;
             pointer-events: none;
-            /* tag 0.4s + delay 0.05s — 跟 title 同步但稍慢 */
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease, border-color 0.4s ease;
             transition-delay: 0.05s;
         }
@@ -270,7 +267,6 @@
             display: flex; align-items: center; justify-content: center;
             color: #0a0a0a; font-size: 12px; font-weight: 700;
             z-index: 3; opacity: 0; transform: translate(6px, 6px) scale(0.85);
-            /* action 0.45s + delay 0.15s — 最後一個浮出 */
             transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
             transition-delay: 0.15s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
@@ -545,7 +541,6 @@
             overflow: hidden;
             transform: scale(0.94) translateY(8px);
             opacity: 0;
-            /* OS damping animation - iOS 系統風格 cubic-bezier(0.32, 0.72, 0, 1) */
             transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
         }
         body.dark-mode .nf-dialog-card {
@@ -1103,20 +1098,24 @@
             row.scrollBy({ left: dir * 600, behavior: 'smooth' });
         }
 
-        // =========== 8. renderCards (主渲染) ===========
+        // =========== 8. renderCards (主渲染) - 优化版：渐进式渲染 ===========
         function renderCards(container, cards) {
             allCardsCache = cards;
-            // SPA 內部 tab 路由：currentTab 優先
+
+            // 1. SPA 内部 tab 路由处理 (保持不变)
             if (currentTab) {
                 const tabItems = cards.filter(c => (c.type || '').toLowerCase() === currentTab.toLowerCase());
                 container.innerHTML = renderTabWall(currentTab, tabItems);
                 return;
             }
-            // 主頁：sort + dedup + 分組
+
+            // 2. 主页面逻辑：排序、去重、分组 (保持不变)
             const sorted = [...cards].sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
-            const deduped = []; const seen = new Set();
+            const deduped = [];
+            const seen = new Set();
             sorted.forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); deduped.push(c); } });
-            // head
+
+            // 提取 Head 卡片 (保持不变)
             let headCard = deduped.find(c => c.type && c.type.toUpperCase() === 'HEAD');
             if (headCard) {
                 const fb = sorted.find(c => c.id === headCard.id && c.type === 'hero');
@@ -1124,13 +1123,15 @@
             }
             if (!headCard) headCard = deduped.find(c => c.type === 'hero' && (c.cn || c.en || c.bg)) || deduped.find(c => c.type === 'hero');
             const headId = headCard ? headCard.id : null;
-            // filter search
+
+            // 搜索过滤 (保持不变)
             let filtered = deduped;
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
                 filtered = deduped.filter(c => ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase().includes(q));
             }
-            // 主頁只放 hero/quote
+
+            // 准备数据：将卡片按 section 分组 (保持不变)
             const bySection = {};
             const mainPageCards = [];
             filtered.forEach(c => {
@@ -1142,44 +1143,105 @@
                 if (!bySection[sec]) bySection[sec] = [];
                 bySection[sec].push(c);
             });
-            const html = [];
-            if (headCard && !searchQuery && !isGridView) html.push(renderHeroBanner([headCard]));
-            if (isGridView) {
+
+            // --- 3. 【关键优化点】构建渲染任务列表，而非直接渲染 ---
+            const renderTasks = []; // 存储待渲染的HTML片段
+
+            // 3.1 生成 Hero 区域的 HTML
+            let heroHtml = '';
+            if (headCard && !searchQuery && !isGridView) {
+                heroHtml = renderHeroBanner([headCard]);
+            }
+
+            // 3.2 生成 Grid 视图 或 Section 视图的 HTML
+            let isGridViewMode = isGridView;
+            let gridHtml = '';
+            let sectionOrder = [];
+
+            if (isGridViewMode) {
                 const allMain = mainPageCards.filter(c => (c.type || '').toLowerCase() !== 'quote');
-                if (allMain.length) html.push(renderGridView(allMain));
+                if (allMain.length) {
+                    gridHtml = renderGridView(allMain);
+                }
             } else {
-                // 動態欄目：依 F欄 (section) 自動建立,任意增加/減少都行
-                // 順序：用卡片在 sheet 出現的先後,確保穩定
-                const sectionOrder = [];
-                const seen = new Set();
+                // 确定栏目顺序
+                const seenSections = new Set();
                 filtered.forEach(c => {
                     const sec = (c.section || '').toLowerCase();
-                    if (sec && c.id !== headId && !seen.has(sec)) {
-                        seen.add(sec);
+                    if (sec && c.id !== headId && !seenSections.has(sec)) {
+                        seenSections.add(sec);
                         sectionOrder.push(sec);
                     }
                 });
+                // 为每个栏目生成HTML，并存入任务列表
                 for (const sec of sectionOrder) {
                     if (bySection[sec] && bySection[sec].length) {
-                        // 標題直接用 F欄值（sheet 填什麼就顯示什麼,完全直連）
-                        // F欄若填 'courses' → 顯示 'courses'
-                        // F欄若填 '學習旅程' → 顯示 '學習旅程'
-                        // F欄若填 '新欄目' → 自動出現 '新欄目' 欄
                         const title = sec;
                         const opts = SECTION_DEFAULTS[sec] || {};
-                        html.push(renderSection(title, bySection[sec], { id: sec, ...opts }));
+                        // 注意：这里只生成HTML字符串，不插入DOM
+                        const sectionHtml = renderSection(title, bySection[sec], { id: sec, ...opts });
+                        renderTasks.push(sectionHtml);
                     }
                 }
             }
-            if (searchQuery && !filtered.length) {
-                html.push(`<div class="loader">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
+
+            // 3.3 清空容器，准备开始渐进式渲染
+            container.innerHTML = '';
+
+            // --- 4. 执行渐进式渲染 ---
+            // 4.1 首先立即渲染 Hero (如果存在)
+            if (heroHtml) {
+                container.insertAdjacentHTML('beforeend', heroHtml);
             }
-            container.innerHTML = html.join('');
-            // 顯示 archive（如果 sheet 完全沒東西，archive 還是要顯示）
-            const archive = document.getElementById('archive-section');
-            if (archive) {
-                if (mainPageCards.length > 0) archive.classList.remove('hidden-class');
-                else archive.classList.add('hidden-class');
+            // 4.2 如果是 Grid 视图，直接渲染 (Grid 通常卡片较多，但作为整体渲染比逐个section快)
+            if (isGridViewMode && gridHtml) {
+                container.insertAdjacentHTML('beforeend', gridHtml);
+                // 更新 archive 显示状态
+                updateArchiveVisibility(mainPageCards.length > 0);
+                return;
+            }
+
+            // 4.3 【渐进式】分批渲染各个 Section
+            let taskIndex = 0;
+            const BATCH_SIZE = 2; // 每次渲染2个栏目，可根据性能调整
+
+            function renderNextBatch() {
+                const batchEnd = Math.min(taskIndex + BATCH_SIZE, renderTasks.length);
+                const batchHtml = renderTasks.slice(taskIndex, batchEnd).join('');
+
+                if (batchHtml) {
+                    // 使用 insertAdjacentHTML 追加，不会影响已有DOM
+                    container.insertAdjacentHTML('beforeend', batchHtml);
+                }
+
+                taskIndex = batchEnd;
+
+                // 如果还有任务，继续下一批
+                if (taskIndex < renderTasks.length) {
+                    // 使用 requestAnimationFrame 或 setTimeout 让出主线程
+                    // requestAnimationFrame 在下次重绘前执行，更平滑
+                    requestAnimationFrame(() => {
+                        // 如果浏览器空闲，也可以使用 requestIdleCallback，但 rAF 兼容性更好
+                        renderNextBatch();
+                    });
+                } else {
+                    // 所有任务完成，更新 archive 等后续UI
+                    updateArchiveVisibility(mainPageCards.length > 0);
+                }
+            }
+
+            // 开始执行第一批渲染 (延迟一帧，让浏览器先处理之前的渲染)
+            requestAnimationFrame(() => {
+                renderNextBatch();
+            });
+
+            // 辅助函数：更新 archive 显示
+            function updateArchiveVisibility(show) {
+                const archive = document.getElementById('archive-section');
+                if (archive) {
+                    if (show) archive.classList.remove('hidden-class');
+                    else archive.classList.add('hidden-class');
+                }
             }
         }
 
