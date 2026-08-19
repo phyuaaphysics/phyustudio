@@ -669,6 +669,69 @@
             background: var(--glacier-card-border);
         }
 
+        /* ========== 搜尋 panel（從 menu 點搜尋後展開,固定在 logo bar 下方） ========== */
+        .nf-search-panel {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 68px + 6px);
+            right: 24px;
+            width: min(360px, calc(100vw - 48px));
+            background: var(--glacier-card);
+            border: 1px solid var(--glacier-card-border);
+            border-radius: 14px;
+            box-shadow: 0 14px 40px -8px rgba(0,0,0,0.18);
+            padding: 10px 12px;
+            z-index: 125;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.96);
+            transform-origin: top right;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        body.dark-mode .nf-search-panel { box-shadow: 0 14px 40px -8px rgba(0,0,0,0.6); }
+        .nf-search-panel.nf-search-panel-show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .nf-search-panel-input-wrap {
+            position: relative;
+            display: flex; align-items: center;
+        }
+        .nf-search-panel-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 9999px;
+            padding: 9px 36px 9px 36px;
+            font-size: 14px;
+            color: var(--glacier-deep);
+            outline: none;
+            transition: border-color 0.2s, width 0.2s;
+        }
+        body.dark-mode .nf-search-panel-input { background: rgba(30, 41, 59, 0.6); }
+        .nf-search-panel-input:focus { border-color: var(--glacier-primary); }
+        .nf-search-panel-input::placeholder { color: var(--glacier-text); opacity: 0.5; }
+        .nf-search-panel-icon {
+            position: absolute; left: 12px;
+            color: var(--glacier-text); opacity: 0.6;
+            font-size: 12px; pointer-events: none;
+        }
+        .nf-search-panel-clear {
+            position: absolute; right: 8px;
+            background: none; border: none; cursor: pointer;
+            color: var(--glacier-text); opacity: 0.6;
+            font-size: 14px; padding: 4px;
+        }
+        .nf-search-panel-clear:hover { opacity: 1; }
+        .nf-search-panel-close {
+            margin-left: 6px;
+            background: none; border: none; cursor: pointer;
+            color: var(--glacier-text); opacity: 0.5;
+            padding: 4px 6px; border-radius: 6px;
+            transition: background 0.15s, opacity 0.15s;
+        }
+        .nf-search-panel-close:hover { background: rgba(14, 165, 233, 0.1); opacity: 1; }
+
         /* Hide class */
         .hidden-class { display: none !important; }
     </style>
@@ -683,11 +746,6 @@
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
                 <div class="flex items-center gap-4 md:gap-6">
-                    <div class="relative hidden sm:block">
-                        <input type="text" id="search-input" placeholder="搜尋…" oninput="handleSearch(this.value)" class="nf-search-input border border-sky-400/30 rounded-full py-1.5 pl-9 pr-9 text-sm focus:outline-none focus:border-sky-500 transition-colors w-44 focus:w-60" style="color: var(--glacier-deep);">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--glacier-text); opacity: 0.6;"></i>
-                        <button id="search-clear" onclick="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-0 transition-opacity" style="color: var(--glacier-text);"><i class="fas fa-times-circle"></i></button>
-                    </div>
                     <button id="grid-view-toggle" onclick="toggleGridView()" title="格狀排版" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
                         <i class="fas fa-border-all text-lg"></i>
                     </button>
@@ -716,16 +774,16 @@
                             </div>
                         </div>
                     </label>
-                    <!-- 三橫 icon + More menu (refresh, logout, 行動版搜尋) -->
+                    <!-- 三橫 icon + More menu (搜尋/重新整理/登出) -->
                     <div class="relative" id="nf-more-wrap">
                         <button id="nf-more-btn" onclick="toggleMoreMenu(event)" title="更多" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
                             <i class="fas fa-bars text-lg"></i>
                         </button>
                         <div id="nf-more-menu" class="nf-more-menu" role="menu" aria-hidden="true">
-                            <div class="nf-more-menu-item sm:hidden" onclick="closeMoreMenu(); focusSearchInput();" role="menuitem">
+                            <div class="nf-more-menu-item" onclick="closeMoreMenu(); openSearchPanel();" role="menuitem">
                                 <i class="fas fa-search"></i><span>搜尋</span>
                             </div>
-                            <div class="nf-more-menu-divider sm:hidden"></div>
+                            <div class="nf-more-menu-divider"></div>
                             <div class="nf-more-menu-item" onclick="closeMoreMenu(); manualReload();" role="menuitem">
                                 <i class="fas fa-rotate"></i><span>重新整理</span>
                             </div>
@@ -782,6 +840,20 @@
         </nav>
     </div>
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
+
+    <!-- ========== 搜尋 panel（從三橫 menu 點搜尋後展開） ========== -->
+    <div id="nf-search-panel" class="nf-search-panel" role="search" aria-hidden="true">
+        <div class="nf-search-panel-input-wrap">
+            <i class="fas fa-search nf-search-panel-icon"></i>
+            <input type="text" id="search-input" placeholder="搜尋…" oninput="handleSearch(this.value)" class="nf-search-panel-input" autocomplete="off">
+            <button id="search-clear" onclick="clearSearch()" class="nf-search-panel-clear" title="清除">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <button onclick="closeSearchPanel()" class="nf-search-panel-close" title="關閉">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- ========== 自製系統風格確認對話框 ========== -->
     <div id="nf-dialog-overlay" class="nf-dialog-overlay" onclick="nfDialogCancel(event)" role="dialog" aria-modal="true" aria-labelledby="nf-dialog-title">
@@ -1103,10 +1175,8 @@
 
         function renderTabWall(tabName, items) {
             if (!items.length) {
-                return `<div class="nf-tab-back-bar">
-                    <button class="nf-tab-back-btn" onclick="goBackToHome()"><i class="fas fa-arrow-left"></i> 返回首頁</button>
-                </div>
-                <div class="loader">此分題暫無內容</div>`;
+                // 移除左上角返回按鈕（用 dock home 取代）,直接顯示空狀態
+                return `<div class="loader" style="margin-top:60px;">此分題暫無內容</div>`;
             }
             const entry = (allCardsCache || []).find(c => (c.link || '').toLowerCase() === ('insite://' + tabName).toLowerCase());
             const tabHero = entry || items[0];
@@ -1114,10 +1184,8 @@
             const restCards = items.filter(c => c.id !== tabHero.id);
             const cards = restCards.map(c => renderMediaCard(c, 'portrait')).join('');
             const wallHtml = restCards.length ? `<div class="nf-tab-wall">${cards}</div>` : '';
-            const backBar = `<div class="nf-tab-back-bar">
-                <button class="nf-tab-back-btn" onclick="goBackToHome()"><i class="fas fa-arrow-left"></i> 返回首頁</button>
-            </div>`;
-            return backBar + heroHtml + wallHtml;
+            // 移除左上角返回按鈕（用 dock home 取代）
+            return heroHtml + wallHtml;
         }
 
         // =========== 9. SPA 內部 tab 路由 ===========
@@ -1153,20 +1221,34 @@
             else { scrollToHome(); }
         }
         function handleTabSlotClick() {
-            if (currentTab) { try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+            if (currentTab) { scrollPageToTop('smooth'); }
             else { handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html'); }
         }
+        // 滾到頂部（統一 helper,body 才是真正的滾動容器）
+        function scrollPageToTop(behavior) {
+            behavior = behavior || 'instant' in window ? 'instant' : 'auto';
+            try {
+                // 優先滾 body（html overflow:hidden 鎖 viewport,body 才是滾動元素）
+                document.body.scrollTo({ top: 0, behavior: behavior });
+            } catch (e) {
+                try { document.documentElement.scrollTo({ top: 0, behavior: behavior }); } catch(_) {}
+                try { window.scrollTo({ top: 0, behavior: behavior }); } catch(_) {}
+            }
+        }
+
         function navigateToTab(tab) {
             if (!allCardsCache) return;
             currentTab = tab;
             renderCards(document.getElementById('main-content-area'), allCardsCache);
-            try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }); } catch(e) { window.scrollTo({ top: 0, behavior: 'auto' }); }
+            // 切換 tab 後從頂部開始渲染（用 instant 避免動畫延遲感）
+            scrollPageToTop('instant');
             updateDockForTab();
             try { history.pushState({ tab }, '', '#' + tab); } catch(e) { location.hash = tab; }
         }
         function goBackToHome() {
             currentTab = null;
             if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
+            scrollPageToTop('instant');
             try { history.pushState({}, '', location.pathname + location.search); } catch(e) { location.hash = ''; }
             updateDockForTab();
         }
@@ -1311,20 +1393,6 @@
             if (clearBtn) clearBtn.style.opacity = searchQuery ? '1' : '0';
             if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
         }
-        function toggleSearchInput() {
-            const wrap = document.querySelector('.logo-bar .relative.hidden.sm\\:block');
-            if (!wrap) return;
-            if (wrap.classList.contains('hidden')) {
-                wrap.classList.remove('hidden');
-                wrap.classList.add('block');
-                const input = document.getElementById('search-input');
-                if (input) setTimeout(() => input.focus(), 50);
-            } else {
-                wrap.classList.add('hidden');
-                wrap.classList.remove('block');
-                clearSearch();
-            }
-        }
         function clearSearch() {
             searchQuery = '';
             const input = document.getElementById('search-input');
@@ -1348,8 +1416,7 @@
         })();
         function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
         function scrollToHome() {
-            try { document.getElementById('page-content').scrollTo({ top: 0, behavior: 'smooth' }); }
-            catch(e) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+            scrollPageToTop('smooth');
         }
         function openQRScanner() { window.location.href = 'https://phyuaaphysics.github.io/phyustudio/qrscanner.html'; }
         function handleNavigation(url) {
@@ -1533,25 +1600,46 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeMoreMenu();
         });
-        // 從 menu 觸發搜尋(手機版):展開搜尋 input 並 focus
-        function focusSearchInput() {
-            // 桌機版的 input 一直存在,直接 focus
-            const desktopInput = document.getElementById('search-input');
-            if (desktopInput && window.getComputedStyle(desktopInput.parentElement).display !== 'none') {
-                desktopInput.focus();
-                return;
-            }
-            // 手機版:展開隱藏的搜尋 input wrapper
-            const wrap = document.querySelector('.logo-bar .relative.hidden.sm\\:block');
-            if (wrap) {
-                wrap.classList.remove('hidden');
-                wrap.classList.add('block');
-                setTimeout(() => {
-                    const input = document.getElementById('search-input');
-                    if (input) input.focus();
-                }, 50);
-            }
+        // 開啟搜尋 panel（從 menu 點搜尋後觸發）
+        function openSearchPanel() {
+            const panel = document.getElementById('nf-search-panel');
+            if (!panel) return;
+            panel.classList.add('nf-search-panel-show');
+            panel.setAttribute('aria-hidden', 'false');
+            // 自動 focus
+            setTimeout(() => {
+                const input = document.getElementById('search-input');
+                if (input) input.focus();
+            }, 220);  // 等進場動畫結束
         }
+        // 關閉搜尋 panel
+        function closeSearchPanel() {
+            const panel = document.getElementById('nf-search-panel');
+            if (!panel) return;
+            panel.classList.remove('nf-search-panel-show');
+            panel.setAttribute('aria-hidden', 'true');
+        }
+        // 切換搜尋 panel（保留向後相容,內部呼叫 openSearchPanel）
+        function focusSearchInput() {
+            openSearchPanel();
+        }
+        // 搜尋 panel 開啟時,ESC 關閉
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const panel = document.getElementById('nf-search-panel');
+            if (panel && panel.classList.contains('nf-search-panel-show')) {
+                closeSearchPanel();
+            }
+        });
+        // 點搜尋 panel 外面自動關閉
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('nf-search-panel');
+            if (!panel || !panel.classList.contains('nf-search-panel-show')) return;
+            if (panel.contains(e.target)) return;
+            // 點三橫按鈕也算「外面」(因為 menu 開了會自己管 close)
+            if (e.target.closest && e.target.closest('#nf-more-btn')) return;
+            closeSearchPanel();
+        });
 
         // 手動重新整理 — 不清 localStorage,只觸發重新爬 sheet,顯示同步狀態 dialog
         async function manualReload() {
