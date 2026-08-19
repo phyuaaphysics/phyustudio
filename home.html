@@ -166,13 +166,6 @@
             contain: layout style paint;
         }
         .nf-row::-webkit-scrollbar { display: none; }
-        /* 滾動時暫停 hover 動畫，避免 animation frame 搶佔滾動線程 */
-        .nf-row.is-scrolling .nf-card,
-        .nf-row.is-scrolling .nf-card-img,
-        .nf-row.is-scrolling .nf-card-action,
-        .nf-row.is-scrolling .nf-card-tag {
-            transition: none !important;
-        }
         .nf-row-arrow {
             position: absolute; top: 50%; transform: translateY(-50%);
             width: 44px; height: 70px;
@@ -1139,12 +1132,7 @@
             // SPA 內部 tab 路由：currentTab 優先
             if (currentTab) {
                 const tabItems = cards.filter(c => (c.type || '').toLowerCase() === currentTab.toLowerCase());
-                const tabHtml = renderTabWall(currentTab, tabItems);
-                // 同樣 RAF defer，避免 tab 切換後 DOM 替換 blocking scroll
-                requestAnimationFrame(() => {
-                    container.innerHTML = tabHtml;
-                    attachScrollListeners();
-                });
+                container.innerHTML = renderTabWall(currentTab, tabItems);
                 return;
             }
             // 主頁：sort + dedup + 分組
@@ -1165,13 +1153,14 @@
                 const q = searchQuery.toLowerCase();
                 filtered = deduped.filter(c => ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase().includes(q));
             }
-            // 主頁只放 hero/quote
+            // 主頁:除了 head 之外都顯示(支援自定義 type 如 course/ebook/formula 等)
+            // 只有 type === 'quote' 走 quote 卡片樣式
             const bySection = {};
             const mainPageCards = [];
             filtered.forEach(c => {
                 if (c.id === headId) return;
                 const t = (c.type || '').toLowerCase();
-                if (t !== 'hero' && t !== 'quote') return;
+                if (t === 'head') return;  // 排除 head (已用於 hero banner)
                 mainPageCards.push(c);
                 const sec = (c.section || 'courses').toLowerCase();
                 if (!bySection[sec]) bySection[sec] = [];
@@ -1179,13 +1168,14 @@
             });
             const html = [];
             if (headCard && !searchQuery && !isGridView) html.push(renderHeroBanner([headCard]));
+            // 動態欄目（在外面宣告,debug log 也能用）
+            let sectionOrder = [];
             if (isGridView) {
                 const allMain = mainPageCards.filter(c => (c.type || '').toLowerCase() !== 'quote');
                 if (allMain.length) html.push(renderGridView(allMain));
             } else {
                 // 動態欄目：依 F欄 (section) 自動建立,任意增加/減少都行
                 // 順序：用卡片在 sheet 出現的先後,確保穩定
-                const sectionOrder = [];
                 const seen = new Set();
                 filtered.forEach(c => {
                     const sec = (c.section || '').toLowerCase();
@@ -1206,70 +1196,32 @@
                     }
                 }
             }
+            // Debug:記錄渲染狀態
+            console.log('[renderCards]', {
+                totalCards: cards.length,
+                headId: headId,
+                mainPageCards: mainPageCards.length,
+                sections: Object.keys(bySection).map(s => ({ s, count: bySection[s].length })),
+                sectionOrder: sectionOrder,
+                htmlLength: html.join('').length
+            });
             if (searchQuery && !filtered.length) {
                 html.push(`<div class="loader">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
             }
-            // 用 RAF defer 寫入 innerHTML，讓瀏覽器先把排隊中的 scroll input routing 處理完
-            // 再做昂貴的 DOM 替換，避免頭 2-3 秒 scroll 被 DOM reflow blocking
-            requestAnimationFrame(() => {
-                container.innerHTML = html.join('');
-                // 掛載被動 scroll listener：被動監聽 = 瀏覽器無需等 handler 完成即可繼續 scroll input routing
-                attachScrollListeners();
-                // 顯示 archive
-                const archive = document.getElementById('archive-section');
-                if (archive) {
-                    if (mainPageCards.length > 0) archive.classList.remove('hidden-class');
-                    else archive.classList.add('hidden-class');
-                }
-            });
-            // 重新綁定 lazy image observer (現在是 no-op,保留為擴展點)
+            // 跟 template 一致：直接寫入 innerHTML,讓瀏覽器原生處理
+            // (不要 RAF defer, 否則 scroll input 會被 push 到下一個 frame, 數秒後才生效)
+            container.innerHTML = html.join('');
+            // 顯示 archive（如果 sheet 完全沒東西,archive 還是要顯示）
+            const archive = document.getElementById('archive-section');
+            if (archive) {
+                if (mainPageCards.length > 0) archive.classList.remove('hidden-class');
+                else archive.classList.add('hidden-class');
+            }
         }
 
-        // 為所有 .nf-row 掛載 scroll + touch 監聽，
-        // 滾動中暫停動畫以減少 animation frame 搶佔滾動线程。
-        // iOS 觸控 row 時，主動偵測水平 vs 垂直意圖，給瀏覽器明確 hint。
-        function attachScrollListeners() {
-            const rows = document.querySelectorAll('.nf-row');
-            let debounceTimer = null;
-            rows.forEach(row => {
-                // 滾動中：暫停 hover 動畫
-                row.addEventListener('scroll', function () {
-                    this.classList.add('is-scrolling');
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => {
-                        this.classList.remove('is-scrolling');
-                    }, 200);
-                }, { passive: true });
-
-                // iOS 觸控:偵測 pan 方向,明確告訴瀏覽器 row 是橫向滑動容器
-                let touchStartX = 0, touchStartY = 0, touchStartT = 0, locked = false;
-                row.addEventListener('touchstart', function (e) {
-                    const t = e.touches[0];
-                    touchStartX = t.clientX;
-                    touchStartY = t.clientY;
-                    touchStartT = Date.now();
-                    locked = false;
-                }, { passive: true });
-
-                row.addEventListener('touchmove', function (e) {
-                    if (locked) return;
-                    const t = e.touches[0];
-                    const dx = Math.abs(t.clientX - touchStartX);
-                    const dy = Math.abs(t.clientY - touchStartY);
-                    // 水平 > 垂直時，告訴瀏覽器「這是橫向 pan」，
-                    // 阻止 iOS Safari 把它當垂直 scroll 處理（需要先點箭頭才能觸發）
-                    if (dx > 8 && dx > dy * 1.5) {
-                        locked = true;
-                        this.classList.add('is-scrolling');
-                    }
-                }, { passive: true });
-
-                row.addEventListener('touchend', function () {
-                    locked = false;
-                    this.classList.remove('is-scrolling');
-                }, { passive: true });
-            });
-        }
+        // 跟 template 一致：完全依賴瀏覽器原生 scroll,不加任何 listener
+        // (scroll listener 即使 passive 仍佔 JS thread, 對 2-3 秒 scroll 延遲有影響)
+        // iOS 水平/垂直 pan 衝突已用 .nf-row { touch-action: pan-x pan-y } + .nf-card { touch-action: manipulation } 解決
 
         function renderTabWall(tabName, items) {
             if (!items.length) {
