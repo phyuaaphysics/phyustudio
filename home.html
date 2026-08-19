@@ -61,9 +61,8 @@
             color: var(--glacier-text);
             -webkit-tap-highlight-color: transparent;
             height: 100%; overflow-y: auto;
-            /* iOS 慣性滾動 + 防止過度滾動觸發 refresh */
+            /* iOS 慣性滾動（跟 template 一致,不加 overscroll-behavior 讓 native 行為主導） */
             -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -97,10 +96,6 @@
             width: 100%; height: 100%;
             object-fit: cover; object-position: top;
             background-color: var(--glacier-card);
-            /* GPU 加速: 提升到自己的 compositor layer, 避免 scroll 時重排 */
-            will-change: transform;
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
         }
         .nf-hero-bg::after {
             content: ''; position: absolute; inset: 0;
@@ -159,13 +154,11 @@
             overflow-x: auto; overflow-y: visible;
             scroll-behavior: smooth; padding: 16px 0 24px;
             scrollbar-width: none;
-            /* iOS 慣性滾動 + 接近時對齊卡片 */
+            /* iOS 慣性滾動 + 防止左右滑觸發 page refresh */
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-            scroll-snap-type: x proximity;
         }
         .nf-row::-webkit-scrollbar { display: none; }
-        .nf-row > .nf-card { scroll-snap-align: start; scroll-snap-stop: normal; }
         .nf-row-arrow {
             position: absolute; top: 50%; transform: translateY(-50%);
             width: 44px; height: 70px;
@@ -195,8 +188,10 @@
             background: var(--glacier-card);
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
             cursor: pointer; transform-origin: center center;
-            /* card 0.5s 浮起 + 陰影加深,跟 title 同步但稍快 */
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            /* card hover 浮起 — 0.3s 一致 (縮短以減少 scroll 期間 GPU 負擔) */
+            transition: transform 0.3s ease;
+            /* CSS containment:告訴瀏覽器卡內變化不影響外部 layout */
+            contain: layout style;
         }
         .nf-card:hover {
             box-shadow: 0 18px 40px -8px rgba(0,0,0,0.25);
@@ -211,14 +206,10 @@
             width: 100%; height: 100%;
             object-fit: cover; object-position: center;
             background-color: var(--glacier-card);
-            /* 圖片用最慢的速度 (1.05s) — 主導整體節奏 */
-            transition: transform 1.05s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
-            /* GPU 加速: 每張卡圖獨立 layer, 滾動時不重排 */
-            will-change: transform;
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
+            /* 圖片 hover 慢放大 (0.8s) — 縮短以減少 scroll 期間的 paint 壓力 */
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .nf-row .nf-card:hover .nf-card-img { transform: scale(1.12); }
+        .nf-row .nf-card:hover .nf-card-img { transform: scale(1.08); }
         .nf-card::after {
             content: ''; position: absolute; inset: 0; pointer-events: none;
             background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 35%);
@@ -233,14 +224,12 @@
             font-size: 22px; font-weight: 700; color: #fff;
             line-height: 1.1; letter-spacing: 0.04em; margin-bottom: 4px;
             text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-            /* 中速 0.45s — 圖之後第一個到位 */
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), letter-spacing 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            /* 簡化 stagger:全部 0.3s 無 delay,降低 layer 數 */
+            transition: transform 0.3s ease;
             transform-origin: left bottom;
-            will-change: transform;
         }
         .nf-card:hover .nf-card-title {
             transform: translateY(-2px) scale(1.04);
-            letter-spacing: 0.06em;
         }
 
         .nf-card-sub {
@@ -251,19 +240,15 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.5);
             display: flex; align-items: center; gap: 6px;
             line-height: 1.1;
-            /* sub 最快 0.35s + delay 0.1s — 第三個到位,有層次 */
-            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, letter-spacing 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            transition-delay: 0.1s;
+            transition: transform 0.3s ease;
             transform-origin: left bottom;
         }
         .nf-card:hover .nf-card-sub {
             transform: translateY(-2px) scale(1.06);
-            opacity: 1;
-            letter-spacing: 0.03em;
         }
         .nf-card-sub i { font-size: 10px; font-style: normal; }
 
-        /* 卡片右上標籤徽章 - 跟 sub 同步,慢一點 */
+        /* 卡片右上標籤徽章 - 跟 sub 同步 */
         .nf-card-tag {
             position: absolute; top: 12px; right: 12px; z-index: 2;
             display: inline-flex; align-items: center; gap: 5px;
@@ -274,32 +259,27 @@
             padding: 4px 8px; border-radius: 999px;
             letter-spacing: 0.08em; text-transform: uppercase;
             pointer-events: none;
-            /* tag 0.4s + delay 0.05s — 跟 title 同步但稍慢 */
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease, border-color 0.4s ease;
-            transition-delay: 0.05s;
+            transition: background-color 0.2s ease;
         }
         .nf-card:hover .nf-card-tag {
-            transform: translateY(-2px) scale(1.05);
             background: rgba(255,255,255,0.22);
             border-color: rgba(255,255,255,0.35);
         }
 
-        /* 卡片右下 hover 圓形按鈕 - 跟 title 同步浮出 */
+        /* 卡片右下 hover 圓形按鈕 */
         .nf-card-action {
             position: absolute; bottom: 14px; right: 14px;
             width: 34px; height: 34px; border-radius: 50%;
             background: rgba(255,255,255,0.95);
             display: flex; align-items: center; justify-content: center;
             color: #0a0a0a; font-size: 12px; font-weight: 700;
-            z-index: 3; opacity: 0; transform: translate(6px, 6px) scale(0.85);
-            /* action 0.45s + delay 0.15s — 最後一個浮出 */
-            transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
-            transition-delay: 0.15s;
+            z-index: 3; opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             cursor: pointer;
         }
-        .nf-card:hover .nf-card-action { opacity: 1; transform: translate(0, 0) scale(1); }
-        .nf-card-action:hover { background: #fff; transform: scale(1.1) rotate(-45deg); transition-delay: 0s; }
+        .nf-card:hover .nf-card-action { opacity: 1; }
+        .nf-card-action:hover { background: #fff; transform: scale(1.1) rotate(-45deg); }
 
         /* Large card 標題更大 - 跟 hero banner 比例 */
         .nf-card.large .nf-card-title { font-size: 28px; letter-spacing: 0.05em; }
