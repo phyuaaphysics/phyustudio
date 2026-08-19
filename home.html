@@ -473,14 +473,14 @@
             .dock-wrapper { width: 92%; max-width: 400px; }
         }
 
-        /* ========== Mobile row: 強制 portrait + 縮小,3 張可見 ========== */
+        /* ========== Mobile row: 強制 portrait + 縮小,2.5 張可見 ========== */
         @media (max-width: 768px) {
-            /* 強制所有 nf-card 在 mobile row 是 portrait,固定 100px 寬 (確保 SE 也能 3 張) */
+            /* 強制所有 nf-card 在 mobile row 是 portrait,140px 寬 (2.5 張可見,半張露臉) */
             .nf-row .nf-card,
             .nf-row .nf-card.large,
             .nf-row .nf-card.small,
             .nf-row .nf-card.portrait {
-                width: 100px;
+                width: 140px;
                 aspect-ratio: 3/4;
                 border-radius: 10px;
             }
@@ -488,20 +488,20 @@
             .nf-row { gap: 6px; padding: 12px 0 18px; }
             .nf-section { padding: 0 12px; margin-bottom: 28px; }
             .nf-section-title { font-size: 16px; margin-bottom: 8px; }
-            /* card 內 title/sub 在 mobile 也要縮小 */
-            .nf-row .nf-card .nf-card-title { font-size: 13px; letter-spacing: 0.02em; }
-            .nf-row .nf-card .nf-card-sub { font-size: 11px; }
-            .nf-row .nf-card .nf-card-tag { font-size: 8px; padding: 3px 6px; top: 6px; right: 6px; }
-            .nf-row .nf-card .nf-card-action { width: 24px; height: 24px; font-size: 10px; bottom: 8px; right: 8px; }
-            .nf-row .nf-card .nf-card-default { left: 10px; right: 10px; bottom: 8px; }
+            /* card 內 title/sub 在 mobile 配合稍大卡 */
+            .nf-row .nf-card .nf-card-title { font-size: 15px; letter-spacing: 0.03em; }
+            .nf-row .nf-card .nf-card-sub { font-size: 12px; }
+            .nf-row .nf-card .nf-card-tag { font-size: 9px; padding: 3px 7px; top: 8px; right: 8px; }
+            .nf-row .nf-card .nf-card-action { width: 28px; height: 28px; font-size: 11px; bottom: 10px; right: 10px; }
+            .nf-row .nf-card .nf-card-default { left: 12px; right: 12px; bottom: 10px; }
         }
-        /* 極小螢幕 (iPhone SE 320px) 再縮 */
+        /* 極小螢幕 (≤360px) 改 125px 保持 2.5 張比例 */
         @media (max-width: 360px) {
             .nf-row .nf-card,
             .nf-row .nf-card.large,
             .nf-row .nf-card.small,
             .nf-row .nf-card.portrait {
-                width: 90px;
+                width: 125px;
             }
             .nf-section { padding: 0 8px; }
         }
@@ -520,6 +520,154 @@
             cursor: pointer; transition: all 0.2s;
         }
         .nf-tab-back-btn:hover { background: var(--glacier-primary); color: #fff; }
+
+        /* ========== 自製系統風格確認對話框 (iOS damping animation + 模糊背景) ========== */
+        .nf-dialog-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
+            opacity: 0;
+            transition: opacity 0.25s ease, background-color 0.25s ease, backdrop-filter 0.25s ease;
+        }
+        .nf-dialog-overlay.nf-dialog-show {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .nf-dialog-card {
+            width: 100%; max-width: 360px;
+            background: var(--glacier-card);
+            color: var(--glacier-deep);
+            border-radius: 18px;
+            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0,0,0,0.04);
+            overflow: hidden;
+            transform: scale(0.94) translateY(8px);
+            opacity: 0;
+            /* OS damping animation - iOS 系統風格 cubic-bezier(0.32, 0.72, 0, 1) */
+            transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+        }
+        body.dark-mode .nf-dialog-card {
+            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        .nf-dialog-overlay.nf-dialog-show .nf-dialog-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .nf-dialog-icon {
+            display: flex; align-items: center; justify-content: center;
+            width: 56px; height: 56px;
+            margin: 24px auto 12px;
+            border-radius: 50%;
+            font-size: 24px;
+        }
+        .nf-dialog-icon.nf-icon-warn {
+            background: rgba(229, 9, 20, 0.1);
+            color: var(--accent);
+        }
+        .nf-dialog-icon.nf-icon-info {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--glacier-primary);
+        }
+        .nf-dialog-icon.nf-icon-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+        .nf-dialog-title {
+            text-align: center;
+            font-size: 17px; font-weight: 700;
+            padding: 0 24px; margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .nf-dialog-message {
+            text-align: center;
+            font-size: 14px; font-weight: 400;
+            line-height: 1.5;
+            color: var(--glacier-text);
+            padding: 0 24px 20px;
+        }
+        .nf-dialog-divider {
+            height: 1px;
+            background: var(--glacier-card-border);
+        }
+        .nf-dialog-buttons {
+            display: flex;
+            width: 100%;
+        }
+        .nf-dialog-buttons.nf-dialog-stacked { flex-direction: column; }
+        .nf-dialog-btn {
+            flex: 1; min-width: 0;
+            padding: 14px 16px;
+            background: none; border: none;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer;
+            color: var(--glacier-primary);
+            transition: background-color 0.15s ease, opacity 0.15s ease;
+            position: relative;
+        }
+        .nf-dialog-btn:hover { background: rgba(14, 165, 233, 0.08); }
+        .nf-dialog-btn:active { background: rgba(14, 165, 233, 0.18); }
+        .nf-dialog-btn.nf-dialog-btn-confirm { color: var(--accent); font-weight: 700; }
+        .nf-dialog-btn.nf-dialog-btn-confirm:hover { background: rgba(229, 9, 20, 0.08); }
+        .nf-dialog-btn.nf-dialog-btn-confirm:active { background: rgba(229, 9, 20, 0.18); }
+        .nf-dialog-buttons:not(.nf-dialog-stacked) .nf-dialog-btn:not(:last-child)::after {
+            content: ''; position: absolute;
+            right: 0; top: 12px; bottom: 12px;
+            width: 1px;
+            background: var(--glacier-card-border);
+        }
+        .nf-dialog-buttons.nf-dialog-stacked .nf-dialog-btn:not(:last-child)::after {
+            content: ''; position: absolute;
+            left: 12px; right: 12px; bottom: 0;
+            height: 1px;
+            background: var(--glacier-card-border);
+        }
+
+        /* ========== More menu (三橫 icon 展開的 fade menu) ========== */
+        .nf-more-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 200px;
+            background: var(--glacier-card);
+            border: 1px solid var(--glacier-card-border);
+            border-radius: 14px;
+            box-shadow: 0 14px 40px -8px rgba(0,0,0,0.18);
+            padding: 6px;
+            z-index: 130;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.96);
+            transform-origin: top right;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        body.dark-mode .nf-more-menu { box-shadow: 0 14px 40px -8px rgba(0,0,0,0.6); }
+        .nf-more-menu.nf-more-menu-show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .nf-more-menu-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--glacier-deep);
+            font-size: 14px; font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            user-select: none;
+        }
+        .nf-more-menu-item:hover { background: rgba(14, 165, 233, 0.1); }
+        .nf-more-menu-item:active { background: rgba(14, 165, 233, 0.18); }
+        .nf-more-menu-item i { width: 18px; text-align: center; font-size: 14px; color: var(--glacier-text); }
+        .nf-more-menu-item.nf-more-menu-danger { color: var(--accent); }
+        .nf-more-menu-item.nf-more-menu-danger i { color: var(--accent); }
+        .nf-more-menu-item.nf-more-menu-danger:hover { background: rgba(229, 9, 20, 0.1); }
+        .nf-more-menu-divider {
+            height: 1px; margin: 4px 0;
+            background: var(--glacier-card-border);
+        }
 
         /* Hide class */
         .hidden-class { display: none !important; }
@@ -540,9 +688,6 @@
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--glacier-text); opacity: 0.6;"></i>
                         <button id="search-clear" onclick="clearSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-0 transition-opacity" style="color: var(--glacier-text);"><i class="fas fa-times-circle"></i></button>
                     </div>
-                    <button onclick="toggleSearchInput()" class="sm:hidden w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
-                        <i class="fas fa-search text-base"></i>
-                    </button>
                     <button id="grid-view-toggle" onclick="toggleGridView()" title="格狀排版" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
                         <i class="fas fa-border-all text-lg"></i>
                     </button>
@@ -571,12 +716,25 @@
                             </div>
                         </div>
                     </label>
-                    <button class="nf-avatar" onclick="manualReload()" title="強制重整（清快取）">
-                        <i class="fas fa-rotate"></i>
-                    </button>
-                    <button class="nf-avatar" onclick="handleLogout()" title="登出">
-                        <i class="fas fa-right-from-bracket"></i>
-                    </button>
+                    <!-- 三橫 icon + More menu (refresh, logout, 行動版搜尋) -->
+                    <div class="relative" id="nf-more-wrap">
+                        <button id="nf-more-btn" onclick="toggleMoreMenu(event)" title="更多" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
+                            <i class="fas fa-bars text-lg"></i>
+                        </button>
+                        <div id="nf-more-menu" class="nf-more-menu" role="menu" aria-hidden="true">
+                            <div class="nf-more-menu-item sm:hidden" onclick="closeMoreMenu(); focusSearchInput();" role="menuitem">
+                                <i class="fas fa-search"></i><span>搜尋</span>
+                            </div>
+                            <div class="nf-more-menu-divider sm:hidden"></div>
+                            <div class="nf-more-menu-item" onclick="closeMoreMenu(); manualReload();" role="menuitem">
+                                <i class="fas fa-rotate"></i><span>重新整理</span>
+                            </div>
+                            <div class="nf-more-menu-divider"></div>
+                            <div class="nf-more-menu-item nf-more-menu-danger" onclick="closeMoreMenu(); handleLogout();" role="menuitem">
+                                <i class="fas fa-right-from-bracket"></i><span>登出</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -624,6 +782,22 @@
         </nav>
     </div>
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
+
+    <!-- ========== 自製系統風格確認對話框 ========== -->
+    <div id="nf-dialog-overlay" class="nf-dialog-overlay" onclick="nfDialogCancel(event)" role="dialog" aria-modal="true" aria-labelledby="nf-dialog-title">
+        <div class="nf-dialog-card" onclick="event.stopPropagation()">
+            <div id="nf-dialog-icon" class="nf-dialog-icon nf-icon-warn">
+                <i class="fas fa-exclamation"></i>
+            </div>
+            <h2 id="nf-dialog-title" class="nf-dialog-title">確認</h2>
+            <p id="nf-dialog-message" class="nf-dialog-message">您確定要執行此操作嗎?</p>
+            <div class="nf-dialog-divider"></div>
+            <div id="nf-dialog-buttons" class="nf-dialog-buttons">
+                <button id="nf-dialog-cancel" class="nf-dialog-btn" onclick="nfDialogCancel()">取消</button>
+                <button id="nf-dialog-confirm" class="nf-dialog-btn nf-dialog-btn-confirm" onclick="nfDialogConfirm()">確認</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // =========== 1. 安全 LocalStorage 封裝（跟 template 的 storage 一致） ===========
@@ -1182,23 +1356,268 @@
             if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
             window.location.href = url;
         }
-        function handleLogout() {
-            const ok = window.confirm('若選擇登出,系統的暫存檔將移除,確定?');
-            if (!ok) return;
-            try {
-                const keys = Object.keys(localStorage);
-                keys.forEach(k => { if (k.startsWith('lumina_') || k === 'theme') storage.removeItem(k); });
-                storage.clear();
-                try { sessionStorage.clear(); } catch(e) {}
-            } catch (e) {}
-            window.location.href = 'https://phyuaaphysics.github.io/phyustudio/';
+        // ========== 自製系統風格確認對話框 (Promise-based) ==========
+        // 模仿 iOS 系統 damping 動畫 + 模糊背景
+        let _nfDialogResolve = null;
+
+        // 顯示純狀態 dialog (無 Promise,單按鈕或不按鈕) — 用於 sync 進度
+        function nfShowStatus(opts) {
+            const overlay = document.getElementById('nf-dialog-overlay');
+            const title = document.getElementById('nf-dialog-title');
+            const message = document.getElementById('nf-dialog-message');
+            const icon = document.getElementById('nf-dialog-icon');
+            const cancelBtn = document.getElementById('nf-dialog-cancel');
+            const confirmBtn = document.getElementById('nf-dialog-confirm');
+            const buttonsWrap = document.getElementById('nf-dialog-buttons');
+
+            title.textContent = opts.title || '';
+            message.innerHTML = opts.message || '';
+            // 動態 spinner icon 或結果 icon
+            icon.className = 'nf-dialog-icon';
+            const iconType = opts.icon || 'info';
+            icon.classList.add('nf-icon-' + iconType);
+            const iconMap = {
+                warn: 'fa-exclamation',
+                info: 'fa-info',
+                success: 'fa-check',
+                loading: 'fa-circle-notch fa-spin',
+                error: 'fa-times'
+            };
+            icon.innerHTML = `<i class="fas ${iconMap[iconType] || 'fa-info'}"></i>`;
+            icon.style.display = 'flex';
+
+            // 取消按鈕 (同步中沒取消,完成後有)
+            cancelBtn.style.display = opts.hideCancel ? 'none' : '';
+            confirmBtn.textContent = opts.confirmText || '確認';
+            confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger === true);
+            // 背景點擊 = 取消
+            overlay.onclick = opts.dismissOnBackdrop === false ? (e) => e.stopPropagation() : null;
+
+            _nfDialogResolve = null;  // 狀態型不用 Promise
+            overlay.style.display = 'flex';
+            void overlay.offsetWidth;
+            overlay.classList.add('nf-dialog-show');
         }
-        function manualReload() {
-            if (!window.confirm('強制重整會清空本地快取並重新載入,確定?')) return;
-            try { storage.clear(); try { sessionStorage.clear(); } catch(e) {} } catch(e) {}
-            const url = new URL(window.location.href);
-            url.searchParams.set('bust', Date.now());
-            window.location.href = url.toString();
+        // 更新現有 status dialog (不重新觸發動畫)
+        function nfUpdateStatus(opts) {
+            const title = document.getElementById('nf-dialog-title');
+            const message = document.getElementById('nf-dialog-message');
+            const icon = document.getElementById('nf-dialog-icon');
+            const cancelBtn = document.getElementById('nf-dialog-cancel');
+            const confirmBtn = document.getElementById('nf-dialog-confirm');
+            if (opts.title !== undefined) title.textContent = opts.title;
+            if (opts.message !== undefined) message.innerHTML = opts.message;
+            if (opts.icon) {
+                icon.className = 'nf-dialog-icon nf-icon-' + opts.icon;
+                const iconMap = {
+                    warn: 'fa-exclamation', info: 'fa-info', success: 'fa-check',
+                    loading: 'fa-circle-notch fa-spin', error: 'fa-times'
+                };
+                icon.innerHTML = `<i class="fas ${iconMap[opts.icon] || 'fa-info'}"></i>`;
+            }
+            if (opts.hideCancel !== undefined) cancelBtn.style.display = opts.hideCancel ? 'none' : '';
+            if (opts.confirmText !== undefined) confirmBtn.textContent = opts.confirmText;
+            if (opts.danger !== undefined) confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger === true);
+        }
+        function nfShowConfirm(opts) {
+            return new Promise(resolve => {
+                const overlay = document.getElementById('nf-dialog-overlay');
+                const title = document.getElementById('nf-dialog-title');
+                const message = document.getElementById('nf-dialog-message');
+                const icon = document.getElementById('nf-dialog-icon');
+                const cancelBtn = document.getElementById('nf-dialog-cancel');
+                const confirmBtn = document.getElementById('nf-dialog-confirm');
+                const buttonsWrap = document.getElementById('nf-dialog-buttons');
+
+                title.textContent = opts.title || '確認';
+                message.textContent = opts.message || '您確定要執行此操作嗎?';
+                cancelBtn.textContent = opts.cancelText || '取消';
+                confirmBtn.textContent = opts.confirmText || '確認';
+
+                // icon 類型: warn / info / success / none
+                icon.className = 'nf-dialog-icon';
+                const iconType = opts.icon || 'warn';
+                if (iconType === 'none') { icon.style.display = 'none'; }
+                else {
+                    icon.style.display = 'flex';
+                    icon.classList.add('nf-icon-' + iconType);
+                    const iconMap = { warn: 'fa-exclamation', info: 'fa-info', success: 'fa-check' };
+                    icon.innerHTML = `<i class="fas ${iconMap[iconType] || 'fa-exclamation'}"></i>`;
+                }
+                // 危險按鈕 (紅色) vs 普通 (藍色)
+                confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger !== false);
+                // 雙按鈕 (預設) 或單按鈕堆疊
+                buttonsWrap.classList.toggle('nf-dialog-stacked', opts.stacked === true);
+                cancelBtn.style.display = opts.hideCancel ? 'none' : '';
+                if (opts.hideCancel) {
+                    confirmBtn.style.borderRadius = '0';
+                } else {
+                    confirmBtn.style.borderRadius = '';
+                }
+
+                _nfDialogResolve = resolve;
+                overlay.style.display = 'flex';
+                // 強制 reflow 確保 transition 觸發
+                void overlay.offsetWidth;
+                overlay.classList.add('nf-dialog-show');
+            });
+        }
+        function nfDialogConfirm() {
+            if (_nfDialogResolve) _nfDialogResolve(true);
+            nfDialogHide();
+        }
+        function nfDialogCancel(event) {
+            // 點擊遮罩關閉（只在點 overlay 本身時觸發,不會冒泡到 card）
+            if (event && event.target && event.target.closest && event.target.closest('.nf-dialog-card')) return;
+            if (_nfDialogResolve) _nfDialogResolve(false);
+            nfDialogHide();
+        }
+        function nfDialogHide() {
+            const overlay = document.getElementById('nf-dialog-overlay');
+            overlay.classList.remove('nf-dialog-show');
+            // 等 transition 結束後才 display:none
+            setTimeout(() => {
+                if (!overlay.classList.contains('nf-dialog-show')) overlay.style.display = 'none';
+            }, 450);
+        }
+        // ESC 鍵取消
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('nf-dialog-overlay').classList.contains('nf-dialog-show')) {
+                nfDialogCancel();
+            }
+        });
+
+        function handleLogout() {
+            nfShowConfirm({
+                title: '登出確認',
+                message: '若選擇登出,系統的暫存檔將移除,確定?',
+                icon: 'warn',
+                confirmText: '登出',
+                cancelText: '取消',
+                danger: true
+            }).then(ok => {
+                if (!ok) return;
+                try {
+                    const keys = Object.keys(localStorage);
+                    keys.forEach(k => { if (k.startsWith('lumina_') || k === 'theme') storage.removeItem(k); });
+                    storage.clear();
+                    try { sessionStorage.clear(); } catch(e) {}
+                } catch (e) {}
+                window.location.href = 'https://phyuaaphysics.github.io/phyustudio/';
+            });
+        }
+        // ========== 三橫 icon 展開的 More menu ==========
+        function toggleMoreMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('nf-more-menu');
+            if (menu.classList.contains('nf-more-menu-show')) {
+                closeMoreMenu();
+            } else {
+                menu.classList.add('nf-more-menu-show');
+                menu.setAttribute('aria-hidden', 'false');
+            }
+        }
+        function closeMoreMenu() {
+            const menu = document.getElementById('nf-more-menu');
+            if (menu) {
+                menu.classList.remove('nf-more-menu-show');
+                menu.setAttribute('aria-hidden', 'true');
+            }
+        }
+        // 點 menu 外面自動關閉
+        document.addEventListener('click', (e) => {
+            const wrap = document.getElementById('nf-more-wrap');
+            if (wrap && !wrap.contains(e.target)) closeMoreMenu();
+        });
+        // ESC 也關 menu
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeMoreMenu();
+        });
+        // 從 menu 觸發搜尋(手機版):展開搜尋 input 並 focus
+        function focusSearchInput() {
+            // 桌機版的 input 一直存在,直接 focus
+            const desktopInput = document.getElementById('search-input');
+            if (desktopInput && window.getComputedStyle(desktopInput.parentElement).display !== 'none') {
+                desktopInput.focus();
+                return;
+            }
+            // 手機版:展開隱藏的搜尋 input wrapper
+            const wrap = document.querySelector('.logo-bar .relative.hidden.sm\\:block');
+            if (wrap) {
+                wrap.classList.remove('hidden');
+                wrap.classList.add('block');
+                setTimeout(() => {
+                    const input = document.getElementById('search-input');
+                    if (input) input.focus();
+                }, 50);
+            }
+        }
+
+        // 手動重新整理 — 不清 localStorage,只觸發重新爬 sheet,顯示同步狀態 dialog
+        async function manualReload() {
+            // 顯示同步中 dialog (loading 圖示,無取消,無危險)
+            nfShowStatus({
+                title: '與資料源同步中…',
+                message: '正在從 Google Sheet 拉取最新資料…',
+                icon: 'loading',
+                hideCancel: true,
+                confirmText: '好',
+                dismissOnBackdrop: false
+            });
+
+            try {
+                // 並發拉 meta + cards
+                const [verResult, cardsResult] = await Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]);
+                if (verResult.status === 'fulfilled' && cardsResult.status === 'fulfilled') {
+                    const remoteVer = verResult.value;
+                    const freshCards = cardsResult.value;
+                    const cachedData = readCache();
+
+                    // 版本一致 + 有 cache → 已同步,無更新
+                    if (cachedData && remoteVer && cachedData.ver === remoteVer) {
+                        nfUpdateStatus({
+                            title: '已是最新版本',
+                            message: `本地快取版本 (${cachedData.ver}) 與遠端一致,無需更新。`,
+                            icon: 'success',
+                            hideCancel: false,
+                            confirmText: '好'
+                        });
+                        return;
+                    }
+                    // 有新資料 → 寫入並重渲染
+                    writeCache(freshCards, remoteVer || '');
+                    rawData = freshCards;
+                    allCardsCache = freshCards;
+                    const mainArea = document.getElementById('main-content-area');
+                    if (mainArea) renderCards(mainArea, freshCards);
+                    nfUpdateStatus({
+                        title: '同步完成',
+                        message: `已從 Google Sheet 拉取 <b>${freshCards.length}</b> 張卡片${remoteVer ? ` (版本 ${remoteVer})` : ''}。`,
+                        icon: 'success',
+                        hideCancel: false,
+                        confirmText: '好'
+                    });
+                    return;
+                }
+                // 其中一個失敗
+                const reason = (cardsResult.reason || verResult.reason || 'unknown').toString();
+                nfUpdateStatus({
+                    title: '同步失敗',
+                    message: `無法從 Google Sheet 取得資料:<br><small style="opacity:0.7">${reason}</small><br><br>請檢查網絡連線或稍後重試。`,
+                    icon: 'error',
+                    hideCancel: false,
+                    confirmText: '好',
+                    danger: false
+                });
+            } catch (e) {
+                nfUpdateStatus({
+                    title: '同步失敗',
+                    message: `發生未預期錯誤:<br><small style="opacity:0.7">${(e && e.message) || e}</small>`,
+                    icon: 'error',
+                    hideCancel: false,
+                    confirmText: '好'
+                });
+            }
         }
 
         // =========== 13. 啟動 ===========
