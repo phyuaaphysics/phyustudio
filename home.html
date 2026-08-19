@@ -157,8 +157,19 @@
             /* iOS 慣性滾動 + 防止左右滑觸發 page refresh */
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
+            /* contain: layout style paint 隔離每個 row 的重繪範圍，
+               防止一行重繪時連帶影響其他行的 scroll input routing
+               不使用 strict（會阻止 sticky/fixed 等跨邊界佈局） */
+            contain: layout style paint;
         }
         .nf-row::-webkit-scrollbar { display: none; }
+        /* 滾動時暫停 hover 動畫，避免 animation frame 搶佔滾動線程 */
+        .nf-row.is-scrolling .nf-card,
+        .nf-row.is-scrolling .nf-card-img,
+        .nf-row.is-scrolling .nf-card-action,
+        .nf-row.is-scrolling .nf-card-tag {
+            transition: none !important;
+        }
         .nf-row-arrow {
             position: absolute; top: 50%; transform: translateY(-50%);
             width: 44px; height: 70px;
@@ -1122,7 +1133,12 @@
             // SPA 內部 tab 路由：currentTab 優先
             if (currentTab) {
                 const tabItems = cards.filter(c => (c.type || '').toLowerCase() === currentTab.toLowerCase());
-                container.innerHTML = renderTabWall(currentTab, tabItems);
+                const tabHtml = renderTabWall(currentTab, tabItems);
+                // 同樣 RAF defer，避免 tab 切換後 DOM 替換 blocking scroll
+                requestAnimationFrame(() => {
+                    container.innerHTML = tabHtml;
+                    attachScrollListeners();
+                });
                 return;
             }
             // 主頁：sort + dedup + 分組
@@ -1187,14 +1203,36 @@
             if (searchQuery && !filtered.length) {
                 html.push(`<div class="loader">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
             }
-            container.innerHTML = html.join('');
-            // 顯示 archive（如果 sheet 完全沒東西，archive 還是要顯示）
-            const archive = document.getElementById('archive-section');
-            if (archive) {
-                if (mainPageCards.length > 0) archive.classList.remove('hidden-class');
-                else archive.classList.add('hidden-class');
-            }
+            // 用 RAF defer 寫入 innerHTML，讓瀏覽器先把排隊中的 scroll input routing 處理完
+            // 再做昂貴的 DOM 替換，避免頭 2-3 秒 scroll 被 DOM reflow blocking
+            requestAnimationFrame(() => {
+                container.innerHTML = html.join('');
+                // 掛載被動 scroll listener：被動監聽 = 瀏覽器無需等 handler 完成即可繼續 scroll input routing
+                attachScrollListeners();
+                // 顯示 archive
+                const archive = document.getElementById('archive-section');
+                if (archive) {
+                    if (mainPageCards.length > 0) archive.classList.remove('hidden-class');
+                    else archive.classList.add('hidden-class');
+                }
+            });
             // 重新綁定 lazy image observer (現在是 no-op,保留為擴展點)
+        }
+
+        // 為所有 .nf-row 掛載 passive scroll 監聽，
+        // 滾動中暫停動畫以減少 animation frame 搶佔滾動线程。
+        function attachScrollListeners() {
+            const rows = document.querySelectorAll('.nf-row');
+            let debounceTimer = null;
+            rows.forEach(row => {
+                row.addEventListener('scroll', function () {
+                    this.classList.add('is-scrolling');
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        this.classList.remove('is-scrolling');
+                    }, 200);
+                }, { passive: true }); // ← 關鍵：passive=true 告訴瀏覽器「不用等我」,可直接繼續 scroll input routing
+            });
         }
 
         function renderTabWall(tabName, items) {
