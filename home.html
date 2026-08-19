@@ -4,398 +4,310 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Lumina Studio</title>
-
-    <!-- 預連線：圖床 + Google Sheets + 字型 -->
-    <link rel="preconnect" href="https://i.ibb.co" crossorigin>
-    <link rel="preconnect" href="https://docs.google.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://i.ibb.co">
-    <link rel="dns-prefetch" href="https://docs.google.com">
-
+    
+    <!-- iOS PWA 狀態列修正 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 引入 jsQR 解析庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@300;400;500;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,700&display=swap');
         :root {
-            --glacier-bg: #eef2f6;
-            --glacier-glass: rgba(224, 242, 254, 0.85);
-            --glacier-nav-glass: rgba(255, 255, 255, 0.75);
-            --glacier-text: #334155;
             --glacier-deep: #0f172a;
-            --glacier-primary: #0284c7;
-            --glacier-card: #ffffff;
-            --glacier-card-border: rgba(14, 165, 233, 0.15);
-            --accent: #e50914;
+            --glacier-primary: #0284c7; 
+            --glacier-ice: #38bdf8;
+            --glacier-bg: #eef2f6;
+            --glacier-glass: rgba(224, 242, 254, 0.85); 
+            --glacier-nav-glass: rgba(255, 255, 255, 0.75);
         }
+
+        /* ダークモード時の変数定義 */
         body.dark-mode {
-            --glacier-bg: #090d16;
-            --glacier-glass: rgba(15, 23, 42, 0.85);
-            --glacier-nav-glass: rgba(15, 23, 42, 0.75);
-            --glacier-text: #cbd5e1;
             --glacier-deep: #f8fafc;
-            --glacier-primary: #38bdf8;
-            --glacier-card: #18181b;
-            --glacier-card-border: rgba(255, 255, 255, 0.08);
+            --glacier-primary: #38bdf8; 
+            --glacier-ice: #0284c7;
+            --glacier-bg: #090d16; 
+            --glacier-glass: rgba(15, 23, 42, 0.85); 
+            --glacier-nav-glass: rgba(15, 23, 42, 0.75);
+            color: #cbd5e1;
         }
 
-        /* 日夜切換動畫（跟 template 一致） */
-        #dark-mode-toggle:checked + .theme-track { background-color: #1e293b; border-color: #0f172a; }
-        #dark-mode-toggle:checked + .theme-track .theme-stars { opacity: 1 !important; }
-        #dark-mode-toggle:checked + .theme-track .theme-knob { transform: translateX(0px) !important; }
-        #dark-mode-toggle:checked + .theme-track .theme-sun { transform: scale(0) !important; }
-        #dark-mode-toggle:checked + .theme-track .theme-moon { transform: scale(1) !important; }
-        #dark-mode-toggle:checked + .theme-track .theme-cloud { transform: translateX(48px) !important; opacity: 0 !important; }
+        /* テーマ切り替え用のトグルスイッチアニメーション */
+        #dark-mode-toggle:checked + .theme-track {
+            background-color: #1e293b;
+            border-color: #0f172a;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-stars {
+            opacity: 1 !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-knob {
+            transform: translateX(0px) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-sun {
+            transform: scale(0) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-moon {
+            transform: scale(1) !important;
+        }
+        #dark-mode-toggle:checked + .theme-track .theme-cloud {
+            transform: translateX(48px) !important;
+            opacity: 0 !important;
+        }
 
-        body, .logo-bar, .dock-nav { transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease; }
+        /* スムーズなテーマ移行用トランジション */
+        body, .logo-bar, .filter-bar, .hero-container-framed, #page-content, .dock-nav, .filter-capsule, .nav-btn, .sync-btn {
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+        }
 
-        /* 跟 template 完全一致:html 鎖 viewport，body 內部捲 */
-        html {
+        /* ダークモード用スタイル修正 */
+        body.dark-mode .hero-container-framed {
+            background-color: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .hero-gradient-overlay {
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
+        }
+
+        body.dark-mode .filter-capsule {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(56, 189, 248, 0.1);
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+
+        body.dark-mode .nav-btn {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .sync-btn {
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .dock-nav {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .logo-bar .text-sky-800 {
+            color: #38bdf8 !important;
+        }
+
+        body.dark-mode .logo-bar .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+
+        html { 
             scroll-behavior: smooth;
             height: 100%;
-            overflow: hidden;
+            overflow: hidden; 
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', 'Inter', 'Noto Sans TC', sans-serif;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
             background-color: var(--glacier-bg);
-            color: var(--glacier-text);
+            color: #334155;
             -webkit-tap-highlight-color: transparent;
             height: 100%;
             overflow-y: auto;
             padding-top: 0;
         }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* template logo-bar 結構（fixed top） */
+        .hide-scrollbar::-webkit-scrollbar { display: none;
+        }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none;
+        }
+
         .logo-bar {
-            position: fixed; top: 0; left: 0; width: 100%; z-index: 120;
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 120;
             background-color: var(--glacier-glass);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            backdrop-filter: blur(24px); 
+            -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid rgba(14, 165, 233, 0.1);
             padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
             padding-bottom: 12px;
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        body.dark-mode .logo-bar { border-bottom-color: rgba(255,255,255,0.06); }
 
-        /* page-content:跟 template 一致 */
-        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px); padding-bottom: 100px; }
-        @media (max-width: 768px) { #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px); } }
+        #main-logo {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: left center;
+            will-change: transform;
+        }
 
-        /* Hero 從 page-content 內頂部開始（緊接 logo bar） */
-        .nf-hero { margin-top: 0; }
-        .nf-hero {
-            position: relative; z-index: 1;
-            width: 100%; height: 75vh; overflow: hidden;
-            margin-bottom: 40px; border-radius: 0;
+        .scrolled #main-logo { transform: scale(0.75);
         }
-        @media (max-width: 768px) { .nf-hero { height: 65vh; margin-bottom: 28px; } }
-        .nf-hero-bg {
-            position: absolute; inset: 0;
-            width: 100%; height: 100%;
-            object-fit: cover; object-position: top;
-            background-color: var(--glacier-card);
+
+        .filter-bar {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 0px) + 68px);
+            left: 0;
+            width: 100%;
+            z-index: 110;
+            background-color: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-bottom: 1px solid rgba(14, 165, 233, 0.05);
         }
-        .nf-hero-bg::after {
-            content: ''; position: absolute; inset: 0;
+
+        .filter-bar.collapsed {
+            transform: translateY(-56px);
+            opacity: 0.9;
+        }
+
+        .filter-capsule {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(14, 165, 233, 0.1);
+            color: var(--glacier-deep);
+        }
+
+        .filter-capsule.active {
+            background: var(--glacier-primary);
+            color: #fff;
+            border-color: var(--glacier-primary);
+        }
+
+        .filter-toggle-trigger {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            background: var(--glacier-glass);
+            backdrop-filter: blur(20px);
+            border-radius: 0 0 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(14, 165, 233, 0.05);
+            border-top: none;
+            color: var(--glacier-primary);
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .filter-bar.collapsed .filter-toggle-trigger i {
+            transform: rotate(180deg);
+        }
+
+        /* 検索パネル関連スタイル */
+        #search-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease;
+        }
+        #search-panel.open {
+            max-height: 80px;
+            padding-bottom: 12px;
+        }
+
+        /* メインコンテンツ配置 */
+        #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 130px);
+        }
+
+        .slider-wrapper { position: relative; width: 100%;
+        }
+
+        .slider-container { 
+            display: flex;
+            overflow-x: auto; 
+            scroll-snap-type: x mandatory; 
+            gap: 6px; /* 原為 12px / 調整為 6px，使欄與欄的空間更緊密 */
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.2s;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .slider-wrapper:hover .nav-btn { opacity: 1;
+        }
+        .nav-btn.prev { left: -12px;
+        }
+        .nav-btn.next { right: -12px;
+        }
+
+        .slider-item { scroll-snap-align: start; flex: 0 0 auto;
+        }
+
+        .poster-card { 
+            aspect-ratio: 2/3;
+            border-radius: 6px; overflow: hidden; background: #cbd5e1; 
+            position: relative; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.05);
+            will-change: transform;
+        }
+
+        .poster-card:active {
+            transform: scale(0.94);
+            filter: brightness(0.9);
+        }
+
+        /* 網格緊密無圓角、無間隙覆寫樣式 */
+        .grid-tight-pack .poster-card {
+            border-radius: 0px !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .hero-container-framed {
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
+            overflow: hidden; position: relative; background-color: #fff;
+            transition: all 0.4s ease;
+        }
+
+        .hero-gradient-overlay {
+            position: absolute;
+            inset: 0;
             background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 40%, rgba(238,242,246,0.9) 95%);
             pointer-events: none;
         }
-        body.dark-mode .nf-hero-bg::after {
-            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0.2) 40%, rgba(9,13,22,0.95) 95%);
-        }
-        .nf-hero-content {
-            position: absolute; left: 0; bottom: max(48px, 8%);
-            padding: 0 max(40px, 5vw); z-index: 2; max-width: 700px;
-            text-align: left;
-        }
-        /* 套用舊版 hero-classical：大中文 + Playfair italic 英文 */
-        .nf-hero-cn {
-            font-family: 'Noto Serif TC', 'Songti TC', serif;
-            font-size: clamp(40px, 5vw, 64px);
-            font-weight: 700; line-height: 1; letter-spacing: 0.06em;
-            color: #fff; margin-bottom: 6px;
-            text-shadow: 0 4px 24px rgba(0,0,0,0.5);
-        }
-        .nf-hero-en {
-            font-family: 'Playfair Display', serif;
-            font-style: italic; font-weight: 500;
-            font-size: clamp(20px, 2.4vw, 30px); line-height: 1;
-            color: rgba(255,255,255,0.95);
-            letter-spacing: -0.01em; margin-bottom: 24px;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.5);
-        }
-        .nf-hero-actions { display: flex; gap: 12px; margin-top: 18px; }
-        .nf-btn {
-            padding: 11px 26px; border-radius: 6px; font-size: 15px; font-weight: 700;
-            display: inline-flex; align-items: center; gap: 8px;
-            transition: all 0.2s; cursor: pointer; border: none;
-        }
-        .nf-btn-primary { background: #fff; color: #0a0a0a; }
-        .nf-btn-primary:hover { background: rgba(255,255,255,0.8); }
-        .nf-btn-secondary { background: rgba(109,109,110,0.7); color: #fff; }
-        .nf-btn-secondary:hover { background: rgba(109,109,110,0.5); }
 
-        /* Section row 容器 */
-        .nf-section { position: relative; padding: 0 max(20px, 4vw); margin-bottom: 36px; }
-        .nf-section-title {
-            font-size: clamp(18px, 1.6vw, 24px); font-weight: 700;
-            color: var(--glacier-deep); margin: 0 0 14px 0;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .nf-section-title .nf-explore {
-            font-size: 12px; color: var(--glacier-primary); font-weight: 500;
-            display: inline-flex; align-items: center; gap: 4px;
-            background: none; border: none; padding: 0; cursor: pointer;
-        }
-        .nf-row {
-            position: relative; display: flex; gap: 8px;
-            overflow-x: auto; overflow-y: visible;
-            scroll-behavior: smooth; padding: 12px 0;
-            scrollbar-width: none;
-            /* 跟 template 完全一致:不加 iOS 慣性條款,不加 overscroll-behavior,讓瀏覽器原生 scroll */
-        }
-        .nf-row::-webkit-scrollbar { display: none; }
-        .nf-row-arrow {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            width: 44px; height: 70px;
-            background: var(--glacier-glass);
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            border: none; color: var(--glacier-deep);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 10;
-            opacity: 0.3;
-            transition: opacity 0.25s, background 0.2s, transform 0.2s;
-            font-size: 18px; padding: 0;
-        }
-        .nf-row-wrap:hover .nf-row-arrow { opacity: 1; }
-        .nf-row-arrow.left { left: 0; border-radius: 0 6px 6px 0; }
-        .nf-row-arrow.right { right: 0; border-radius: 6px 0 0 6px; }
-        .nf-row-arrow:hover { background: rgba(229,9,20,0.85); color: #fff; transform: translateY(-50%) scale(1.05); }
-        /* 觸控裝置:箭頭永遠顯示 (hover 不可靠) */
-        @media (hover: none) {
-            .nf-row-arrow { opacity: 0.85; width: 32px; height: 56px; font-size: 14px; }
+        .section-hidden { display: none !important;
         }
 
-        /* Card (Netflix 風) */
-        .nf-card {
-            position: relative; flex: 0 0 auto;
-            width: 280px; aspect-ratio: 16/9;
-            border-radius: 8px; overflow: hidden;
-            background: var(--glacier-card);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            /* 跟 template 完全一致:card 完全沒 transition,讓瀏覽器原生 scroll 不被 GPU 打斷 */
-        }
-        .nf-card.large { width: 360px; }
-        .nf-card.small { width: 220px; }
-        .nf-card.portrait { width: 220px; aspect-ratio: 3/4; border-radius: 12px; }
-        .nf-card:active { opacity: 0.85; }
-        .nf-card-img {
-            position: absolute; inset: 0;
-            width: 100%; height: 100%;
-            object-fit: cover; object-position: center;
-            background-color: var(--glacier-card);
-            /* 跟 template 一致:圖片完全無 transition,scroll 不被 hover 動畫中斷 */
-        }
-        .nf-card::after {
-            content: ''; position: absolute; inset: 0; pointer-events: none;
-            background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 35%);
-        }
-        .nf-card-default {
-            position: absolute; left: 14px; right: 14px; bottom: 12px;
-            color: #fff; z-index: 2; pointer-events: none;
-        }
-        /* 卡片標題 - 跟 hero banner 統一：Noto Serif TC 中文 + Playfair italic 英文 */
-        .nf-card-title {
-            font-family: 'Noto Serif TC', 'Songti TC', serif;
-            font-size: 22px; font-weight: 700; color: #fff;
-            line-height: 1.1; letter-spacing: 0.04em; margin-bottom: 4px;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-        }
-
-        .nf-card-sub {
-            font-family: 'Playfair Display', serif;
-            font-style: italic; font-weight: 500;
-            font-size: 14px; color: rgba(255,255,255,0.85);
-            letter-spacing: 0.01em;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-            display: flex; align-items: center; gap: 6px;
-            line-height: 1.1;
-        }
-        .nf-card-sub i { font-size: 10px; font-style: normal; }
-
-        /* 卡片右上標籤徽章 - 跟 sub 同步 */
-        .nf-card-tag {
-            position: absolute; top: 12px; right: 12px; z-index: 2;
-            display: inline-flex; align-items: center; gap: 5px;
-            font-size: 9px; font-weight: 700; color: #fff;
-            background: rgba(255,255,255,0.18);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.25);
-            padding: 4px 8px; border-radius: 999px;
-            letter-spacing: 0.08em; text-transform: uppercase;
-            pointer-events: none;
-        }
-
-        /* 卡片右下 hover 圓形按鈕 (跟 template 風格:純樣式,無 transform,scroll 不會卡) */
-        .nf-card-action {
-            position: absolute; bottom: 14px; right: 14px;
-            width: 34px; height: 34px; border-radius: 50%;
-            background: rgba(255,255,255,0.95);
-            display: flex; align-items: center; justify-content: center;
-            color: #0a0a0a; font-size: 12px; font-weight: 700;
-            z-index: 3; opacity: 0;
-            transition: opacity 0.15s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            cursor: pointer;
-        }
-        .nf-card:hover .nf-card-action { opacity: 1; }
-        .nf-card-action:hover { background: #fff; }
-
-        /* Large card 標題更大 - 跟 hero banner 比例 */
-        .nf-card.large .nf-card-title { font-size: 28px; letter-spacing: 0.05em; }
-        .nf-card.large .nf-card-sub { font-size: 16px; }
-        /* Small card 標題更小 - 維持小卡可讀性 */
-        .nf-card.small .nf-card-title { font-size: 16px; line-height: 1.15; }
-        .nf-card.small .nf-card-sub { font-size: 12px; }
-
-        /* Quote 卡片（套用舊版 Playfair italic + uppercase author） */
-        .nf-quote-card {
-            padding: 22px; border-radius: 12px;
-            background: var(--glacier-card);
-            border: 1px solid var(--glacier-card-border);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-            flex: 0 0 320px; min-height: 180px;
-            display: flex; flex-direction: column; justify-content: center;
-            position: relative; overflow: hidden;
-        }
-        /* 巨大引號裝飾（套用舊版） */
-        .nf-quote-card::before {
-            content: '\201C'; position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-family: 'Playfair Display', serif;
-            font-size: 240px; line-height: 1;
-            color: var(--accent); opacity: 0.06;
-            font-weight: 700; pointer-events: none;
-        }
-        .nf-quote-text {
-            font-family: 'Playfair Display', serif; font-style: italic;
-            font-size: 19px; line-height: 1.4;
-            color: var(--glacier-deep); letter-spacing: -0.005em;
-            font-weight: 500; margin-bottom: 8px;
-            position: relative; z-index: 1;
-        }
-        body.dark-mode .nf-quote-text { color: #fafaf9; }
-        .nf-quote-author {
-            font-size: 11px; font-weight: 800;
-            letter-spacing: 0.22em; text-transform: uppercase;
-            color: var(--glacier-text);
-            position: relative; z-index: 1;
-        }
-
-        /* Grid view 密鋪 */
-        .nf-grid-view { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 0 max(20px, 4vw); }
-        .nf-grid-view .nf-card.portrait { width: 100%; aspect-ratio: 1/1; border-radius: 0; box-shadow: none; }
-        .nf-grid-view .nf-card.portrait .nf-card-default {
-            position: absolute; inset: 0;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            text-align: center; z-index: 2; pointer-events: none; color: #fff;
-        }
-        .nf-grid-view .nf-card.portrait .nf-card-text-bar {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 100%; padding: 16px 18px;
-            background: rgba(20, 24, 32, 0.55); border-radius: 0;
-        }
-        .nf-grid-view .nf-card.portrait .nf-card-title { font-size: 28px; line-height: 1.1; font-weight: 700; color: #fff; letter-spacing: 0.05em; }
-        .nf-grid-view .nf-card.portrait .nf-card-sub { font-size: 15px; line-height: 1.1; margin-top: 6px; color: #fff; font-style: italic; }
-        @media (max-width: 1280px) { .nf-grid-view { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 900px)  { .nf-grid-view { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 600px)  { .nf-grid-view { grid-template-columns: repeat(2, 1fr); } }
-
-        /* Tab 內 portrait 卡片牆（手機 3 欄 / 平板 4 / 桌面 5-6） */
-        .nf-tab-wall {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding: 0 max(16px, 4vw) 60px;
-        }
-        @media (min-width: 600px) { .nf-tab-wall { grid-template-columns: repeat(4, 1fr); gap: 12px; } }
-        @media (min-width: 900px) { .nf-tab-wall { grid-template-columns: repeat(5, 1fr); gap: 14px; } }
-        @media (min-width: 1280px) { .nf-tab-wall { grid-template-columns: repeat(6, 1fr); gap: 14px; } }
-        .nf-tab-wall .nf-card.portrait { width: 100%; aspect-ratio: 3/4; border-radius: 12px; }
-        .nf-tab-wall .nf-card.portrait .nf-card-default {
-            position: absolute; left: 16px; bottom: 12px; right: 16px;
-            display: flex; flex-direction: column; align-items: flex-start;
-            text-align: left; color: #fff; pointer-events: none;
-        }
-        .nf-tab-wall .nf-card.portrait .nf-card-title { font-size: 18px; line-height: 1.15; font-weight: 700; margin-bottom: 3px; color: #fff; letter-spacing: 0.04em; }
-        .nf-tab-wall .nf-card.portrait .nf-card-sub { font-size: 13px; line-height: 1.1; color: #fff; opacity: 0.9; font-style: italic; }
-
-        /* Archive hero (template 的 sec-archive) */
-        .archive-hero {
-            position: relative; width: 100%;
-            height: 30vh; max-height: 320px;
-            max-width: 80rem; margin: 80px auto 0;
-            border-radius: 12px; overflow: hidden;
-            cursor: pointer; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
-        }
-        @media (min-width: 768px) { .archive-hero { height: 40vh; } }
-        .archive-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
-        .archive-hero:hover img { transform: scale(1.1); }
-        .archive-hero .archive-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%); opacity: 0.9; }
-        .archive-hero .archive-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; }
-        .archive-hero h2 { font-weight: 900; color: #fff; font-size: clamp(24px, 4vw, 48px); letter-spacing: -0.02em; text-transform: uppercase; margin-bottom: 8px; text-shadow: 0 4px 16px rgba(0,0,0,0.5); font-style: italic; }
-        .archive-hero .archive-divider { height: 4px; width: 48px; background: #0ea5e9; margin-bottom: 16px; border-radius: 9999px; transition: all 0.5s; }
-        .archive-hero:hover .archive-divider { width: 96px; }
-        .archive-hero p { color: #bae6fd; font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; opacity: 0.8; margin-bottom: 32px; }
-        @media (min-width: 768px) { .archive-hero p { font-size: 12px; } }
-        .archive-hero button { background: #fff; color: #000; padding: 12px 40px; font-weight: 900; border-radius: 4px; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; transition: all 0.3s; border: none; cursor: pointer; }
-        .archive-hero:hover button { background: #0ea5e9; color: #fff; }
-        .archive-hero button:active { transform: scale(0.95); }
-
-        /* Search input */
-        .nf-search-input { background-color: rgba(255, 255, 255, 0.6); }
-        body.dark-mode .nf-search-input { background-color: rgba(30, 41, 59, 0.6); }
-        .nf-search-input::placeholder { color: var(--glacier-text); opacity: 0.5; }
-
-        /* Profile / logout icons */
-        .nf-avatar, .nf-logout-btn {
-            width: 36px; height: 36px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%;
-            color: var(--glacier-text); opacity: 0.7;
-            cursor: pointer; transition: opacity 0.2s, background 0.2s;
-            border: none; background: none; font-size: 20px;
-        }
-        .nf-avatar:hover, .nf-logout-btn:hover { opacity: 1; background: rgba(14,165,233,0.1); }
-        .nf-profile-group { display: flex; align-items: center; gap: 4px; }
-
-        /* Loader (跟 template 的 .loader 一致) */
-        .loader {
-            display: flex; justify-content: center; align-items: center;
-            padding: 80px 20px;
-            font-size: 13px; color: var(--glacier-primary);
-            gap: 8px;
-        }
-        .loader::before {
-            content: ''; width: 16px; height: 16px;
-            border: 2px solid var(--glacier-primary);
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Dock 跟 template 1:1 一致 */
         .dock-wrapper {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
@@ -406,7 +318,10 @@
             width: auto;
             min-width: 340px;
         }
-        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0; }
+
+        .dock-wrapper.collapsed { transform: translateX(-50%) translateY(200px); opacity: 0;
+        }
+
         .dock-nav {
             background-color: var(--glacier-nav-glass);
             backdrop-filter: blur(28px) saturate(210%);
@@ -417,26 +332,29 @@
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
             display: flex; align-items: center; justify-content: center; gap: 14px;
         }
-        body.dark-mode .dock-nav { background-color: var(--glacier-nav-glass) !important; border-color: rgba(255,255,255,0.5) !important; }
+
         .dock-toggle-btn {
             width: 32px;
             height: 32px; display: flex; align-items: center; justify-content: center;
             color: #94a3b8; cursor: pointer; font-size: 14px; transition: color 0.3s;
         }
-        .dock-content { display: flex; align-items: center; gap: 14px; }
+
+        .dock-content { display: flex; align-items: center; gap: 14px;
+        }
+
         .dock-item {
             display: flex;
             flex-direction: column; align-items: center; gap: 5px;
             color: #94a3b8; transition: all 0.3s; min-width: 58px;
-            background: none; border: none; cursor: pointer; padding: 0;
         }
-        .dock-item i { font-size: 1.6rem; }
-        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7; text-transform: uppercase; }
-        .dock-item.active { color: var(--glacier-primary); }
-        .dock-item.active span { opacity: 1; }
-        .dock-item:hover { color: var(--glacier-primary); }
 
-        /* dock 收起時底部的小 handle bar（跟 template 一致） */
+        .dock-item i { font-size: 1.6rem;
+        }
+        .dock-item span { font-size: 9px; font-weight: 500; opacity: 0.7;
+        }
+        .dock-item.active { color: var(--glacier-primary);
+        }
+
         .dock-trigger-bar {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
@@ -447,368 +365,405 @@
             border-radius: 10px;
             z-index: 199; cursor: pointer; display: none;
         }
-        .dock-wrapper.collapsed + .dock-trigger-bar { display: block; }
-
-        /* Mobile - dock 完全照 template:只改寬度,其他跟 desktop 一致 */
-        @media (max-width: 768px) {
-            .dock-wrapper { width: 92%; max-width: 400px; }
+        .dock-wrapper.collapsed + .dock-trigger-bar { display: block;
         }
 
-        /* ========== Mobile row: 強制 portrait + 縮小,2.5 張可見 ========== */
-        @media (max-width: 768px) {
-            /* 強制所有 nf-card 在 mobile row 是 portrait,140px 寬 (2.5 張可見,半張露臉) */
-            .nf-row .nf-card,
-            .nf-row .nf-card.large,
-            .nf-row .nf-card.small,
-            .nf-row .nf-card.portrait {
-                width: 140px;
-                aspect-ratio: 3/4;
-                border-radius: 10px;
-            }
-            /* 縮小 row gap + padding 讓更多空間給卡片 */
-            .nf-row { gap: 6px; padding: 10px 0; }
-            .nf-section { padding: 0 12px; margin-bottom: 28px; }
-            .nf-section-title { font-size: 16px; margin-bottom: 8px; }
-            /* card 內 title/sub 在 mobile 配合稍大卡 */
-            .nf-row .nf-card .nf-card-title { font-size: 15px; letter-spacing: 0.03em; }
-            .nf-row .nf-card .nf-card-sub { font-size: 12px; }
-            .nf-row .nf-card .nf-card-tag { font-size: 9px; padding: 3px 7px; top: 8px; right: 8px; }
-            .nf-row .nf-card .nf-card-action { width: 28px; height: 28px; font-size: 11px; bottom: 10px; right: 10px; }
-            .nf-row .nf-card .nf-card-default { left: 12px; right: 12px; bottom: 10px; }
-        }
-        /* 極小螢幕 (≤360px) 改 125px 保持 2.5 張比例 */
-        @media (max-width: 360px) {
-            .nf-row .nf-card,
-            .nf-row .nf-card.large,
-            .nf-row .nf-card.small,
-            .nf-row .nf-card.portrait {
-                width: 125px;
-            }
-            .nf-section { padding: 0 8px; }
+        .section-title { font-size: 1.15rem; font-weight: 800; color: var(--glacier-deep); margin-bottom: 8px;
         }
 
-        /* Tab back button */
-        .nf-tab-back-bar {
-            display: flex; align-items: center; gap: 8px;
-            padding: 12px max(20px, 4vw); margin-bottom: 16px;
-        }
-        .nf-tab-back-btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 16px; border-radius: 9999px;
-            background: var(--glacier-glass);
-            border: 1px solid var(--glacier-card-border);
-            color: var(--glacier-deep); font-size: 13px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s;
-        }
-        .nf-tab-back-btn:hover { background: var(--glacier-primary); color: #fff; }
-
-        /* ========== 自製系統風格確認對話框 (iOS damping animation + 模糊背景) ========== */
-        .nf-dialog-overlay {
-            position: fixed; inset: 0; z-index: 9999;
-            display: flex; align-items: center; justify-content: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0);
-            backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
-            opacity: 0;
-            transition: opacity 0.25s ease, background-color 0.25s ease, backdrop-filter 0.25s ease;
-        }
-        .nf-dialog-overlay.nf-dialog-show {
-            opacity: 1;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        }
-        .nf-dialog-card {
-            width: 100%; max-width: 360px;
-            background: var(--glacier-card);
-            color: var(--glacier-deep);
-            border-radius: 18px;
-            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0,0,0,0.04);
-            overflow: hidden;
-            transform: scale(0.94) translateY(8px);
-            opacity: 0;
-            /* OS damping animation - iOS 系統風格 cubic-bezier(0.32, 0.72, 0, 1) */
-            transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
-        }
-        body.dark-mode .nf-dialog-card {
-            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
-        }
-        .nf-dialog-overlay.nf-dialog-show .nf-dialog-card {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-        }
-        .nf-dialog-icon {
-            display: flex; align-items: center; justify-content: center;
-            width: 56px; height: 56px;
-            margin: 24px auto 12px;
-            border-radius: 50%;
-            font-size: 24px;
-        }
-        .nf-dialog-icon.nf-icon-warn {
-            background: rgba(229, 9, 20, 0.1);
-            color: var(--accent);
-        }
-        .nf-dialog-icon.nf-icon-info {
-            background: rgba(14, 165, 233, 0.1);
-            color: var(--glacier-primary);
-        }
-        .nf-dialog-icon.nf-icon-success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-        }
-        .nf-dialog-title {
-            text-align: center;
-            font-size: 17px; font-weight: 700;
-            padding: 0 24px; margin-bottom: 6px;
-            line-height: 1.3;
-        }
-        .nf-dialog-message {
-            text-align: center;
-            font-size: 14px; font-weight: 400;
-            line-height: 1.5;
-            color: var(--glacier-text);
-            padding: 0 24px 20px;
-        }
-        .nf-dialog-divider {
-            height: 1px;
-            background: var(--glacier-card-border);
-        }
-        .nf-dialog-buttons {
-            display: flex;
-            width: 100%;
-        }
-        .nf-dialog-buttons.nf-dialog-stacked { flex-direction: column; }
-        .nf-dialog-btn {
-            flex: 1; min-width: 0;
-            padding: 14px 16px;
-            background: none; border: none;
-            font-size: 16px; font-weight: 600;
-            cursor: pointer;
-            color: var(--glacier-primary);
-            transition: background-color 0.15s ease, opacity 0.15s ease;
-            position: relative;
-        }
-        .nf-dialog-btn:hover { background: rgba(14, 165, 233, 0.08); }
-        .nf-dialog-btn:active { background: rgba(14, 165, 233, 0.18); }
-        .nf-dialog-btn.nf-dialog-btn-confirm { color: var(--accent); font-weight: 700; }
-        .nf-dialog-btn.nf-dialog-btn-confirm:hover { background: rgba(229, 9, 20, 0.08); }
-        .nf-dialog-btn.nf-dialog-btn-confirm:active { background: rgba(229, 9, 20, 0.18); }
-        .nf-dialog-buttons:not(.nf-dialog-stacked) .nf-dialog-btn:not(:last-child)::after {
-            content: ''; position: absolute;
-            right: 0; top: 12px; bottom: 12px;
-            width: 1px;
-            background: var(--glacier-card-border);
-        }
-        .nf-dialog-buttons.nf-dialog-stacked .nf-dialog-btn:not(:last-child)::after {
-            content: ''; position: absolute;
-            left: 12px; right: 12px; bottom: 0;
-            height: 1px;
-            background: var(--glacier-card-border);
-        }
-
-        /* ========== More menu (三橫 icon 展開的 fade menu) ========== */
-        .nf-more-menu {
+        /* 同期ボタンのスタイリング */
+        .sync-btn {
             position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            min-width: 200px;
-            background: var(--glacier-card);
-            border: 1px solid var(--glacier-card-border);
-            border-radius: 14px;
-            box-shadow: 0 14px 40px -8px rgba(0,0,0,0.18);
-            padding: 6px;
-            z-index: 130;
-            opacity: 0;
-            transform: translateY(-8px) scale(0.96);
-            transform-origin: top right;
-            pointer-events: none;
-            transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
-        }
-        body.dark-mode .nf-more-menu { box-shadow: 0 14px 40px -8px rgba(0,0,0,0.6); }
-        .nf-more-menu.nf-more-menu-show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
-        }
-        .nf-more-menu-item {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            color: var(--glacier-deep);
-            font-size: 14px; font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.15s ease, color 0.15s ease;
-            user-select: none;
-        }
-        .nf-more-menu-item:hover { background: rgba(14, 165, 233, 0.1); }
-        .nf-more-menu-item:active { background: rgba(14, 165, 233, 0.18); }
-        .nf-more-menu-item i { width: 18px; text-align: center; font-size: 14px; color: var(--glacier-text); }
-        .nf-more-menu-item.nf-more-menu-danger { color: var(--accent); }
-        .nf-more-menu-item.nf-more-menu-danger i { color: var(--accent); }
-        .nf-more-menu-item.nf-more-menu-danger:hover { background: rgba(229, 9, 20, 0.1); }
-        .nf-more-menu-divider {
-            height: 1px; margin: 4px 0;
-            background: var(--glacier-card-border);
-        }
-
-        /* ========== 搜尋 panel（從 menu 點搜尋後展開,固定在 logo bar 下方） ========== */
-        .nf-search-panel {
-            position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 68px + 6px);
             right: 24px;
-            width: min(360px, calc(100vw - 48px));
-            background: var(--glacier-card);
-            border: 1px solid var(--glacier-card-border);
-            border-radius: 14px;
-            box-shadow: 0 14px 40px -8px rgba(0,0,0,0.18);
-            padding: 10px 12px;
-            z-index: 125;
-            opacity: 0;
-            transform: translateY(-8px) scale(0.96);
-            transform-origin: top right;
-            pointer-events: none;
-            transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+            bottom: 24px;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        body.dark-mode .nf-search-panel { box-shadow: 0 14px 40px -8px rgba(0,0,0,0.6); }
-        .nf-search-panel.nf-search-panel-show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
+        .sync-btn:hover { background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px); }
+        .sync-btn:active { transform: scale(0.95);
         }
-        .nf-search-panel-input-wrap {
-            position: relative;
-            display: flex; align-items: center;
+        .sync-btn.loading i { animation: spin 1s linear infinite;
         }
-        .nf-search-panel-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(14, 165, 233, 0.3);
-            border-radius: 9999px;
-            padding: 9px 36px 9px 36px;
-            font-size: 14px;
-            color: var(--glacier-deep);
-            outline: none;
-            transition: border-color 0.2s, width 0.2s;
-        }
-        body.dark-mode .nf-search-panel-input { background: rgba(30, 41, 59, 0.6); }
-        .nf-search-panel-input:focus { border-color: var(--glacier-primary); }
-        .nf-search-panel-input::placeholder { color: var(--glacier-text); opacity: 0.5; }
-        .nf-search-panel-icon {
-            position: absolute; left: 12px;
-            color: var(--glacier-text); opacity: 0.6;
-            font-size: 12px; pointer-events: none;
-        }
-        .nf-search-panel-clear {
-            position: absolute; right: 8px;
-            background: none; border: none; cursor: pointer;
-            color: var(--glacier-text); opacity: 0.6;
-            font-size: 14px; padding: 4px;
-        }
-        .nf-search-panel-clear:hover { opacity: 1; }
-        .nf-search-panel-close {
-            margin-left: 6px;
-            background: none; border: none; cursor: pointer;
-            color: var(--glacier-text); opacity: 0.5;
-            padding: 4px 6px; border-radius: 6px;
-            transition: background 0.15s, opacity 0.15s;
-        }
-        .nf-search-panel-close:hover { background: rgba(14, 165, 233, 0.1); opacity: 1; }
 
-        /* Hide class */
-        .hidden-class { display: none !important; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg);
+        } }
+
+        /* ロードアニメーション */
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 12px;
+            color: var(--glacier-primary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        /* Windows 風格 Modal */
+        .win-modal {
+            background: rgba(243, 243, 243, 0.98);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        }
+        .win-titlebar {
+            background: linear-gradient(180deg, #f0f0f0 0%, #e1e1e1 100%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body.dark-mode .win-modal {
+            background: rgba(30, 30, 30, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+        body.dark-mode .win-titlebar {
+            background: linear-gradient(180deg, #2d2d2d 0%, #252525 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .win-btn {
+            background: linear-gradient(180deg, #fafafa 0%, #e8e8e8 100%);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            transition: all 0.15s;
+        }
+        .win-btn:hover {
+            background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+        .win-btn:active { transform: translateY(1px); }
+        body.dark-mode .win-btn {
+            background: linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e5e7eb;
+        }
+        body.dark-mode .win-btn:hover {
+            background: linear-gradient(180deg, #454545 0%, #353535 100%);
+        }
+
+        /* 漸進式瀑布流（Staggered Fade & Rise）卡片登場動畫 - 物理阻尼微彈效果 */
+        @keyframes fadeRise {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-rise {
+            opacity: 0;
+            animation: fadeRise 1.1s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+            animation-delay: calc(var(--row-m) * 0.08s);
+        }
+        @media (min-width: 768px) {
+            .animate-fade-rise {
+                animation-delay: calc(var(--row-d) * 0.08s);
+            }
+        }
+
+        /* QRスキャナーエフェクト */
+        @keyframes qr-scan-line {
+            0% { transform: translateY(-130px);
+            }
+            50% { transform: translateY(130px);
+            }
+            100% { transform: translateY(-130px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-container-framed { border-radius: 0;
+            }
+            .dock-wrapper { width: 92%; max-width: 400px;
+            }
+            #page-content { padding-top: calc(env(safe-area-inset-top, 0px) + 120px);
+            }
+            .nav-btn { display: none !important;
+            }
+            .sync-btn { right: 16px; bottom: 16px;
+            padding: 8px 14px; }
+        }
     </style>
 </head>
 <body class="pb-40 hide-scrollbar">
 
-    <!-- =========== 頂部 nav（跟 template logo-bar 一致） =========== -->
     <header id="header-root">
-        <div class="logo-bar px-6" id="logo-nav-bar">
+        <div class="logo-bar px-6" id="logo-nav-bar"> 
             <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
                 <div class="cursor-pointer" onclick="scrollToHome()" id="main-logo">
                     <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-12 w-auto">
                 </div>
+                
+                <!-- 控制按鈕與日夜切換開關 -->
                 <div class="flex items-center gap-4 md:gap-6">
-                    <button id="grid-view-toggle" onclick="toggleGridView()" title="格狀排版" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
-                        <i class="fas fa-border-all text-lg"></i>
-                    </button>
-                    <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
-                        <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
-                        <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
-                            <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
-                                <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                                <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                                <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                                <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
-                            </div>
-                            <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
-                                <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
-                                <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full scale-0 flex items-center justify-center overflow-hidden">
-                                    <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
-                                    <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
-                                    <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
-                                    <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
+                    
+                    <!-- 日夜切換開關 -->
+                    <div class="flex items-center">
+                        <label class="relative inline-flex items-center cursor-pointer select-none scale-90 md:scale-100">
+                            <input type="checkbox" id="dark-mode-toggle" class="sr-only" onchange="toggleTheme(this.checked)">
+  
+                            <!-- Pill Track -->
+                            <div class="theme-track w-[72px] h-[38px] bg-[#93c5fd] rounded-full relative transition-all duration-500 overflow-hidden shadow-inner border-2 border-[#60a5fa]">
+                               
+                                <!-- 星空背景 (夜間模式專用) -->
+                                <div class="theme-stars absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none">
+                      
+                                    <!-- Tiny Star 1 -->
+                                    <svg class="absolute w-2 h-2 text-slate-300 top-2 right-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                       
+                                    <!-- Tiny Star 2 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 top-6 right-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                        
+                                    <!-- Tiny Star 3 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-300 top-4 right-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
+                         
+                                    <!-- Tiny Star 4 -->
+                                    <svg class="absolute w-1.5 h-1.5 text-slate-400 bottom-2 right-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.136 9.21l8.2-1.192z"/></svg>
                                 </div>
+
+                                <!-- 太陽/月亮滑塊 -->
+                                <div class="theme-knob absolute top-[2px] left-[2px] w-[30px] h-[30px] rounded-full transition-all duration-500 transform translate-x-[36px] flex items-center justify-center z-10">
+          
+                                    <!-- 太陽 (日間模式) -->
+                                    <div class="theme-sun absolute inset-0 bg-[#fde047] border-2 border-[#eab308] rounded-full transition-all duration-500 scale-100 shadow-[0_0_8px_rgba(253,224,71,0.6)]"></div>
+                     
+                                    <!-- 月亮 (夜間模式) -->
+                                    <div class="theme-moon absolute inset-0 bg-[#cbd5e1] border-2 border-[#94a3b8] rounded-full transition-all duration-500 scale-0 flex items-center justify-center overflow-hidden">
+                             
+                                        <!-- 月面隕石坑 -->
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-1.5 left-2.5 opacity-60"></div>
+                                      
+                                        <div class="absolute w-2.5 h-2.5 bg-[#94a3b8] rounded-full bottom-1 right-2 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1.5 bg-[#94a3b8] rounded-full top-3 right-1.5 opacity-60"></div>
+                                        <div class="absolute w-1.5 h-1 bg-[#94a3b8] rounded-full bottom-3 left-1 opacity-40"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 雲朵 (日間模式背景裝飾) -->
+                                <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
+                                    <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
+                                    </svg>
+                                </div>
+
                             </div>
-                            <div class="theme-cloud absolute bottom-[-1px] left-2 transition-all duration-500 transform translate-x-0 z-20 pointer-events-none">
-                                <svg class="w-[32px] h-[20px]" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.5"/>
-                                </svg>
-                            </div>
-                        </div>
-                    </label>
-                    <!-- 三橫 icon + More menu (搜尋/重新整理/登出) -->
-                    <div class="relative" id="nf-more-wrap">
-                        <button id="nf-more-btn" onclick="toggleMoreMenu(event)" title="更多" class="w-9 h-9 flex items-center justify-center rounded-full opacity-60 hover:opacity-100 transition-opacity" style="color: var(--glacier-text);">
-                            <i class="fas fa-bars text-lg"></i>
-                        </button>
-                        <div id="nf-more-menu" class="nf-more-menu" role="menu" aria-hidden="true">
-                            <div class="nf-more-menu-item" onclick="closeMoreMenu(); openSearchPanel();" role="menuitem">
-                                <i class="fas fa-search"></i><span>搜尋</span>
-                            </div>
-                            <div class="nf-more-menu-divider"></div>
-                            <div class="nf-more-menu-item" onclick="closeMoreMenu(); manualReload();" role="menuitem">
-                                <i class="fas fa-rotate"></i><span>重新整理</span>
-                            </div>
-                            <div class="nf-more-menu-divider"></div>
-                            <div class="nf-more-menu-item nf-more-menu-danger" onclick="closeMoreMenu(); handleLogout();" role="menuitem">
-                                <i class="fas fa-right-from-bracket"></i><span>登出</span>
-                            </div>
-                        </div>
+                        </label>
+                    </div>
+
+                    <!-- 格狀排版切換 Icon：已更換為 fa-border-all (放置於開關與搜尋放大鏡之間) -->
+                    <div class="flex items-center text-sky-800 opacity-60 hover:opacity-100 transition-opacity">
+                        <i id="grid-view-toggle" class="fas fa-border-all text-xl cursor-pointer" onclick="toggleGridView()"></i>
+                    </div>
+
+                    <div class="flex items-center gap-6 text-sky-800 opacity-60">
+                        <i class="fas fa-search text-xl cursor-pointer" onclick="toggleSearchInput()"></i>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <div class="filter-bar px-6" id="filter-bar">
+            <!-- 搜尋面板，包含輸入框與清除按鈕 -->
+            <div id="search-panel" class="max-w-screen-2xl mx-auto px-1">
+                <div class="relative w-full">
+                    <input type="text" id="tag-search-input" oninput="handleSearch(this.value)" placeholder="輸入關鍵字以標籤 (Tag) 篩選相關卡片..." class="w-full bg-white/60 dark:bg-slate-800/60 border border-sky-400/30 rounded-full py-2 px-10 text-sm focus:outline-none focus:border-sky-500 transition-colors dark:text-slate-200">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <button onclick="clearSearch()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="filter-container" class="max-w-screen-2xl mx-auto flex items-center gap-3 overflow-x-auto hide-scrollbar pr-12">
+                <button class="filter-capsule active" onclick="setFilter('all')">載入中...</button>
+            </div>
+            <div class="filter-toggle-trigger" onclick="toggleFilter()">
+                <i class="fas fa-chevron-up text-[10px]" id="filter-chevron"></i>
+            </div>
+        </div>
     </header>
 
-    <!-- =========== 主內容區（跟 template page-content 結構一致） =========== -->
     <div id="page-content">
-        <!-- 動態渲染：hero (若有 type=head 卡) + section rows + archive -->
-        <div id="main-content-area">
-            <div class="loader">正在從數據庫獲取內容...</div>
+        <!-- 錄影庫首頁 -->
+        <div id="view-home">
+            <section id="hero-section" class="px-4 md:px-12 max-w-screen-2xl mx-auto mb-12">
+                <div id="hero-container" class="hero-container-framed relative w-full h-[65vh] md:h-[75vh]">
+                    <img id="hero-bg-img" src="https://phyuaaphysics.github.io/phyustudio/topcover.png" class="absolute inset-0 w-full h-full object-cover object-center">
+                    <div class="hero-gradient-overlay"></div>
+
+                    <!-- 手動同步按鈕 -->
+                    <button id="sync-button" onclick="manualSync()" class="sync-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>與雲端同步</span>
+                    </button>
+
+                    <!-- 左下：雙語標題 + 雙按鈕 -->
+                    <div class="absolute bottom-8 left-6 md:bottom-12 md:left-12 z-10">
+                        <h1 id="hero-title-cn" class="text-white font-black leading-none drop-shadow-2xl mb-2"
+                            style="font-family: 'Noto Serif TC', serif; font-size: clamp(36px, 6vw, 72px); letter-spacing: 0.05em;">
+                            課堂錄影
+                        </h1>
+                        <p id="hero-title-en" class="text-white/80 italic drop-shadow-xl mb-6"
+                           style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(20px, 2.4vw, 32px);">
+                            Lesson Archive
+                        </p>
+                        <div class="flex items-center gap-3">
+                            <button id="hero-start-btn" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/2526physicslessonrecordingsem2/home')"
+                                    class="flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 font-bold text-sm rounded-lg shadow-2xl hover:scale-105 transition-transform active:scale-95"
+                                    style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em;">
+                                <i class="fas fa-play text-xs"></i> 開始
+                            </button>
+                            <button id="hero-detail-btn" onclick="openHeroDetail()"
+                                    class="flex items-center gap-2 bg-white/15 backdrop-blur-md text-white border border-white/30 px-5 py-2.5 font-bold text-sm rounded-lg hover:bg-white/25 transition-all active:scale-95"
+                                    style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em;">
+                                <i class="fas fa-info-circle text-xs"></i> 詳細
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <main id="main-content-area" class="space-y-12 max-w-screen-2xl mx-auto px-6">
+                <!-- 動態生成的內容將放在這裡 -->
+                <div class="loader">正在從數據庫獲取內容...</div>
+            </main>
+
+            <section id="sec-archive" class="mt-20 pb-16 px-6">
+                <div class="hero-container-framed relative w-full h-[30vh] md:h-[40vh] max-w-5xl mx-auto group cursor-pointer overflow-hidden" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
+                    <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 opacity-90"></div>
+            
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                        <h2 style="font-weight: 900;" class="text-white text-3xl md:text-5xl tracking-tighter uppercase mb-2 drop-shadow-2xl italic">
+                            Pastpaper Archive
+                        </h2>
+                        <div class="h-1 w-12 bg-sky-500 mb-4 rounded-full transition-all duration-500 group-hover:w-24"></div>
+        
+                        <p class="text-sky-100 text-[10px] md:text-xs tracking-[0.4em] uppercase font-light opacity-80 mb-8">
+                            Detailed Examination Resource Collections
+                        </p>
+                        <button class="bg-white text-black px-10 py-3 font-black rounded-sm text-[9px] tracking-[0.3em] uppercase hover:bg-sky-400 hover:text-white transition-all active:scale-95">
+                            Enter Archive
+                        </button>
+                    </div>
+                </div>
+            </section>
         </div>
-        <div id="archive-section" class="hidden-class" style="padding: 0 max(20px, 4vw);">
-            <div class="archive-hero" onclick="handleNavigation('https://sites.google.com/np2c.edu.hk/physicspp-archive/pp?pli=1&authuser=2')">
-                <img src="https://phyuaaphysics.github.io/phyustudio/pastpaper.png" alt="Pastpaper Archive">
-                <div class="archive-overlay"></div>
-                <div class="archive-content">
-                    <h2>Pastpaper Archive</h2>
-                    <div class="archive-divider"></div>
-                    <p>Detailed Examination Resource Collections</p>
-                    <button>Enter Archive</button>
+    </div>
+
+    <!-- QR Scanner Modal Overlay -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-[300] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 ease-in-out">
+        <div class="relative w-full max-w-md mx-4 bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col items-center">
+            <!-- Close Scanner -->
+            <button onclick="closeQRScanner()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h3 class="text-white font-bold text-lg mb-6 flex items-center gap-2">
+                <i class="fas fa-camera text-sky-400 animate-pulse"></i> 掃描條碼 / QR Code
+            </h3>
+ 
+            <!-- Video / Canvas viewport wrapper -->
+            <div class="relative w-[280px] h-[280px] rounded-2xl overflow-hidden border-2 border-sky-500/30 bg-black flex items-center justify-center">
+                <video id="qr-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
+                <canvas id="qr-canvas" class="hidden"></canvas>
+                <!-- Scanner Overlay Target Area -->
+                <div class="absolute inset-6 border border-sky-400/50 rounded-xl pointer-events-none flex items-center justify-center">
+                    <!-- Scanner Laser Line -->
+                    <div class="w-[90%] h-0.5 bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)] opacity-90" style="animation: qr-scan-line 2.5s infinite ease-in-out;"></div>
+                </div>
+            </div>
+            
+            <!-- File Upload Fallback Button -->
+            <div class="mt-4 w-full flex justify-center">
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white text-xs px-5 py-2.5 rounded-full flex items-center gap-2 border border-slate-700 transition-colors">
+                    <i class="fas fa-image text-sky-400"></i> 選擇照片 / 上傳條碼圖
+                    <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQRFile(this)">
+                </label>
+            </div>
+            
+            <p class="text-slate-400 text-xs mt-4 text-center px-4 leading-relaxed font-light">
+                請將相機對準 QR Code 或直接上傳條碼相片。<br>相機啟動時請允許相機存取權限。
+            </p>
+            <div id="qr-error-msg" class="text-rose-400 text-xs mt-3 text-center px-4 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Windows 風格 Hero 詳細說明 Modal -->
+    <div id="hero-detail-modal" class="fixed inset-0 z-[310] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" onclick="if(event.target===this) closeHeroDetail()">
+        <div class="win-modal rounded-lg w-[460px] max-w-[92vw] overflow-hidden">
+            <!-- Windows 標題列 -->
+            <div class="win-titlebar flex items-center justify-between px-4 py-2">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-info text-sky-500 text-sm"></i>
+                    <span class="text-[13px] font-semibold" style="font-family: 'Noto Serif TC', serif;">課堂錄影系統</span>
+                </div>
+                <button onclick="closeHeroDetail()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-red-500 hover:text-white transition-colors text-gray-600 text-base leading-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal 內容 -->
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-5">
+                    <div class="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-video text-sky-500 text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold mb-1" style="font-family: 'Noto Serif TC', serif;">系統簡介</h3>
+                        <p class="text-xs text-gray-500 italic" style="font-family: 'Playfair Display', serif;">About Lesson Archive</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 mb-5">
+                    <p class="text-[15px] leading-relaxed text-gray-700" style="font-family: 'Noto Serif TC', serif;">
+                        課堂錄影系統可重溫課堂，慢慢回放理解課堂內容！
+                    </p>
+                </div>
+
+                <div class="bg-sky-50 border border-sky-100 rounded p-3 mb-5">
+                    <div class="flex items-center gap-2 text-xs text-sky-700">
+                        <i class="fas fa-lightbulb text-sky-500"></i>
+                        <span style="font-family: 'Noto Serif TC', serif;">提示：點擊「開始」按鈕即可進入系統</span>
+                    </div>
+                </div>
+
+                <!-- 底部按鈕列 -->
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeHeroDetail()" class="win-btn px-5 py-1.5 text-[13px] rounded" style="font-family: 'Noto Serif TC', serif;">
+                        關閉
+                    </button>
+                    <button id="hero-modal-start-btn" onclick="closeHeroDetail(); setTimeout(() => { const sb = document.getElementById('hero-start-btn'); if(sb) sb.click(); }, 200);" class="win-btn px-5 py-1.5 text-[13px] rounded font-semibold" style="font-family: 'Noto Serif TC', serif; min-width: 90px;">
+                        開始使用
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- =========== Dock（跟 template 一致 4 格,手機也顯示） =========== -->
     <div id="dock-nav-wrapper" class="dock-wrapper">
         <nav class="dock-nav">
             <div class="dock-toggle-btn" onclick="toggleDock()"><i class="fas fa-chevron-down"></i></div>
             <div class="dock-content">
-                <button onclick="handleHomeClick()" id="dock-home" class="dock-item active">
-                    <i id="dock-home-icon" class="fas fa-home"></i><span id="dock-home-label" class="uppercase">錄影庫</span>
+                <button onclick="scrollToHome()" id="dock-home" class="dock-item active">
+                    <i class="fas fa-home"></i><span class="uppercase">錄影庫</span>
                 </button>
-                <button id="dock-tab-slot" class="dock-item" onclick="handleTabSlotClick()">
-                    <i id="dock-tab-icon" class="fas fa-cube"></i><span id="dock-tab-label" class="uppercase">模擬器</span>
+                <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html')" class="dock-item">
+                    <i class="fas fa-cube"></i><span class="uppercase">模擬器</span>
                 </button>
                 <button onclick="handleNavigation('https://phyuaaphysics.github.io/phyustudio/functionhub.html')" class="dock-item">
                     <i class="fas fa-shapes"></i><span class="uppercase">功能區</span>
@@ -822,914 +777,638 @@
     </div>
     <div id="dock-handle" onclick="toggleDock()" class="dock-trigger-bar"></div>
 
-    <!-- ========== 搜尋 panel（從三橫 menu 點搜尋後展開） ========== -->
-    <div id="nf-search-panel" class="nf-search-panel" role="search" aria-hidden="true">
-        <div class="nf-search-panel-input-wrap">
-            <i class="fas fa-search nf-search-panel-icon"></i>
-            <input type="text" id="search-input" placeholder="搜尋…" oninput="handleSearch(this.value)" class="nf-search-panel-input" autocomplete="off">
-            <button id="search-clear" onclick="clearSearch()" class="nf-search-panel-clear" title="清除">
-                <i class="fas fa-times-circle"></i>
-            </button>
-            <button onclick="closeSearchPanel()" class="nf-search-panel-close" title="關閉">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- ========== 自製系統風格確認對話框 ========== -->
-    <div id="nf-dialog-overlay" class="nf-dialog-overlay" onclick="nfDialogCancel(event)" role="dialog" aria-modal="true" aria-labelledby="nf-dialog-title">
-        <div class="nf-dialog-card" onclick="event.stopPropagation()">
-            <div id="nf-dialog-icon" class="nf-dialog-icon nf-icon-warn">
-                <i class="fas fa-exclamation"></i>
-            </div>
-            <h2 id="nf-dialog-title" class="nf-dialog-title">確認</h2>
-            <p id="nf-dialog-message" class="nf-dialog-message">您確定要執行此操作嗎?</p>
-            <div class="nf-dialog-divider"></div>
-            <div id="nf-dialog-buttons" class="nf-dialog-buttons">
-                <button id="nf-dialog-cancel" class="nf-dialog-btn" onclick="nfDialogCancel()">取消</button>
-                <button id="nf-dialog-confirm" class="nf-dialog-btn nf-dialog-btn-confirm" onclick="nfDialogConfirm()">確認</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // =========== 1. 安全 LocalStorage 封裝（跟 template 的 storage 一致） ===========
+        // 安全 LocalStorage 沙盒防禦封裝物件
         const storage = {
-            getItem(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
-            setItem(key, val) { try { localStorage.setItem(key, val); } catch(e) {} },
-            removeItem(key) { try { localStorage.removeItem(key); } catch(e) {} },
-            clear() { try { localStorage.clear(); } catch(e) {} }
-        };
-
-        // =========== 2. 配置（跟 template 一致） ===========
-        const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
-        const SHEET_TAB = 'FRONT_NEW';
-        const META_TAB = '_META';
-        const SHEET_CSV = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
-        const META_CSV  = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(META_TAB)}&range=A1:A1`;
-
-        // =========== 3. 狀態（跟 template 一致 + home card 擴展） ===========
-        let rawData = [];
-        let isGridView = false;
-        let searchQuery = '';
-        let allCardsCache = null;
-        let currentTab = null;
-        const LS = { cards: 'lumina_cards_v1', ver: 'lumina_cards_v1_ver' };
-        // 動態欄目：標題直接用 F欄 (section) 值,大小寫由卡片決定
-        // quote 欄目預設用空 options(讓卡片本身是 quote type 處理樣式)
-        const SECTION_DEFAULTS = { quotes: {} };
-        const TAB_DOCK_ICONS = {
-            oldsys:    { icon: 'fas fa-archive',    label: '庫存',     color: '#f59e0b' },
-            archive:   { icon: 'fas fa-archive',    label: '檔案',     color: '#f59e0b' },
-            hw:        { icon: 'fas fa-book',       label: '功課',     color: '#10b981' },
-            courses:   { icon: 'fas fa-graduation-cap', label: '課程',  color: '#8b5cf6' },
-            tools:     { icon: 'fas fa-wrench',     label: '工具',     color: '#0ea5e9' },
-            quotes:    { icon: 'fas fa-quote-left', label: '引言',     color: '#ec4899' },
-        };
-
-        // =========== 4. CSV 解析（從 home card 移植） ===========
-        function parseCSV(text) {
-            const rows = []; let row = ['']; let inQuotes = false;
-            for (let i = 0; i < text.length; i++) {
-                const c = text[i]; const next = text[i+1];
-                if (c === '"') {
-                    if (inQuotes && next === '"') { row[row.length-1] += '"'; i++; }
-                    else inQuotes = !inQuotes;
-                } else if (c === ',' && !inQuotes) {
-                    row.push(''); inQuotes = false;
-                } else if (c === '\n' && !inQuotes) {
-                    rows.push(row); row = ['']; inQuotes = false;
-                } else if (c === '\r') {
-                    // skip
-                } else {
-                    row[row.length-1] += c;
-                }
-            }
-            if (row.length > 1 || row[0] !== '') rows.push(row);
-            return rows;
-        }
-
-        // 12-column 解析 (home card 邏輯)
-        function sheetToCards(rows) {
-            if (!rows.length) return [];
-            const header = rows[0].map(h => h.trim().toLowerCase());
-            const idx = (k) => header.indexOf(k);
-            const I = {
-                order:    idx('order'),
-                id:       idx('id'),
-                type:     idx('type'),
-                cn:       idx('cn'),
-                en:       idx('en'),
-                section:  idx('section'),
-                size:     idx('size_hint'),
-                bg:       idx('bg'),
-                link:     idx('link'),
-                qtext:    idx('quote_text'),
-                qauthor:  idx('quote_author'),
-                active:   idx('active'),
-            };
-            return rows.slice(1)
-                .filter(r => r.some(v => v && v.trim()))
-                .map(r => ({
-                    order:   (I.order   >= 0 ? r[I.order]   : '').trim(),
-                    id:      (I.id      >= 0 ? r[I.id]      : '').trim(),
-                    type:    (I.type    >= 0 ? r[I.type]    : '').trim().toLowerCase(),
-                    cn:      (I.cn      >= 0 ? r[I.cn]      : '').trim(),
-                    en:      (I.en      >= 0 ? r[I.en]      : '').trim(),
-                    section: (I.section >= 0 ? r[I.section] : '').trim().toLowerCase(),
-                    size:    (I.size    >= 0 ? r[I.size]    : 'md').trim().toLowerCase(),
-                    bg:      (I.bg      >= 0 ? r[I.bg]      : '').trim(),
-                    link:    (I.link    >= 0 ? r[I.link]    : '').trim(),
-                    quote_text:   (I.qtext   >= 0 ? r[I.qtext]   : '').trim(),
-                    quote_author: (I.qauthor >= 0 ? r[I.qauthor] : '').trim(),
-                    active:  ((I.active  >= 0 ? r[I.active]  : 'TRUE').toString().toUpperCase() === 'TRUE'),
-                }))
-                .filter(c => {
-                    if (!c.active || !c.id) return false;
-                    if (c.id === 'ver' || c.id === '_meta') return false;
-                    if (/^\d+$/.test(c.type)) return false;
-                    return true;
-                });
-        }
-
-        // =========== 5. 背景處理 ===========
-        function resolveBg(bg) {
-            if (!bg) return { style: 'background-color:#1a1a1a;', url: null };
-            if (bg.startsWith('#')) return { style: `background-color:${bg};`, url: null };
-            if (bg === 'pattern') return { style: 'background:#1a1a1a;', url: null };
-            return { style: `background-image:url('${bg}');background-size:cover;background-position:center;`, url: bg };
-        }
-        function escapeAttr(s) { return (s || '').replace(/'/g, '%27').replace(/"/g, '%22'); }
-        // 對 JS 字串上下文更安全:用反斜線 + Unicode escape
-        function escapeJS(s) { return (s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
-        function escapeHTML(s) { return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-
-        // =========== 6. 卡片 onclick 處理 ===========
-        function cardOnclick(c) {
-            if (!c || !c.id) return '';
-            return `goLink('${escapeJS(c.id)}')`;
-        }
-        function goLink(target) {
-            const c = typeof target === 'string' ? (allCardsCache || []).find(item => item.id === target) : target;
-            if (!c) return;
-            const link = (c.link || '').trim();
-            // link 為空 / 標記為「無」時,顯示「開發中」提示(取代原本的靜默)
-            if (!link || link === '#' || link === 'no link' || link === 'undefined' || link === 'null') {
-                nfShowStatus({
-                    title: '該功能在開發中!',
-                    message: `<b>${escapeHTML(c.cn || c.id || '')}</b><br><small style="opacity:0.7">敬請期待,感謝您的耐心。</small>`,
-                    icon: 'info',
-                    confirmText: '好',
-                    dismissOnBackdrop: true
-                });
-                return;
-            }
-            if (link.startsWith('insite://')) {
-                const tab = link.slice(9).split('?')[0].split('/')[0].trim();
-                if (tab) navigateToTab(tab);
-                return;
-            }
-            // 跟 template 一致：外連一律直連（window.location.href）
-            window.location.href = link;
-        }
-
-        // =========== 7. 渲染元件 ===========
-        function renderHeroBanner(cards, opts = {}) {
-            const hero = cards[0];
-            if (!hero) return '';
-            const bg = resolveBg(hero.bg);
-            const imgTag = bg.url
-                ? `<img class="nf-hero-bg" src="${bg.url}" alt="" decoding="async" fetchpriority="high">`
-                : `<div class="nf-hero-bg" style="${escapeAttr(bg.style)}"></div>`;
-            const title = hero.cn || hero.en || 'Lumina Studio';
-            const sub = hero.en || '';
-            // 套用舊版 hero-classical 風格：大中文 Noto Serif + Playfair italic 英文
-            const actionsHtml = opts.hideActions ? '' : `
-                <div class="nf-hero-actions">
-                    <button class="nf-btn nf-btn-primary" onclick="${cardOnclick(hero)}"><i class="fas fa-play"></i> 開始</button>
-                    <button class="nf-btn nf-btn-secondary" onclick="alert('詳細資料準備中')"><i class="fas fa-info-circle"></i> 詳細</button>
-                </div>`;
-            const sectionId = opts.hideActions ? '' : 'id="home"';
-            return `
-                <section class="nf-hero ${opts.hideActions ? 'nf-tab-hero' : ''}" ${sectionId}>
-                    ${imgTag}
-                    <div class="nf-hero-content">
-                        <div class="nf-hero-cn">${escapeHTML(title)}</div>
-                        <div class="nf-hero-en">${escapeHTML(sub)}</div>${actionsHtml}
-                    </div>
-                </section>`;
-        }
-
-        function renderGridView(items) {
-            const cards = items.map(c => {
-                const bg = resolveBg(c.bg);
-                const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
-                return `<div class="nf-card portrait" onclick="${cardOnclick(c)}">
-                    ${imgTag}
-                    <div class="nf-card-default">
-                        <div class="nf-card-text-bar">
-                            <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
-                            <div class="nf-card-sub">${escapeHTML(c.en || '')}</div>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-            return `<section class="nf-section"><div class="nf-grid-view">${cards}</div></section>`;
-        }
-
-        // 渲染單張媒體卡（套用舊版 overlay 結構：tag + title + sub + action）
-        function renderMediaCard(c, sizeClass) {
-            const bg = resolveBg(c.bg);
-            const imgTag = bg.url ? `<img class="nf-card-img" src="${bg.url}" alt="" loading="lazy" decoding="async">` : `<div class="nf-card-img" style="${escapeAttr(bg.style)}"></div>`;
-            const tagHtml = c.section ? `<div class="nf-card-tag">${escapeHTML(c.section)}</div>` : '';
-            const subHtml = c.en ? `<div class="nf-card-sub">${escapeHTML(c.en)}</div>` : '';
-            return `<div class="nf-card ${sizeClass}" onclick="${cardOnclick(c)}">
-                ${tagHtml}
-                ${imgTag}
-                <div class="nf-card-default">
-                    <div class="nf-card-title">${escapeHTML(c.cn || c.id)}</div>
-                    ${subHtml}
-                </div>
-                <div class="nf-card-action" aria-label="open"><i class="fas fa-arrow-right"></i></div>
-            </div>`;
-        }
-
-        function renderSection(title, items, opts = {}) {
-            if (!items.length) return '';
-            const sectionId = opts.id || '';
-            const cards = items.map(c => {
-                if (c.type === 'quote') {
-                    return `<div class="nf-quote-card">
-                        <div class="nf-quote-text">${escapeHTML(c.quote_text || '')}</div>
-                        <div class="nf-quote-author">${escapeHTML(c.quote_author || '')}</div>
-                    </div>`;
-                }
-                const sizeClass = opts.large ? 'large' : (opts.portrait ? 'portrait' : (c.size === 'lg' ? 'large' : c.size === 'sm' ? 'small' : c.size === 'portrait' ? 'portrait' : ''));
-                return renderMediaCard(c, sizeClass);
-            }).join('');
-            return `<section class="nf-section">
-                <h3 class="nf-section-title" data-section="${escapeAttr(sectionId)}">
-                    <span>${escapeHTML(title)}</span>
-                </h3>
-                <div class="nf-row-wrap" style="position:relative;">
-                    <div class="nf-row" id="row-${escapeAttr(sectionId)}">${cards}</div>
-                    <button class="nf-row-arrow left" onclick="scrollRow('row-${escapeJS(sectionId)}', -1)" type="button"><i class="fas fa-chevron-left"></i></button>
-                    <button class="nf-row-arrow right" onclick="scrollRow('row-${escapeJS(sectionId)}', 1)" type="button"><i class="fas fa-chevron-right"></i></button>
-                </div>
-            </section>`;
-        }
-
-        function scrollRow(rowId, dir) {
-            const row = document.getElementById(rowId);
-            if (!row) return;
-            // 自適應 scroll 距離:算 row 可視寬度,每次滑 ~75% (看 2-3 張)
-            // 桌面:大卡 280-360px,滑 ~900px (~3 張)
-            // 行動:小卡 140px,滑 ~350px (~2.5 張)
-            const visible = row.clientWidth;
-            const card = row.querySelector('.nf-card');
-            const cardW = card ? card.getBoundingClientRect().width : 200;
-            // 顯示範圍內可見卡片數,確保至少滑 2 張
-            const cardsVisible = Math.max(2, Math.round(visible / (cardW + 8)));
-            // 跳 75% 可視寬度,確保不卡死
-            const step = Math.max(visible * 0.75, cardW * 2 + 16);
-            row.scrollBy({ left: dir * step, behavior: 'smooth' });
-        }
-
-        // =========== 8. renderCards (主渲染) — 完全照 template 風格 ===========
-        // Template 的 renderContent 邏輯極簡:
-        //   1. rawData 已是 sheet 順序(不用 sort)
-        //   2. 一次 forEach sections, 每個 section 從 rawData 直接 filter
-        //   3. 用 insertAdjacentHTML('beforeend', ...) 一次插一個 section
-        //   4. order 欄作為「同 section 內」的細部排序
-        function renderCards(container, cards) {
-            allCardsCache = cards;
-            // SPA 內部 tab 路由：currentTab 優先
-            if (currentTab) {
-                const tabItems = cards.filter(c => (c.type || '').toLowerCase() === currentTab.toLowerCase());
-                container.innerHTML = renderTabWall(currentTab, tabItems);
-                return;
-            }
-
-            // 1. 找 head 跟 hero 用作 hero banner
-            let headCard = cards.find(c => c.type && c.type.toUpperCase() === 'HEAD');
-            if (headCard) {
-                const fb = cards.find(c => c.id === headCard.id && c.type === 'hero');
-                if (fb) headCard = { ...headCard, cn: headCard.cn || fb.cn, en: headCard.en || fb.en, bg: headCard.bg || fb.bg, link: headCard.link || fb.link };
-            }
-            if (!headCard) headCard = cards.find(c => c.type === 'hero' && (c.cn || c.en || c.bg)) || cards.find(c => c.type === 'hero');
-
-            // 2. 篩選主頁卡片(排除 head,套用搜尋,套用 grid 排除 quote)
-            let processedItems = cards.filter(c => {
-                if (c.type && c.type.toUpperCase() === 'HEAD') return false;
-                if (c === headCard) return false;
-                if (isGridView && c.type === 'quote') return false;
-                if (searchQuery) {
-                    const q = searchQuery.toLowerCase();
-                    const hay = ((c.cn || '') + ' ' + (c.en || '') + ' ' + (c.id || '') + ' ' + (c.quote_text || '')).toLowerCase();
-                    if (!hay.includes(q)) return false;
-                }
-                return true;
-            });
-
-            // 3. 收集所有 HTML 片段到一個陣列,最後 innerHTML 一次設定 (避免 insertAdjacentHTML 多次 reflow → scroll 卡頓主因)
-            const htmlParts = [];
-
-            // 4. hero banner (只在非 grid + 非搜尋)
-            if (headCard && !searchQuery && !isGridView) {
-                htmlParts.push(renderHeroBanner([headCard]));
-            }
-
-            if (isGridView) {
-                // Grid View
-                if (processedItems.length) {
-                    htmlParts.push(renderGridView(processedItems));
-                }
-            } else {
-                // Row View: 動態取得所有 section (sheet 出現順序,Set 去重)
-                const sections = [];
-                const seenSec = new Set();
-                processedItems.forEach(c => {
-                    const sec = (c.section || '').toLowerCase();
-                    if (sec && !seenSec.has(sec)) {
-                        seenSec.add(sec);
-                        sections.push(sec);
-                    }
-                });
-                sections.forEach(sec => {
-                    const items = processedItems
-                        .filter(c => (c.section || '').toLowerCase() === sec)
-                        .sort((a, b) => (parseInt(a.order, 10) || 0) - (parseInt(b.order, 10) || 0));
-                    if (!items.length) return;
-                    const opts = SECTION_DEFAULTS[sec] || {};
-                    htmlParts.push(renderSection(sec, items, { id: sec, ...opts }));
-                });
-            }
-
-            // 5. 搜尋無結果
-            if (searchQuery && !processedItems.length && !headCard) {
-                htmlParts.push(`<div class="loader">找不到「${escapeHTML(searchQuery)}」相關卡片</div>`);
-            }
-
-            // 6. 一次 innerHTML 設定 (跟 template 完全一致,只有一次 reflow)
-            container.innerHTML = htmlParts.join('');
-
-            // 7. archive 顯示
-            const archive = document.getElementById('archive-section');
-            if (archive) {
-                if (processedItems.length > 0 || headCard) archive.classList.remove('hidden-class');
-                else archive.classList.add('hidden-class');
-            }
-
-            // 8. debug log
-            try {
-                const sectionOrder = [];
-                const seen2 = new Set();
-                processedItems.forEach(c => {
-                    const s = (c.section || '').toLowerCase();
-                    if (s && !seen2.has(s)) { seen2.add(s); sectionOrder.push(s); }
-                });
-                console.log('[renderCards]', {
-                    totalCards: cards.length,
-                    headId: headCard ? headCard.id : null,
-                    mainPageCards: processedItems.length,
-                    sectionOrder
-                });
-            } catch(_) {}
-        }
-
-        // 跟 template 一致：完全依賴瀏覽器原生 scroll,不加任何 listener
-        // (scroll listener 即使 passive 仍佔 JS thread, 對 2-3 秒 scroll 延遲有影響)
-
-        function renderTabWall(tabName, items) {
-            if (!items.length) {
-                // 移除左上角返回按鈕（用 dock home 取代）,直接顯示空狀態
-                return `<div class="loader" style="margin-top:60px;">此分題暫無內容</div>`;
-            }
-            const entry = (allCardsCache || []).find(c => (c.link || '').toLowerCase() === ('insite://' + tabName).toLowerCase());
-            const tabHero = entry || items[0];
-            const heroHtml = (tabHero.cn || tabHero.en) ? renderHeroBanner([tabHero], { hideActions: true }) : '';
-            const restCards = items.filter(c => c.id !== tabHero.id);
-            const cards = restCards.map(c => renderMediaCard(c, 'portrait')).join('');
-            const wallHtml = restCards.length ? `<div class="nf-tab-wall">${cards}</div>` : '';
-            // 移除左上角返回按鈕（用 dock home 取代）
-            return heroHtml + wallHtml;
-        }
-
-        // =========== 9. SPA 內部 tab 路由 ===========
-        function getTabDockMeta(tab) {
-            return TAB_DOCK_ICONS[(tab || '').toLowerCase()] || { icon: 'fas fa-folder-open', label: tab || '分頁', color: '#f59e0b' };
-        }
-        function updateDockForTab() {
-            const homeIcon = document.getElementById('dock-home-icon');
-            const homeLabel = document.getElementById('dock-home-label');
-            const tabIcon = document.getElementById('dock-tab-icon');
-            const tabLabel = document.getElementById('dock-tab-label');
-            const homeBtn = document.getElementById('dock-home');
-            const tabBtn = document.getElementById('dock-tab-slot');
-            if (currentTab) {
-                if (homeIcon) { homeIcon.className = 'fas fa-arrow-left'; }
-                if (homeLabel) { homeLabel.textContent = '返回'; }
-                if (homeBtn) { homeBtn.classList.add('active'); }
-                const meta = getTabDockMeta(currentTab);
-                if (tabIcon) { tabIcon.className = meta.icon; tabIcon.style.color = meta.color; }
-                if (tabLabel) { tabLabel.textContent = meta.label; }
-                if (tabBtn) { tabBtn.classList.remove('active'); }
-            } else {
-                if (homeIcon) { homeIcon.className = 'fas fa-home'; homeIcon.style.color = ''; }
-                if (homeLabel) { homeLabel.textContent = '錄影庫'; }
-                if (homeBtn) { homeBtn.classList.add('active'); }
-                if (tabIcon) { tabIcon.className = 'fas fa-cube'; tabIcon.style.color = ''; }
-                if (tabLabel) { tabLabel.textContent = '模擬器'; }
-                if (tabBtn) { tabBtn.classList.remove('active'); }
-            }
-        }
-        function handleHomeClick() {
-            if (currentTab) { goBackToHome(); }
-            else { scrollToHome(); }
-        }
-        function handleTabSlotClick() {
-            if (currentTab) { scrollPageToTop('smooth'); }
-            else { handleNavigation('https://phyuaaphysics.github.io/phyustudio/simulation.html'); }
-        }
-        // 滾到頂部(跟 template 完全一致:用 window.scrollTo,html overflow:hidden 鎖 viewport,body 內部捲,
-        // window.scrollY / window.scrollTo 仍指向 body 滾動位置)
-        function scrollPageToTop(behavior) {
-            try { window.scrollTo({ top: 0, behavior: behavior || 'auto' }); } catch (_) {
-                try { document.body.scrollTop = 0; } catch(_) {}
-            }
-        }
-
-        function navigateToTab(tab) {
-            if (!allCardsCache) return;
-            currentTab = tab;
-            renderCards(document.getElementById('main-content-area'), allCardsCache);
-            // 切換 tab 後從頂部開始渲染（用 instant 避免動畫延遲感）
-            scrollPageToTop('instant');
-            updateDockForTab();
-            try { history.pushState({ tab }, '', '#' + tab); } catch(e) { location.hash = tab; }
-        }
-        function goBackToHome() {
-            currentTab = null;
-            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
-            scrollPageToTop('instant');
-            try { history.pushState({}, '', location.pathname + location.search); } catch(e) { location.hash = ''; }
-            updateDockForTab();
-        }
-
-        // =========== 10. fetch + cache（完全照 template initData 模式） ===========
-        async function fetchMetaVersion() {
-            try {
-                const res = await fetch(META_CSV, { cache: 'no-store' });
-                if (!res.ok) return null;
-                const text = (await res.text()).trim();
-                const firstLine = text.split('\n')[0].replace(/"/g, '').trim();
-                return firstLine || null;
-            } catch (e) { return null; }
-        }
-        async function fetchFreshCards() {
-            const res = await fetch(SHEET_CSV, { cache: 'no-store' });
-            if (!res.ok) throw new Error(`Sheet HTTP ${res.status}`);
-            const text = await res.text();
-            const rows = parseCSV(text);
-            const cards = sheetToCards(rows);
-            if (!cards.length) throw new Error('Empty sheet result');
-            return cards;
-        }
-        function readCache() {
-            try {
-                const raw = storage.getItem(LS.cards);
-                if (!raw) return null;
-                const cards = JSON.parse(raw);
-                if (!Array.isArray(cards) || cards.length === 0) return null;
-                const ver = storage.getItem(LS.ver) || '';
-                return { cards, ver };
-            } catch (e) { return null; }
-        }
-        function writeCache(cards, ver) {
-            try { storage.setItem(LS.cards, JSON.stringify(cards)); storage.setItem(LS.ver, ver || ''); } catch (e) {}
-        }
-
-        // 13 張 fallback cards (跟用戶 sheet 一致的中文 section 名)
-        function getFallbackCards() {
-            return [
-                { id: 'fb1', type: 'head', cn: '課堂錄影', en: 'Lesson Archive', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
-                { id: 'fb2', type: 'hero', cn: '課堂錄影', en: 'Lesson Archive', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/twjIwcND/Gemini-Generated-Image.png', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
-                { id: 'fb3', type: 'hero', cn: '線上補課', en: 'Online classroom', section: '常用功能', size: 'lg', bg: 'https://picsum.photos/seed/young/1200/1200', link: 'https://phyuaaphysics.github.io/phyustudio/onlineclassroom.html', active: true },
-                { id: 'fb4', type: 'hero', cn: '基礎練習冊', en: 'Homework tutorials', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/QFXhXGT4/de.png', link: 'https://phyuaaphysics.github.io/phyustudio/hw', active: true },
-                { id: 'fb5', type: 'hero', cn: '模擬實驗', en: 'Simulations', section: '常用功能', size: 'lg', bg: 'https://i.ibb.co/LDFcP57y/asfd.png', link: 'https://phyuaaphysics.github.io/phyustudio/simulation.html', active: true },
-                { id: 'fb6', type: 'hero', cn: '物理課程', en: 'Physics courses', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/tPnQJMn4/de.png', link: 'insite://coursesys', active: true },
-                { id: 'fb7', type: 'hero', cn: '歷屆試題', en: 'Pastpaper bank', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/JFWg0SKF/Gemini-Generated-Image.png', link: '', active: true },
-                { id: 'fb8', type: 'hero', cn: '數學課程', en: 'Mathematics courses', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/53Sz49Y/Gemini-Generated-Image.png', link: '', active: true },
-                { id: 'fb9', type: 'hero', cn: '電子筆記', en: 'E-books', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/mVD38njr/de.png', link: '', active: true },
-                { id: 'fb10', type: 'hero', cn: '公式庫', en: 'Formulas bank', section: '課程', size: 'portrait', bg: 'https://i.ibb.co/qMxwmbQs/sd.png', link: '', active: true },
-                { id: 'fb11', type: 'hero', cn: '庫存系統', en: 'Old systems', section: '其他', size: 'portrait', bg: 'https://i.ibb.co/twGDKGBg/Gemini-Generated-Image.png', link: 'insite://oldsys', active: true },
-                { id: 'fb12', type: 'quote', cn: '', en: '', section: '名言', size: '', bg: '', quote_text: 'The important thing is not to stop questioning. Curiosity has its own reason for existing.', quote_author: 'Albert Einstein', link: '', active: true },
-                { id: 'fb13', type: 'quote', cn: '', en: '', section: '名言', size: '', bg: '', quote_text: 'Somewhere, something incredible is waiting to be known.', quote_author: 'Carl Sagan', link: '', active: true },
-            ];
-        }
-
-        // =========== 11. initData（完全照 template 模式 + fallback,只 render 一次） ===========
-        async function initData() {
-            const mainArea = document.getElementById('main-content-area');
-            if (!mainArea) return;
-
-            // Step 1: 立即 render cache 或 fallback(只 render 一次,避免雙重 reflow 卡 scroll)
-            const cachedVer = storage.getItem(LS.ver);
-            const cachedData = readCache();
-            if (cachedData && cachedData.cards && cachedData.cards.length > 0) {
-                console.log("第一瞬載入:已從 LocalStorage 恢復快取,版本:", cachedVer);
-                rawData = cachedData.cards;
-                allCardsCache = cachedData.cards;
-                renderCards(mainArea, cachedData.cards);
-            } else {
-                console.log("無 cache,先顯示 fallback");
-                const fb = getFallbackCards();
-                allCardsCache = fb;
-                renderCards(mainArea, fb);
-            }
-
-            // Step 2: 背景 fetch(3s timeout 避免卡死 sandbox)
-            // 跟 template 一致:更新 cache + rawData,不重 render (避免 scroll 期間二次 reflow 阻塞)
-            const timeout = new Promise(resolve => setTimeout(() => resolve('timeout'), 3000));
-            const fetchJob = (async () => {
+            getItem(key) {
                 try {
-                    const [verResult, cardsResult] = await Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]);
-                    if (verResult.status === 'fulfilled' && cardsResult.status === 'fulfilled') {
-                        return { ok: true, ver: verResult.value, cards: cardsResult.value };
-                    }
-                    return { ok: false, reason: (cardsResult.reason || verResult.reason || 'unknown').toString() };
+                    return localStorage.getItem(key);
                 } catch (e) {
-                    return { ok: false, reason: e.toString() };
+                    console.warn("Storage read blocked:", e);
+                    return null;
                 }
-            })();
-            const result = await Promise.race([fetchJob, timeout]);
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn("Storage write blocked:", e);
+                }
+            },
+            removeItem(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn("Storage remove blocked:", e);
+                }
+            }
+        };
 
-            if (result === 'timeout') {
-                console.warn("Fetch 超時(3s) — 保持現有 cache 或 fallback");
-                return;
+        // Google Sheet CSV URL (針對 FRONT_NEW 分頁)
+        const SPREADSHEET_ID = '1Xfl7-SvKai2j6rg1ZnICJFENaLOSurD0Tg_OIO_PTGU';
+        // FRONT_NEW 核心分頁預設 GID
+        const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=442351806`;
+
+        let rawData = [];
+        let lastScrollY = window.scrollY;
+        
+        // QRスキャナー関連の変数
+        let qrStream = null;
+        let qrAnimationId = null;
+        
+        // フィルターおよび検索ステータス
+        let currentFilter = 'all';
+        let searchQuery = '';
+        
+        // 全域網格排版 (Grid View) 狀態旗標
+        let isGridView = false;
+
+        // 日夜モード切り替え処理
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                storage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                storage.setItem('theme', 'light');
             }
-            if (!result.ok) {
-                console.error("背景同步失敗:", result.reason);
-                return;
-            }
-            const { ver: remoteVer, cards: freshCards } = result;
-            if (!freshCards || !freshCards.length) return;
-            // 重要:只 update cache + rawData,不重 render(避免 scroll 延遲)
-            console.log("背景同步完成,新資料已 cache,當前畫面不重 render");
-            writeCache(freshCards, remoteVer || '');
-            rawData = freshCards;
-            allCardsCache = freshCards;
         }
 
-        // =========== 12. UI 控制 ===========
+        // 読み込み時に初期テーマを適用 (安全沙盒相容)
+        (function() {
+            let savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (e) {
+                console.warn("Theme storage access denied", e);
+            }
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+            
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    const toggleInput = document.getElementById('dark-mode-toggle');
+                    if (toggleInput) toggleInput.checked = true;
+                });
+            }
+        })();
+
+        // 優化後的載入流程：先用 localstorage 匯出第一瞬資料（Cache-First），然後才在背景檢查版本數目是否改變
+        async function initData() {
+            // 1. 第一瞬：立即載入並渲染 LocalStorage 快取，讓用戶秒開
+            const cachedVer = storage.getItem('lumina_data_ver');
+            const cachedData = storage.getItem('lumina_data_payload');
+            let hasRenderedCache = false;
+
+            if (cachedData) {
+                try {
+                    rawData = JSON.parse(cachedData);
+                    if (rawData && rawData.length > 0) {
+                        console.log("第一瞬載入：已從 LocalStorage 恢復快取數據，版本號:", cachedVer);
+                        renderFilters();
+                        renderContent();
+                        hasRenderedCache = true;
+                    }
+                } catch (jsonErr) {
+                    console.warn("LocalStorage 快取受損，清理重設:", jsonErr);
+                    storage.removeItem('lumina_data_ver');
+                    storage.removeItem('lumina_data_payload');
+                }
+            }
+
+            // 2. 第二步：在背景發起網路請求，確認線上版本是否改變
+            try {
+                let csvText = '';
+                let response;
+                
+                // 第一嘗試階段：使用預設標準 GID 連結
+                try {
+                    response = await fetch(`${SHEET_CSV_URL}&cachebust=${Date.now()}&t=${Date.now()}`);
+                    csvText = await response.text();
+                    
+                    // 偵測是否返回 HTML 登入牆 or 404 (Google Sheets 常見拒絕連線網頁)
+                    if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
+                        throw new Error("返回格式非 CSV (可能是 GID 無效或需要權限設定)");
+                    }
+                } catch (firstErr) {
+                    console.warn("標準 GID 導出失敗，啟動備用分頁名稱解析器 (FRONT_NEW):", firstErr);
+                    
+                    // 第二後備階段：使用 Google Visualization API 依「分頁名稱」拉取，防禦 GID 被使用者重建變更
+                    const fallbackUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=FRONT_NEW&cachebust=${Date.now()}`;
+                    response = await fetch(fallbackUrl);
+                    csvText = await response.text();
+                    
+                    if (csvText.trim().startsWith('<!DOCTYPE html') || csvText.trim().startsWith('<html')) {
+                        throw new Error("備用管道仍返回網頁 HTML (請確定試算表權限已設定為『知道連結的任何人均可檢視』)");
+                    }
+                }
+                
+                const lines = parseCSVRows(csvText);
+                
+                if (lines.length > 1) {
+                    // C2 (row[1][2]) 取得版本號
+                    const currentOnlineVer = (lines[1][2] || '').trim();
+
+                    // 判斷：線上版本號改變，或是先前未能成功渲染快取
+                    if (currentOnlineVer !== cachedVer || !hasRenderedCache) {
+                        console.log("偵測到線上版本改變或無快取，正在背景重新匯入最新數據...", "舊版本:", cachedVer, "新版本:", currentOnlineVer);
+                        rawData = processRawRows(lines);
+
+                        // 重新寫入快取
+                        storage.setItem('lumina_data_ver', currentOnlineVer);
+                        storage.setItem('lumina_data_payload', JSON.stringify(rawData));
+
+                        // 更新渲染畫面
+                        renderFilters();
+                        renderContent();
+                    } else {
+                        console.log("背景版本檢查完成：線上版本與快取一致 (", cachedVer, ")，無須更新。");
+                    }
+                }
+            } catch (error) {
+                console.error("背景同步失敗:", error);
+                // 若一開始沒能加載快取（新安裝用戶），且背景更新也失敗，則顯示錯誤提示
+                if (!hasRenderedCache) {
+                    document.getElementById('main-content-area').innerHTML = `<div class="loader">載入失敗，請確認試算表分享權限並保持網路連線。</div>`;
+                }
+            }
+        }
+
+        // 手動同期ボタン用
+        async function manualSync() {
+            const btn = document.getElementById('sync-button');
+            btn.classList.add('loading');
+            btn.querySelector('span').innerText = '同步中...';
+            
+            storage.removeItem('lumina_data_ver');
+            storage.removeItem('lumina_data_payload');
+            
+            await initData();
+            
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                btn.querySelector('span').innerText = '與雲端同步';
+            }, 800);
+        }
+
+        // CSV 行分割パーサー
+        function parseCSVRows(text) {
+            const lines = [];
+            let row = [""];
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                let next = text[i+1];
+                if (c === '"') {
+                    if (inQuotes && next === '"') { row[row.length - 1] += '"'; i++; }
+                    else { inQuotes = !inQuotes; }
+                } else if (c === ',' && !inQuotes) {
+                    row.push('');
+                } else if ((c === '\r' || c === '\n') && !inQuotes) {
+                    if (c === '\r' && next === '\n') { i++; }
+                    lines.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += c;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') {
+                lines.push(row);
+            }
+            return lines;
+        }
+
+        // FRONT_NEW 分頁欄位映射
+        // A=row[0]: order, B=row[1]: id, C=row[2]: type, D=row[3]: cn, E=row[4]: en
+        // F=row[5]: section, G=row[6]: size_hint, H=row[7]: bg/img, I=row[8]: link/url
+        // J=row[9]: quote_text, K=row[10]: quote_author, L=row[11]: active
+        function processRawRows(lines) {
+            return lines
+                .filter((row, idx) => {
+                    if (idx <= 1) return false; // 跳過標題列(0)及版本列(1)
+                    const type = (row[2] || '').trim().toLowerCase();
+                    const active = (row[11] || '').trim().toLowerCase();
+                    // 只取 active=TRUE 且 type 有效的列
+                    return active === 'true' && ['head', 'hero', 'oldsys', 'coursesys', 'mathsys'].includes(type);
+                })
+                .map(row => ({
+                    type: (row[2] || '').trim(),
+                    cn: (row[3] || '').trim(),
+                    en: (row[4] || '').trim(),
+                    section: (row[5] || '').trim(),
+                    sizeHint: (row[6] || '').trim(),
+                    img: (row[7] || '').trim(),
+                    url: (row[8] || '').trim()
+                }));
+        }
+
+        // フィルターボタンレンダリング (以 section 分組)
+        function renderFilters() {
+            // 從 hero 類型中提取不重複的 section
+            const sections = ['all', ...new Set(rawData
+                .filter(d => d.type === 'hero' && d.section)
+                .map(d => d.section))];
+            const container = document.getElementById('filter-container');
+            container.innerHTML = sections.map(f => `
+                <button class="filter-capsule ${f === currentFilter ? 'active' : ''}" 
+                        data-filter="${f}" 
+                        onclick="setFilter('${f}')">
+                    ${f === 'all' ? '全部' : f}
+                </button>
+            `).join('');
+        }
+
+        // 關閉/開啟格狀網格排版 (Grid View) 狀態
         function toggleGridView() {
             isGridView = !isGridView;
             const btn = document.getElementById('grid-view-toggle');
-            if (btn) {
-                if (isGridView) { btn.style.opacity = '1'; btn.style.color = 'var(--glacier-primary)'; }
-                else { btn.style.opacity = '0.6'; btn.style.color = 'var(--glacier-text)'; }
+            if (isGridView) {
+                btn.classList.add('text-sky-500');
+                btn.classList.remove('opacity-60');
+            } else {
+                btn.classList.remove('text-sky-500');
+                btn.classList.add('opacity-60');
             }
-            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
+            renderContent();
         }
-        function handleSearch(q) {
-            searchQuery = (q || '').trim();
-            const clearBtn = document.getElementById('search-clear');
-            if (clearBtn) clearBtn.style.opacity = searchQuery ? '1' : '0';
-            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
+
+        // 動態渲染 Hero 區塊 (根據 type=head 的資料：H=圖片，I=連結；D=中文標題；E=英文標題)
+        function renderHero() {
+            const headRow = rawData.find(d => d.type === 'head');
+            if (!headRow) return;
+            const bgImg = document.getElementById('hero-bg-img');
+            const startBtn = document.getElementById('hero-start-btn');
+            const titleCn = document.getElementById('hero-title-cn');
+            const titleEn = document.getElementById('hero-title-en');
+            if (bgImg && headRow.img) bgImg.src = headRow.img;
+            if (startBtn && headRow.url) startBtn.onclick = () => handleNavigation(headRow.url);
+            if (titleCn && headRow.cn) titleCn.textContent = headRow.cn;
+            if (titleEn && headRow.en) titleEn.textContent = headRow.en;
         }
-        function clearSearch() {
-            searchQuery = '';
-            const input = document.getElementById('search-input');
-            if (input) input.value = '';
-            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
+
+        // 開啟 Hero 詳細說明 (Windows 風格 Modal)
+        function openHeroDetail() {
+            const modal = document.getElementById('hero-detail-modal');
+            if (modal) modal.classList.remove('pointer-events-none', 'opacity-0');
         }
-        function toggleTheme(isDark) {
-            document.body.classList.toggle('dark-mode', isDark);
-            try { storage.setItem('theme', isDark ? 'dark' : 'light'); } catch(e) {}
+
+        function closeHeroDetail() {
+            const modal = document.getElementById('hero-detail-modal');
+            if (modal) modal.classList.add('pointer-events-none', 'opacity-0');
         }
-        (function() {
-            try {
-                const saved = storage.getItem('theme');
-                const dark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                if (dark) {
-                    document.body.classList.add('dark-mode');
-                    const t = document.getElementById('dark-mode-toggle');
-                    if (t) t.checked = true;
+
+        // コンテンツレンダリング (使用 FRONT_NEW type 邏輯)
+        function renderContent() {
+            const mainArea = document.getElementById('main-content-area');
+            mainArea.innerHTML = '';
+
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
+
+            // 渲染 Hero 動態內容
+            renderHero();
+
+            // 過濾 hero 類型的卡片（排除 head/quote）
+            let heroItems = rawData.filter(d => d.type === 'hero');
+
+            // 分類篩選 (section)
+            if (currentFilter !== 'all') {
+                heroItems = heroItems.filter(item => item.section === currentFilter);
+            }
+
+            // 標籤篩選 (cn)
+            if (searchQuery.trim() !== '') {
+                const query = searchQuery.toLowerCase().trim();
+                heroItems = heroItems.filter(item => item.cn && item.cn.toLowerCase().includes(query));
+            }
+
+            // Grid View 模式
+            if (isGridView) {
+                heroSection.classList.add('section-hidden');
+                archiveSection.classList.add('section-hidden');
+
+                if (heroItems.length === 0) {
+                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
+                    return;
                 }
-            } catch(e) {}
-        })();
-        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed'); }
-        function scrollToHome() {
-            scrollPageToTop('smooth');
+
+                const gridHtml = `
+                    <section class="max-w-screen-2xl mx-auto py-4">
+                        <div class="grid grid-cols-3 md:grid-cols-6 gap-0 grid-tight-pack">
+                            ${heroItems.map((item, index) => {
+                                const rowMobile = Math.floor(index / 3);
+                                const rowDesktop = Math.floor(index / 6);
+                                return `
+                                <div class="cursor-pointer animate-fade-rise" style="--row-m: ${rowMobile}; --row-d: ${rowDesktop};" onclick="handleNavigation('${item.url}')">
+                                    <div class="poster-card" title="${item.cn || ''}">
+                                        <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                        ${item.section ? `<span class="absolute top-2 right-2 px-2 py-0.5 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold rounded-full" style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.05em;">${item.section}</span>` : ''}
+                                        <div class="absolute bottom-0 left-0 right-0 p-2 md:p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                                            <p class="text-white font-black leading-tight drop-shadow-lg" style="font-family: 'Noto Serif TC', serif; font-size: clamp(17px, 5.2vw, 29px); letter-spacing: 0.04em;">${item.cn || ''}</p>
+                                            <p class="text-white/85 italic leading-tight drop-shadow mt-0.5" style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(13px, 3.3vw, 18px);">${item.en || ''}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </section>
+                `;
+                mainArea.innerHTML = gridHtml;
+
+            } else {
+                // Slider 分區排版模式
+                if (currentFilter === 'all') {
+                    heroSection.classList.remove('section-hidden');
+                    archiveSection.classList.remove('section-hidden');
+                } else {
+                    heroSection.classList.add('section-hidden');
+                    archiveSection.classList.add('section-hidden');
+                }
+
+                const sections = [...new Set(heroItems.map(d => d.section).filter(Boolean))];
+                let hasVisibleCards = false;
+
+                sections.forEach(secName => {
+                    let itemsInSec = heroItems.filter(d => d.section === secName);
+
+                    if (itemsInSec.length === 0) return;
+                    hasVisibleCards = true;
+
+                    const sectionId = `sec-${Math.random().toString(36).substr(2, 9)}`;
+                    const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+
+                    const sectionHtml = `
+                        <section id="${sectionId}" data-group="${secName}" class="dynamic-section">
+                            <h2 class="section-title">${secName}</h2>
+                            <div class="slider-wrapper">
+                                <button class="nav-btn prev" onclick="scrollSlider('${sliderId}', -400)">
+                                    <i class="fas fa-chevron-left text-xs text-slate-400"></i>
+                                </button>
+                                <div class="slider-container hide-scrollbar" id="${sliderId}">
+                                    ${itemsInSec.map(item => `
+                                        <div class="slider-item w-32 md:w-56" onclick="handleNavigation('${item.url}')">
+                                            <div class="poster-card" title="${item.cn || ''}">
+                                                <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                                                ${item.section ? `<span class="absolute top-2 right-2 px-2 py-0.5 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold rounded-full" style="font-family: 'Noto Serif TC', serif; letter-spacing: 0.05em;">${item.section}</span>` : ''}
+                                                <div class="absolute bottom-0 left-0 right-0 p-2 md:p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                                                    <p class="text-white font-black leading-tight drop-shadow-lg" style="font-family: 'Noto Serif TC', serif; font-size: clamp(17px, 5.2vw, 29px); letter-spacing: 0.04em;">${item.cn || ''}</p>
+                                                    <p class="text-white/85 italic leading-tight drop-shadow mt-0.5" style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(13px, 3.3vw, 18px);">${item.en || ''}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button class="nav-btn next" onclick="scrollSlider('${sliderId}', 400)">
+                                    <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                                </button>
+                            </div>
+                        </section>
+                    `;
+                    mainArea.insertAdjacentHTML('beforeend', sectionHtml);
+                });
+
+                if (!hasVisibleCards) {
+                    mainArea.innerHTML = `<div class="loader">找不到符合該標籤的相關卡片。</div>`;
+                }
+            }
         }
-        function openQRScanner() { window.location.href = 'https://phyuaaphysics.github.io/phyustudio/qrscanner.html'; }
+
+        // 検索窓トグル処理
+        function toggleSearchInput() {
+            const panel = document.getElementById('search-panel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                document.getElementById('tag-search-input').focus();
+            } else {
+                clearSearch();
+            }
+        }
+
+        // 検索文字入力処理
+        function handleSearch(val) {
+            searchQuery = val;
+            renderContent();
+        }
+
+        // 検索クリア処理
+        function clearSearch() {
+            const input = document.getElementById('tag-search-input');
+            if (input) input.value = '';
+            searchQuery = '';
+            renderContent();
+        }
+
+        // 導航欄與 Dock 選單切換
+        function toggleDock() { document.getElementById('dock-nav-wrapper').classList.toggle('collapsed');
+        }
+        
+        function toggleFilter() {
+            const bar = document.getElementById('filter-bar');
+            bar.classList.toggle('collapsed');
+        }
+
+        function scrollSlider(id, offset) {
+            const el = document.getElementById(id);
+            if (el) el.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+
+        // ホームスクロールとフィルターの完全初期化
+        function scrollToHome() {
+            setFilter('all');
+            clearSearch();
+            // 還原為預設 slider 排版
+            if (isGridView) {
+                toggleGridView();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function handleNavigation(url) {
             if (!url || url === '#' || url === 'no link' || url === 'undefined') return;
             window.location.href = url;
         }
-        // ========== 自製系統風格確認對話框 (Promise-based) ==========
-        // 模仿 iOS 系統 damping 動畫 + 模糊背景
-        let _nfDialogResolve = null;
 
-        // 顯示純狀態 dialog (無 Promise,單按鈕或不按鈕) — 用於 sync 進度
-        function nfShowStatus(opts) {
-            const overlay = document.getElementById('nf-dialog-overlay');
-            const title = document.getElementById('nf-dialog-title');
-            const message = document.getElementById('nf-dialog-message');
-            const icon = document.getElementById('nf-dialog-icon');
-            const cancelBtn = document.getElementById('nf-dialog-cancel');
-            const confirmBtn = document.getElementById('nf-dialog-confirm');
-            const buttonsWrap = document.getElementById('nf-dialog-buttons');
-
-            title.textContent = opts.title || '';
-            message.innerHTML = opts.message || '';
-            // 動態 spinner icon 或結果 icon
-            icon.className = 'nf-dialog-icon';
-            const iconType = opts.icon || 'info';
-            icon.classList.add('nf-icon-' + iconType);
-            const iconMap = {
-                warn: 'fa-exclamation',
-                info: 'fa-info',
-                success: 'fa-check',
-                loading: 'fa-circle-notch fa-spin',
-                error: 'fa-times'
-            };
-            icon.innerHTML = `<i class="fas ${iconMap[iconType] || 'fa-info'}"></i>`;
-            icon.style.display = 'flex';
-
-            // 取消按鈕 (同步中沒取消,完成後有)
-            cancelBtn.style.display = opts.hideCancel ? 'none' : '';
-            confirmBtn.textContent = opts.confirmText || '確認';
-            confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger === true);
-            // 背景點擊 = 取消
-            overlay.onclick = opts.dismissOnBackdrop === false ? (e) => e.stopPropagation() : null;
-
-            _nfDialogResolve = null;  // 狀態型不用 Promise
-            overlay.style.display = 'flex';
-            void overlay.offsetWidth;
-            overlay.classList.add('nf-dialog-show');
-        }
-        // 更新現有 status dialog (不重新觸發動畫)
-        function nfUpdateStatus(opts) {
-            const title = document.getElementById('nf-dialog-title');
-            const message = document.getElementById('nf-dialog-message');
-            const icon = document.getElementById('nf-dialog-icon');
-            const cancelBtn = document.getElementById('nf-dialog-cancel');
-            const confirmBtn = document.getElementById('nf-dialog-confirm');
-            if (opts.title !== undefined) title.textContent = opts.title;
-            if (opts.message !== undefined) message.innerHTML = opts.message;
-            if (opts.icon) {
-                icon.className = 'nf-dialog-icon nf-icon-' + opts.icon;
-                const iconMap = {
-                    warn: 'fa-exclamation', info: 'fa-info', success: 'fa-check',
-                    loading: 'fa-circle-notch fa-spin', error: 'fa-times'
-                };
-                icon.innerHTML = `<i class="fas ${iconMap[opts.icon] || 'fa-info'}"></i>`;
-            }
-            if (opts.hideCancel !== undefined) cancelBtn.style.display = opts.hideCancel ? 'none' : '';
-            if (opts.confirmText !== undefined) confirmBtn.textContent = opts.confirmText;
-            if (opts.danger !== undefined) confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger === true);
-        }
-        function nfShowConfirm(opts) {
-            return new Promise(resolve => {
-                const overlay = document.getElementById('nf-dialog-overlay');
-                const title = document.getElementById('nf-dialog-title');
-                const message = document.getElementById('nf-dialog-message');
-                const icon = document.getElementById('nf-dialog-icon');
-                const cancelBtn = document.getElementById('nf-dialog-cancel');
-                const confirmBtn = document.getElementById('nf-dialog-confirm');
-                const buttonsWrap = document.getElementById('nf-dialog-buttons');
-
-                title.textContent = opts.title || '確認';
-                message.textContent = opts.message || '您確定要執行此操作嗎?';
-                cancelBtn.textContent = opts.cancelText || '取消';
-                confirmBtn.textContent = opts.confirmText || '確認';
-
-                // icon 類型: warn / info / success / none
-                icon.className = 'nf-dialog-icon';
-                const iconType = opts.icon || 'warn';
-                if (iconType === 'none') { icon.style.display = 'none'; }
-                else {
-                    icon.style.display = 'flex';
-                    icon.classList.add('nf-icon-' + iconType);
-                    const iconMap = { warn: 'fa-exclamation', info: 'fa-info', success: 'fa-check' };
-                    icon.innerHTML = `<i class="fas ${iconMap[iconType] || 'fa-exclamation'}"></i>`;
-                }
-                // 危險按鈕 (紅色) vs 普通 (藍色)
-                confirmBtn.classList.toggle('nf-dialog-btn-confirm', opts.danger !== false);
-                // 雙按鈕 (預設) 或單按鈕堆疊
-                buttonsWrap.classList.toggle('nf-dialog-stacked', opts.stacked === true);
-                cancelBtn.style.display = opts.hideCancel ? 'none' : '';
-                if (opts.hideCancel) {
-                    confirmBtn.style.borderRadius = '0';
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            const buttons = document.querySelectorAll('.filter-capsule');
+            buttons.forEach(btn => {
+                if(btn.dataset.filter === filterType) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            
+            const heroSection = document.getElementById('hero-section');
+            const archiveSection = document.getElementById('sec-archive');
+            
+            // 只有在非 Grid View 的狀態下，才依照 filterType 隱藏/顯示 Hero
+            if (!isGridView) {
+                if (filterType === 'all') {
+                    heroSection.classList.remove('section-hidden');
+                    archiveSection.classList.remove('section-hidden');
                 } else {
-                    confirmBtn.style.borderRadius = '';
+                    heroSection.classList.add('section-hidden');
+                    archiveSection.classList.add('section-hidden');
                 }
+            }
+            renderContent();
+        }
 
-                _nfDialogResolve = resolve;
-                overlay.style.display = 'flex';
-                // 強制 reflow 確保 transition 觸發
-                void overlay.offsetWidth;
-                overlay.classList.add('nf-dialog-show');
-            });
-        }
-        function nfDialogConfirm() {
-            if (_nfDialogResolve) _nfDialogResolve(true);
-            nfDialogHide();
-        }
-        function nfDialogCancel(event) {
-            // 點擊遮罩關閉（只在點 overlay 本身時觸發,不會冒泡到 card）
-            if (event && event.target && event.target.closest && event.target.closest('.nf-dialog-card')) return;
-            if (_nfDialogResolve) _nfDialogResolve(false);
-            nfDialogHide();
-        }
-        function nfDialogHide() {
-            const overlay = document.getElementById('nf-dialog-overlay');
-            overlay.classList.remove('nf-dialog-show');
-            // 等 transition 結束後才 display:none
-            setTimeout(() => {
-                if (!overlay.classList.contains('nf-dialog-show')) overlay.style.display = 'none';
-            }, 450);
-        }
-        // ESC 鍵取消
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('nf-dialog-overlay').classList.contains('nf-dialog-show')) {
-                nfDialogCancel();
-            }
-        });
-
-        function handleLogout() {
-            nfShowConfirm({
-                title: '登出確認',
-                message: '若選擇登出,系統的暫存檔將移除,確定?',
-                icon: 'warn',
-                confirmText: '登出',
-                cancelText: '取消',
-                danger: true
-            }).then(ok => {
-                if (!ok) return;
-                try {
-                    const keys = Object.keys(localStorage);
-                    keys.forEach(k => { if (k.startsWith('lumina_') || k === 'theme') storage.removeItem(k); });
-                    storage.clear();
-                    try { sessionStorage.clear(); } catch(e) {}
-                } catch (e) {}
-                window.location.href = 'https://phyuaaphysics.github.io/phyustudio/';
-            });
-        }
-        // ========== 三橫 icon 展開的 More menu ==========
-        function toggleMoreMenu(e) {
-            e.stopPropagation();
-            const menu = document.getElementById('nf-more-menu');
-            if (menu.classList.contains('nf-more-menu-show')) {
-                closeMoreMenu();
-            } else {
-                menu.classList.add('nf-more-menu-show');
-                menu.setAttribute('aria-hidden', 'false');
-            }
-        }
-        function closeMoreMenu() {
-            const menu = document.getElementById('nf-more-menu');
-            if (menu) {
-                menu.classList.remove('nf-more-menu-show');
-                menu.setAttribute('aria-hidden', 'true');
-            }
-        }
-        // 點 menu 外面自動關閉
-        document.addEventListener('click', (e) => {
-            const wrap = document.getElementById('nf-more-wrap');
-            if (wrap && !wrap.contains(e.target)) closeMoreMenu();
-        });
-        // ESC 也關 menu
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeMoreMenu();
-        });
-        // 開啟搜尋 panel（從 menu 點搜尋後觸發）
-        function openSearchPanel() {
-            const panel = document.getElementById('nf-search-panel');
-            if (!panel) return;
-            panel.classList.add('nf-search-panel-show');
-            panel.setAttribute('aria-hidden', 'false');
-            // 自動 focus
-            setTimeout(() => {
-                const input = document.getElementById('search-input');
-                if (input) input.focus();
-            }, 220);  // 等進場動畫結束
-        }
-        // 關閉搜尋 panel
-        function closeSearchPanel() {
-            const panel = document.getElementById('nf-search-panel');
-            if (!panel) return;
-            panel.classList.remove('nf-search-panel-show');
-            panel.setAttribute('aria-hidden', 'true');
-        }
-        // 切換搜尋 panel（保留向後相容,內部呼叫 openSearchPanel）
-        function focusSearchInput() {
-            openSearchPanel();
-        }
-        // 搜尋 panel 開啟時,ESC 關閉
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Escape') return;
-            const panel = document.getElementById('nf-search-panel');
-            if (panel && panel.classList.contains('nf-search-panel-show')) {
-                closeSearchPanel();
-            }
-        });
-        // 點搜尋 panel 外面自動關閉
-        document.addEventListener('click', (e) => {
-            const panel = document.getElementById('nf-search-panel');
-            if (!panel || !panel.classList.contains('nf-search-panel-show')) return;
-            if (panel.contains(e.target)) return;
-            // 點三橫按鈕也算「外面」(因為 menu 開了會自己管 close)
-            if (e.target.closest && e.target.closest('#nf-more-btn')) return;
-            closeSearchPanel();
-        });
-
-        // 手動重新整理 — 不清 localStorage,只觸發重新爬 sheet,顯示同步狀態 dialog
-        async function manualReload() {
-            // 顯示同步中 dialog (loading 圖示,無取消,無危險)
-            nfShowStatus({
-                title: '與資料源同步中…',
-                message: '正在從 Google Sheet 拉取最新資料…',
-                icon: 'loading',
-                hideCancel: true,
-                confirmText: '好',
-                dismissOnBackdrop: false
-            });
+        // QRコードスキャナーコントロール
+        async function openQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('qr-video');
+            const errMsg = document.getElementById('qr-error-msg');
+            
+            errMsg.classList.add('hidden');
+            errMsg.innerText = "";
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.classList.add('opacity-100');
 
             try {
-                // 並發拉 meta + cards
-                const [verResult, cardsResult] = await Promise.allSettled([fetchMetaVersion(), fetchFreshCards()]);
-                if (verResult.status === 'fulfilled' && cardsResult.status === 'fulfilled') {
-                    const remoteVer = verResult.value;
-                    const freshCards = cardsResult.value;
-                    const cachedData = readCache();
-
-                    // 版本一致 + 有 cache → 已同步,無更新
-                    if (cachedData && remoteVer && cachedData.ver === remoteVer) {
-                        nfUpdateStatus({
-                            title: '已是最新版本',
-                            message: `本地快取版本 (${cachedData.ver}) 與遠端一致,無需更新。`,
-                            icon: 'success',
-                            hideCancel: false,
-                            confirmText: '好'
-                        });
-                        return;
-                    }
-                    // 有新資料 → 寫入並重渲染
-                    writeCache(freshCards, remoteVer || '');
-                    rawData = freshCards;
-                    allCardsCache = freshCards;
-                    const mainArea = document.getElementById('main-content-area');
-                    if (mainArea) renderCards(mainArea, freshCards);
-                    nfUpdateStatus({
-                        title: '同步完成',
-                        message: `已從 Google Sheet 拉取 <b>${freshCards.length}</b> 張卡片${remoteVer ? ` (版本 ${remoteVer})` : ''}。`,
-                        icon: 'success',
-                        hideCancel: false,
-                        confirmText: '好'
-                    });
-                    return;
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                qrStream = stream;
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                
+                try {
+                    await video.play();
+                } catch(playErr) {
+                    console.warn("Video play interrupted, attempting fallback options", playErr);
                 }
-                // 其中一個失敗
-                const reason = (cardsResult.reason || verResult.reason || 'unknown').toString();
-                nfUpdateStatus({
-                    title: '同步失敗',
-                    message: `無法從 Google Sheet 取得資料:<br><small style="opacity:0.7">${reason}</small><br><br>請檢查網絡連線或稍後重試。`,
-                    icon: 'error',
-                    hideCancel: false,
-                    confirmText: '好',
-                    danger: false
-                });
-            } catch (e) {
-                nfUpdateStatus({
-                    title: '同步失敗',
-                    message: `發生未預期錯誤:<br><small style="opacity:0.7">${(e && e.message) || e}</small>`,
-                    icon: 'error',
-                    hideCancel: false,
-                    confirmText: '好'
-                });
+                
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            } catch (err) {
+                console.error("Camera access failed:", err);
+                errMsg.innerText = "相機不可用（可能被瀏覽器安全政策限制、未授權， or 未在 HTTPS 環境下）。請使用上方「選擇照片 / 上傳條碼圖」按碼。";
+                errMsg.classList.remove('hidden');
             }
         }
 
-        // =========== 13. 啟動 ===========
-        document.addEventListener('DOMContentLoaded', () => {
-            // 從 URL hash 恢復 tab
-            if (location.hash && location.hash.length > 1) {
-                currentTab = location.hash.slice(1);
+        function closeQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.classList.remove('opacity-100');
+
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
             }
-            initData();
-            setTimeout(() => updateDockForTab(), 0);
-        });
-        window.addEventListener('popstate', () => {
-            if (location.hash && location.hash.length > 1) {
-                currentTab = location.hash.slice(1);
-            } else {
-                currentTab = null;
+            if (qrAnimationId) {
+                cancelAnimationFrame(qrAnimationId);
+                qrAnimationId = null;
             }
-            if (allCardsCache) renderCards(document.getElementById('main-content-area'), allCardsCache);
-            updateDockForTab();
-        });
+            
+            document.getElementById('qr-file-input').value = "";
+        }
+
+        function tickQRScanner() {
+            const video = document.getElementById('qr-video');
+            const canvasElement = document.getElementById('qr-canvas');
+            if (!video || !canvasElement) return;
+            const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
+            if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                
+                try {
+                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "attemptBoth",
+                    });
+                    if (code) {
+                        let resultText = code.data.trim();
+                        let finalUrl = '';
+
+                        if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                            finalUrl = resultText;
+                        } else {
+                            if (resultText.startsWith('/')) {
+                                resultText = resultText.substring(1);
+                            }
+                            finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                        }
+
+                        closeQRScanner();
+                        window.location.href = finalUrl;
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error drawing or extracting canvas pixels", e);
+                }
+            }
+            if (qrStream) {
+                qrAnimationId = requestAnimationFrame(tickQRScanner);
+            }
+        }
+
+        // アップロード画像によるQRコードデコード
+        function handleQRFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const errMsg = document.getElementById('qr-error-msg');
+            errMsg.classList.add('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvasElement = document.getElementById('qr-canvas');
+                    const canvas = canvasElement.getContext('2d');
+                    canvasElement.width = img.width;
+                    canvasElement.height = img.height;
+                    canvas.drawImage(img, 0, 0);
+                    try {
+                        const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "attemptBoth",
+                        });
+                        if (code) {
+                            let resultText = code.data.trim();
+                            let finalUrl = '';
+                            if (resultText.startsWith('http://') || resultText.startsWith('https://')) {
+                                finalUrl = resultText;
+                            } else {
+                                if (resultText.startsWith('/')) {
+                                    resultText = resultText.substring(1);
+                                }
+                                finalUrl = `http://phyuaaphysics.github.io/phyustudio/${resultText}`;
+                            }
+                            closeQRScanner();
+                            window.location.href = finalUrl;
+                        } else {
+                            errMsg.innerText = "無法解析此圖中的條碼。請確認照片清晰無陰影，條碼居中未變形。";
+                            errMsg.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Manual QR decode error:", err);
+                        errMsg.innerText = "相片讀取失敗，請重新嘗試。";
+                        errMsg.classList.remove('hidden');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+            if (currentScrollY > 30) document.body.classList.add('scrolled');
+            else document.body.classList.remove('scrolled');
+            
+            const filterBar = document.getElementById('filter-bar');
+            if (currentScrollY > lastScrollY && currentScrollY > 150) {
+                if (!filterBar.classList.contains('collapsed')) filterBar.classList.add('collapsed');
+            } else if (currentScrollY < lastScrollY) {
+                if (filterBar.classList.contains('collapsed')) filterBar.classList.remove('collapsed');
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        document.addEventListener('DOMContentLoaded', initData);
     </script>
 </body>
 </html>
