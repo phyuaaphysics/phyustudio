@@ -1,824 +1,692 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina Deployer Bot</title>
+    <title>AI Mentor & Teacher Sandbox</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked.js for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- KaTeX for Math formatting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- Highlight.js for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <style>
-        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 1); }
+        .prose pre { padding: 0 !important; background: transparent !important; }
+        .math-block { overflow-x: auto; padding: 0.5rem 0; }
     </style>
 </head>
-<body class="p-4 md:p-10 flex flex-col items-center min-h-screen">
+<body class="h-full flex flex-col font-sans overflow-hidden antialiased bg-slate-950 text-slate-100">
 
-    <div class="max-w-2xl w-full glass p-8 rounded-3xl shadow-xl">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <i class="fas fa-robot text-xl"></i>
+    <!-- Navigation Header -->
+    <header class="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between z-20 flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-graduation-cap"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight">Lumina Deployer Bot</h1>
-                <p class="text-xs font-medium text-emerald-600 uppercase tracking-widest">Source Code Automator</p>
+                <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-white via-slate-200 to-emerald-400 bg-clip-text text-transparent">AI Master Teacher</h1>
+                <p class="text-xs text-slate-400">Interactive Gemini Learning Assistant</p>
             </div>
         </div>
 
-        <div class="space-y-6">
-            <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Target Volume Number</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 font-bold">VOL</span>
-                    <input type="number" id="volInput" placeholder="14" 
-                        class="w-full pl-14 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-lg font-bold text-slate-700">
-                </div>
-            </div>
+        <!-- Controls & API Key Badge -->
+        <div class="flex items-center gap-2 sm:gap-4">
+            <!-- API Key Status Button -->
+            <button id="openApiKeyModal" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-all">
+                <span id="apiKeyStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span id="apiKeyStatusText" class="hidden sm:inline">Set Gemini API Key</span>
+                <i class="fa-solid fa-key text-slate-400"></i>
+            </button>
 
-            <button onclick="generateCode()" 
-                class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95">
-                <i class="fas fa-magic"></i> GENERATE SOURCE CODE
+            <!-- Toggle Sidebar Mobile -->
+            <button id="toggleSidebarBtn" class="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-bars"></i>
             </button>
         </div>
+    </header>
 
-        <div id="outputContainer" class="mt-8 hidden">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">New Source Code (VOL<span id="displayVol"></span>)</span>
-                <button onclick="copyToClipboard()" id="copyBtn" class="text-emerald-600 hover:text-emerald-700 text-xs font-black uppercase tracking-widest flex items-center gap-1">
-                    <i class="fas fa-copy"></i> Copy Code
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Sidebar Drawer -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-80 bg-slate-900 border-r border-slate-800 flex flex-col transition-transform duration-300 transform -translate-x-full lg:translate-x-0 lg:static lg:z-10">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h2 class="font-semibold text-sm text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-emerald-400"></i> Classroom Settings
+                </h2>
+                <button id="closeSidebarBtn" class="lg:hidden text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <textarea id="resultArea" readonly 
-                class="w-full h-64 p-4 rounded-2xl bg-slate-50 border border-slate-200 font-mono text-[10px] text-slate-600 focus:outline-none"></textarea>
-        </div>
-    </div>
 
-    <script>
-        // The original template with VOL19 as the placeholder
-        const template = `<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Fundamental Exercise - Lumina Studio</title>
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Lumina">
-    
-    <script src="https://cdn.tailwindcss.com"><\/script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        :root {
-            --mint-deep: #064e3b;
-            --mint-primary: #10b981; 
-            --mint-bg: #f0fdf4;
-            --anim-os: 1.2s cubic-bezier(0.25, 1, 0.3, 1); 
-            --anim-slow: 1.6s cubic-bezier(0.4, 0, 0.2, 1);
-            --anim-item: 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* 針對 iOS PWA 全螢幕修正 */
-        html, body { 
-            height: 100dvh;
-            width: 100%;
-            margin: 0;
-            overflow: hidden; 
-            position: fixed; 
-            font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-color: #f8fafc;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        }
-
-        .hero-full {
-            position: absolute;
-            inset: 0; 
-            width: 100%;
-            height: 100dvh;
-            overflow: hidden;
-            z-index: 100;
-        }
-
-        #hero-bg {
-            position: absolute;
-            inset: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            filter: saturate(1.2) brightness(1.05);
-            transition: transform var(--anim-slow), filter 0.8s;
-        }
-
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
-            z-index: 5;
-        }
-
-        .hero-glass-panel {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 40px;
-            padding: 3.5rem 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-            max-width: 90%;
-            width: 540px;
-            display: flex; flex-direction: column; align-items: center;
-            transition: opacity var(--anim-os), transform var(--anim-os), visibility var(--anim-os);
-            z-index: 20;
-        }
-
-        .hero-content-wrapper {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            padding-top: env(safe-area-inset-top);
-        }
-
-        .fade-exit-up { 
-            opacity: 0;
-            transform: translateY(-150px) scale(0.9);
-            visibility: hidden; 
-        }
-
-        /* 統一列表風格 */
-        .uniform-list-container {
-            display: flex;
-            flex-direction: column;
-            max-width: 1024px;
-            margin: 0 auto;
-            width: 100%;
-            padding-bottom: 80px;
-        }
-
-        .list-item-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 24px;
-            background: rgba(255, 255, 255, 0.5);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .list-item-row:active {
-            background: rgba(16, 185, 129, 0.08);
-        }
-
-        #page-loader {
-            position: fixed;
-            inset: 0; background-color: #ffffff; z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 1s ease;
-        }
-
-        .sync-spinning { animation: spin 1s linear infinite; }
-        .sync-success { color: #10b981 !important; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes bounceIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            70% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-window {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100dvh;
-            background: rgba(255, 255, 255, 0.65); 
-            backdrop-filter: blur(60px); 
-            -webkit-backdrop-filter: blur(60px);
-            transform: translateY(110vh);
-            z-index: 310;
-            display: none; opacity: 0; overflow: hidden;
-            transition: opacity var(--anim-os), transform var(--anim-os);
-        }
-
-        .modal-window.open { 
-            display: flex; 
-            flex-direction: column; 
-            opacity: 1; 
-            transform: translateY(0);
-        }
-
-        .window-header {
-            padding: 0 12px;
-            display: flex; 
-            align-items: center;
-            background: rgba(255, 255, 255, 0.4); 
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            height: 54px;
-            gap: 8px;
-            flex-shrink: 0;
-            padding-top: env(safe-area-inset-top);
-            box-sizing: content-box;
-        }
-
-        .tab-strip {
-            display: flex;
-            align-items: flex-end;
-            gap: 4px;
-            flex: 1;
-            overflow-x: auto;
-            height: 100%;
-            scrollbar-width: none;
-        }
-        .tab-strip::-webkit-scrollbar { display: none; }
-
-        .browser-tab {
-            height: 38px;
-            min-width: 100px;
-            max-width: 180px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 12px 12px 0 0;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            gap: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            margin-bottom: -1px;
-            border: 1px solid transparent;
-            border-bottom: none;
-        }
-
-        @media (max-width: 640px) {
-            .browser-tab {
-                min-width: 45px;
-                padding: 0 12px;
-                justify-content: center;
-            }
-            .tab-title {
-                display: none;
-            }
-        }
-
-        .browser-tab.active {
-            background: rgba(255, 255, 255, 0.7);
-            border-color: rgba(0, 0, 0, 0.05);
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.02);
-            z-index: 2;
-        }
-
-        .tab-title {
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #4b5563;
-        }
-
-        .tab-close {
-            font-size: 10px;
-            opacity: 0.4;
-            transition: 0.2s;
-            padding: 4px;
-        }
-        .tab-close:hover { opacity: 1; color: #ef4444; }
-        
-        .window-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 8px;
-        }
-
-        .toolbar-item {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: #4b5563;
-            font-size: 14px;
-            transition: 0.3s;
-            cursor: pointer;
-            background: rgba(0,0,0,0.03);
-        }
-        .toolbar-item:hover { background: rgba(0,0,0,0.08); transform: scale(1.1); }
-        .toolbar-item.pro-unlocked { color: #10b981; }
-
-        .window-body { 
-            flex: 1;
-            width: 100%; 
-            background: transparent; 
-            position: relative; 
-            overflow-y: auto;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .win-content-page {
-            display: none;
-            width: 100%;
-            height: 100%;
-        }
-        .win-content-page.active { display: block; }
-
-        .bottom-close-container {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-        }
-        .btn-close-bottom {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transition: 0.3s;
-        }
-        .btn-close-bottom:active { transform: scale(0.9); background: rgba(239, 68, 68, 0.8); }
-
-        #custom-alert {
-            position: fixed;
-            top: calc(100px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-200px);
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px);
-            padding: 14px 28px;
-            border-radius: 40px;
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); z-index: 2000;
-            display: flex; align-items: center; gap: 12px;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #custom-alert.show { transform: translateX(-50%) translateY(0); }
-
-        #success-notification {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
-            padding: 40px 60px;
-            border-radius: 35px;
-            border: 1px solid rgba(255,255,255,0.6);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.15);
-            z-index: 2100;
-            display: flex; flex-direction: column; align-items: center;
-            gap: 20px;
-            opacity: 0; visibility: hidden;
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            pointer-events: none;
-        }
-        #success-notification.show { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
-
-        #passcode-screen {
-            position: fixed;
-            inset: 0; background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(70px); -webkit-backdrop-filter: blur(70px);
-            z-index: 1500; display: flex; flex-direction: column; align-items: center;
-            justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.5s ease, visibility 0.5s;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        #passcode-screen.active { opacity: 1; visibility: visible; }
-        .dots-container { display: flex; gap: 20px; margin-bottom: 60px; }
-        .dot { width: 12px; height: 12px; border: 1.5px solid #1e293b; border-radius: 50%; transition: background 0.2s; }
-        .dot.filled { background: #1e293b; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; width: 280px; }
-        .key {
-            width: 75px;
-            height: 75px; border-radius: 50%; background: rgba(0,0,0,0.04);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 0.2s;
-            user-select: none;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="page-loader">
-        <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" class="w-16 h-16 mb-4">
-        <p class="text-xs tracking-[0.2em] text-gray-400 font-medium uppercase animate-pulse">正在與雲端同步數據...</p>
-    </div>
-
-    <div id="success-notification">
-        <div class="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center text-4xl shadow-lg"><i class="fas fa-check"></i></div>
-        <div class="text-center">
-            <h2 class="text-xl font-bold text-gray-800 tracking-widest uppercase mb-1">驗證成功</h2>
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-[0.3em]">解鎖高級權限</p>
-        </div>
-    </div>
-
-    <div id="passcode-screen">
-        <div class="text-[#1e293b] text-[18px] font-semibold tracking-widest mb-5">輸入密碼</div>
-        <div id="dots-container" class="dots-container">
-            <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-        </div>
-        <div class="keypad">
-            <div class="key" onclick="pressKey('1')"><span class="text-3xl text-[#1e293b]">1</span></div>
-            <div class="key" onclick="pressKey('2')"><span class="text-3xl text-[#1e293b]">2</span><span class="text-[9px] font-bold text-[#1e293b]">ABC</span></div>
-            <div class="key" onclick="pressKey('3')"><span class="text-3xl text-[#1e293b]">3</span><span class="text-[9px] font-bold text-[#1e293b]">DEF</span></div>
-            <div class="key" onclick="pressKey('4')"><span class="text-3xl text-[#1e293b]">4</span><span class="text-[9px] font-bold text-[#1e293b]">GHI</span></div>
-            <div class="key" onclick="pressKey('5')"><span class="text-3xl text-[#1e293b]">5</span><span class="text-[9px] font-bold text-[#1e293b]">JKL</span></div>
-            <div class="key" onclick="pressKey('6')"><span class="text-3xl text-[#1e293b]">6</span><span class="text-[9px] font-bold text-[#1e293b]">MNO</span></div>
-            <div class="key" onclick="pressKey('7')"><span class="text-3xl text-[#1e293b]">7</span><span class="text-[9px] font-bold text-[#1e293b]">PQRS</span></div>
-            <div class="key" onclick="pressKey('8')"><span class="text-3xl text-[#1e293b]">8</span><span class="text-[9px] font-bold text-[#1e293b]">TUV</span></div>
-            <div class="key" onclick="pressKey('9')"><span class="text-3xl text-[#1e293b]">9</span><span class="text-[9px] font-bold text-[#1e293b]">WXYZ</span></div>
-            <div class="key invisible"></div>
-            <div class="key" onclick="pressKey('0')"><span class="text-3xl text-[#1e293b]">0</span></div>
-            <div class="key" onclick="deleteKey()"><span class="text-xl text-[#1e293b]"><i class="fas fa-backspace"></i></span></div>
-        </div>
-        <div class="mt-12 w-[280px] flex justify-end"><div class="text-[#1e293b] font-medium cursor-pointer" onclick="hidePasscodeScreen()">取消</div></div>
-    </div>
-
-    <div id="custom-alert">
-        <i class="fas fa-info-circle text-emerald-500"></i>
-        <span id="alert-text" class="text-xs font-bold text-gray-600 uppercase tracking-widest"></span>
-    </div>
-
-    <div id="main-browser-window" class="modal-window">
-        <div class="window-header">
-            <div id="browser-tab-strip" class="tab-strip"></div>
-            <div class="window-toolbar">
-                <div class="toolbar-item" onclick="openHomeFolder()"><i class="fas fa-th-list"></i></div>
-                <div class="toolbar-item" onclick="manualRefresh()"><i id="win-cloud-icon" class="fas fa-cloud"></i></div>
-                <div class="toolbar-item" id="win-pro-lock" onclick="showPasscodeScreen()"><i class="fas fa-lock"></i></div>
-                <div class="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                <div class="toolbar-item" onclick="closeAllTabs()"><i class="fas fa-times"></i></div>
-            </div>
-        </div>
-        <div id="browser-window-body" class="window-body"></div>
-    </div>
-
-    <section class="hero-full">
-        <img id="hero-bg" src="">
-        <div class="hero-overlay"></div>
-        <div class="hero-content-wrapper text-center">
-            <div id="hero-main-content" class="hero-glass-panel">
-                <div class="mb-8 flex flex-col items-center gap-4">
-                    <img src="https://phyuaaphysics.github.io/phyustudio/appicon.png" alt="Lumina" class="h-14 w-14 drop-shadow-sm">
-                    <div class="h-[1px] w-10 bg-emerald-500/20"></div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                <!-- Teacher Persona Selector -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Teacher Persona</label>
+                    <select id="personaSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                        <option value="socratic">Socratic Mentor (Guides with Questions)</option>
+                        <option value="feynman">Richard Feynman (Simple Visual Explanations)</option>
+                        <option value="patient" selected>Patient Elementary & HS Teacher</option>
+                        <option value="professor">University Professor (Rigor & Detail)</option>
+                        <option value="tech_coach">Code & Tech Coach (Practical & Clean)</option>
+                        <option value="polyglot">Language & Linguistics Tutor</option>
+                    </select>
                 </div>
-                <h1 id="hero-title" class="text-3xl md:text-4xl tracking-[0.3em] uppercase mb-2" style="font-family: 'Cinzel', serif;"></h1>
-                <p id="hero-subtitle" class="text-xl md:text-xl font-bold tracking-[1em] mb-6 uppercase pl-[1em] opacity-80"></p>
-                <div class="flex flex-col gap-4">
-                    <button onclick="openHomeFolder()" class="glass-btn px-16 py-4 font-black rounded-full text-[10px] tracking-[0.5em] uppercase shadow-sm transition-all transform active:scale-95 bg-white/20 backdrop-blur-md border border-white/40">
-                        BROWSE ALL
+
+                <!-- Subject Domain -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Subject / Field</label>
+                    <select id="subjectSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                        <option value="general" selected>General Knowledge & Skills</option>
+                        <option value="math">Mathematics & Logic</option>
+                        <option value="science">Physics, Chem & Biology</option>
+                        <option value="coding">Computer Science & Programming</option>
+                        <option value="history">History & Social Studies</option>
+                        <option value="languages">Language Learning & Grammar</option>
+                    </select>
+                </div>
+
+                <!-- Learning Mode Toggles -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Teaching Style Options</label>
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+                        <span class="text-xs text-slate-300">Include Practice Quiz after explanations</span>
+                        <input type="checkbox" id="quizModeToggle" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                    </label>
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+                        <span class="text-xs text-slate-300">Use Analogy-First Approach</span>
+                        <input type="checkbox" id="analogyToggle" checked class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                    </label>
+                </div>
+
+                <!-- Quick Prompt Generators -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Quick Teaching Templates</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button class="quick-template text-left px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500 hover:text-white transition flex items-center gap-2" data-prompt="Explain Quantum Computing like I am 12 years old with real-world analogies.">
+                            <i class="fa-solid fa-atom text-cyan-400"></i> Explain Quantum Computing
+                        </button>
+                        <button class="quick-template text-left px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500 hover:text-white transition flex items-center gap-2" data-prompt="Quiz me on calculus derivatives step by step. Ask me 1 question at a time.">
+                            <i class="fa-solid fa-square-root-variable text-amber-400"></i> Interactive Math Quiz
+                        </button>
+                        <button class="quick-template text-left px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500 hover:text-white transition flex items-center gap-2" data-prompt="Teach me how recursion works in JavaScript with code examples and a stack diagram explanation.">
+                            <i class="fa-solid fa-code text-emerald-400"></i> Coding: Recursion Explained
+                        </button>
+                        <button class="quick-template text-left px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 hover:border-emerald-500 hover:text-white transition flex items-center gap-2" data-prompt="Break down the key causes of World War 1 into 3 simple bullet points and a memory hook.">
+                            <i class="fa-solid fa-landmark text-purple-400"></i> History: Causes of WW1
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/50 space-y-2">
+                <button id="clearChatBtn" class="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-xs font-medium text-slate-300 hover:text-white flex items-center justify-center gap-2 border border-slate-700/50 transition">
+                    <i class="fa-solid fa-trash-can"></i> Clear Conversation
+                </button>
+                <button id="exportNotesBtn" class="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-xs font-medium text-slate-300 hover:text-white flex items-center justify-center gap-2 border border-slate-700/50 transition">
+                    <i class="fa-solid fa-download"></i> Copy Lesson Notes
+                </button>
+            </div>
+        </aside>
+
+        <!-- Chat Main Area -->
+        <main class="flex-1 flex flex-col bg-slate-950 relative min-w-0">
+
+            <!-- Banner / Info -->
+            <div id="personaBanner" class="px-4 py-2.5 border-b border-slate-800/80 bg-slate-900/40 flex items-center justify-between text-xs text-slate-400">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span id="activePersonaText" class="font-medium text-slate-200">Patient Elementary Teacher</span>
+                    <span class="text-slate-600">|</span>
+                    <span id="activeSubjectText">General Knowledge</span>
+                </div>
+                <div class="hidden sm:flex items-center gap-3">
+                    <button id="voiceOutputToggle" class="hover:text-emerald-400 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-volume-high text-slate-500" id="voiceIcon"></i>
+                        <span id="voiceStatus">Speech: Off</span>
                     </button>
-                    
-                    <div class="flex items-center justify-center gap-2 mt-2">
-                        <button onclick="manualRefresh()" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-lg border border-white/30 text-emerald-600/80 hover:bg-white/20 transition-all active:scale-90">
-                            <i id="hero-cloud-icon" class="fas fa-cloud"></i>
-                        </button>
-                        <button id="hero-pro-lock" onclick="showPasscodeScreen()" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-lg border border-white/30 text-emerald-600/80 hover:bg-white/20 transition-all active:scale-90">
-                            <i class="fas fa-lock"></i>
-                        </button>
+                </div>
+            </div>
+
+            <!-- Messages Log Container -->
+            <div id="chatContainer" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                <!-- Welcome Message -->
+                <div class="flex items-start gap-4 max-w-3xl mx-auto">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-1">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div class="flex-1 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-sm text-emerald-400">Your AI Mentor</span>
+                            <span class="text-[10px] text-slate-500">Ready to learn</span>
+                        </div>
+                        <div class="text-sm text-slate-300 leading-relaxed prose prose-invert max-w-none">
+                            <p>Hello! 👋 Welcome to your interactive personalized classroom. I'm your AI Teacher, tailored to explain concepts, guide you through problem-solving, or test your knowledge.</p>
+                            <p class="text-xs text-slate-400">💡 <strong>Getting Started:</strong> To run this app on GitHub Pages or locally, click <strong>"Set Gemini API Key"</strong> at the top to enter your free Google Gemini API key.</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Floating Input Area -->
+            <div class="p-4 md:px-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent">
+                <div class="max-w-3xl mx-auto relative bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl focus-within:border-emerald-500/80 focus-within:ring-1 focus-within:ring-emerald-500/30 transition-all">
+                    
+                    <textarea id="userInput" rows="2" placeholder="Ask a question or topic to learn (e.g. 'How does gravity work?')..." class="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 px-4 pt-3.5 pb-12 focus:outline-none resize-none min-h-[60px] max-h-40"></textarea>
+
+                    <!-- Input Toolbar -->
+                    <div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <button id="quickExplainBtn" title="Request Step-by-Step Breakdown" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/60 transition flex items-center gap-1">
+                                <i class="fa-solid fa-list-check text-emerald-400"></i> Step-by-Step
+                            </button>
+                            <button id="quickQuizBtn" title="Generate Quiz" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/60 transition flex items-center gap-1">
+                                <i class="fa-solid fa-circle-question text-amber-400"></i> Test Me
+                            </button>
+                        </div>
+
+                        <button id="sendBtn" class="w-9 h-9 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold flex items-center justify-center shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-[11px] text-center text-slate-500 mt-2">
+                    Powered by Gemini AI • Bring Your Own API Key (Stored locally in browser)
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- API Key Configuration Modal -->
+    <div id="apiKeyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2 text-emerald-400 font-semibold">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Gemini API Key Required</span>
+                </div>
+                <button id="closeApiKeyModal" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Enter your Google Gemini API Key below. This application runs entirely on the client side, so your key is stored strictly in your browser's local storage (`localStorage`) and never sent to any third-party server.
+                </p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                </div>
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                    <div class="font-medium text-slate-300"><i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> Need a free API key?</div>
+                    <p>Get a free API key from Google AI Studio at <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-emerald-400 underline">aistudio.google.com</a>.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
+                <button id="clearApiKeyBtn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition">Clear Key</button>
+                <button id="saveApiKeyBtn" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-xs font-bold text-slate-950 transition">Save Key</button>
+            </div>
         </div>
-    </section>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-20 right-6 z-50 bg-slate-900 border border-emerald-500/50 text-slate-100 text-xs py-2.5 px-4 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-10 opacity-0 transition-all pointer-events-none">
+        <i class="fa-solid fa-circle-check text-emerald-400" id="toastIcon"></i>
+        <span id="toastMsg">Action completed</span>
+    </div>
 
     <script>
-        const SPREADSHEET_ID = '1MeEEF8xVR2Sq-uqqshG-XLnf2hpeoElBNQTJnynP110';
-        const FETCH_URL = \`https://docs.google.com/spreadsheets/d/\${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=VOL19\`;
+        const STORAGE_KEY = 'gemini_teacher_user_api_key';
+        let customApiKey = localStorage.getItem(STORAGE_KEY) || '';
+        let conversationHistory = [];
+        let speechSynthesisEnabled = false;
 
-        let hwList = [];
-        let rawDataRows = [];
-        let isSyncing = false;
-        let openTabs = [];
-        let activeTabId = null;
-        let isProUnlocked = false; 
-        let currentPasscode = "";
-        let TARGET_PASSCODE = "666666";
+        // Persona System Prompt Templates
+        const PERSONA_PROMPTS = {
+            socratic: `You are a wise and patient Socratic Teacher. Do not give direct answers immediately. Guide the student by asking thoughtful, leading questions, helping them discover the answer themselves through reasoning. Use analogies and break complex ideas down.`,
+            feynman: `You are inspired by Richard Feynman. Explain topics with energetic simplicity, avoiding confusing jargon. Use vivid real-world everyday analogies, simple language, visual descriptions, and highlight the core intuition behind concepts.`,
+            patient: `You are an encouraging, patient Elementary & High School Teacher. Use a warm, supportive tone, clear step-by-step explanations, simple bullet points, and friendly praise. Break down complex subjects into bite-sized lessons.`,
+            professor: `You are a distinguished University Professor. Provide rigorous, thorough, and structured academic explanations. Include precise terminology, historical context, formal definitions, and deep theoretical underpinnings where relevant.`,
+            tech_coach: `You are a senior Software Engineer and Computer Science Coach. Focus on practical coding examples, clean code architecture, algorithmic intuition, step-by-step debugging, and best practices. Always format code cleanly with comments.`,
+            polyglot: `You are an expert Language & Linguistics Tutor. Focus on grammar rules, vocabulary roots, natural phrasing, pronunciation tips, and cultural context. Provide bilingual comparisons when helpful.`
+        };
 
-        function checkAppleDevice() {
-            const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || /Macintosh/.test(navigator.userAgent);
-            if (isApple) document.body.classList.add('is-ios');
-        }
+        const SUBJECT_MODIFIERS = {
+            general: "Subject focus: General Knowledge & Multi-disciplinary Learning.",
+            math: "Subject focus: Mathematics & Logic. Format all formulas clearly using LaTeX notation like $E=mc^2$ or $$\\int x dx$$.",
+            science: "Subject focus: Natural Sciences (Physics, Chemistry, Biology). Emphasize empirical evidence, formulas, and real-world experiments.",
+            coding: "Subject focus: Computer Science & Software Engineering. Provide clear code blocks with thorough inline comments.",
+            history: "Subject focus: History & Humanities. Emphasize timelines, primary causes/effects, and historical perspectives.",
+            languages: "Subject focus: Language & Grammar. Highlight syntax, example sentences, and usage tips."
+        };
 
-        async function loadSheetData(isManual = false) {
-            if (isSyncing) return;
-            isSyncing = true;
-            const cloudIcons = [document.getElementById('hero-cloud-icon'), document.getElementById('win-cloud-icon')];
-            if (isManual) cloudIcons.forEach(i => { if(i) i.className = 'fas fa-spinner sync-spinning'; });
-            try {
-                const response = await fetch(FETCH_URL);
-                const data = await response.text();
-                const rows = data.split('\\n').map(row => {
-                    const matches = row.match(/(".*?"|[^",\\s]+)(?=\\s*,|\\s*$)/g);
-                    return matches ? matches.map(m => m.replace(/^"|"$/g, '')) : [];
-                });
-                rawDataRows = rows;
-     
-                const tempHW = new Set();
-                rows.forEach(row => {
-                    if (row[0] === 'PASSCODE') TARGET_PASSCODE = row[4] || TARGET_PASSCODE;
-                    if (row[0] === 'HEROSECTION') {
-                        if (row[1] === 'CONTENT_1') document.getElementById('hero-title').innerText = row[4];
-                        if (row[1] === 'CONTENT_2') document.getElementById('hero-subtitle').innerText = row[4];
-                        if (row[1] === 'PHOTO') document.getElementById('hero-bg').src = row[4];
-                    } else if (row[0] && row[0].startsWith('HW')) tempHW.add(row[0]);
-                });
-                hwList = Array.from(tempHW).sort();
-                if (isManual) {
-                    cloudIcons.forEach(i => { if(i) i.className = 'fas fa-check sync-success'; });
-                    setTimeout(() => { 
-                        cloudIcons.forEach(i => { if(i) i.className = 'fas fa-cloud'; }); 
-                        isSyncing = false; 
-                    }, 2000);
-                    if (activeTabId) {
-                        const tab = openTabs.find(t => t.id === activeTabId);
-                        if (tab && tab.type === 'HW') renderHWContent(tab.title, \`content-\${tab.id}\`);
-                        if (tab && tab.id === 'HOME_FOLDER') renderHomeFolder('content-HOME_FOLDER');
-                    }
-                } else {
-                    setTimeout(() => {
-                        document.getElementById('page-loader').style.opacity = '0';
-                        setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; isSyncing = false; }, 1000);
-                    }, 800);
-                }
-            } catch (error) { isSyncing = false; }
-        }
+        const openApiKeyModalBtn = document.getElementById('openApiKeyModal');
+        const closeApiKeyModalBtn = document.getElementById('closeApiKeyModal');
+        const apiKeyModal = document.getElementById('apiKeyModal');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+        const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+        const apiKeyStatusDot = document.getElementById('apiKeyStatusDot');
+        const apiKeyStatusText = document.getElementById('apiKeyStatusText');
 
-        function manualRefresh() { loadSheetData(true); }
+        const personaSelect = document.getElementById('personaSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const quizModeToggle = document.getElementById('quizModeToggle');
+        const analogyToggle = document.getElementById('analogyToggle');
+        const activePersonaText = document.getElementById('activePersonaText');
+        const activeSubjectText = document.getElementById('activeSubjectText');
 
-        function openHomeFolder() { openTab("Browse ALL", "FOLDER"); }
+        const chatContainer = document.getElementById('chatContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        const exportNotesBtn = document.getElementById('exportNotesBtn');
 
-        /* 修改：使用與內容頁一致的列表方式展示 HWXX 分類 */
-        function renderHomeFolder(containerId) {
-            const body = document.getElementById(containerId);
-            body.innerHTML = '';
-            
-            const listWrapper = document.createElement('div');
-            listWrapper.className = 'uniform-list-container';
-            
-            hwList.forEach(hw => {
-                const row = document.createElement('div');
-                row.className = 'list-item-row';
-                row.onclick = () => openTab(hw, 'HW');
-                row.innerHTML = \`
-                    <div class="flex items-center gap-5">
-                        <div class="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600">
-                            <i class="fas fa-layer-group text-sm"></i>
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-[13px] font-black text-gray-800 tracking-widest uppercase">\${hw}</span>
-                            <span class="text-[9px] font-medium text-gray-400 tracking-wider uppercase">練習系列</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 text-emerald-500">
-                        <span class="text-[10px] font-bold tracking-widest uppercase">ENTER</span>
-                        <i class="fas fa-chevron-right text-[10px]"></i>
-                    </div>
-                \`;
-                listWrapper.appendChild(row);
-            });
-            
-            body.appendChild(listWrapper);
-        }
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 
-        function openTab(title, type, contentUrl = null) {
-            const id = type === 'FOLDER' ? 'HOME_FOLDER' : type + "_" + title.replace(/\\s+/g, '_');
-            const existing = openTabs.find(t => t.id === id);
-            if (existing) { switchTab(id); return; }
+        const voiceOutputToggle = document.getElementById('voiceOutputToggle');
+        const voiceIcon = document.getElementById('voiceIcon');
+        const voiceStatus = document.getElementById('voiceStatus');
 
-            const newTab = { id, title, type, contentUrl };
-            openTabs.push(newTab);
-            
-            const body = document.getElementById('browser-window-body');
-            const page = document.createElement('div');
-            page.id = \`page-\${id}\`;
-            page.className = 'win-content-page';
-            if (type === 'VID') {
-                let embed = contentUrl.includes('watch?v=') ?
-                contentUrl.replace('watch?v=', 'embed/') : contentUrl.replace('youtu.be/', 'youtube.com/embed/');
-                page.innerHTML = \`<iframe class="w-full h-full" src="\${embed}\${embed.includes('?') ? '&' : '?'}playsinline=1" frameborder="0" allowfullscreen><\/iframe>\`;
-            } else if (type === 'PIC') {
-                page.innerHTML = \`<div class="w-full h-full flex flex-col items-center justify-center p-4 bg-black/5 overflow-hidden"><img src="\${contentUrl}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl"><div class="bottom-close-container"><button class="btn-close-bottom" onclick="closeTab('\${id}')">關閉內容<\/button><\/div><\/div>\`;
-            } else if (type === 'PDF') {
-                page.innerHTML = \`<div class="w-full h-full relative"><iframe src="\${contentUrl}" class="w-full h-full" frameborder="0"><\/iframe><div class="bottom-close-container"><button class="btn-close-bottom" onclick="closeTab('\${id}')">關閉 PDF<\/button><\/div><\/div>\`;
+        function updateApiKeyUI() {
+            if (customApiKey) {
+                apiKeyStatusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                apiKeyStatusText.innerText = "Gemini Key Saved";
+                apiKeyInput.value = customApiKey;
             } else {
-                page.innerHTML = \`<div id="content-\${id}" class="w-full h-full flex flex-col p-0 overflow-y-auto"><\/div>\`;
+                apiKeyStatusDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+                apiKeyStatusText.innerText = "Set Gemini API Key";
+                apiKeyInput.value = "";
             }
-            body.appendChild(page);
-            
-            if (type === 'HW') renderHWContent(title, \`content-\${id}\`);
-            if (type === 'FOLDER') renderHomeFolder(\`content-\${id}\`);
-            
-            renderTabs();
-            switchTab(id);
-            
-            const win = document.getElementById('main-browser-window');
-            win.style.display = 'flex';
-            document.getElementById('hero-main-content').classList.add('fade-exit-up');
-            setTimeout(() => { win.classList.add('open'); }, 80);
         }
 
-        function renderTabs() {
-            const strip = document.getElementById('browser-tab-strip');
-            strip.innerHTML = '';
-            openTabs.forEach(tab => {
-                const el = document.createElement('div');
-                el.className = \`browser-tab \${activeTabId === tab.id ? 'active' : ''}\`;
-                el.onclick = () => switchTab(tab.id);
-                
-                let iconClass = 'fa-file-alt text-emerald-500';
-                if (tab.type === 'VID') iconClass = 'fa-play-circle text-red-500';
-                if (tab.type === 'FOLDER') iconClass = 'fa-th-list text-emerald-500';
-                if (tab.type === 'PIC') iconClass = 'fa-image text-blue-500';
-                if (tab.type === 'PDF') iconClass = 'fa-file-pdf text-orange-500';
+        openApiKeyModalBtn.addEventListener('click', () => apiKeyModal.classList.remove('hidden'));
+        closeApiKeyModalBtn.addEventListener('click', () => apiKeyModal.classList.add('hidden'));
 
-                el.innerHTML = \`<i class="fas \${iconClass} text-[10px]"><\/i><span class="tab-title">\${tab.title}<\/span><i class="fas fa-times tab-close" onclick="event.stopPropagation(); closeTab('\${tab.id}')"><\/i>\`;
-                strip.appendChild(el);
-            });
-        }
-
-        function switchTab(id) {
-            activeTabId = id;
-            document.querySelectorAll('.win-content-page').forEach(p => p.classList.remove('active'));
-            const activePage = document.getElementById(\`page-\${id}\`);
-            if (activePage) activePage.classList.add('active');
-            renderTabs();
-        }
-
-        function closeTab(id) {
-            const index = openTabs.findIndex(t => t.id === id);
-            if (index === -1) return;
-            openTabs.splice(index, 1);
-            const pageEl = document.getElementById(\`page-\${id}\`);
-            if (pageEl) pageEl.remove();
-            if (openTabs.length === 0) {
-                closeAllTabs();
+        saveApiKeyBtn.addEventListener('click', () => {
+            const val = apiKeyInput.value.trim();
+            if (val) {
+                customApiKey = val;
+                localStorage.setItem(STORAGE_KEY, val);
+                showToast("Gemini API Key Saved!");
+                updateApiKeyUI();
+                apiKeyModal.classList.add('hidden');
             } else {
-                if (activeTabId === id) switchTab(openTabs[Math.max(0, index - 1)].id);
-                else renderTabs();
+                showToast("Please enter a valid API Key");
             }
-        }
-
-        function closeAllTabs() {
-            openTabs = [];
-            activeTabId = null;
-            const win = document.getElementById('main-browser-window');
-            win.classList.remove('open');
-            document.getElementById('hero-main-content').classList.remove('fade-exit-up');
-            setTimeout(() => { 
-                win.style.display = 'none'; 
-                document.getElementById('browser-window-body').innerHTML = '';
-            }, 1200);
-        }
-
-        function renderHWContent(hwName, containerId) {
-            const body = document.getElementById(containerId);
-            body.innerHTML = ''; 
-            const hwData = rawDataRows.filter(row => row[0] === hwName);
-            if (!hwData.length) { body.innerHTML = \`<div class="p-10 text-center opacity-50 uppercase tracking-widest text-xs">Waiting for Content Update<\/div>\`; return; }
-
-            const list = document.createElement('div');
-            list.className = 'uniform-list-container';
-            
-            hwData.filter(row => row[1] === 'QUESTION').forEach((row, index) => {
-                const subType = row[2];
-                const fileUrl = row[4] || '';
-                const title = subType === 'PIC' ? '查看圖片題目' : '查看 PDF 題目';
-                const icon = subType === 'PIC' ? 'fa-image text-blue-500' : 'fa-file-pdf text-orange-500';
-                
-                const rowEl = document.createElement('div');
-                rowEl.className = \`list-item-row bg-emerald-50/20\`;
-                rowEl.onclick = () => { if (fileUrl) openTab(subType, subType, fileUrl); else showAlert('尚未配置檔案連結'); };
-                rowEl.innerHTML = \`
-                    <div class="flex items-center gap-5">
-                        <i class="fas \${icon} text-lg"><\/i>
-                        <span class="text-[13px] font-extrabold text-gray-800 uppercase tracking-widest">\${title}<\/span>
-                    </div>
-                    <div class="flex items-center gap-2 text-emerald-600">
-                        <span class="text-[9px] font-bold uppercase tracking-widest">OPEN<\/span>
-                        <i class="fas fa-chevron-right text-[10px]"><\/i>
-                    </div>
-                \`;
-                list.appendChild(rowEl);
-            });
-            
-            hwData.filter(row => row[1] === 'VIDEOS').forEach((row, index) => {
-                const tag = row[2] || 'UNIT';
-                const isUnlocked = row[3] === 'ACTIVE' || isProUnlocked;
-                const videoUrl = row[4] || '';
-                const safeId = (hwName + tag).replace(/\\s+/g, '');
-                
-                const rowEl = document.createElement('div');
-                rowEl.className = \`list-item-row\`;
-                const phonePlayIcon = \`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="2"/><path d="M10 9L15 12L10 15V9Z" fill="currentColor"/><line x1="11" y1="19" x2="13" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><\/svg>\`;
-                rowEl.innerHTML = \`
-                    <div class="flex items-center gap-5">
-                        <i class="fas fa-play-circle text-emerald-500/70 text-lg"><\/i>
-                        <span class="text-[13px] font-bold text-gray-700 uppercase tracking-widest">\${tag}<\/span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all \${isUnlocked ? 'text-emerald-600 hover:bg-emerald-50' : 'text-gray-300 cursor-not-allowed'}" id="ext-\${safeId}">
-                            \${isUnlocked ? phonePlayIcon : '<i class=\\"fas fa-lock text-[11px]\\"><\/i>'}
-                        <\/button>
-                        <button class="w-9 h-9 rounded-xl flex items-center justify-center transition-all \${isUnlocked ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 active:scale-90' : 'bg-gray-100 text-gray-300'}" id="int-\${safeId}">
-                            <i class="fas \${isUnlocked ? 'fa-play ml-0.5' : 'fa-lock'} text-[11px]"><\/i>
-                        <\/button>
-                    <\/div>
-                \`;
-                list.appendChild(rowEl);
-                setTimeout(() => {
-                    const extBtn = document.getElementById(\`ext-\${safeId}\`);
-                    const intBtn = document.getElementById(\`int-\${safeId}\`);
-                    if (extBtn) extBtn.onclick = (e) => { e.stopPropagation(); if (isUnlocked && videoUrl) window.open(videoUrl, '_blank'); else showAlert('解鎖後即可觀看'); };
-                    if (intBtn) intBtn.onclick = (e) => { e.stopPropagation(); if (isUnlocked && videoUrl) openTab(tag, 'VID', videoUrl); else showAlert('解鎖後即可觀看'); };
-                }, 0);
-            });
-            body.appendChild(list);
-        }
-
-        function showPasscodeScreen() {
-            if (isProUnlocked) { showAlert("高級權限已啟用"); return; }
-            document.getElementById('passcode-screen').classList.add('active');
-            currentPasscode = ""; updatePasscodeDots();
-        }
-        function hidePasscodeScreen() { document.getElementById('passcode-screen').classList.remove('active'); }
-        function pressKey(num) {
-            if (currentPasscode.length < 6) {
-                currentPasscode += num;
-                updatePasscodeDots();
-                if (currentPasscode.length === 6) setTimeout(verifyPasscode, 300);
-            }
-        }
-        function deleteKey() { if (currentPasscode.length > 0) { currentPasscode = currentPasscode.slice(0, -1); updatePasscodeDots(); } }
-        function updatePasscodeDots() {
-            const dots = document.getElementById('dots-container').children;
-            for (let i = 0; i < dots.length; i++) dots[i].className = i < currentPasscode.length ? 'dot filled' : 'dot';
-        }
-        function verifyPasscode() {
-            if (currentPasscode === TARGET_PASSCODE) {
-                isProUnlocked = true;
-                document.getElementById('success-notification').classList.add('show');
-                setTimeout(() => document.getElementById('success-notification').classList.remove('show'), 2500);
-                const locks = [document.getElementById('hero-pro-lock'), document.getElementById('win-pro-lock')];
-                locks.forEach(l => { if (l) { l.classList.add('pro-unlocked'); l.innerHTML = '<i class=\\"fas fa-unlock\\"><\/i>'; } });
-                hidePasscodeScreen();
-                if (activeTabId && activeTabId.startsWith('HW')) {
-                    const tab = openTabs.find(t => t.id === activeTabId);
-                    renderHWContent(tab.title, \`content-\${tab.id}\`);
-                }
-            } else {
-                const dots = document.getElementById('dots-container').children;
-                for (let dot of dots) dot.classList.add('animate-shake', 'border-red-500');
-                setTimeout(() => { currentPasscode = ""; updatePasscodeDots(); for (let dot of dots) dot.classList.remove('animate-shake', 'border-red-500'); }, 500);
-            }
-        }
-
-        function showAlert(text) { const alert = document.getElementById('custom-alert'); document.getElementById('alert-text').innerText = text; alert.classList.add('show'); setTimeout(() => alert.classList.remove('show'), 3000); }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAppleDevice();
-            loadSheetData(false);
         });
-    <\/script>
-</body>
-<\/html>`;
 
-        function generateCode() {
-            const volNum = document.getElementById('volInput').value;
-            if (!volNum) {
-                alert("Please enter a volume number!");
+        clearApiKeyBtn.addEventListener('click', () => {
+            customApiKey = '';
+            localStorage.removeItem(STORAGE_KEY);
+            apiKeyInput.value = '';
+            updateApiKeyUI();
+            showToast("API Key Cleared");
+            apiKeyModal.classList.add('hidden');
+        });
+
+        function updatePersonaLabels() {
+            const pOption = personaSelect.options[personaSelect.selectedIndex].text;
+            const sOption = subjectSelect.options[subjectSelect.selectedIndex].text;
+            activePersonaText.innerText = pOption;
+            activeSubjectText.innerText = sOption;
+        }
+
+        personaSelect.addEventListener('change', updatePersonaLabels);
+        subjectSelect.addEventListener('change', updatePersonaLabels);
+
+        toggleSidebarBtn.addEventListener('click', () => sidebar.classList.remove('-translate-x-full'));
+        closeSidebarBtn.addEventListener('click', () => sidebar.classList.add('-translate-x-full'));
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+            }, 3000);
+        }
+
+        voiceOutputToggle.addEventListener('click', () => {
+            speechSynthesisEnabled = !speechSynthesisEnabled;
+            if (speechSynthesisEnabled) {
+                voiceIcon.className = "fa-solid fa-volume-high text-emerald-400";
+                voiceStatus.innerText = "Speech: ON";
+                showToast("Voice feedback enabled");
+            } else {
+                window.speechSynthesis.cancel();
+                voiceIcon.className = "fa-solid fa-volume-high text-slate-500";
+                voiceStatus.innerText = "Speech: Off";
+                showToast("Voice feedback muted");
+            }
+        });
+
+        function speakText(text) {
+            if (!speechSynthesisEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            // Clean text of markdown formatting for cleaner speech output
+            const plainText = text.replace(/```[\s\S]*?```/g, "Code block omitted.").replace(/[#*`_]/g, '');
+            const utterance = new SpeechSynthesisUtterance(plainText.substring(0, 300));
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true
+        });
+
+        function renderMarkdown(content) {
+            const rawHtml = marked.parse(content);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = rawHtml;
+
+            // Render Math equations if KaTeX loaded
+            if (window.renderMathInElement) {
+                try {
+                    renderMathInElement(tempDiv, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                } catch(e) { console.warn("Math parse error", e); }
+            }
+            return tempDiv.innerHTML;
+        }
+
+        function appendUserMessage(text) {
+            const msgEl = document.createElement('div');
+            msgEl.className = "flex items-start gap-4 max-w-3xl mx-auto flex-row-reverse";
+            msgEl.innerHTML = `
+                <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200 shrink-0 mt-1">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="flex-1 bg-emerald-600/20 border border-emerald-500/30 rounded-2xl p-4 shadow-sm text-sm text-slate-100">
+                    <p class="whitespace-pre-wrap">${escapeHtml(text)}</p>
+                </div>
+            `;
+            chatContainer.appendChild(msgEl);
+            scrollToBottom();
+        }
+
+        function createBotMessageSkeleton() {
+            const msgEl = document.createElement('div');
+            msgEl.className = "flex items-start gap-4 max-w-3xl mx-auto bot-message";
+            msgEl.innerHTML = `
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-1">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="flex-1 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-sm text-emerald-400">${personaSelect.options[personaSelect.selectedIndex].text.split('(')[0]}</span>
+                        <div class="loading-spinner flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce"></span>
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                        </div>
+                    </div>
+                    <div class="msg-body text-sm text-slate-300 leading-relaxed prose prose-invert max-w-none">
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(msgEl);
+            scrollToBottom();
+            return msgEl;
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function escapeHtml(string) {
+            return String(string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function callGeminiAPI(payload) {
+            if (!customApiKey) {
+                throw new Error("Missing Gemini API Key. Please click 'Set Gemini API Key' at the top to configure your key.");
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${customApiKey}`;
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429) {
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        throw new Error(errData.error?.message || `API Error HTTP ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (err) {
+                    if (attempt === 2) throw err;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        function buildSystemInstruction() {
+            const personaKey = personaSelect.value;
+            const subjectKey = subjectSelect.value;
+
+            let prompt = PERSONA_PROMPTS[personaKey] || PERSONA_PROMPTS.patient;
+            prompt += "\n" + (SUBJECT_MODIFIERS[subjectKey] || "");
+
+            if (quizModeToggle.checked) {
+                prompt += "\nAt the end of your explanation, include 1 quick interactive check-for-understanding quiz question.";
+            }
+
+            if (analogyToggle.checked) {
+                prompt += "\nAlways open or ground your explanation with an intuitive real-world analogy.";
+            }
+
+            return prompt;
+        }
+
+        async function handleSend(customText = null) {
+            const query = customText || userInput.value.trim();
+            if (!query) return;
+
+            // Prompt user for API Key if not configured
+            if (!customApiKey) {
+                apiKeyModal.classList.remove('hidden');
+                showToast("Please enter your Gemini API Key first!");
                 return;
             }
 
-            // Replace VOL19 with the new VOL number
-            const newCode = template.replace(/sheet=VOL19/g, 'sheet=VOL' + volNum);
-            
-            document.getElementById('resultArea').value = newCode;
-            document.getElementById('displayVol').innerText = volNum;
-            document.getElementById('outputContainer').classList.remove('hidden');
-            
-            // Scroll to view
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            if (!customText) userInput.value = '';
+
+            // Add user turn to conversation history
+            appendUserMessage(query);
+            conversationHistory.push({ role: 'user', parts: [{ text: query }] });
+
+            const botMsgEl = createBotMessageSkeleton();
+            const msgBodyDiv = botMsgEl.querySelector('.msg-body');
+            const spinner = botMsgEl.querySelector('.loading-spinner');
+
+            // Construct payload with conversation history & system prompt
+            const payload = {
+                contents: conversationHistory,
+                systemInstruction: {
+                    parts: [{ text: buildSystemInstruction() }]
+                }
+            };
+
+            try {
+                const result = await callGeminiAPI(payload);
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const responseText = candidate.content.parts[0].text;
+                    
+                    // Add assistant response to conversation history
+                    conversationHistory.push({
+                        role: 'model',
+                        parts: [{ text: responseText }]
+                    });
+
+                    spinner.remove();
+                    msgBodyDiv.innerHTML = renderMarkdown(responseText);
+
+                    // Speak response if enabled
+                    speakText(responseText);
+                } else {
+                    throw new Error("No text content in model response.");
+                }
+            } catch (err) {
+                spinner.remove();
+                msgBodyDiv.innerHTML = `
+                    <div class="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Failed to get response: ${escapeHtml(err.message)}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">Click <strong>"Set Gemini API Key"</strong> in the top header to double-check your Google AI Studio API key.</p>
+                `;
+            } finally {
+                scrollToBottom();
+            }
         }
 
-        function copyToClipboard() {
-            const copyText = document.getElementById("resultArea");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); 
-            navigator.clipboard.writeText(copyText.value);
-            
-            const btn = document.getElementById('copyBtn');
-            btn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
-            btn.classList.add('text-emerald-400');
-            
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-                btn.classList.remove('text-emerald-400');
-            }, 2000);
-        }
+        sendBtn.addEventListener('click', () => handleSend());
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        // Quick template buttons
+        document.querySelectorAll('.quick-template').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const prompt = btn.getAttribute('data-prompt');
+                handleSend(prompt);
+                if (window.innerWidth < 1024) sidebar.classList.add('-translate-x-full');
+            });
+        });
+
+        // Quick input action buttons
+        document.getElementById('quickExplainBtn').addEventListener('click', () => {
+            const val = userInput.value.trim();
+            const query = val ? `Break down "${val}" step-by-step with simple bullet points.` : `Break down the topic we are discussing step-by-step with simple bullet points.`;
+            handleSend(query);
+        });
+
+        document.getElementById('quickQuizBtn').addEventListener('click', () => {
+            const val = userInput.value.trim();
+            const query = val ? `Quiz me on "${val}". Ask me 3 multiple choice questions one by one.` : `Create a 3-question review quiz on our recent topic.`;
+            handleSend(query);
+        });
+
+        // Clear Chat
+        clearChatBtn.addEventListener('click', () => {
+            conversationHistory = [];
+            chatContainer.innerHTML = `
+                <div class="flex items-start gap-4 max-w-3xl mx-auto">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-1">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div class="flex-1 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-sm text-emerald-400">Your AI Mentor</span>
+                            <span class="text-[10px] text-slate-500">Board Cleared</span>
+                        </div>
+                        <div class="text-sm text-slate-300 leading-relaxed">
+                            Classroom board cleared! What subject or topic shall we explore next?
+                        </div>
+                    </div>
+                </div>
+            `;
+            showToast("Chat history reset");
+        });
+
+        // Export Notes
+        exportNotesBtn.addEventListener('click', () => {
+            if (conversationHistory.length === 0) {
+                showToast("No lesson notes to export yet!");
+                return;
+            }
+            let notesText = `# Lesson Notes - AI Master Teacher\n\n`;
+            conversationHistory.forEach(turn => {
+                const role = turn.role === 'user' ? 'Student' : 'Teacher';
+                notesText += `### ${role}:\n${turn.parts[0].text}\n\n---\n\n`;
+            });
+
+            // Copy to clipboard using execCommand fallback for iframe safety
+            const textarea = document.createElement('textarea');
+            textarea.value = notesText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast("Lesson notes copied to clipboard!");
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateApiKeyUI();
+            updatePersonaLabels();
+
+            // Prompt user on first visit if no key is set
+            if (!customApiKey) {
+                setTimeout(() => {
+                    apiKeyModal.classList.remove('hidden');
+                }, 600);
+            }
+        });
     </script>
 </body>
 </html>
