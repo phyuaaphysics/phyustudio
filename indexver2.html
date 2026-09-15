@@ -41,8 +41,8 @@
         .loading-bar-container {
             width: 80vw;
             max-width: 280px;
-            height: 12px;
-            background: #E5E5EA;
+            height: 12px; /* 調整高度，與綠色膠囊 progress bar 高度契合 */
+            background: #E5E5EA; /* iOS 標準未加載灰色軌跡 */
             border-radius: 9999px;
             overflow: hidden;
             display: none;
@@ -52,12 +52,13 @@
         .loading-bar-progress {
             width: 0%;
             height: 100%;
-            background: #81D8D0;
+            background: #81D8D0; /* 💎 完美升級：高飽和度 Tiffany Blue 色澤 💎 */
             border-radius: 9999px;
             transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
+            /* 預設為純色背景，隨後經由 Google 試算表動態載入背景圖 */
             background-color: #81D8D0;
             background-repeat: no-repeat;
             background-position: center center;
@@ -75,6 +76,7 @@
             z-index: 10;
         }
 
+        /* 磨砂玻璃卡片樣式 */
         .glass-card {
             background: rgba(255, 255, 255, 0.45);
             backdrop-filter: blur(25px);
@@ -89,10 +91,12 @@
                         backdrop-filter 1.2s cubic-bezier(0.25, 1, 0.2, 1);
         }
 
+        /* 視差阻尼位移動畫 */
         .parallax-item {
             transition: transform 1.2s cubic-bezier(0.25, 1, 0.2, 1), opacity 1.0s cubic-bezier(0.25, 1, 0.2, 1);
         }
 
+        /* 藥丸型輸入框 */
         .input-pill {
             background: rgba(255, 255, 255, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.5);
@@ -103,6 +107,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
+        /* 藥丸型登入按鈕 */
         .btn-pill {
             background: rgba(226, 232, 240, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.6);
@@ -139,8 +144,22 @@
             will-change: transform, opacity;
         }
 
+        /* 🔄 Reset Button 成功動畫 (NEW - Patch 1B) */
+        @keyframes resetSuccess {
+            0%   { background-color: rgba(255, 255, 255, 0.4); transform: scale(1) rotate(0deg); }
+            40%  { background-color: rgba(129, 216, 208, 0.9); transform: scale(1.15) rotate(180deg); }
+            100% { background-color: rgba(255, 255, 255, 0.4); transform: scale(1) rotate(360deg); }
+        }
+        #reset-btn.reset-success {
+            animation: resetSuccess 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ==========================================================================
+           💎 iOS 頂級白淨高透磨砂玻璃彈窗樣式與非線性轉場動畫 💎
+           ========================================================================== */
         .ios-overlay-blur {
             background: rgba(255, 255, 255, 0.01);
+            /* 💎 核心修改：移除遮罩層的模糊濾鏡與暗色，讓背景 100% 完全透亮 💎 */
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
             transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -158,6 +177,8 @@
             transform: scale(0.85) translateY(30px);
             opacity: 0;
             transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            
+            /* 💎 歡迎視窗全面載入 Apple 官方字型美學 💎 */
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
         }
 
@@ -166,6 +187,7 @@
             opacity: 1;
         }
 
+        /* iOS 微震動感按鈕 */
         .ios-btn {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(0, 0, 0, 0.04);
@@ -182,17 +204,36 @@
         }
         .ios-btn:active {
             transform: scale(0.96) translateY(0);
-            background: rgba(28, 28, 30, 0.9);
+            background: rgba(28, 28, 28, 0.9);
             color: #ffffff;
         }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen m-0">
 
+    <!-- 背景公式動畫容器 -->
     <div id="formula-container"></div>
 
+    <!-- 登入卡片主畫面 -->
     <div id="landing-screen" class="fade-in glass-card w-[90%] max-w-[450px] rounded-[2.5rem] p-10 sm:p-12 flex flex-col items-center text-center space-y-8 relative z-10">
         
+        <!-- 🔄 Reset Button (重設登入狀態 / 清空 localStorage) (NEW - Patch 1A) -->
+        <button
+            id="reset-btn"
+            onclick="resetSystem()"
+            title="重設登入狀態 (清除 localStorage)"
+            class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/40 hover:bg-white/80 active:scale-90 backdrop-blur-md border border-white/40 flex items-center justify-center text-[#1b365d]/60 hover:text-[#1b365d] transition-all duration-200 shadow-sm hover:shadow-md"
+            style="-webkit-tap-highlight-color: transparent;"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+            </svg>
+        </button>
+        
+        <!-- App Icon (完美正方形外框) -->
         <div class="fade-in parallax-item" id="item-icon">
             <img 
                 src="https://phyuaaphysics.github.io/phyustudio/appicon.png" 
@@ -202,6 +243,7 @@
             >
         </div>
         
+        <!-- 奢華 Cinzel 字型標題 -->
         <div class="space-y-1 w-full px-2 uppercase select-none" style="font-family: 'Cinzel', 'Playfair Display', serif;">
             <h1 class="text-[#1b365d]">
                 <span class="block text-2xl sm:text-3xl font-semibold tracking-[0.15em] leading-none parallax-item" id="item-title-1">Self-Directed</span>
@@ -209,6 +251,7 @@
             </h1>
         </div>
 
+        <!-- 登入表單 -->
         <div class="w-full flex flex-col items-center space-y-3 pt-2 parallax-item" id="item-form">
             <input 
                 type="text" 
@@ -226,11 +269,13 @@
                 class="input-pill w-full max-w-[270px] h-10 px-6 rounded-full text-[#1b365d] placeholder-[#1b365d]/40 focus:outline-none text-center text-[#1b365d] text-center text-[10px] tracking-[0.25em] font-medium"
             >
             
+            <!-- 錯誤訊息提示區 -->
             <p id="error-msg" class="text-red-700 text-[9px] tracking-widest min-h-[14px] opacity-0 transition-opacity duration-300">
                 帳號或密碼錯誤
             </p>
         </div>
 
+        <!-- 登入按鈕區與內嵌式進度條 -->
         <div class="w-full flex flex-col items-center parallax-item" id="item-button">
             <button 
                 id="launch-btn"
@@ -241,6 +286,7 @@
                 Login & Browse
             </button>
 
+            <!-- 隱藏的內嵌進度條，啟動時浮現於按鈕下方 -->
             <div id="loading-inline-container" class="w-full max-w-[270px] -mt-10 opacity-0 transition-all duration-1000 hidden flex flex-col items-center translate-y-[-10px]">
                 
                 <div class="relative w-12 h-12 mb-4 animate-spin">
@@ -267,10 +313,13 @@
         </div>
     </div>
 
+    <!-- 💎 歡迎與驗證結果通知彈出式視窗 (Welcome Modal - High-end iOS style white glass texture) 💎 -->
     <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-transparent opacity-0 pointer-events-none">
         <div class="ios-glass-card w-[85%] max-w-[370px] rounded-[2.2rem] p-9 text-center flex flex-col items-center space-y-6 relative">
             
+            <!-- 狀態動態 Icon 容器 (尺寸放大以呼應更大字型) -->
             <div id="modal-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-black/5">
+                <!-- 動態注入 -->
             </div>
             
             <div class="space-y-2 uppercase select-none">
@@ -278,10 +327,12 @@
                 <p id="modal-subtext" class="text-[10px] font-semibold tracking-[0.2em] text-[#1b365d]/50 mt-1">Platform Notice</p>
             </div>
 
+            <!-- 通知內文 (💎 尺寸放大為 14px / text-sm 💎) -->
             <p id="modal-message" class="text-sm font-medium tracking-[0.08em] text-[#2c2c2e] leading-relaxed px-2">
                 讀取中...
             </p>
 
+            <!-- 💎 核心修改：優化按鈕容器結構以容納雙按鈕或單按鈕排列 💎 -->
             <div id="modal-actions" class="w-full flex flex-col items-center space-y-3">
                 <button 
                     id="modal-primary-btn"
@@ -305,9 +356,13 @@
         let formulaInterval;
         let currentBgUrl = "";
 
-        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbyDzxZDfiymvnfYGAuW7_ltPvosZjHOhYOL1zAYU0cZhgN7061zK7wbzukAu014muZu/exec";
+        // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 (對接第 10 版正式端點) 🔗
+        const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzbEsadfUC_JjATVlglhahe8Pv-sVRxnlYg0ZDgFEk33_V1qzXWJsep0oN8Sb7EtGFW/exec";
+        
+        // 🔗 轉跳目標主網頁明文網址 🔗
         const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
 
+        // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('https://phyuaaphysics.github.io/phyustudio/sw.js')
@@ -316,6 +371,7 @@
             });
         }
 
+        // 從試算表 ELEMENTS 分頁載入 LOGIN_BG 背景圖 (改用 JSONP 方式避免 Sandbox Iframe 中的 CORS 阻擋)
         function loadBackgroundFromSheet() {
             window.handleSheetData = function(data) {
                 try {
@@ -353,10 +409,12 @@
             document.head.appendChild(script);
         }
 
+        // 頁面加載時啟動背景公式與試算表背景圖片讀取
         window.addEventListener('DOMContentLoaded', () => {
             formulaInterval = setInterval(() => createFormula(), 250);
             loadBackgroundFromSheet();
 
+            // 💎 核心修改：當頁面重新加載時，自動解析網址帶來的錯誤參數並精準顯示 💎
             const urlParams = new URLSearchParams(window.location.search);
             const errParam = urlParams.get('error');
             if (errParam) {
@@ -380,6 +438,7 @@
             "τ = Fr sinθ", "φ = BA cosθ", "ε = -N(∆φ/∆t)"
         ];
 
+        // 建立飄移公式
         function createFormula() {
             const container = document.getElementById('formula-container');
             if (!container) return;
@@ -400,6 +459,7 @@
             setTimeout(() => formula.remove(), duration * 1000);
         }
 
+        // 滑鼠懸停音效
         function playHoverSound() {
             if (audioCtx.state === 'suspended') return;
             const osc = audioCtx.createOscillator();
@@ -410,7 +470,7 @@
             osc.start(); osc.stop(audioCtx.currentTime + 0.05);
         }
 
-        // ★ 修正版：原本寫成 const osc = IP = audioCtx.createOscillator() 會偷偷建立全域變數 IP，現已修正
+        // 載入提示音效
         function playLoadingTick(frequency = 600) {
             if (audioCtx.state === 'suspended') return;
             const osc = audioCtx.createOscillator();
@@ -418,23 +478,19 @@
             osc.type = 'square';
             osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.03);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.03);
         }
 
-        // ============================================================
-        // ★★★ 核心修補：登入流程加入請求去重 + 競態防護 + 延長超時 ★★★
-        // ============================================================
+        // 登入驗證與分流控管邏輯
         let loadingInterval = null;
         let progressVal = 0;
-        let authResult = null;        // null = 驗證中, true = 成功, false = 失敗
+        let authResult = null;
         let authErrorMessage = "";
         let guardTimeoutId = null;
         let reassuringInterval = null;
-        let inFlightController = null; // 當前飛行中的 AbortController
 
+        // 💎 防焦慮動態載入小提示語句 💎
         const reassuringMessages = [
             "正在初始化 PH studio 安全沙盒模組...",
             "正在與 Permissions 驗證主機進行安全校驗...",
@@ -443,11 +499,10 @@
             "正在解析熱力學、電磁學與波動模組...",
             "正在載入高級 Canvas 物理軌跡渲染組件...",
             "正在微調 iOS 系統級物理阻尼交互引擎...",
-            "PH studio 雲端引擎正在預熱，請稍候數秒...",
-            "正在為您配置專屬學習環境參數...",
             "安全憑證核發中，正在整理系統快取檔案..."
         ];
 
+        // 啟動舒緩安撫文字動態循環
         function startReassuringMessages() {
             const reassuringText = document.getElementById('reassuring-text');
             if (!reassuringText) return;
@@ -465,25 +520,60 @@
             }, 1500);
         }
 
+        // 停止舒緩安撫文字動態循環
         function stopReassuringMessages() {
             if (reassuringInterval) {
                 clearInterval(reassuringInterval);
-                reassuringInterval = null;
             }
             const reassuringText = document.getElementById('reassuring-text');
             if (reassuringText) reassuringText.style.opacity = "0";
         }
 
+        // 🔄 重設系統 — 清空 localStorage + 重置 form (NEW - Patch 1C)
+        function resetSystem() {
+            // 1. 清晒所有 stale localStorage state
+            localStorage.clear();
+
+            // 2. 重置 form fields
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            if (usernameInput) usernameInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+
+            // 3. 清除錯誤訊息
+            const errorMsg = document.getElementById('error-msg');
+            if (errorMsg) {
+                errorMsg.style.opacity = '0';
+                errorMsg.innerText = '';
+            }
+
+            // 4. 視覺回饋
+            const resetBtn = document.getElementById('reset-btn');
+            if (resetBtn) {
+                resetBtn.classList.remove('reset-success');
+                void resetBtn.offsetWidth; // 強制 reflow 令動畫可以重複觸發
+                resetBtn.classList.add('reset-success');
+                playLoadingTick(800);
+                setTimeout(() => {
+                    resetBtn.classList.remove('reset-success');
+                }, 700);
+            }
+
+            // 5. 清除 URL 上嘅 error param（如果有）
+            if (window.history && window.history.replaceState) {
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, document.title, url.pathname);
+                } catch (e) { /* ignore */ }
+            }
+        }
+
+        // 登入驗證 (NEW - Patch 3: 加 localStorage.clear() + race protection)
         function handleLogin(event) {
             if (event) event.preventDefault();
             
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            // ★ 防止重複點擊：上一個請求還在飛行中時直接忽略
-            if (inFlightController && authResult === null) {
-                playLoadingTick(300);
-                return;
-            }
 
             const userVal = document.getElementById('username').value.trim();
             const passVal = document.getElementById('password').value;
@@ -496,25 +586,26 @@
                 return;
             }
 
+            // 🧹 治標：每次 click login 先清空 localStorage，避免 stale state 污染
+            localStorage.clear();
+
             // 初始化驗證與動畫狀態
             authResult = null;
             authErrorMessage = "";
 
+            // 1. 不論對錯，立刻啟動過渡畫面與公式背景，極大化降低等待焦慮
             startPreLaunch();
             runLoadingLoop();
 
-            // ★ 每個請求使用獨立 controller，並掛到 inFlightController 用於去重
+            // 2. 🚀【標準明文 fetch POST 連線，無縫對接第 10 版後端】🚀
             const controller = new AbortController();
-            inFlightController = controller;
-
-            // ★ 超時延長到 15 秒，給 GAS 冷啟動留餘裕（原 8 秒太短）
             guardTimeoutId = setTimeout(() => {
-                if (inFlightController === controller && authResult === null) {
-                    controller.abort();
-                    authErrorMessage = "認證中心伺服器連線超時（建議重試）";
+                controller.abort();
+                if (authResult === null) {
+                    authErrorMessage = "認證中心伺服器連線超時";
                     authResult = false;
                 }
-            }, 15000);
+            }, 8000); // 8 秒超時
 
             fetch(GAS_GUARD_URL, {
                 method: "POST",
@@ -529,24 +620,25 @@
                 signal: controller.signal
             })
             .then(response => {
-                if (guardTimeoutId) {
-                    clearTimeout(guardTimeoutId);
-                    guardTimeoutId = null;
-                }
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
                 if (!response.ok) {
                     throw new Error("HTTP status " + response.status);
                 }
                 return response.json();
             })
             .then(data => {
-                // ★ 防止舊請求遲到覆蓋新狀態
-                if (inFlightController !== controller) return;
-                
+                // 🛡️ 如果 fetch 已經被 abort，唔寫 localStorage（防止 race condition 污染）
+                if (controller.signal.aborted) return;
+
                 if (data.success) {
+                    // 驗證成功：快取 JWT 與 Role 到本地
                     if (data.token) localStorage.setItem('jwt_token', data.token);
                     if (data.role) localStorage.setItem('user_role', data.role);
+                    
+                    // 將使用者帳密之 Username 欄位儲存至 localStorage
                     localStorage.setItem('user_username', userVal);
                     
+                    // 將身分標籤詳細欄位全面儲存至 localStorage
                     if (data.identity_tag) {
                         localStorage.setItem('user_class', data.identity_tag.class || "");
                         localStorage.setItem('user_class_no', data.identity_tag.class_no || "");
@@ -559,34 +651,22 @@
                     
                     authResult = true;
                 } else {
+                    // 驗證失敗：設定錯誤狀態
                     authErrorMessage = data.message || "帳號或密碼錯誤";
                     authResult = false; 
                 }
             })
             .catch(err => {
-                if (guardTimeoutId) {
-                    clearTimeout(guardTimeoutId);
-                    guardTimeoutId = null;
-                }
-                if (inFlightController !== controller) return;
-                
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                // 🛡️ 我哋自己 abort 嘅唔當錯誤（避免 race condition 寫錯誤 message）
+                if (err.name === 'AbortError') return;
                 console.error("連線到 Guard API 失敗:", err);
-                if (err.name === 'AbortError') {
-                    if (!authErrorMessage) {
-                        authErrorMessage = "認證中心伺服器連線超時";
-                    }
-                } else {
-                    authErrorMessage = "認證中心伺服器連線異常";
-                }
+                authErrorMessage = "認證中心伺服器連線異常";
                 authResult = false;
-            })
-            .finally(() => {
-                if (inFlightController === controller) {
-                    inFlightController = null;
-                }
             });
         }
 
+        // 啟動前置淡出轉場畫面
         function startPreLaunch() {
             const landing = document.getElementById('landing-screen');
             const formulaContainer = document.getElementById('formula-container');
@@ -638,6 +718,7 @@
             startReassuringMessages();
         }
 
+        // 💎 動態進度條循環 💎
         function runLoadingLoop() {
             const progress = document.getElementById('bar-progress');
             const statusText = document.getElementById('status-text');
@@ -669,8 +750,6 @@
                     progress.style.width = '100%';
                     
                     clearInterval(loadingInterval);
-                    loadingInterval = null;
-                    
                     stopReassuringMessages();
 
                     loadingInline.style.opacity = "0";
@@ -693,6 +772,7 @@
             }, 50);
         }
 
+        // 💡 顯示歡迎/通知彈出視窗 💡
         function showWelcomeModal() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
@@ -704,6 +784,7 @@
             const secondaryBtn = document.getElementById('modal-secondary-btn');
 
             if (authResult === true) {
+                // 🟢 驗證成功分支
                 const role = localStorage.getItem('user_role') || "User";
                 const realName = localStorage.getItem('user_real_name') || "";
                 const userClass = localStorage.getItem('user_class') || "";
@@ -732,29 +813,24 @@
                 }
                 playLoadingTick(1000);
             } else {
-                localStorage.setItem('jwt_token', 'visitor-token-guest');
-                localStorage.setItem('user_role', 'guest');
-                localStorage.setItem('user_username', 'guest_visitor');
-                localStorage.setItem('user_real_name', '訪客');
-                localStorage.setItem('user_class', 'Visitor');
-                localStorage.setItem('user_class_no', 'N/A');
-
-                modalIconContainer.innerHTML = '👤';
-                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
+                // 🔴 驗證失敗/未通過分支 — 已移除 visitor mode fallback (NEW - Patch 2)
+                modalIconContainer.innerHTML = '✕';
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold shadow-sm border border-red-500/10 bg-red-50/20 text-red-600";
                 
-                modalTitle.innerText = "WELCOME";
-                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-amber-700";
-                modalSubtext.innerText = "VISITOR ENTRANCE";
+                modalTitle.innerText = "LOGIN FAILED";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-red-700";
+                modalSubtext.innerText = "AUTHENTICATION REQUIRED";
                 
-                primaryBtn.innerText = "Enter as Visitor";
+                // 只有「重試」一個掣（已隱藏 Enter as Visitor）
+                primaryBtn.innerText = "Try Again";
                 primaryBtn.classList.remove('hidden');
-                secondaryBtn.innerText = "Try Again";
-                secondaryBtn.classList.remove('hidden');
+                secondaryBtn.classList.add('hidden');
 
-                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>您可以選擇以 <strong>訪客</strong> 身份探訪系統，或是返回重新登入。`;
+                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>請再次確認帳號密碼後重試。`;
                 playLoadingTick(400);
             }
 
+            // 啟動 iOS 原生級 non-linear 物理阻尼轉場動畫
             modal.classList.remove('pointer-events-none');
             modal.classList.remove('opacity-0');
             modal.classList.add('opacity-100');
@@ -764,6 +840,7 @@
             modalCard.classList.add('active');
         }
 
+        // 點擊 Modal 的確認按鈕，流暢跳轉
         function confirmWelcomeRedirect() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
@@ -791,6 +868,7 @@
             }, 550);
         }
 
+        // 點擊 Try Again 按鈕時，透過實體 URL 連結重新載入
         function reloginWelcome() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
@@ -809,6 +887,7 @@
             }, 550);
         }
 
+        // 💎 完美還原磨砂玻璃卡片與輸入欄位的 iOS 阻尼回滾與重置程序 💎
         function rollbackSystem(errorMessage) {
             const landing = document.getElementById('landing-screen');
             const formulaContainer = document.getElementById('formula-container');
