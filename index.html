@@ -144,6 +144,16 @@
             will-change: transform, opacity;
         }
 
+        /* 🔄 Reset Button 成功動畫 (NEW - Patch 1B) */
+        @keyframes resetSuccess {
+            0%   { background-color: rgba(255, 255, 255, 0.4); transform: scale(1) rotate(0deg); }
+            40%  { background-color: rgba(129, 216, 208, 0.9); transform: scale(1.15) rotate(180deg); }
+            100% { background-color: rgba(255, 255, 255, 0.4); transform: scale(1) rotate(360deg); }
+        }
+        #reset-btn.reset-success {
+            animation: resetSuccess 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
         /* ==========================================================================
            💎 iOS 頂級白淨高透磨砂玻璃彈窗樣式與非線性轉場動畫 💎
            ========================================================================== */
@@ -194,7 +204,7 @@
         }
         .ios-btn:active {
             transform: scale(0.96) translateY(0);
-            background: rgba(28, 28, 30, 0.9);
+            background: rgba(28, 28, 28, 0.9);
             color: #ffffff;
         }
     </style>
@@ -206,6 +216,22 @@
 
     <!-- 登入卡片主畫面 -->
     <div id="landing-screen" class="fade-in glass-card w-[90%] max-w-[450px] rounded-[2.5rem] p-10 sm:p-12 flex flex-col items-center text-center space-y-8 relative z-10">
+        
+        <!-- 🔄 Reset Button (重設登入狀態 / 清空 localStorage) (NEW - Patch 1A) -->
+        <button
+            id="reset-btn"
+            onclick="resetSystem()"
+            title="重設登入狀態 (清除 localStorage)"
+            class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/40 hover:bg-white/80 active:scale-90 backdrop-blur-md border border-white/40 flex items-center justify-center text-[#1b365d]/60 hover:text-[#1b365d] transition-all duration-200 shadow-sm hover:shadow-md"
+            style="-webkit-tap-highlight-color: transparent;"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+            </svg>
+        </button>
         
         <!-- App Icon (完美正方形外框) -->
         <div class="fade-in parallax-item" id="item-icon">
@@ -261,10 +287,8 @@
             </button>
 
             <!-- 隱藏的內嵌進度條，啟動時浮現於按鈕下方 -->
-            <!-- 💎 核心修改：移除 mt-6，改用負 margin 及置中 translateY 來把整個過渡組件向上提升，使其完全居中 💎 -->
             <div id="loading-inline-container" class="w-full max-w-[270px] -mt-10 opacity-0 transition-all duration-1000 hidden flex flex-col items-center translate-y-[-10px]">
                 
-                <!-- 💎 核心修改：旋轉器顏色完美更換為大氣優美的 Tiffany Blue (#81D8D0) 💎 -->
                 <div class="relative w-12 h-12 mb-4 animate-spin">
                     <svg class="w-full h-full text-[#81D8D0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
                         <line x1="12" y1="5" x2="12" y2="2" opacity="1.0" />
@@ -278,22 +302,18 @@
                     </svg>
                 </div>
 
-                <!-- 💎 標題「Loading...」微調為與圖片高度一致的優雅大氣字型 💎 -->
                 <p id="status-text" class="text-gray-900 font-bold tracking-wide text-sm sm:text-base mb-3 transition-opacity duration-300">Loading...</p>
                 
-                <!-- 💎 進度條軌跡顏色已在 CSS 樣式中切換為極致質感的 Tiffany Blue (#81D8D0) 💎 -->
                 <div class="loading-bar-container w-full" id="bar-container">
                     <div class="loading-bar-progress" id="bar-progress"></div>
                 </div>
 
-                <!-- 💎 全新加入：位於 Bar 下方的動態防焦慮、舒緩安撫細節載入提示文本 💎 -->
                 <p id="reassuring-text" class="text-gray-500 text-[10px] tracking-wide mt-3 h-8 text-center px-1 transition-opacity duration-300 opacity-0"></p>
             </div>
         </div>
     </div>
 
     <!-- 💎 歡迎與驗證結果通知彈出式視窗 (Welcome Modal - High-end iOS style white glass texture) 💎 -->
-    <!-- 💎 核心修改：將 bg-black/5 改為 bg-transparent，去除遮罩背景的磨砂模糊，使後方公式 100% 清晰可見 💎 -->
     <div id="welcome-modal" class="ios-overlay-blur fixed inset-0 z-50 flex items-center justify-center bg-transparent opacity-0 pointer-events-none">
         <div class="ios-glass-card w-[85%] max-w-[370px] rounded-[2.2rem] p-9 text-center flex flex-col items-center space-y-6 relative">
             
@@ -303,9 +323,7 @@
             </div>
             
             <div class="space-y-2 uppercase select-none">
-                <!-- 💎 標題尺寸放大為 20px 💎 -->
                 <h3 id="modal-title" class="text-[20px] font-bold tracking-[0.12em] text-[#1b365d]">WELCOME</h3>
-                <!-- 💎 副標題尺寸放大為 10px 💎 -->
                 <p id="modal-subtext" class="text-[10px] font-semibold tracking-[0.2em] text-[#1b365d]/50 mt-1">Platform Notice</p>
             </div>
 
@@ -336,7 +354,7 @@
 
     <script>
         let formulaInterval;
-        let currentBgUrl = ""; // 用於保存並在驗證失敗時還原的資料庫背景圖片
+        let currentBgUrl = "";
 
         // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 (對接第 10 版正式端點) 🔗
         const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzbEsadfUC_JjATVlglhahe8Pv-sVRxnlYg0ZDgFEk33_V1qzXWJsep0oN8Sb7EtGFW/exec";
@@ -363,7 +381,7 @@
                                 const colA = row.c[0] ? String(row.c[0].v).trim() : "";
                                 const colB = row.c[1] ? String(row.c[1].v).trim() : "";
                                 if (colA === 'LOGIN_BG' && colB) {
-                                    currentBgUrl = colB; // 保存背景網址
+                                    currentBgUrl = colB;
                                     document.body.style.backgroundImage = `url('${colB}')`;
                                     break;
                                 }
@@ -405,7 +423,6 @@
                     errorMsg.innerText = decodeURIComponent(errParam);
                     errorMsg.style.opacity = '1';
                 }
-                // 清除網址列中的 error 參數，保持使用者介面清爽美觀
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
@@ -456,11 +473,10 @@
         // 載入提示音效
         function playLoadingTick(frequency = 600) {
             if (audioCtx.state === 'suspended') return;
-            const osc = IP = audioCtx.createOscillator();
+            const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-            // 已修復：移除非法的中介變數，保證 Audio API 執行期零中斷
             gain.gain.setValueAtTime(0.005, audioCtx.currentTime);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.03);
@@ -469,7 +485,7 @@
         // 登入驗證與分流控管邏輯
         let loadingInterval = null;
         let progressVal = 0;
-        let authResult = null; // null = 驗證中, true = 成功, false = 失敗
+        let authResult = null;
         let authErrorMessage = "";
         let guardTimeoutId = null;
         let reassuringInterval = null;
@@ -513,6 +529,47 @@
             if (reassuringText) reassuringText.style.opacity = "0";
         }
 
+        // 🔄 重設系統 — 清空 localStorage + 重置 form (NEW - Patch 1C)
+        function resetSystem() {
+            // 1. 清晒所有 stale localStorage state
+            localStorage.clear();
+
+            // 2. 重置 form fields
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            if (usernameInput) usernameInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+
+            // 3. 清除錯誤訊息
+            const errorMsg = document.getElementById('error-msg');
+            if (errorMsg) {
+                errorMsg.style.opacity = '0';
+                errorMsg.innerText = '';
+            }
+
+            // 4. 視覺回饋
+            const resetBtn = document.getElementById('reset-btn');
+            if (resetBtn) {
+                resetBtn.classList.remove('reset-success');
+                void resetBtn.offsetWidth; // 強制 reflow 令動畫可以重複觸發
+                resetBtn.classList.add('reset-success');
+                playLoadingTick(800);
+                setTimeout(() => {
+                    resetBtn.classList.remove('reset-success');
+                }, 700);
+            }
+
+            // 5. 清除 URL 上嘅 error param（如果有）
+            if (window.history && window.history.replaceState) {
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, document.title, url.pathname);
+                } catch (e) { /* ignore */ }
+            }
+        }
+
+        // 登入驗證 (NEW - Patch 3: 加 localStorage.clear() + race protection)
         function handleLogin(event) {
             if (event) event.preventDefault();
             
@@ -528,6 +585,9 @@
                 playLoadingTick(300);
                 return;
             }
+
+            // 🧹 治標：每次 click login 先清空 localStorage，避免 stale state 污染
+            localStorage.clear();
 
             // 初始化驗證與動畫狀態
             authResult = null;
@@ -551,7 +611,7 @@
                 method: "POST",
                 mode: "cors",
                 headers: {
-                    "Content-Type": "text/plain" // text/plain 可避免 OPTIONS 預檢阻擋，在各網域最不易出錯
+                    "Content-Type": "text/plain"
                 },
                 body: JSON.stringify({
                     username: userVal,
@@ -567,15 +627,18 @@
                 return response.json();
             })
             .then(data => {
+                // 🛡️ 如果 fetch 已經被 abort，唔寫 localStorage（防止 race condition 污染）
+                if (controller.signal.aborted) return;
+
                 if (data.success) {
-                    // 驗證成功：快取 JWT 與 Role 到本地 (💎 升級儲存至 localStorage 💎)
+                    // 驗證成功：快取 JWT 與 Role 到本地
                     if (data.token) localStorage.setItem('jwt_token', data.token);
                     if (data.role) localStorage.setItem('user_role', data.role);
                     
-                    // 💎 新增：將使用者帳密之 Username 欄位儲存至 localStorage 💎
+                    // 將使用者帳密之 Username 欄位儲存至 localStorage
                     localStorage.setItem('user_username', userVal);
                     
-                    // 💎 核心修改：將身分標籤詳細欄位全面儲存至 localStorage 💎
+                    // 將身分標籤詳細欄位全面儲存至 localStorage
                     if (data.identity_tag) {
                         localStorage.setItem('user_class', data.identity_tag.class || "");
                         localStorage.setItem('user_class_no', data.identity_tag.class_no || "");
@@ -586,22 +649,20 @@
                         localStorage.setItem('user_real_name', "");
                     }
                     
-                    authResult = true; // 觸發進度條加速填滿
+                    authResult = true;
                 } else {
-                    // 驗證失敗：設定錯誤狀態 (但不回滾，準備在 100% 時觸發訪客探訪模式)
+                    // 驗證失敗：設定錯誤狀態
                     authErrorMessage = data.message || "帳號或密碼錯誤";
                     authResult = false; 
                 }
             })
             .catch(err => {
                 if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                // 🛡️ 我哋自己 abort 嘅唔當錯誤（避免 race condition 寫錯誤 message）
+                if (err.name === 'AbortError') return;
                 console.error("連線到 Guard API 失敗:", err);
-                if (err.name === 'AbortError') {
-                    authErrorMessage = "認證中心伺服器連線超時";
-                } else {
-                    authErrorMessage = "認證中心伺服器連線異常";
-                }
-                authResult = false; // 異常也直接降級切換成訪客
+                authErrorMessage = "認證中心伺服器連線異常";
+                authResult = false;
             });
         }
 
@@ -612,14 +673,11 @@
             const loadingInline = document.getElementById('loading-inline-container');
             const statusText = document.getElementById('status-text');
 
-            // 1. 背景平滑過渡至純白
             document.body.style.backgroundImage = "none";
             document.body.style.backgroundColor = "#FFFFFF";
 
-            // 2. 公式保持高度飄移流動
             formulaContainer.style.opacity = "1";
 
-            // 清除動畫干擾，確保強制進入淡出狀態
             landing.style.animation = "none";
             document.getElementById('item-icon').style.animation = "none";
             document.getElementById('item-title-1').style.animation = "none";
@@ -627,7 +685,6 @@
             document.getElementById('item-form').style.animation = "none";
             document.getElementById('item-button').style.animation = "none";
 
-            // 磨砂卡片整體淡出
             landing.style.background = "rgba(255, 255, 255, 0)";
             landing.style.borderColor = "transparent";
             landing.style.boxShadow = "none";
@@ -635,7 +692,6 @@
             landing.style.webkitBackdropFilter = "none";
             landing.style.transform = "translateY(-20px)";
 
-            // ICON、標題、欄位及按鈕同步完全淡出 (opacity: 0)
             document.getElementById('item-icon').style.transform = "translateY(-40px)";
             document.getElementById('item-icon').style.opacity = "0";
 
@@ -659,11 +715,10 @@
 
             document.getElementById('bar-container').style.display = 'block';
             
-            // 💎 啟動動態語句安撫系統 💎
             startReassuringMessages();
         }
 
-        // 💎 動態進度條循環（成功與失敗皆會跑滿，並確保背景公式繼續正常浮動） 💎
+        // 💎 動態進度條循環 💎
         function runLoadingLoop() {
             const progress = document.getElementById('bar-progress');
             const statusText = document.getElementById('status-text');
@@ -671,7 +726,6 @@
             const loadingInline = document.getElementById('loading-inline-container');
             const landing = document.getElementById('landing-screen');
 
-            // 確保每次重登前置啟動時，進度條容器可視、透明度為 1 且重設寬度
             loadingInline.classList.remove('hidden');
             loadingInline.style.opacity = "1";
             loadingInline.style.transform = "translateY(-40px)";
@@ -684,10 +738,8 @@
 
             loadingInterval = setInterval(() => {
                 if (authResult !== null) {
-                    // 【不論驗證成敗，皆加速衝向 100% 準備導向 Welcome 視窗】
                     progressVal += Math.random() * 8 + 6;
                 } else {
-                    // 驗證中：模擬平滑加載，但最多卡在 45%
                     if (progressVal < 45) {
                         progressVal += Math.random() * 2.5 + 1.0;
                     }
@@ -697,26 +749,18 @@
                     progressVal = 100;
                     progress.style.width = '100%';
                     
-                    // 💎 核心修改：移除對 formulaContainer.style.opacity 的漸顯與隱藏控制，使其持續浮動 💎
                     clearInterval(loadingInterval);
-                    
-                    // 💎 停止動態文字循環 💎
                     stopReassuringMessages();
 
-                    // 隱藏進度條，為彈出式歡迎視窗創造最乾淨的白色舞台
                     loadingInline.style.opacity = "0";
                     loadingInline.style.transform = "translateY(-60px)";
                     landing.style.opacity = "0";
                     
                     setTimeout(() => { 
-                        // 🚀 跑滿 100% 後，啟動全新的 Welcome Modal 機制 🚀
                         showWelcomeModal();
                     }, 600);
                 } else {
                     progress.style.width = progressVal + '%';
-
-                    // 💎 核心修改：移除與進度條綁定的公式容器淡出，讓公式透明度穩定維持 1.0 持續顯示 💎
-                    // formulaContainer.style.opacity = (1 - (progressVal / 100)).toFixed(3);
 
                     const targetIdx = Math.min(Math.floor((progressVal / 100) * statusMessages.length), statusMessages.length - 1);
                     if (targetIdx !== messageIndex) {
@@ -728,7 +772,7 @@
             }, 50);
         }
 
-        // 💡 顯示歡迎/通知彈出視窗 (iOS 奢華白高透玻璃材質 + Apple 原生字型美學) 💡
+        // 💡 顯示歡迎/通知彈出視窗 💡
         function showWelcomeModal() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
@@ -740,28 +784,23 @@
             const secondaryBtn = document.getElementById('modal-secondary-btn');
 
             if (authResult === true) {
-                // 🟢 驗證成功分支 (💎 核心修改：由 localStorage 讀取身分標籤詳細欄位 💎)
+                // 🟢 驗證成功分支
                 const role = localStorage.getItem('user_role') || "User";
                 const realName = localStorage.getItem('user_real_name') || "";
                 const userClass = localStorage.getItem('user_class') || "";
                 const classNo = localStorage.getItem('user_class_no') || "";
                 
-                // 動態排版呈现：班級、姓名、與身分角色 (採用 Apple 原生 UI 經典對齊風格)
-                // 💎 使用打勾符號 (✓) 替代原本的盾牌，容器大小微調 💎
                 modalIconContainer.innerHTML = '✓';
                 modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold shadow-sm border border-emerald-500/10 bg-emerald-50/20 text-emerald-600";
                 
-                // 💎 標題改為「WELCOME」，文字大小設為放大後的 20px 💎
                 modalTitle.innerText = "WELCOME";
-                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-[#1b365d]"; // 統一使用經典 PH 藍色或綠色
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-[#1b365d]";
                 modalSubtext.innerText = "ACCESS GRANTED";
                 
-                // 💎 成功時只保留一個進入按鈕 💎
                 primaryBtn.innerText = "Confirm & Enter";
                 primaryBtn.classList.remove('hidden');
                 secondaryBtn.classList.add('hidden');
 
-                // 如果後端有提供真實姓名與班級資料，就完美呈現在卡片面板上
                 if (realName) {
                     modalMessage.innerHTML = `驗證通過！歡迎進入 <strong>PH studio</strong>。<br><br>` +
                                              `<div class="text-left bg-black/[0.02] border border-black/5 rounded-2xl p-4 space-y-2 mt-2 mb-2 text-xs tracking-wide text-[#2c2c2e]">` +
@@ -774,30 +813,20 @@
                 }
                 playLoadingTick(1000);
             } else {
-                // 🔴 驗證失敗/未通過分支 (強制安全切換為 Visitor 訪客身分)
-                // 💎 核心修改：在本地 localStorage 寫入訪客身分與對等資料 💎
-                localStorage.setItem('jwt_token', 'visitor-token-guest');
-                localStorage.setItem('user_role', 'guest');
-                localStorage.setItem('user_username', 'guest_visitor');
-                localStorage.setItem('user_real_name', '訪客');
-                localStorage.setItem('user_class', 'Visitor');
-                localStorage.setItem('user_class_no', 'N/A');
-
-                modalIconContainer.innerHTML = '👤';
-                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-sm border border-amber-500/10 bg-amber-50/20 text-amber-600";
+                // 🔴 驗證失敗/未通過分支 — 已移除 visitor mode fallback (NEW - Patch 2)
+                modalIconContainer.innerHTML = '✕';
+                modalIconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold shadow-sm border border-red-500/10 bg-red-50/20 text-red-600";
                 
-                // 💎 標題同樣使用大字型的「WELCOME」 💎
-                modalTitle.innerText = "WELCOME";
-                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-amber-700";
-                modalSubtext.innerText = "VISITOR ENTRANCE";
+                modalTitle.innerText = "LOGIN FAILED";
+                modalTitle.className = "text-[20px] font-bold tracking-[0.12em] text-red-700";
+                modalSubtext.innerText = "AUTHENTICATION REQUIRED";
                 
-                // 💎 失敗時提供雙按鈕：繼續進入（訪客）或是重新登入 💎
-                primaryBtn.innerText = "Enter as Visitor";
+                // 只有「重試」一個掣（已隱藏 Enter as Visitor）
+                primaryBtn.innerText = "Try Again";
                 primaryBtn.classList.remove('hidden');
-                secondaryBtn.innerText = "Try Again";
-                secondaryBtn.classList.remove('hidden');
+                secondaryBtn.classList.add('hidden');
 
-                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>您可以選擇以 <strong>訪客</strong> 身份探訪系統，或是返回重新登入。`;
+                modalMessage.innerHTML = `未能通過身分驗證（${authErrorMessage || "密碼錯誤"}）。<br><br>請再次確認帳號密碼後重試。`;
                 playLoadingTick(400);
             }
 
@@ -811,16 +840,14 @@
             modalCard.classList.add('active');
         }
 
-        // 點擊 Modal 的確認按鈕，流暢跳轉 (iOS Damped Scale-down Out 特效)
+        // 點擊 Modal 的確認按鈕，流暢跳轉
         function confirmWelcomeRedirect() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
             const formulaContainer = document.getElementById('formula-container');
             
-            // 觸發高頻率微小回彈點擊音效
             playLoadingTick(900);
             
-            // 卡片與背景公式退場阻尼收縮及漸隱動畫
             modalCard.style.transform = "scale(0.95)";
             modalCard.style.opacity = "0";
             modal.classList.remove('active');
@@ -841,14 +868,13 @@
             }, 550);
         }
 
-        // 💎 核心修改：點擊 Try Again 按鈕時，不進行本地重置，而是直接透過實體 URL 連結重新載入 index.html 並傳遞 error 參數 💎
+        // 點擊 Try Again 按鈕時，透過實體 URL 連結重新載入
         function reloginWelcome() {
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
             
             playLoadingTick(900);
             
-            // 卡片阻尼縮小退場動畫
             modalCard.style.transform = "scale(0.95)";
             modalCard.style.opacity = "0";
             modal.classList.remove('active');
@@ -856,13 +882,12 @@
             
             setTimeout(() => {
                 modal.classList.add('pointer-events-none');
-                // 🚀 核心優化：直接透過實體 Link 重新載入，避免載入不全的問題 🚀
                 const errMsg = authErrorMessage || "帳號或密碼錯誤";
                 window.location.href = "https://phyuaaphysics.github.io/phyustudio/index.html?error=" + encodeURIComponent(errMsg);
             }, 550);
         }
 
-        // 💎 完美還原磨砂玻璃卡片與輸入欄位的 iOS 阻尼回滾與重置程序 (用於其他本地重設情境) 💎
+        // 💎 完美還原磨砂玻璃卡片與輸入欄位的 iOS 阻尼回滾與重置程序 💎
         function rollbackSystem(errorMessage) {
             const landing = document.getElementById('landing-screen');
             const formulaContainer = document.getElementById('formula-container');
@@ -870,18 +895,15 @@
             const errorMsg = document.getElementById('error-msg');
             const launchBtn = document.getElementById('launch-btn');
 
-            // 1. 平滑還原為資料庫背景圖片與 Tiffany Blue 綠色基底
             document.body.style.backgroundColor = "#81D8D0";
             if (currentBgUrl) {
                 document.body.style.backgroundImage = `url('${currentBgUrl}')`;
             }
 
-            // 2. 恢復公式飄移與容器透明度
             if (formulaContainer) {
                 formulaContainer.style.opacity = "1";
             }
 
-            // 3. 還原磨砂玻璃卡片本體樣式
             landing.style.background = "rgba(255, 255, 255, 0.45)";
             landing.style.borderColor = "rgba(255, 255, 255, 0.4)";
             landing.style.boxShadow = "0 30px 70px rgba(0, 0, 0, 0.12)";
@@ -890,7 +912,6 @@
             landing.style.transform = "translateY(0px)";
             landing.style.opacity = "1";
 
-            // 4. 還原卡片內部的各項視差元素與功能可用狀態 (保留 username，僅清除並解鎖 password)
             document.getElementById('item-icon').style.transform = "translateY(0px)";
             document.getElementById('item-icon').style.opacity = "1";
 
@@ -906,7 +927,7 @@
             
             document.getElementById('username').disabled = false;
             document.getElementById('password').disabled = false;
-            document.getElementById('password').value = ""; // 清空密碼欄位
+            document.getElementById('password').value = "";
 
             launchBtn.style.transform = "translateY(0px)";
             launchBtn.style.opacity = "1";
@@ -914,7 +935,6 @@
             launchBtn.disabled = false;
             launchBtn.innerText = "Login & Browse";
 
-            // 5. 漸隱內嵌式進度條
             loadingInline.style.opacity = "0";
             loadingInline.style.transform = "translateY(0px)";
             setTimeout(() => {
@@ -922,7 +942,6 @@
                 document.getElementById('bar-progress').style.width = "0%";
             }, 1000);
 
-            // 6. 輸出錯誤訊息，並播放警告音效
             if (errorMessage) {
                 errorMsg.innerText = errorMessage;
                 errorMsg.style.opacity = "1";
