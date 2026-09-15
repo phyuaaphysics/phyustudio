@@ -842,6 +842,13 @@
 
         // 點擊 Modal 的確認按鈕，流暢跳轉
         function confirmWelcomeRedirect() {
+            // 🔴 修正：登入失敗時，「Try Again」掣應該 reload index.html，而唔係去 home.html
+            if (authResult !== true) {
+                reloginWelcome();
+                return;
+            }
+            
+            // 🟢 登入成功：去 home.html
             const modal = document.getElementById('welcome-modal');
             const modalCard = modal.querySelector('.ios-glass-card');
             const formulaContainer = document.getElementById('formula-container');
