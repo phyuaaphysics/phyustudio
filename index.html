@@ -746,11 +746,11 @@
                         type: 'standard',
                         theme: 'outline',         // 白色 outline = Google 官方 brand-style
                         size: 'medium',
-                        text: 'signin_with',      // "Sign in with Google"
+                        text: 'continue_with',    // "Continue with Google" 英文版
                         shape: 'pill',            // 圓角 pill 形狀
                         logo_alignment: 'left',   // 彩色 G logo 喺左邊
-                        locale: 'zh-Hant',
-                        width: 270
+                        locale: 'en',             // 強制英文 UI (避免 GIS 跟 browser locale 自動翻譯做中文)
+                        width: 270                // 配合 max-w-[270px]，同 LOGIN & BROWSE capsule 一樣闊
                     }
                 );
                 // GIS renderButton 已注入官方 button — hide 載入中嘅 placeholder
