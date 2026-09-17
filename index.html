@@ -19,6 +19,9 @@
     <!-- 外部 Manifest 連結 -->
     <link class="manifest" rel="manifest" href="https://phyuaaphysics.github.io/phyustudio/manifest.json">
 
+    <!-- ✨ NEW: Google Identity Services（GIS）— Google 登入 SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -277,7 +280,7 @@
 
         <!-- 登入按鈕區與內嵌式進度條 -->
         <div class="w-full flex flex-col items-center parallax-item" id="item-button">
-            <button 
+            <button
                 id="launch-btn"
                 onmouseenter="playHoverSound()"
                 onclick="handleLogin(event)"
@@ -285,6 +288,33 @@
             >
                 Login & Browse
             </button>
+
+            <!-- ✨ NEW: Google 登入分隔線 -->
+            <div class="flex items-center w-full max-w-[270px] mt-5 mb-3 gap-3 opacity-60">
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#1b365d]/40 to-transparent"></div>
+                <span class="text-[9px] tracking-[0.25em] uppercase text-[#1b365d]/60 font-medium">OR</span>
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#1b365d]/40 to-transparent"></div>
+            </div>
+
+            <!-- ✨ NEW: Google 登入按鈕容器 — GIS renderButton 會將官方 brand button (白色 pill + 彩色 G logo + "Sign in with Google") inject 入此 div -->
+            <!-- ⚠️ 重要：用 <div> 而唔係 <button>，避免 GIS renderButton 注入官方 button 時同 fallback content 疊埋一齊 -->
+            <!-- 內部若有 GIS 注入嘅 iframe，GIS 會接管 click handler；用家自製 fallback 只會喺 GIS 載入失敗時顯示 -->
+            <div
+                id="google-btn"
+                class="w-full max-w-[270px] h-10 flex items-center justify-center"
+                style="min-height: 40px; position: relative;"
+            >
+                <!-- GIS 載入中嘅 placeholder (渲染後會被 GIS button 取代) -->
+                <div id="google-btn-loading" class="rounded-full border border-[#1b365d]/20 bg-white/85 text-[#1b365d] text-[10px] font-semibold tracking-[0.25em] uppercase w-full h-10 flex items-center justify-center gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google Login
+                </div>
+            </div>
 
             <!-- 隱藏的內嵌進度條，啟動時浮現於按鈕下方 -->
             <div id="loading-inline-container" class="w-full max-w-[270px] -mt-10 opacity-0 transition-all duration-1000 hidden flex flex-col items-center translate-y-[-10px]">
@@ -358,9 +388,20 @@
 
         // 🔗 您的 Google Apps Script (GAS) Guard API 明文網址 (對接第 10 版正式端點) 🔗
         const GAS_GUARD_URL = "https://script.google.com/macros/s/AKfycbzbEsadfUC_JjATVlglhahe8Pv-sVRxnlYg0ZDgFEk33_V1qzXWJsep0oN8Sb7EtGFW/exec";
-        
+
         // 🔗 轉跳目標主網頁明文網址 🔗
         const TARGET_URL = "https://phyuaaphysics.github.io/phyustudio/home.html";
+
+        // ✨ NEW: Google OAuth Client ID — 已 set 喺 Google Cloud Console
+        //   教學: https://console.cloud.google.com/apis/credentials → Create OAuth client ID → Web application
+        //   Authorized JavaScript origins 加入 https://phyuaaphysics.github.io (及 http://localhost)
+        const GOOGLE_CLIENT_ID = "1095891802658-qkmj8gli98p47hmgv07fjgv80agfjcr3.apps.googleusercontent.com";
+        //   GIS scope: 'email' 已足夠 (可加 'profile' 取名字)
+        //   GIS docs: https://developers.google.com/identity/oauth2/web/guides/use-token-model
+
+        // ✨ NEW: Google 登入獨立 GAS endpoint (部署 oauth_guard.gs 後填入 Web App URL)
+        //   此 GAS 與密碼 GAS (guard.gs) 完全分離, 但用同一 JWT_SALT 共用 token scheme
+        const GAS_OAUTH_URL = "https://script.google.com/macros/s/AKfycbzvFsU5bT9KO-DdFF5a0AKjPYx2JWCmnbB_DP3z1ujKwIsxDqdGYnl3SY__qagjM0M/exec";  // ← 部署 oauth_guard.gs 後改!
 
         // PWA Service Worker 註冊
         if ('serviceWorker' in navigator) {
@@ -413,6 +454,8 @@
         window.addEventListener('DOMContentLoaded', () => {
             formulaInterval = setInterval(() => createFormula(), 250);
             loadBackgroundFromSheet();
+            // ✨ NEW: 初始化 Google Identity Services (GIS SDK 異步 load)
+            initGoogleSignIn();
 
             // 💎 核心修改：當頁面重新加載時，自動解析網址帶來的錯誤參數並精準顯示 💎
             const urlParams = new URLSearchParams(window.location.search);
@@ -666,6 +709,177 @@
             });
         }
 
+        // =====================================================
+        // ✨ NEW: Google Identity Services (GIS) 整合 — v5 OAuth 雙 GAS split
+        //   前端 GIS 拎 ID token → POST 落獨立 GAS (oauth_guard.gs, GAS_OAUTH_URL)
+        //   GAS 用 oauth2.googleapis.com/tokeninfo verify + 比對 Sheet 欄 H email
+        //   簽 JWT 後 return 返 token, 父頁存 localStorage → welcome modal → redirect
+        //   共用 JWT_SALT = "phyuaasystem92" 同 password GAS 互通 token
+        // =====================================================
+
+        // GIS 啟動器（若 SDK 仲未 loaded, 會輪詢; fallback 為 fallback button）
+        function initGoogleSignIn() {
+            if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+                window._gisRetryCount = (window._gisRetryCount || 0) + 1;
+                if (window._gisRetryCount > 30) {
+                    console.warn("GIS SDK 載入逾時, 用 fallback button");
+                    return;
+                }
+                setTimeout(initGoogleSignIn, 100);
+                return;
+            }
+            try {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleCredentialResponse,
+                    auto_select: false,        // 唔 auto-login 之前嘅 Google user
+                    cancel_on_tap_outside: true,
+                    context: 'signin',
+                    itp_support: true
+                });
+                // 用官方 GIS button style 取代 fallback DOM button
+                // ⚠️ 必須用 <div> container (而非 <button>)，否則 GIS button 會同 fallback content 疊埋
+                //   GIS renderButton 會 inject iframe 結構入此 div
+                google.accounts.id.renderButton(
+                    document.getElementById('google-btn'),
+                    {
+                        type: 'standard',
+                        theme: 'outline',         // 白色 outline = Google 官方 brand-style
+                        size: 'medium',
+                        text: 'signin_with',      // "Sign in with Google"
+                        shape: 'pill',            // 圓角 pill 形狀
+                        logo_alignment: 'left',   // 彩色 G logo 喺左邊
+                        locale: 'zh-Hant',
+                        width: 270
+                    }
+                );
+                // GIS renderButton 已注入官方 button — hide 載入中嘅 placeholder
+                const placeholder = document.getElementById('google-btn-loading');
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+                console.log("✅ GIS 初始化成功 (官方 brand button 已 render)");
+            } catch (e) {
+                console.error("GIS init 失敗:", e);
+            }
+        }
+
+        // GIS callback: user 揀完 Google account 後觸發
+        function handleGoogleCredentialResponse(response) {
+            if (!response || !response.credential) {
+                const errorMsg = document.getElementById('error-msg');
+                if (errorMsg) {
+                    errorMsg.innerText = "Google 登入失敗：未取得憑證";
+                    errorMsg.style.opacity = '1';
+                }
+                playLoadingTick(300);
+                return;
+            }
+            // response.credential = ID Token (JWT, 含 user 身份)
+            submitGoogleLogin(response.credential);
+        }
+
+        // Google button click handler (亦作為 fallback 用, GIS SDK 仲未 loaded 時)
+        function openGoogleLogin() {
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                // GIS 已 ready, 用官方 prompt (例如 user 撳 fallback placeholder 而 GIS 已 loaded 但未 render button)
+                google.accounts.id.prompt();
+            } else {
+                // GIS 未 loaded (race condition / SDK blocked), 顯示錯誤提示
+                const errorMsg = document.getElementById('error-msg');
+                if (errorMsg) {
+                    errorMsg.innerText = "Google 登入 SDK 仍未載入, 請稍候再試或用傳統登入";
+                    errorMsg.style.opacity = '1';
+                }
+                playLoadingTick(300);
+            }
+        }
+
+        // ✨ NEW: 為 fallback placeholder 加 click handler
+        //   GIS renderButton 注入官方 button 後會接管 click；呢個 handler 只喺 GIS 載入失敗時先 trigger
+        document.addEventListener('DOMContentLoaded', () => {
+            const placeholder = document.getElementById('google-btn-loading');
+            if (placeholder) {
+                placeholder.addEventListener('click', openGoogleLogin);
+                placeholder.style.cursor = 'pointer';
+                placeholder.addEventListener('mouseenter', playHoverSound);
+            }
+        });
+
+        // 將 ID Token POST 到 GAS_OAUTH_URL (獨立 oauth_guard.gs endpoint)
+        function submitGoogleLogin(idToken) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            // 清空 stale state, 同 password login 一樣
+            localStorage.clear();
+
+            authResult = null;
+            authErrorMessage = "";
+
+            // 啟動前置過渡動畫（同 password login 一樣）
+            startPreLaunch();
+            runLoadingLoop();
+
+            const controller = new AbortController();
+            guardTimeoutId = setTimeout(() => {
+                controller.abort();
+                if (authResult === null) {
+                    authErrorMessage = "Google 認證伺服器連線超時";
+                    authResult = false;
+                }
+            }, 8000); // 8 秒超時
+
+            fetch(GAS_OAUTH_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain" // 同 password login 一樣避 preflight
+                },
+                body: JSON.stringify({
+                    id_token: idToken  // GAS_OAUTH_URL endpoint 預設就係 oauth login, 唔需要 action field
+                }),
+                signal: controller.signal
+            })
+            .then(response => {
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                if (controller.signal.aborted) return;
+                if (!response.ok) throw new Error("HTTP status " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (controller.signal.aborted) return;
+
+                if (data.success) {
+                    // 儲 JWT + 用戶資料到 localStorage (同 password login scheme 完全一樣)
+                    if (data.token) localStorage.setItem('jwt_token', data.token);
+                    if (data.role)  localStorage.setItem('user_role', data.role);
+
+                    // ✨ 以 "g_" prefix 標示係 Google login 既 username, 方便 log 分析
+                    const idTag = data.identity_tag || {};
+                    localStorage.setItem('user_username', idTag.real_name ? `g_${idTag.real_name}` : "google_user");
+                    localStorage.setItem('user_class',     idTag.class || "");
+                    localStorage.setItem('user_class_no',  idTag.class_no || "");
+                    localStorage.setItem('user_real_name', idTag.real_name || "");
+
+                    authResult = true;
+                } else {
+                    authErrorMessage = data.message || "Google 登入失敗";
+                    authResult = false;
+                }
+            })
+            .catch(err => {
+                if (guardTimeoutId) clearTimeout(guardTimeoutId);
+                if (err.name === 'AbortError') return;
+                console.error("Google Guard API 失敗:", err);
+                if (err.name === 'AbortError') {
+                    authErrorMessage = "Google 認證伺服器連線超時";
+                } else {
+                    authErrorMessage = "Google 認證伺服器連線異常";
+                }
+                authResult = false;
+            });
+        }
+
         // 啟動前置淡出轉場畫面
         function startPreLaunch() {
             const landing = document.getElementById('landing-screen');
@@ -712,6 +926,17 @@
             launchBtn.style.opacity = "0";
             launchBtn.style.pointerEvents = "none";
             launchBtn.disabled = true;
+
+            // ✨ NEW: Google button 同樣淡出 + disable (避免 loading 期間殘留 UI)
+            // ⚠️ google-btn 而家係 <div> container (內含 GIS 注入嘅 iframe button)
+            //   <div> 冇 .disabled attribute，所以用 pointer-events + aria-disabled + opacity 處理
+            const googleBtn = document.getElementById('google-btn');
+            if (googleBtn) {
+                googleBtn.style.transform = "translateY(-20px)";
+                googleBtn.style.opacity = "0";
+                googleBtn.style.pointerEvents = "none";
+                googleBtn.setAttribute('aria-disabled', 'true');
+            }
 
             document.getElementById('bar-container').style.display = 'block';
             
@@ -941,6 +1166,16 @@
             launchBtn.style.pointerEvents = "auto";
             launchBtn.disabled = false;
             launchBtn.innerText = "Login & Browse";
+
+            // ✨ NEW: Google button 同樣 restore
+            // ⚠️ <div> 冇 .disabled attribute，所以用 pointer-events + aria-disabled restore
+            const googleBtn = document.getElementById('google-btn');
+            if (googleBtn) {
+                googleBtn.style.transform = "translateY(0px)";
+                googleBtn.style.opacity = "1";
+                googleBtn.style.pointerEvents = "auto";
+                googleBtn.removeAttribute('aria-disabled');
+            }
 
             loadingInline.style.opacity = "0";
             loadingInline.style.transform = "translateY(0px)";
