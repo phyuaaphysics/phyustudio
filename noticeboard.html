@@ -33,7 +33,7 @@ body { font-family: 'Inter','Noto Sans TC',sans-serif; background: var(--bg); co
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 .theme-toggle { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 6px; border-radius: 8px; display: flex; align-items: center; transition: background 0.15s; }
 .theme-toggle:hover { background: var(--border); }
-/* 新增：返回首頁按鈕樣式 */
+/* 返回首頁按鈕樣式 */
 .home-btn {
   display: flex; align-items: center; justify-content: center;
   width: 36px; height: 36px; border-radius: 50%;
@@ -63,7 +63,6 @@ body { font-family: 'Inter','Noto Sans TC',sans-serif; background: var(--bg); co
 .role-selector label { font-size: 14px; font-weight: 500; color: var(--text-muted); white-space: nowrap; }
 .role-selector select { flex: 1; min-width: 160px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; cursor: pointer; outline: none; }
 .role-selector select:focus { border-color: var(--primary); }
-.role-info { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; }
 
 /* ── Calendar ── */
 .calendar-wrap { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
@@ -92,6 +91,46 @@ body { font-family: 'Inter','Noto Sans TC',sans-serif; background: var(--bg); co
 .day-panel-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
 .day-panel-title .clear-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 12px; padding: 2px 6px; border-radius: 4px; }
 .day-panel-title .clear-btn:hover { background: var(--border); color: var(--text); }
+
+/* ── Two-Column Calendar Layout ── */
+.calendar-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.calendar-layout .calendar-wrap {
+  flex: 1.5;
+  min-width: 0;
+  margin-bottom: 0;
+}
+.calendar-layout .day-panel {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+/* Custom scrollbar for day-panel */
+.calendar-layout .day-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.calendar-layout .day-panel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+@media (max-width: 900px) {
+  .calendar-layout {
+    flex-direction: column;
+  }
+  .calendar-layout .calendar-wrap,
+  .calendar-layout .day-panel {
+    width: 100%;
+    flex: none;
+    max-height: none;
+  }
+}
 
 /* ── Notice Cards ── */
 .notice-list { display: flex; flex-direction: column; gap: 12px; }
@@ -378,6 +417,12 @@ function parseDate(str) {
 // Render
 // ═══════════════════════════════════════════════
 function render() {
+  // 驗證 userRole：若為空、teacher 或 admin，一律自動切換為 S4
+  if (!userRole || userRole === 'teacher' || userRole === 'admin') {
+    userRole = 'S4';
+    localStorage.setItem('nb_role', userRole);
+  }
+
   const app = document.getElementById('app');
 
   if (loading) {
@@ -407,15 +452,14 @@ function render() {
     return;
   }
 
-  const isTA     = userRole === 'teacher' || userRole === 'admin';
-  const filtered = isTA ? allNotices : allNotices.filter(n => n.role === userRole);
+  const filtered = allNotices.filter(n => n.role === userRole);
   const today    = new Date(); today.setHours(0,0,0,0);
 
   app.innerHTML = `
     <div class="board-header">
       <div>
         <div class="board-title">📋 公告板</div>
-        <div class="board-subtitle">${isTA ? '老師身份 — 可見全部公告' : '檢視身份：' + escapeHtml(userRole)}</div>
+        <div class="board-subtitle">檢視身份：${escapeHtml(userRole)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div class="notice-count" id="noticeCount">— 項公告</div>
@@ -429,27 +473,26 @@ function render() {
     <div class="role-selector">
       <label for="roleSelect">你的身份：</label>
       <select id="roleSelect"></select>
-      <div class="role-info">teacher / admin 可看全部</div>
     </div>
 
     ${currentView === 'calendar'
         ? renderCalendar(filtered, today)
-        : renderListShell(filtered, isTA)}
+        : renderListShell(filtered)}
   `;
 
-  bindEvents(filtered, today, isTA);
+  bindEvents(filtered, today);
 }
 
 // ═══════════════════════════════════════════════
 // 事件綁定
 // ═══════════════════════════════════════════════
-function bindEvents(filtered, today, isTA) {
-  // 身份選單
+function bindEvents(filtered, today) {
+  // 身份選單 (只保留 S4, S5, S6)
   const select = document.getElementById('roleSelect');
-  ['teacher','admin','S4','S5','S6'].forEach(r => {
+  ['S4','S5','S6'].forEach(r => {
     const opt = document.createElement('option');
     opt.value = r;
-    opt.textContent = r === 'teacher' ? '👩‍🏫 Teacher' : r === 'admin' ? '🔧 Admin' : r + ' 級';
+    opt.textContent = r + ' 級';
     if (r === userRole) opt.selected = true;
     select.appendChild(opt);
   });
@@ -491,6 +534,12 @@ function bindEvents(filtered, today, isTA) {
         selectedDateKey = (selectedDateKey === key) ? null : key;
         render();
       });
+    });
+
+    // 清除按鈕
+    document.getElementById('clearDay')?.addEventListener('click', () => {
+      selectedDateKey = null;
+      render();
     });
 
   } else {
@@ -585,7 +634,7 @@ function renderCalendar(notices, today) {
     cells += `<div class="cal-cell other-month"><div class="cal-day-num">${i}</div></div>`;
   }
 
-  return `
+  const calendarHtml = `
     <div class="calendar-wrap">
       <div class="cal-nav">
         <button class="cal-nav-btn" id="calPrev">← 上一月</button>
@@ -600,8 +649,27 @@ function renderCalendar(notices, today) {
         ${cells}
       </div>
     </div>
+  `;
 
-    ${selectedDateKey ? renderDayPanel(notices, selectedDateKey, today) : ''}
+  let rightPanelHtml = '';
+  if (selectedDateKey) {
+    rightPanelHtml = renderDayPanel(notices, selectedDateKey, today);
+  } else {
+    rightPanelHtml = `
+      <div class="day-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 300px; color: var(--text-muted);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4;">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+        </svg>
+        <p>點選日期查看公告詳情</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="calendar-layout">
+      ${calendarHtml}
+      ${rightPanelHtml}
+    </div>
   `;
 }
 
@@ -635,21 +703,15 @@ function renderDayPanel(notices, key, today) {
       <div class="notice-list">
         ${dayNotices.map(n => renderCard(n, today)).join('')}
       </div>
-    </div>
-    <script>
-      document.getElementById('clearDay').addEventListener('click', function () {
-        selectedDateKey = null; render();
-      });
-    <\/script>
-  `;
+    </div>`;
 }
 
 // ═══════════════════════════════════════════════
 // List View
 // ═══════════════════════════════════════════════
-function renderListShell(notices, isTA) {
+function renderListShell(notices) {
   const availableRoles = [...new Set(notices.map(n => n.role).filter(Boolean))].sort();
-  const showChips = isTA && availableRoles.length > 1;
+  const showChips = availableRoles.length > 1;
 
   return `
     ${showChips ? `
