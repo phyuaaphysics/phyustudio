@@ -81,7 +81,6 @@ body { font-family: 'Inter','Noto Sans TC',sans-serif; background: var(--bg); co
 .cal-day-num { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 .cal-dots { display: flex; gap: 2px; flex-wrap: wrap; }
 .cal-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.cal-dot.post { background: var(--primary); }
 .cal-dot.due  { background: var(--warning); }
 .cal-dot.overdue { background: var(--danger); }
 .cal-count { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
@@ -196,6 +195,13 @@ body { font-family: 'Inter','Noto Sans TC',sans-serif; background: var(--bg); co
     PH Studio 公告板
   </a>
   <div class="topbar-right">
+    <!-- 刷新按鈕：強制重新讀取 Google Sheet -->
+    <button class="theme-toggle" id="refreshBtn" title="重新整理" aria-label="重新整理">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6M1 20v-6h6" />
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+      </svg>
+    </button>
     <!-- 返回首頁按鈕 (home.html) -->
     <a class="home-btn" href="home.html" title="返回首頁" aria-label="返回首頁">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -252,6 +258,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('ph_theme', next);
+  });
+
+  // 刷新按鈕：強制重新載入
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    loadNotices();
   });
 
   if (location.protocol === 'file:') {
@@ -581,17 +592,14 @@ function renderCalendar(notices, today) {
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
 
-  // 依日期分組
+  // 依截止日期分組（只使用 dueDate）
   const byDate = {};
   notices.forEach(n => {
-    const pKey = n.postDate ? dateKey(n.postDate) : null;
-    const dKey = n.dueDate  ? dateKey(n.dueDate)  : null;
-    [pKey, dKey].forEach(k => {
-      if (!k) return;
-      if (!byDate[k]) byDate[k] = { post: [], due: [] };
-    });
-    if (pKey) byDate[pKey].post.push(n);
-    if (dKey) byDate[dKey].due.push(n);
+    if (n.dueDate) {
+      const dKey = dateKey(n.dueDate);
+      if (!byDate[dKey]) byDate[dKey] = [];
+      byDate[dKey].push(n);
+    }
   });
 
   let cells = '';
@@ -606,13 +614,12 @@ function renderCalendar(notices, today) {
     const d = new Date(calYear, calMonth, day);
     d.setHours(0,0,0,0);
     const key = dateKey(d);
-    const info = byDate[key] || { post: [], due: [] };
+    const dueList = byDate[key] || [];
 
     const isToday = d.getTime() === today.getTime();
     const isSel   = selectedDateKey === key;
-    const postCount = info.post.length;
-    const dueCount  = info.due.length;
-    const total     = postCount + dueCount;
+    const dueCount = dueList.length;
+    const total    = dueCount;
 
     const classes = ['cal-cell', isToday ? 'today' : '', isSel ? 'selected' : ''].filter(Boolean).join(' ');
 
@@ -620,8 +627,7 @@ function renderCalendar(notices, today) {
       <div class="${classes}" data-date="${key}">
         <div class="cal-day-num">${day}</div>
         <div class="cal-dots">
-          ${postCount > 0 ? `<div class="cal-dot post" title="${postCount} 項發布"></div>` : ''}
-          ${dueCount  > 0 ? `<div class="cal-dot ${d < today ? 'overdue' : 'due'}" title="${dueCount} 項截止"></div>` : ''}
+          ${dueCount > 0 ? `<div class="cal-dot ${d < today ? 'overdue' : 'due'}" title="${dueCount} 項截止"></div>` : ''}
         </div>
         ${total > 0 ? `<div class="cal-count">${total}項</div>` : ''}
       </div>`;
@@ -653,16 +659,36 @@ function renderCalendar(notices, today) {
 
   let rightPanelHtml = '';
   if (selectedDateKey) {
+    // 點選了日期：顯示該日期截止的項目
     rightPanelHtml = renderDayPanel(notices, selectedDateKey, today);
   } else {
-    rightPanelHtml = `
-      <div class="day-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 300px; color: var(--text-muted);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4;">
-          <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-        </svg>
-        <p>點選日期查看公告詳情</p>
-      </div>
-    `;
+    // 未點選日期：顯示全部未截止的項目（dueDate >= today）
+    const upcomingNotices = notices.filter(n => n.dueDate && n.dueDate >= today);
+    // 排序：按截止日期升序
+    upcomingNotices.sort((a, b) => a.dueDate - b.dueDate);
+
+    if (upcomingNotices.length === 0) {
+      rightPanelHtml = `
+        <div class="day-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 200px; color: var(--text-muted);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4;">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          <p>沒有未截止的公告</p>
+        </div>
+      `;
+    } else {
+      rightPanelHtml = `
+        <div class="day-panel">
+          <div class="day-panel-title">
+            📌 未截止項目（${upcomingNotices.length} 項）
+            <button class="clear-btn" id="clearDay" style="display:none;">✕ 清除</button>
+          </div>
+          <div class="notice-list">
+            ${upcomingNotices.map(n => renderCard(n, today)).join('')}
+          </div>
+        </div>
+      `;
+    }
   }
 
   return `
@@ -675,16 +701,14 @@ function renderCalendar(notices, today) {
 
 function renderDayPanel(notices, key, today) {
   const date = keyToDate(key);
-  const dayNotices = notices.filter(n =>
-    (n.postDate && dateKey(n.postDate) === key) ||
-    (n.dueDate  && dateKey(n.dueDate)  === key)
-  );
+  // 只根據截止日期匹配
+  const dayNotices = notices.filter(n => n.dueDate && dateKey(n.dueDate) === key);
 
   if (dayNotices.length === 0) {
     return `
       <div class="day-panel">
         <div class="day-panel-title">
-          📅 ${formatDateDisplay(date)} — 沒有公告
+          📅 ${formatDateDisplay(date)} — 沒有截止項目
           <button class="clear-btn" id="clearDay">✕ 清除</button>
         </div>
       </div>`;
